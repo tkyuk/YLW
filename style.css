@@ -1,0 +1,41 @@
+
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+  background: #f7f7f9;
+  color: #222;
+  margin: 0;
+  padding: 2rem 1rem;
+  line-height: 1.7;
+}
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.8rem; }
+.back-link { display: inline-block; margin-bottom: 1rem; color: #4a5cff; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.note-header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 1rem; }
+.meta { color: #666; font-size: 0.9rem; margin-top: 0.5rem; }
+.tag {
+  display: inline-block;
+  background: #eef0ff;
+  color: #4a5cff;
+  border-radius: 999px;
+  padding: 0.1rem 0.7rem;
+  margin-right: 0.3rem;
+  font-size: 0.8rem;
+}
+.note-body pre { background: #282c34; color: #eee; padding: 1rem; overflow-x: auto; border-radius: 6px; }
+.note-body code { background: #eee; padding: 0.1rem 0.3rem; border-radius: 4px; }
+.note-body pre code { background: none; padding: 0; }
+.folder-section { margin-bottom: 2rem; }
+.folder-section h2 { font-size: 1.2rem; border-bottom: 2px solid #4a5cff; display: inline-block; }
+ul.note-list { list-style: none; padding: 0; }
+ul.note-list li {
+  background: #fff;
+  border: 1px solid #e3e3e8;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.6rem;
+}
+ul.note-list a { text-decoration: none; color: #222; font-weight: 600; }
+ul.note-list a:hover { color: #4a5cff; }
+ul.note-list .note-date { color: #888; font-size: 0.85rem; margin-left: 0.5rem; }
