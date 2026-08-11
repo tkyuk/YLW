@@ -143,6 +143,19 @@ def build():
         p for p in NOTES_DIR.rglob("*.md") if not p.name.startswith("_")
     )
 
+    # 노트 안에서 참조하는 이미지 등 정적 파일(예: assets/*)을 dist로 함께 복사
+    asset_files = [
+        p for p in NOTES_DIR.rglob("*")
+        if p.is_file() and p.suffix.lower() != ".md"
+    ]
+    for asset_path in asset_files:
+        rel = asset_path.relative_to(NOTES_DIR)
+        dest = DIST_DIR / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(asset_path, dest)
+    if asset_files:
+        print(f"정적 파일(이미지 등) {len(asset_files)}개 복사 완료")
+
     sections: dict[str, list[dict]] = {}
 
     for md_path in md_files:

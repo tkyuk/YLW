@@ -2,3 +2,5 @@ dist/
 __pycache__/
 *.pyc
 .claude/
+_tools/
+_onenote-export/

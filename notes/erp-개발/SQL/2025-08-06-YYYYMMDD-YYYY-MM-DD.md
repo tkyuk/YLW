@@ -1,0 +1,23 @@
+---
+title: YYYYMMDD -\> YYYY-MM-DD
+date: 2025-08-06
+tags: [erp, 개발, SQL]
+---
+
+# YYYYMMDD -\> YYYY-MM-DD
+
+--STUFF(STUFF(@RegDate, 5, 0, '-'), 8, 0, '-') AS Title
+
+--FORMAT(CONVERT(DATETIME, @RegDate), 'yyyy-MM-dd') AS Title
+
+CONVERT(NCHAR(10), CONVERT(DATETIME, @RegDate), 23) AS Title
+
+ 
+
+ 
+
+ 
+
+FORMAT 함수는 구문이 직관적이어서 이해하기 쉽습니다. 하지만 STUFF나 CONVERT에 비해 성능이 떨어질 수 있다는 점을 고려해야 합니다. 대용량 데이터를 다루지 않는다면 FORMAT이 가장 편리하고 가독성이 좋습니다.
+
+성능을 중요하게 생각한다면 \*\*STUFF\*\*나 \*\*CONVERT\*\*를 사용하는 것이 더 효율적입니다.

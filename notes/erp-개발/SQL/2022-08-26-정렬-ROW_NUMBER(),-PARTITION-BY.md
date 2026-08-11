@@ -1,0 +1,23 @@
+---
+title: 정렬 ROW_NUMBER(), PARTITION BY
+date: 2022-08-26
+tags: [erp, 개발, SQL]
+---
+
+# 정렬 ROW_NUMBER(), PARTITION BY
+
+-- 정렬이 필요 없는 경우
+
+-- ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS Row,
+
+ 
+
+-- 정렬이 필요한 경우
+
+-- ROW_NUMBER() OVER (ORDER BY COLUMN5, COLUMN2) AS Row,
+
+ 
+
+-- PARTITION BY 절 추가
+
+-- ROW_NUMBER() OVER (PARTITION BY COLUMN7 ORDER BY COLUMN5, COLUMN2) AS Row#,

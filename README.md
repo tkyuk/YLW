@@ -68,3 +68,29 @@ python scripts/build_notes.py
 - `notes/**`
 - `scripts/build_notes.py`
 - `.github/workflows/build-html.yml`
+
+## OneNote에서 일괄 가져오기
+
+기존 OneNote 노트를 한 번에 마크다운으로 옮길 때 사용하는 도구입니다.
+
+1. OneNote 데스크톱 앱에서 섹션 단위로 **파일 → 내보내기 → 범위: 섹션 → 형식: Word(.docx)** 로 내보내
+   `C:\WorkSpace\AI\_onenote-export\` 폴더에 저장합니다. (섹션명 그대로 파일명 사용, 여러 섹션 가능)
+2. PowerShell에서 변환 스크립트를 실행합니다.
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\import-onenote.ps1
+   ```
+
+   - pandoc(포터블, `_tools/`에 위치, git에는 미포함)으로 `.docx`를 마크다운으로 변환합니다.
+   - OneNote 페이지 구분 패턴(제목 → 날짜 → 시간)을 인식해 페이지별로 노트 파일을 분리합니다.
+   - WMF/EMF 이미지는 PNG로 자동 변환합니다.
+   - 각 섹션은 `notes/erp-개발/<섹션명>/` 폴더로, 이미지는 `assets/<페이지-slug>/`로 저장됩니다.
+
+3. 변환 후 이미지 참조가 깨지지 않았는지 확인하려면:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\verify-images.ps1
+   ```
+
+4. `_onenote-export/`, `_tools/`는 `.gitignore`에 포함되어 있어 커밋되지 않습니다.
+   결과물(`notes/**.md`, `notes/**/assets/**`)만 커밋하면 됩니다.
