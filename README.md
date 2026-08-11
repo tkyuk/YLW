@@ -94,3 +94,23 @@ python scripts/build_notes.py
 
 4. `_onenote-export/`, `_tools/`는 `.gitignore`에 포함되어 있어 커밋되지 않습니다.
    결과물(`notes/**.md`, `notes/**/assets/**`)만 커밋하면 됩니다.
+
+## OneNote 자동 동기화 (매일 1회)
+
+OneNote 데스크톱 앱의 COM 자동화(Interop) API를 이용해, 파일 → 내보내기를 수동으로
+하지 않아도 변경된/새 페이지만 감지해서 자동으로 git에 반영합니다.
+
+- **동작 방식**: `scripts/sync-onenote.ps1`이 OneNote 전체 계층(노트북/섹션/페이지)을 조회하고,
+  각 페이지의 `lastModifiedTime`을 이전 동기화 기록(`_onenote-export/sync-state.json`, 로컬 전용)과
+  비교해서 새 페이지·수정된 페이지만 내보내기(Publish) → pandoc 변환 → 이미지 처리 →
+  `notes/erp-개발/<섹션명>/*.md` 로 저장합니다. 변경 사항이 있으면 자동으로 `git commit` & `push`까지 수행합니다.
+- **삭제된 페이지**: OneNote에서 삭제된 페이지는 대응하는 노트 파일/이미지도 함께 삭제됩니다.
+- **예약 실행**: Windows 작업 스케줄러에 `OneNote-YLW-Sync` 작업으로 등록되어 있으며,
+  **매일 오전 9시**에 자동 실행됩니다. (해당 시각에 PC가 켜져 있고 로그인되어 있어야 합니다.)
+  - 등록/재등록: `powershell -ExecutionPolicy Bypass -File scripts\register-onenote-sync-task.ps1`
+  - 수동 실행: `powershell -ExecutionPolicy Bypass -File scripts\sync-onenote.ps1`
+  - 실행 시간 변경: 작업 스케줄러(taskschd.msc)에서 `OneNote-YLW-Sync` 작업의 트리거 시간을 수정
+  - 실행 로그: `_onenote-export/sync-logs/`
+- **참고**: 실시간 반영이 아니라 하루 1회 폴링 방식입니다. 급하게 반영이 필요하면 수동 실행하면 됩니다.
+- **최초 1회**: 이미 수동으로 임포트된 섹션은 `scripts/seed-sync-state.ps1`로 baseline 처리를 해두었습니다.
+  (이미 노트 폴더가 존재하는 섹션은 최초 실행 시 건너뛰고, 새 섹션만 처음 동기화됨)
