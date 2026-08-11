@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022-05-24-다이나믹-체크된-것만-조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2022-05-24-다이나믹-체크된-것만-조회</h1>
+    <div class="meta">
+      
+      
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">다이나믹 : 체크된 것만 조회</h1>
+<p>local row,TitleSeq, CellName,QryType1, QryType2, QryType3, AmtEnv,PirceEnv</p>
+<p>row = 0</p>
+<p>QryType1 = aKEditCheckPlan.Value</p>
+<p>QryType2 = aKEditCheckWork.Value</p>
+<p>QryType3 = aKEditCheckDiff.Value</p>
+<p>for col = SS1.SheetFixCols , SS1.MaxCols - 1 do</p>
+<blockquote>
+<p>TitleSeq = GetDataSetValue(m_RecvXml.Data, 'DataBlock2', 'TitleSeq2', row)</p>
+<p>CellName = 'Result'..tostring(SS1.MaxCols - 1 - col)</p>
+<p>SS1.ActiveColumnName = CellName</p>
+<p>SS1.ActiveCol = col</p>
+<p>if QryType1 == '0' then</p>
+<p>if col%3 == 2 then</p>
+<p>--MessageBoxShow(col,'Qrytype1')</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>end</p>
+<p>end        </p>
+<p>if QryType2 == '0' then</p>
+<p>if col%3 == 0 then</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>end</p>
+<p>end</p>
+<p>if QryType3 == '0' then</p>
+<p>if col%3 == 1 then</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>end</p>
+<p>end</p>
+<p>row = row + 1</p>
+</blockquote>
+<p>end</p>
+<p>FrmWPDProdPlanWorkList_mcnv</p>
+<p>생산일정대비실적조회_mcnv</p>
+<p>FrmWPUMonthlyItemList_amt</p>
+<p>월품목구매현황_amt</p>
+  </article>
+</div>
+</body>
+</html>

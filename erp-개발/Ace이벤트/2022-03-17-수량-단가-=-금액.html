@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수량 \* 단가 = 금액</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>수량 \* 단가 = 금액</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">수량 * 단가 = 금액</h1>
+<ul>
+<li>수량 * 단가 = 판매금액 =&gt; 자동 계산 메소드</li>
+</ul>
+<blockquote>
+<p>'CurAmt', CellText(SS1, SS1.ActiveRow, 'Qty') * CellText(SS1, SS1.ActiveRow, 'Price'))</p>
+<p>SetText(SS1, SS1.ActiveRow, 'CurAmt', CellText(SS1, SS1.ActiveRow, 'Qty') * CellText(SS1, SS1.ActiveRow, 'Price'))</p>
+<p><img alt="" src="assets/수량-단가-=-금액/image7.png" /></p>
+<p><img alt="" src="assets/수량-단가-=-금액/image8.png" /></p>
+<p><img alt="" src="assets/수량-단가-=-금액/image9.png" /></p>
+<p>수량, 단가</p>
+<p>속성 – Changed에 작성</p>
+<p><img alt="" src="assets/수량-단가-=-금액/image10.png" /></p>
+</blockquote>
+<p>local Amt, Qty, Price</p>
+<p>Qty = tonumber(CellText(SS1, SS1.ActiveRow, 'Qty'))</p>
+<p>Price = tonumber(CellText(SS1, SS1.ActiveRow, 'Price'))</p>
+<p>Amt = Qty * Price</p>
+<p>SetText(SS1, SS1.ActiveRow, 'Amt', Amt)</p>
+  </article>
+</div>
+</body>
+</html>

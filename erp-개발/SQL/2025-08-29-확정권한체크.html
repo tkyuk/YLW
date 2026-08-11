@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정권한체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정권한체크</h1>
+    <div class="meta">
+      <span class="note-date">2025-08-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">확정권한체크</h1>
+<p>-- 20250811.확정 권한체크 표준 확정관리 세팅하여 사용(권한용)</p>
+<p>DECLARE @EnvValue60 NVARCHAR(2000),</p>
+<p>@ConfirmTableSeq INT,</p>
+<p>@ConfirmSeq INT</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 60, @UserSeq, @@PROCID, @EnvValue60 OUTPUT</p>
+<p>SELECT @ConfirmTableSeq = ConfirmTableSeq</p>
+<p>FROM _TCOMConfirmTable</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND ConfirmTableName = 'das_TDAItemReq'</p>
+<p>SELECT @ConfirmSeq = ConfirmSeq</p>
+<p>FROM _TCOMConfirmDef</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND ConfirmTableSeq = @ConfirmTableSeq</p>
+<p>CREATE TABLE #TCOMConfirm</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>Result NVARCHAR(250),</p>
+<p>MessageType INT,</p>
+<p>Status INT</p>
+<p>)</p>
+<p>INSERT INTO #TCOMConfirm(IDX_NO, Result, MessageType, Status)</p>
+<p>SELECT IDX_NO,</p>
+<p>Result ,</p>
+<p>MessageType,</p>
+<p>Status</p>
+<p>FROM #BIZ_OUT_DataBlock2</p>
+<p>WHERE Status = 0</p>
+<p>IF ISNULL(@EnvValue60,'') = '' OR ISNULL(@EnvValue60,'') = '0'</p>
+<p>BEGIN</p>
+<p>EXEC _SWCOMConfirmSecuCheck @CompanySeq, @ConfirmSeq, @UserSeq, @LanguageSeq</p>
+<p>END</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TCOMConfirm WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result,</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #TCOMConfirm AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.Status \&lt;&gt; 0</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

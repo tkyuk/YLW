@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품목등록업로드_구매단가 연동</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>품목등록업로드_구매단가 연동</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_">품목등록업로드_구매단가 연동</h1>
+<p>DROP PROCEDURE bne_SWDAItemUploadSave</p>
+<p>GO</p>
+<p>/************************************************************************************************</p>
+<p>설 명 - 품목등록Upload 저장</p>
+<p>작성일 - 2013.09.17</p>
+<p>작성자 - CREATEd by 최영규</p>
+<p>*************************************************************************************************/</p>
+<p>CREATE PROCEDURE bne_SWDAItemUploadSave</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@MaxSeq INT,</p>
+<p>@ItemSeq INT,</p>
+<p>@ItemName NVARCHAR(200),</p>
+<p>@TrunName NVARCHAR(200)</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItem', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemClass', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemUnit', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemUnitModule', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemStock', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemSales', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemPurchase', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemProduct', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TDAItemDefUnit', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>--EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>-- @UserSeq ,</p>
+<p>-- '_TPDBaseItemQCType', -- 원테이블명</p>
+<p>-- '#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>-- 'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>-- @PgmSeq, ''</p>
+<p>-- 용량 과부화로 이미지 테이블은 로그를 넣지 않도록 변경 2017.08.10 최영규</p>
+<p>--EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>-- @UserSeq ,</p>
+<p>-- '_TDAItemImage', -- 원테이블명</p>
+<p>-- '#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>-- 'ItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>-- @PgmSeq, ''</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET TrunName = REPLACE(UPPER(ItemName), ' ', '')</p>
+<p>WHERE Status = 0</p>
+<p>-- DELETE</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'D' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>DELETE _TDAItem</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemClass</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemClass AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemUnit</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemUnit AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemUnitModule</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemUnitModule AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemDefUnit</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemDefUnit AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemStock</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemStock AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemSales</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemSales AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemPurchase</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemPurchase AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemProduct</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemProduct AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE _TDAItemImage</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemImage AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>---- 검사여부 삭제</p>
+<p>--DELETE _TPDBaseItemQCType</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- JOIN _TPDBaseItemQCType AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.ItemSeq = A.ItemSeq</p>
+<p>-- WHERE A.WorkingTag = 'D' AND Status = 0</p>
+<p>--IF @@ERROR \&lt;&gt; 0</p>
+<p>--BEGIN</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<p>END</p>
+<p>-- INSERT</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'A' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TDAItem(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>ItemName,</p>
+<p>TrunName,</p>
+<p>ItemNo,</p>
+<p>AssetSeq,</p>
+<p>SMStatus,</p>
+<p>ItemSName,</p>
+<p>ItemEngName,</p>
+<p>ItemEngSName,</p>
+<p>Spec,</p>
+<p>SMABC,</p>
+<p>UnitSeq,</p>
+<p>DeptSeq,</p>
+<p>EmpSeq,</p>
+<p>ModelSeq,</p>
+<p>SMInOutKind,</p>
+<p>--IsInherit,</p>
+<p>RegUserSeq,</p>
+<p>RegDateTime,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime )</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>ISNULL(ItemSeq,0),</p>
+<p>ISNULL(ItemName,''),</p>
+<p>ISNULL(TrunName,''),</p>
+<p>ISNULL(ItemNo,''),</p>
+<p>ISNULL(AssetSeq,0),</p>
+<p>ISNULL(SMStatus, 0),</p>
+<p>ISNULL(ItemSName, ''),</p>
+<p>ISNULL(ItemEngName, ''),</p>
+<p>'',</p>
+<p>ISNULL(Spec, 0),</p>
+<p>ISNULL(SMABC, 0),</p>
+<p>ISNULL(UnitSeq,0),</p>
+<p>ISNULL(DeptSeq,0),</p>
+<p>ISNULL(EmpSeq,0),</p>
+<p>0,</p>
+<p>ISNULL(SMInOutKind, 0),</p>
+<p>--ISNULL(IsInherit,''),</p>
+<p>@UserSeq,</p>
+<p>GETDATE(),</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO _TDAItemClass(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>UMajorItemClass,</p>
+<p>UMItemClass,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime)</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>ISNULL(ItemSeq,0),</p>
+<p>LEFT(UMItemClassS,4),</p>
+<p>ISNULL(UMItemClassS,0),</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<blockquote>
+<p>-- 세트품목은 품목자산분류에서 설정한대로 저장되도록 수정 :: 20180509 김소록</p>
+</blockquote>
+<p>INSERT INTO _TDAItemSales(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>IsVat,</p>
+<p>SMVatKind,</p>
+<p>SMVatType,</p>
+<p>IsOption,</p>
+<p>IsSet,</p>
+<p>Guaranty,</p>
+<p>HSCode,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime,</p>
+<p>URL )</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>ISNULL(IsVat,'0'),</p>
+<p>ISNULL(SMVatKind, 2003001),</p>
+<p>ISNULL(SMVatType,8028001),</p>
+<p>ISNULL(IsOption,'0'),</p>
+<p>ISNULL(B.IsSet, '0'),</p>
+<p>ISNULL(Guaranty,0),</p>
+<p>ISNULL(HSCode,''),</p>
+<p>@UserSeq,</p>
+<p>GETDATE(),</p>
+<p>ISNULL(URL, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDAItemAsset AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.AssetSeq        = A.AssetSeq</p>
+</blockquote>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET IsSet = ISNULL(B.IsSet, '0')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDAItemAsset AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.AssetSeq        = A.AssetSeq</p>
+</blockquote>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO _TDAItemStock(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>IsRollUnit,</p>
+<p>IsSerialMng,</p>
+<p>SeriNoCd,</p>
+<p>IsLotMng,</p>
+<p>IsQtyChange,</p>
+<p>SafetyStk,</p>
+<p>SMLimitTermKind,</p>
+<p>LimitTerm,</p>
+<p>STDLoadConvQty,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime )</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>ISNULL(IsRollUnit,'0'),</p>
+<p>ISNULL(IsSerialMng,'0'),</p>
+<p>ISNULL(SeriNoCd,''),</p>
+<p>ISNULL(IsLotMng,'0'),                --ISNULL일때 0으로 저장 수정 : 20150714 장경선</p>
+<p>ISNULL(IsQtyChange,''),</p>
+<p>ISNULL(SafetyStk,0),</p>
+<p>ISNULL(SMLimitTermKind,0),</p>
+<p>ISNULL(LimitTerm,0),</p>
+<p>ISNULL(STDLoadConvQty,0),</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DECLARE @SMMatMrpType INT,</p>
+<p>@SMOutKind INT</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq,6251,@UserSeq,@@PROCID,@SMMatMrpType OUTPUT -- 소요량 산정구분</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq,6215,@UserSeq,@@PROCID,@SMOutKind OUTPUT -- 출고구분</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET SMMrpKind = CASE WHEN ISNULL(SMMrpKind, 0) = 0 THEN 6004001 ELSE SMMrpKind END,</p>
+<p>SMMatMrpType = CASE WHEN ISNULL(SMMatMrpType, 0) = 0 THEN @SMMatMrpType ELSE SMMatMrpType END,</p>
+<p>SMOutKind = CASE WHEN ISNULL(SMOutKind, 0) = 0 THEN @SMOutKind ELSE SMOutKind END,</p>
+<p>LeadTime = CASE WHEN ISNULL(LeadTime, 0) = 0 THEN 1 ELSE LeadTime END</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>INSERT INTO _TDAItemProduct(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>SMConsgnmtKind,</p>
+<p>BOMUnitSeq,</p>
+<p>OutLoss,</p>
+<p>InLoss,</p>
+<p>SMMrpKind,</p>
+<p>SMOutKind,</p>
+<p>SMProdMethod,</p>
+<p>SMProdSpec,</p>
+<p>GoodSeq,</p>
+<p>ProcSeq,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime,</p>
+<p>BatchSize,</p>
+<p>IsBatch,</p>
+<p>SMMatMrpType,</p>
+<p>LotSize,</p>
+<p>LeadTime )</p>
+<p>SELECT</p>
+<p>@CompanySeq ,</p>
+<p>ISNULL(ItemSeq,0),</p>
+<p>0,</p>
+<p>ISNULL(BOMUnitSeq,0),</p>
+<p>ISNULL(OutLoss,0),</p>
+<p>ISNULL(InLoss,0),</p>
+<p>ISNULL(SMMrpKind,0),</p>
+<p>ISNULL(SMOutKind,0),</p>
+<p>ISNULL(SMProdMethod,0),</p>
+<p>ISNULL(SMProdSpec,0),</p>
+<p>ISNULL(GoodSeq,0),</p>
+<p>ISNULL(ProcSeq,0),</p>
+<p>@UserSeq,</p>
+<p>GETDATE(),</p>
+<p>ISNULL(BatchSize,0),</p>
+<p>ISNULL(IsBatch,'0'),</p>
+<p>ISNULL(SMMatMrpType,0),</p>
+<p>ISNULL(LotSize, 0),</p>
+<p>ISNULL(LeadTime, 0)</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET SMMrpKindName = B.MinorName,</p>
+<p>SMMatMrpTypeName = D.MinorName,</p>
+<p>SMOutKindName = C.MinorName</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.SMMrpKind = B.MinorSeq</p>
+<p>AND B.MajorSeq = 6004</p>
+<p>JOIN _TDASMinor AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.SMOutKind = C.MinorSeq</p>
+<p>AND C.MajorSeq = 6005</p>
+<p>JOIN _TDASMinor AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND A.SMMatMrpType = D.MinorSeq</p>
+<p>AND D.MajorSeq = 6401</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>INSERT INTO _TDAItemPurchase(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>UMPurGroup,</p>
+<p>MkCustSeq,</p>
+<p>PurCustSeq,</p>
+<p>MinQty,</p>
+<p>StepQty,</p>
+<p>SMPurKind,</p>
+<p>IsPurVat,</p>
+<p>IsAutoPurCreate,</p>
+<p>OrderQty,</p>
+<p>DelvDay,</p>
+<p>CustomTaxRate,</p>
+<p>SMPurProdType,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime,</p>
+<p>TrustCustSeq )</p>
+<p>SELECT</p>
+<p>@CompanySeq ,</p>
+<p>ISNULL(A.ItemSeq,0),</p>
+<p>ISNULL(A.UMPurGroup,0),</p>
+<p>ISNULL(A.MkCustSeq,0),</p>
+<p>ISNULL(A.PurCustSeq,0),</p>
+<p>ISNULL(A.MinQty,0),</p>
+<p>ISNULL(A.StepQty,0),</p>
+<p>ISNULL(A.SMPurKind,0),</p>
+<p>ISNULL(A.IsPurVat,''),</p>
+<p>ISNULL(A.IsAutoPurCreate,''),</p>
+<p>ISNULL(A.OrderQty,0),</p>
+<p>ISNULL(A.DelvDay,0),</p>
+<p>ISNULL(A.CustomTaxRate,0),</p>
+<p>ISNULL(A.SMPurProdType,0),</p>
+<p>@UserSeq,</p>
+<p>GETDATE(),</p>
+<p>ISNULL(A.TrustCustSeq,0)</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO _TDAItemUnit(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>UnitSeq,</p>
+<p>BarCode,</p>
+<p>ConvNum,</p>
+<p>ConvDen,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime)</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>A.ItemSeq,</p>
+<p>A.UnitSeq,</p>
+<p>'',</p>
+<p>1,</p>
+<p>1,</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN _TDAItemUnit AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>AND B.ItemSeq IS NULL</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO _TDAItemUnitModule(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>UnitSeq,</p>
+<p>UMModuleSeq,</p>
+<p>IsUsed,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime)</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>A.ItemSeq,</p>
+<p>A.UnitSeq,</p>
+<p>B.MinorSeq,</p>
+<p>'1',</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN _TDAItemUnitModule AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.UnitSeq = C.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.MajorSeq = 1116</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>AND ISNULL(C.ItemSeq, 0) = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--INSERT INTO _TDAItemUnit(</p>
+<p>-- CompanySeq,</p>
+<p>-- ItemSeq,</p>
+<p>-- UnitSeq,</p>
+<p>-- BarCode,</p>
+<p>-- ConvNum,</p>
+<p>-- ConvDen,</p>
+<p>-- LastUserSeq,</p>
+<p>-- LastDateTime)</p>
+<p>--SELECT</p>
+<p>-- @CompanySeq,</p>
+<p>-- A.ItemSeq,</p>
+<p>-- BOMUnitSeq,</p>
+<p>-- '',</p>
+<p>-- 1,</p>
+<p>-- 1,</p>
+<p>-- @UserSeq,</p>
+<p>-- GETDATE()</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- LEFT OUTER JOIN _TDAItemUnit AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.ItemSeq = B.ItemSeq</p>
+<p>-- AND A.BOMUnitSeq = B.UnitSeq</p>
+<p>-- WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>-- AND A.BOMUnitSeq \&lt;&gt; 0</p>
+<p>-- AND ISNULL(B.ItemSeq, 0) = 0</p>
+<p>--IF @@ERROR \&lt;&gt; 0</p>
+<p>--BEGIN</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<p>-- INSERT INTO _TDAItemUnitModule(</p>
+<p>-- CompanySeq,</p>
+<p>-- ItemSeq,</p>
+<p>-- UnitSeq,</p>
+<p>-- UMModuleSeq,</p>
+<p>-- IsUsed,</p>
+<p>-- LastUserSeq,</p>
+<p>-- LastDateTime)</p>
+<p>-- SELECT</p>
+<p>-- @CompanySeq,</p>
+<p>-- A.ItemSeq,</p>
+<p>-- A.BOMUnitSeq,</p>
+<p>-- 1003004, -- BOM 단위</p>
+<p>-- '1',</p>
+<p>-- @UserSeq,</p>
+<p>-- GETDATE()</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- LEFT OUTER JOIN _TDAItemUnitModule AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.ItemSeq = B.ItemSeq</p>
+<p>-- AND A.UnitSeq = B.UnitSeq</p>
+<p>--WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>-- AND A.BOMUnitSeq \&lt;&gt; 0</p>
+<p>-- AND ISNULL(B.ItemSeq, 0) = 0</p>
+<p>-- IF @@ERROR \&lt;&gt; 0</p>
+<p>-- BEGIN</p>
+<p>-- RETURN</p>
+<p>-- END</p>
+<p>INSERT INTO _TDAItemDefUnit(</p>
+<p>CompanySeq,</p>
+<p>ItemSeq,</p>
+<p>UMModuleSeq,</p>
+<p>STDUnitSeq,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime)</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>A.ItemSeq,</p>
+<p>B.MinorSeq,</p>
+<p>A.UnitSeq,</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.MajorSeq = 1116</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 품목 비고</p>
+<p>INSERT INTO _TDAItemImage (CompanySeq, ItemSeq, ImgSerl, ImgFile, Remark, LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq, ItemSeq, 1, '', ItemRemark, @UserSeq, GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>CREATE TABLE #Item_BuyPrice</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, Price DECIMAL(19, 5)</p>
+<p>, IsPrice NCHAR(1)</p>
+<p>, MinQty DECIMAL(19, 5)</p>
+<p>, StepQty DECIMAL(19, 5)</p>
+<p>, StartDate NCHAR(8)</p>
+<p>, EndDate NCHAR(8)</p>
+<p>, Remark NVARCHAR(100)</p>
+<p>, CustSeq INT</p>
+<p>, CurrSeq INT</p>
+<p>, UnitSeq INT</p>
+<p>, MakerSeq INT</p>
+<p>, ImpType INT</p>
+<p>, LeadTime DECIMAL(19, 5)</p>
+<p>, ItemSeq INT</p>
+<p>, Serl INT</p>
+<p>--, ItemOldSeq INT</p>
+<p>--, CustOldSeq INT</p>
+<p>--, CurrOldSeq INT</p>
+<p>--, UnitOldSeq INT</p>
+<p>--, StartDateOld NCHAR(8)</p>
+<p>, Dummy1 NVARCHAR(100)</p>
+<p>, Dummy2 NVARCHAR(100)</p>
+<p>, Dummy3 NVARCHAR(100)</p>
+<p>, Dummy4 NVARCHAR(100)</p>
+<p>, Dummy5 NVARCHAR(100)</p>
+<p>, Dummy6 NVARCHAR(100)</p>
+<p>, Dummy7 DECIMAL(19, 5)</p>
+<p>, Dummy8 DECIMAL(19, 5)</p>
+<p>, Dummy9 DECIMAL(19, 5)</p>
+<p>, Dummy10 DECIMAL(19, 5)</p>
+<p>)</p>
+<p>INSERT INTO #Item_BuyPrice</p>
+<p>(</p>
+<p>WorkingTag ,IDX_NO ,DataSeq ,MessageType,Status ,Result ,Price ,IsPrice ,MinQty ,StepQty ,</p>
+<p>StartDate ,EndDate ,Remark ,CustSeq ,CurrSeq ,UnitSeq ,MakerSeq ,ImpType ,LeadTime ,ItemSeq ,Serl ,</p>
+<p>Dummy1 ,Dummy2 ,Dummy3 ,Dummy4 ,Dummy5 ,Dummy6 ,Dummy7 ,Dummy8 ,Dummy9 ,Dummy10</p>
+<p>)</p>
+<p>SELECT WorkingTag ,IDX_NO ,DataSeq ,MessageType,Status ,Result ,Price ,IsPrice ,MinQty ,StepQty ,</p>
+<p>StartDate ,EndDate ,Remark ,CustSeq ,CurrSeq ,UnitSeq ,MakerSeq ,ImpType ,LeadTime ,ItemSeq ,Serl ,</p>
+<p>Dummy1 ,Dummy2 ,Dummy3 ,Dummy4 ,Dummy5 ,Dummy6 ,Dummy7 ,Dummy8 ,Dummy9 ,Dummy10</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE ISNULL(A.CustSeq , 0) \&lt;&gt; 0 -- 거래처</p>
+<p>AND ISNULL(A.CurrSeq , 0) \&lt;&gt; 0 -- 통화</p>
+<p>AND ISNULL(A.UnitSeq , 0) \&lt;&gt; 0 -- 구매단위</p>
+<p>AND ISNULL(A.ImpType , 0) \&lt;&gt; 0 -- 내외자구분</p>
+<p>AND ISNULL(A.Price , 0) \&lt;&gt; 0 -- 단가</p>
+<p>AND ISNULL(A.StartDate,'') \&lt;&gt; '' -- 적용시작일</p>
+<p>IF @@ROWCOUNT &gt; 0</p>
+<p>BEGIN</p>
+<p>EXEC bne_SWDAItemUploadBuyPriceSave @CompanySeq, @LanguageSeq, @UserSeq, @PgmSeq</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #Item_BuyPrice AS A WHERE A.Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = Result,</p>
+<p>MessageType = 17009 ,</p>
+<p>Status = Status</p>
+<p>FROM #Item_BuyPrice AS A</p>
+<p>WHERE A.Status \&lt;&gt; 0</p>
+<p>END</p>
+<p>END</p>
+<p>RETURN</p>
+<p>/**************************************************************************************************/</p>
+<p>GO</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ItemSeq INT, ItemName NVARCHAR(200), ItemNo NVARCHAR(100), Spec NVARCHAR(200), TrunName NVARCHAR(200), AssetName NVARCHAR(100), AssetSeq INT, UnitName</p>
+<p>NVARCHAR(30), UnitSeq INT, SMABC INT, SMStatus INT, SMInOutKind INT, DeptName NVARCHAR(100), DeptSeq INT, EmpName NVARCHAR(100), EmpSeq INT, ModelName</p>
+<p>NVARCHAR(120), ModelSeq INT, STDItemName NVARCHAR(200), ItemSName NVARCHAR(100), ItemEngName NVARCHAR(200), ItemClassLName NVARCHAR(100), ItemClassMName</p>
+<p>NVARCHAR(100), ItemClassSName NVARCHAR(100), UMItemClassS INT, IsInherit NCHAR(1), IsVessel NCHAR(1), IsVat NCHAR(1), SMVatKind INT, SMVatType INT, IsOption NCHAR(1), IsSet NCHAR(1), SMVatKindName NVARCHAR(100), SMVatTypeName NVARCHAR(100), Guaranty DECIMAL(19, 5), HSCode NVARCHAR(20), IsRollUnit NCHAR(1), IsSerialMng NCHAR(1), SeriNoCd NVARCHAR(20), IsLotMng NCHAR(1), IsQtyChange NCHAR(1), SafetyStk DECIMAL(19, 5), SMLimitTermKind INT, LimitTerm INT, STDLoadConvQty DECIMAL(19, 5), BOMUnitSeq INT, OutLoss DECIMAL(19, 5), InLoss DECIMAL(19, 5), SMMrpKind INT, SMOutKind INT, SMProdMethod INT, SMProdSpec INT, BOMUnitName NVARCHAR(30), SMMrpKindName NVARCHAR(100), SMOutKindName NVARCHAR(100), SMProdMethodName NVARCHAR(100), SMProdSpecName NVARCHAR(100), UMPurGroup INT, MkCustSeq INT, PurCustSeq INT, MinQty DECIMAL(19, 5), StepQty DECIMAL(19, 5), SMPurKind INT, IsPurVat NCHAR(1), IsAutoPurCreate NCHAR(1), OrderQty DECIMAL(19, 5), DelvDay INT, CustomTaxRate DECIMAL(19, 5), UMPurGroupName NVARCHAR(100), MkCustName NVARCHAR(100), PurCustName NVARCHAR(100), SMPurKindName NVARCHAR(100), SMPurProdType INT, SMPurProdTypeName NVARCHAR(100), SMInOutKindName NVARCHAR(100), SMStatusName NVARCHAR(100), SMLimitTermKindName NVARCHAR(100), SMABCName NVARCHAR(100), GoodSeq INT, ProcSeq INT, ItemRemark NVARCHAR(4000), SMProdTypeName NVARCHAR(100), SMProdType INT, SMPurType INT, SMPurTypeName NVARCHAR(100), BatchSize DECIMAL(19, 5), IsBatch NCHAR(1), SMMatMrpType INT, SMMatMrpTypeName NVARCHAR(100), URL NVARCHAR(300), LotSize INT, LeadTime INT, PurKind NVARCHAR(100), TrustCustName NVARCHAR(100), TrustCustSeq INT, Price DECIMAL(19, 5), IsPrice NCHAR(1), StartDate NCHAR(8), EndDate NCHAR(8), Remark NVARCHAR(100), CustSeq INT, CurrSeq INT, MakerSeq INT, ImpType INT, Serl INT, Dummy1 NVARCHAR(100), Dummy2 NVARCHAR(100), Dummy3 NVARCHAR(100), Dummy4 NVARCHAR(100), Dummy5 NVARCHAR(100), Dummy6 NVARCHAR(100), Dummy7 DECIMAL(19, 5), Dummy8 DECIMAL(19, 5), Dummy9 DECIMAL(19, 5), Dummy10 DECIMAL(19, 5)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ItemSeq INT, ItemName NVARCHAR(200), ItemNo NVARCHAR(100), Spec NVARCHAR(200), TrunName NVARCHAR(200), AssetName NVARCHAR(100), AssetSeq INT, UnitName</p>
+<p>NVARCHAR(30), UnitSeq INT, SMABC INT, SMStatus INT, SMInOutKind INT, DeptName NVARCHAR(100), DeptSeq INT, EmpName NVARCHAR(100), EmpSeq INT, ModelName</p>
+<p>NVARCHAR(120), ModelSeq INT, STDItemName NVARCHAR(200), ItemSName NVARCHAR(100), ItemEngName NVARCHAR(200), ItemClassLName NVARCHAR(100), ItemClassMName</p>
+<p>NVARCHAR(100), ItemClassSName NVARCHAR(100), UMItemClassS INT, IsInherit NCHAR(1), IsVessel NCHAR(1), IsVat NCHAR(1), SMVatKind INT, SMVatType INT, IsOption NCHAR(1), IsSet NCHAR(1), SMVatKindName NVARCHAR(100), SMVatTypeName NVARCHAR(100), Guaranty DECIMAL(19, 5), HSCode NVARCHAR(20), IsRollUnit NCHAR(1), IsSerialMng NCHAR(1), SeriNoCd NVARCHAR(20), IsLotMng NCHAR(1), IsQtyChange NCHAR(1), SafetyStk DECIMAL(19, 5), SMLimitTermKind INT, LimitTerm INT, STDLoadConvQty DECIMAL(19, 5), BOMUnitSeq INT, OutLoss DECIMAL(19, 5), InLoss DECIMAL(19, 5), SMMrpKind INT, SMOutKind INT, SMProdMethod INT, SMProdSpec INT, BOMUnitName NVARCHAR(30), SMMrpKindName NVARCHAR(100), SMOutKindName NVARCHAR(100), SMProdMethodName NVARCHAR(100), SMProdSpecName NVARCHAR(100), UMPurGroup INT, MkCustSeq INT, PurCustSeq INT, MinQty DECIMAL(19, 5), StepQty DECIMAL(19, 5), SMPurKind INT, IsPurVat NCHAR(1), IsAutoPurCreate NCHAR(1), OrderQty DECIMAL(19, 5), DelvDay INT, CustomTaxRate DECIMAL(19, 5), UMPurGroupName NVARCHAR(100), MkCustName NVARCHAR(100), PurCustName NVARCHAR(100), SMPurKindName NVARCHAR(100), SMPurProdType INT, SMPurProdTypeName NVARCHAR(100), SMInOutKindName NVARCHAR(100), SMStatusName NVARCHAR(100), SMLimitTermKindName NVARCHAR(100), SMABCName NVARCHAR(100), GoodSeq INT, ProcSeq INT, ItemRemark NVARCHAR(4000), SMProdTypeName NVARCHAR(100), SMProdType INT, SMPurType INT, SMPurTypeName NVARCHAR(100), BatchSize DECIMAL(19, 5), IsBatch NCHAR(1), SMMatMrpType INT, SMMatMrpTypeName NVARCHAR(100), URL NVARCHAR(300), LotSize INT, LeadTime INT, PurKind NVARCHAR(100), TrustCustName NVARCHAR(100), TrustCustSeq INT, Price DECIMAL(19, 5), IsPrice NCHAR(1), StartDate NCHAR(8), EndDate NCHAR(8), Remark NVARCHAR(100), CustSeq INT, CurrSeq INT, MakerSeq INT, ImpType INT, Serl INT, Dummy1 NVARCHAR(100), Dummy2 NVARCHAR(100), Dummy3 NVARCHAR(100), Dummy4 NVARCHAR(100), Dummy5 NVARCHAR(100), Dummy6 NVARCHAR(100), Dummy7 DECIMAL(19, 5), Dummy8 DECIMAL(19, 5), Dummy9 DECIMAL(19, 5), Dummy10 DECIMAL(19, 5)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, ItemSeq, ItemName, ItemNo, Spec, TrunName, AssetName, AssetSeq, UnitName, UnitSeq, SMABC, SMStatus, SMInOutKind, DeptName, DeptSeq, EmpName, EmpSeq, ModelName, ModelSeq, STDItemName, ItemSName, ItemEngName, ItemClassLName, ItemClassMName, ItemClassSName, UMItemClassS, IsInherit, IsVessel, IsVat, SMVatKind, SMVatType, IsOption, IsSet, SMVatKindName, SMVatTypeName, Guaranty, HSCode, IsRollUnit, IsSerialMng, SeriNoCd, IsLotMng, IsQtyChange, SafetyStk, SMLimitTermKind, LimitTerm, STDLoadConvQty, BOMUnitSeq, OutLoss, InLoss, SMMrpKind, SMOutKind, SMProdMethod, SMProdSpec, BOMUnitName, SMMrpKindName, SMOutKindName, SMProdMethodName, SMProdSpecName, UMPurGroup, MkCustSeq, PurCustSeq, MinQty, StepQty, SMPurKind, IsPurVat, IsAutoPurCreate, OrderQty, DelvDay, CustomTaxRate, UMPurGroupName, MkCustName, PurCustName, SMPurKindName, SMPurProdType, SMPurProdTypeName, SMInOutKindName, SMStatusName, SMLimitTermKindName, SMABCName, GoodSeq, ProcSeq, ItemRemark, SMProdTypeName, SMProdType, SMPurType, SMPurTypeName, BatchSize, IsBatch, SMMatMrpType, SMMatMrpTypeName, URL, LotSize, LeadTime, PurKind, TrustCustName, TrustCustSeq, Price, IsPrice, StartDate, EndDate, Remark, CustSeq, CurrSeq, MakerSeq, ImpType, Serl, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, NULL, N'DataBlock1', N'0', N'본느_테스트2', N'BNE_TEST22', N'TEST규격', NULL, N'원자재', N'6', N'EA', N'2', N'2002001', N'2001002', N'8007001', N'생산2부', N'0', N'홍길동', N'629', NULL, NULL, NULL, NULL, N'TESTItemName', N'INIT자재대분류', N'INIT자재중분류', N'INIT자재소분류', N'2004001', NULL, NULL, N'1', N'2003001', N'8028001', NULL, N'0', N'과세', N'일반과세율', NULL, NULL, NULL, N'0', N'', N'1', NULL, NULL, N'8004001', N'12', NULL, NULL, N'0.2', N'0.1', N'6004001', N'0', N'6006001', NULL, NULL, N'MRP', N'', N'수주생산', NULL, NULL, N'1000020', N'1000020', N'444', N'55', N'8047001', N'1', NULL, N'7777', N'5666', N'888', NULL, N'23123123123123123', N'23123123123123123', NULL, NULL, NULL, N'내자', N'사용', N'월', N'A등급', NULL, NULL, N'품목설명', NULL, NULL, NULL, NULL, N'33', N'0', N'6401001', N'개별', N'http://ksystem.co.kr', N'11', N'22', N'장기', N'23123123123123123', N'1000020', N'2222.22', N'0', N'20240701', N'', N'특이사항', N'1000022', N'4', N'1000017', N'8008001', N'0', N'1', N'', N'', N'', N'', N'', N'0', N'0', N'0', N'0'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 54020050</p>
+<p>SET @MethodSeq = 2</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 27292</p>
+<p>SET @PgmSeq = 54020049</p>
+<p>SET @IsTransaction = 1</p>
+<p>-- InputData를 OutputData에 복사</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock1(WorkingTag, IDX_NO, DataSeq, Selected, MessageType, Status, Result, ROW_IDX, IsChangedMst, ItemSeq, ItemName, ItemNo, Spec, TrunName, AssetName, AssetSeq, UnitName, UnitSeq, SMABC, SMStatus, SMInOutKind, DeptName, DeptSeq, EmpName, EmpSeq, ModelName, ModelSeq, STDItemName, ItemSName, ItemEngName, ItemClassLName, ItemClassMName, ItemClassSName, UMItemClassS, IsInherit, IsVessel, IsVat, SMVatKind, SMVatType, IsOption, IsSet, SMVatKindName, SMVatTypeName, Guaranty, HSCode, IsRollUnit, IsSerialMng, SeriNoCd, IsLotMng, IsQtyChange, SafetyStk, SMLimitTermKind, LimitTerm, STDLoadConvQty, BOMUnitSeq, OutLoss, InLoss, SMMrpKind, SMOutKind, SMProdMethod, SMProdSpec, BOMUnitName, SMMrpKindName, SMOutKindName, SMProdMethodName, SMProdSpecName, UMPurGroup, MkCustSeq, PurCustSeq, MinQty, StepQty, SMPurKind, IsPurVat, IsAutoPurCreate, OrderQty, DelvDay, CustomTaxRate, UMPurGroupName, MkCustName, PurCustName, SMPurKindName, SMPurProdType, SMPurProdTypeName, SMInOutKindName, SMStatusName, SMLimitTermKindName, SMABCName, GoodSeq, ProcSeq, ItemRemark, SMProdTypeName, SMProdType, SMPurType, SMPurTypeName, BatchSize, IsBatch, SMMatMrpType, SMMatMrpTypeName, URL, LotSize, LeadTime, PurKind, TrustCustName, TrustCustSeq, Price, IsPrice, StartDate, EndDate, Remark, CustSeq, CurrSeq, MakerSeq, ImpType, Serl, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10)</p>
+<p>SELECT WorkingTag, IDX_NO, DataSeq, Selected, MessageType, Status, Result, ROW_IDX, IsChangedMst, ItemSeq, ItemName, ItemNo, Spec, TrunName, AssetName, AssetSeq, UnitName, UnitSeq, SMABC, SMStatus, SMInOutKind, DeptName, DeptSeq, EmpName, EmpSeq, ModelName, ModelSeq, STDItemName, ItemSName, ItemEngName, ItemClassLName, ItemClassMName, ItemClassSName, UMItemClassS, IsInherit, IsVessel, IsVat, SMVatKind, SMVatType, IsOption, IsSet, SMVatKindName, SMVatTypeName, Guaranty, HSCode, IsRollUnit, IsSerialMng, SeriNoCd, IsLotMng, IsQtyChange, SafetyStk, SMLimitTermKind, LimitTerm, STDLoadConvQty, BOMUnitSeq, OutLoss, InLoss, SMMrpKind, SMOutKind, SMProdMethod, SMProdSpec, BOMUnitName, SMMrpKindName, SMOutKindName, SMProdMethodName, SMProdSpecName, UMPurGroup, MkCustSeq, PurCustSeq, MinQty, StepQty, SMPurKind, IsPurVat, IsAutoPurCreate, OrderQty, DelvDay, CustomTaxRate, UMPurGroupName, MkCustName, PurCustName, SMPurKindName, SMPurProdType, SMPurProdTypeName, SMInOutKindName, SMStatusName, SMLimitTermKindName, SMABCName, GoodSeq, ProcSeq, ItemRemark, SMProdTypeName, SMProdType, SMPurType, SMPurTypeName, BatchSize, IsBatch, SMMatMrpType, SMMatMrpTypeName, URL, LotSize, LeadTime, PurKind, TrustCustName, TrustCustSeq, Price, IsPrice, StartDate, EndDate, Remark, CustSeq, CurrSeq, MakerSeq, ImpType, Serl, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>EXEC _SWCOMBisProcCheck @ServiceSeq</p>
+<p>,@MethodSeq</p>
+<p>,@WorkingTag</p>
+<p>,@CompanySeq</p>
+<p>,@LanguageSeq</p>
+<p>,@UserSeq</p>
+<p>,@PgmSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>IF EXISTS(SELECT * FROM #BIZ_OUT_DataBlock1 WHERE STATUS != 0)</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>SET @UseTransaction = N'1'</p>
+<p>BEGIN TRAN</p>
+<p>EXEC bne_SWDAItemUploadCheck</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0 OR EXISTS(SELECT * FROM #BIZ_OUT_DataBlock1 WHERE Status != 0)</p>
+<p>BEGIN</p>
+<p>--ROLLBACK TRAN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>-- ExecuteOrder : 2 : Start</p>
+<p>EXEC bne_SWDAItemUploadSave</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0 OR EXISTS(SELECT * FROM #BIZ_OUT_DataBlock1 WHERE Status != 0)</p>
+<p>BEGIN</p>
+<p>--ROLLBACK TRAN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>ROLLBACK TRAN</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>-- ExecuteOrder : 2 : End</p>
+<p>GOTO_END:</p>
+<p>SELECT WorkingTag, IDX_NO, DataSeq, Selected, MessageType</p>
+<p>, CASE</p>
+<p>WHEN Status = 0 OR Status IS NULL THEN</p>
+<p>-- 정상인건 중에</p>
+<p>CASE</p>
+<p>WHEN @HasError = N'1' THEN</p>
+<p>-- 오류가 발생된 건이면</p>
+<p>CASE</p>
+<p>WHEN @UseTransaction = N'1' THEN</p>
+<p>999999 -- 트랜잭션인 경우</p>
+<p>ELSE</p>
+<p>999998 -- 트랜잭션이 아닌 경우</p>
+<p>END</p>
+<p>ELSE</p>
+<p>-- 오류가 발생되지 않은 건이면</p>
+<p>0</p>
+<p>END</p>
+<p>ELSE</p>
+<p>Status</p>
+<p>END AS Status</p>
+<p>, Result, ROW_IDX, IsChangedMst, ItemSeq, ItemName, ItemNo, Spec, TrunName, AssetName, AssetSeq, UnitName, UnitSeq, SMABC, SMStatus, SMInOutKind, DeptName, DeptSeq, EmpName, EmpSeq, ModelName, ModelSeq, STDItemName, ItemSName, ItemEngName, ItemClassLName, ItemClassMName, ItemClassSName, UMItemClassS, IsInherit, IsVessel, IsVat, SMVatKind, SMVatType, IsOption, IsSet, SMVatKindName, SMVatTypeName, Guaranty, HSCode, IsRollUnit, IsSerialMng, SeriNoCd, IsLotMng, IsQtyChange, SafetyStk, SMLimitTermKind, LimitTerm, STDLoadConvQty, BOMUnitSeq, OutLoss, InLoss, SMMrpKind, SMOutKind, SMProdMethod, SMProdSpec, BOMUnitName, SMMrpKindName, SMOutKindName, SMProdMethodName, SMProdSpecName, UMPurGroup, MkCustSeq, PurCustSeq, MinQty, StepQty, SMPurKind, IsPurVat, IsAutoPurCreate, OrderQty, DelvDay, CustomTaxRate, UMPurGroupName, MkCustName, PurCustName, SMPurKindName, SMPurProdType, SMPurProdTypeName, SMInOutKindName, SMStatusName, SMLimitTermKindName, SMABCName, GoodSeq, ProcSeq, ItemRemark, SMProdTypeName, SMProdType, SMPurType, SMPurTypeName, BatchSize, IsBatch, SMMatMrpType, SMMatMrpTypeName, URL, LotSize, LeadTime, PurKind, TrustCustName, TrustCustSeq, Price, IsPrice, StartDate, EndDate, Remark, CustSeq, CurrSeq, MakerSeq, ImpType, Serl, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>ORDER BY IDX_NO, ROW_IDX</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+  </article>
+</div>
+</body>
+</html>

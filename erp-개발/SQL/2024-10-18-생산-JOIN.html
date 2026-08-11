@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생산 JOIN</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>생산 JOIN</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="join">생산 JOIN</h1>
+<p>SELECT A.WorkOrderSeq,A.WorkOrderSerl,B.ProdPlanSeq,C.ProdReqSeq,D.Serl</p>
+<p>FROM _TPDSFCWorkOrder AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDMPSDailyProdPlan AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ProdPlanSeq = A.ProdPlanSeq</p>
+<p>JOIN _TPDMPSProdReq AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ProdReqSeq = B.ProgFromSeq</p>
+<p>AND B.ProgFromTableSeq = 1</p>
+<p>JOIN _TPDMPSProdReqItem AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.ProdReqSeq = B.ProgFromSeq</p>
+<p>AND D.Serl = B.ProgFromSerl</p>
+<p>WHERE C.ProdReqSeq =35</p>
+  </article>
+</div>
+</body>
+</html>

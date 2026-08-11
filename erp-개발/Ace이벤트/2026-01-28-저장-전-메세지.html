@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>저장 전 메세지</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>저장 전 메세지</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">저장 전 메세지</h1>
+<p>local rtnType</p>
+<p>-- 메시지박스(Yes OR No)</p>
+<p>rtnType = MessageBox('Serial 저장하시겠습니까?', ' ', 'MsgBoxTypeYesNo')</p>
+<p>if rtnType == 1 then</p>
+<p>elseif (rtnType == 0) then</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>if(SSSerial.DataRowCnt == 0) then</p>
+<blockquote>
+<p>MessageBoxShow('조회된 Serial이 없습니다.','')</p>
+</blockquote>
+<p>GoTo('END')</p>
+<blockquote>
+<p>return</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

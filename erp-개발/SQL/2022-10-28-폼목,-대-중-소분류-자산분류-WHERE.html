@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>폼목, 대 중 소분류 자산분류 WHERE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>폼목, 대 중 소분류 자산분류 WHERE</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="where">폼목, 대 중 소분류 자산분류 WHERE</h1>
+<p>LEFT OUTER JOIN _TDAItem                 AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS E WITH(NOLOCK) ON E.CompanySeq = B.CompanySeq</p>
+<p>AND E.ItemSeq = B.ItemSeq</p>
+<p>AND E.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS D WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.ItemClassSSeq = E.UMItemClass</p>
+<p>WHERE (@CustSeq = 0 OR @CustSeq = A.CustSeq ) -- 거래처</p>
+<p>AND (@AssetSeq = 0 OR @AssetSeq = B.AssetSeq ) -- 품목자산분류</p>
+<p>AND (@ItemClassLSeq = 0 OR @ItemClassLSeq = D.ItemClassLSeq ) -- 대분류</p>
+<p>AND (@ItemClassMSeq = 0 OR @ItemClassMSeq = D.ItemClassMSeq ) -- 중분류</p>
+<p>AND (@ItemClassSSeq = 0 OR @ItemClassSSeq = D.ItemClassSSeq ) -- 소분류</p>
+<p>AND (@ItemName = '' OR B.ItemName LIKE @ItemName + N'%') -- 품명</p>
+<p>AND (@ItemNo = '' OR B.ItemNo LIKE @ItemNo + N'%') -- 품번</p>
+<p>AND (@Spec = '' OR B.Spec LIKE @Spec + N'%') -- 규격</p>
+<p>AND (CASE WHEN @ShortQtyQuery = '1' THEN A.Qty ELSE 1 END)</p>
+<p>\&lt; (CASE WHEN @ShortQtyQuery = '1' THEN 0 ELSE 2 END) -- - 부족수량만 조회 버튼 클릭시 재고가 (-)인 항목만 조회</p>
+  </article>
+</div>
+</body>
+</html>

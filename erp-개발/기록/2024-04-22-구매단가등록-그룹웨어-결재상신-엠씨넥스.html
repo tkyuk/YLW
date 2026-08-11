@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매단가등록 그룹웨어 결재상신 엠씨넥스</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매단가등록 그룹웨어 결재상신 엠씨넥스</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">구매단가등록 그룹웨어 결재상신 엠씨넥스</h1>
+<p>SELECT ItemSeq,</p>
+<p>DUMMY1 as 'PriceKey',</p>
+<p>DUMMY2 as 'GroupKey',</p>
+<p>DUMMY3 as '결재상신여부',</p>
+<p>DUMMY4 as '결재완료여부',</p>
+<p>DUMMY5 as '단가상태'</p>
+<p>,C.UserName</p>
+<p>,B.LastDateTime</p>
+<p>FROM _TPUBASEBuyPriceItem AS A</p>
+<p>LEFT OUTER JOIN _TCOMGroupWare AS B on a.Dummy1 = b.TblKey</p>
+<p>and b.WorkKind = 'PurPrice'</p>
+<p>LEFT OUTER JOIN _TCAUser AS C on C.CompanySeq = B.CompanySeq</p>
+<p>and C.UserSeq = B.LastUserSeq</p>
+<p>WHERE A.CustSeq = 1528</p>
+<p>AND A.Dummy3 = '1'</p>
+<p>ORDER BY 1</p>
+<p>SELECT LastDateTime,DUMMY5,* FROM _TPUBASEBuyPriceItem WHERE ISNULL(DUMMY5,'') \&lt;&gt; '' ORDER BY 1</p>
+<p>SELECT LastDateTime,DUMMY5,* FROM _TPUBASEBuyPriceItem WHERE ISNULL(DUMMY5,'') = '' ORDER BY 1 DESC</p>
+<p>SELECT *</p>
+<p>FROM _TCOMGroupWare AS B</p>
+<p>WHERE b.WorkKind = 'PurPrice' AND B.Tblkey = '36474_1528_1_2_8197'</p>
+<p>SELECT *</p>
+<p>FROM _TCOMGroupWareLog AS B</p>
+<p>WHERE b.WorkKind = 'PurPrice' AND B.Tblkey = '36474_1528_1_2_8197'</p>
+<p>등록번호 : 202404190011</p>
+  </article>
+</div>
+</body>
+</html>

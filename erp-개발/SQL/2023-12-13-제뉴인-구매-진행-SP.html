@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 구매 진행 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 구매 진행 SP</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">제뉴인 구매 진행 SP</h1>
+<p>CREATE TABLE #TEMP_DelvInItem</p>
+<p>(</p>
+<p>IDX_NO                                        INT IDENTITY(1,1) ,</p>
+<p>DelvSeq                                        INT NULL,</p>
+<p>DelvNo                                        NVARCHAR(20) NULL,</p>
+<p>DelvInSeq                                INT,</p>
+<p>DelvInSerl                                INT,</p>
+<p>CompanySeq                                INT</p>
+<p>)</p>
+<p>INSERT INTO #TEMP_DelvInItem</p>
+<p>(DelvInSeq, DelvInSerl, CompanySeq)</p>
+<p>SELECT D.DelvInSeq, D.DelvInSerl, M.CompanySeq</p>
+<p>FROM _TPUBuyingAcc AS A</p>
+<p>JOIN _TPUDelvInItem AS D ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.SourceSeq = D.DelvInSeq</p>
+<p>AND A.SourceSerl = D.DelvInSerl</p>
+<p>AND A.SourceType = '1'</p>
+<p>JOIN _TPUDelvIn AS M WITH(NOLOCK) ON D.CompanySeq = M.CompanySeq</p>
+<p>AND D.DelvInSeq = M.DelvInSeq</p>
+<p>WHERE D.CompanySeq = @CompanySeq</p>
+<p>-- 원천테이블</p>
+<p>CREATE TABLE #TMP_SOURCETABLE (IDOrder INT, TABLENAME NVARCHAR(100))</p>
+<p>-- 원천 데이터 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking (IDX_NO INT, IDOrder INT, Seq INT, Serl INT, SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5), STDQty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5))</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TPUORDPOItem' -- 발주</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPUDelvInItem', '#TEMP_DelvInItem','DelvInSeq', 'DelvInSerl',''</p>
+<p>_SPUDelvInItemListQuery</p>
+  </article>
+</div>
+</body>
+</html>

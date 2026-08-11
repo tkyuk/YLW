@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2024-11-28-untitled-4</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2024-11-28-untitled-4</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>OUTER APPLY (SELECT DISTINCT N.CompanySeq, N.ItemSeq, N.LOTNo</p>
+<p>FROM _TLGInOutLotStock AS N</p>
+<p>WHERE N.InOut = -1</p>
+<p>AND N.CompanySeq = @CompanySeq</p>
+<p>AND N.LotNo = N.LotNo</p>
+<p>AND N.ItemSeq = N.ItemSeq</p>
+<p>AND N.WHSeq = @AnydoWhSeq) AS N</p>
+<p>WHERE (@InStockSeq = 1000707001 -- 재고유무가 전체</p>
+<p>OR (@InStockSeq = 1000707002 AND (A.PreQty \&lt;&gt; 0 OR A.InQty \&lt;&gt; 0 OR A.OutQty \&lt;&gt; 0 OR A.StockQty \&lt;&gt; 0))) -- 재고유무가 재고有</p>
+<p>ORDER BY LOTNo</p>
+<p>SELECT * FROM _TSLInvoiceItem WHERE WHSeq = 45 AND LOTNo \&lt;&gt; ''</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE OutWHSeq = 45 AND LOTNo \&lt;&gt; ''</p>
+<p>SELECT * FROM _TLGInOutLotStock WHERE WHSeq = 45 AND InOut = -1</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다이나믹시트 (기준일 + n일)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>다이나믹시트 (기준일 + n일)</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="n">다이나믹시트 (기준일 + n일)</h1>
+<p>mcf_SWPDMpsMatTmpPlanListQuery</p>
+<p>--===============================================================================================================================</p>
+<p>-- Title</p>
+<p>--===============================================================================================================================</p>
+<p>CREATE TABLE #Title</p>
+<p>(</p>
+<p>ColIDX INT IDENTITY(0, 1),</p>
+<p>Title NVARCHAR(100),</p>
+<p>TitleSeq NCHAR(8)</p>
+<p>)</p>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>SELECT @TempDateTitle = LEFT(@TempDate, 4) + '-' + SUBSTRING(@TempDate, 5, 2) + '-' + RIGHT(@TempDate, 2),</p>
+<p>@WeeKDay = DATEPART(WEEKDAY, @TempDate)</p>
+<p>SELECT @WeeKDayTitle = CASE @WeeKDay WHEN '1' THEN '(일)'</p>
+<p>WHEN '2' THEN '(월)'</p>
+<p>WHEN '3' THEN '(화)'</p>
+<p>WHEN '4' THEN '(수)'</p>
+<p>WHEN '5' THEN '(목)'</p>
+<p>WHEN '6' THEN '(금)'</p>
+<p>WHEN '7' THEN '(토)'</p>
+<p>END</p>
+<p>SELECT @Title = @TempDateTitle + @WeeKDayTitle</p>
+<p>INSERT #Title(Title, TitleSeq)</p>
+<p>SELECT @Title, @TempDate</p>
+<p>SELECT @TempDate = CONVERT(NCHAR(8), DATEADD(DAY, 1, @TempDate), 112)</p>
+<p>IF @TempDate &gt; @FoProdDateTo</p>
+<p>BREAK</p>
+<p>END</p>
+<p>-- Title</p>
+<p>SELECT Title, TitleSeq, ColIDX FROM #Title</p>
+  </article>
+</div>
+</body>
+</html>

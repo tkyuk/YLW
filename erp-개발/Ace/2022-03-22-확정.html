@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">확정</h1>
+<p>Ace 확정, 중단, 진행</p>
+<p>_TCOMConfimTable = 확정을 사용하겠다</p>
+<p>_TCOMConfirm =&gt; 확정 사용할 때 필수로 join해야하는 테이블</p>
+<p>확정테이블관리</p>
+<p><img alt="" src="assets/확정/image70.png" /></p>
+<p>- 코드관리(개발자) - 확정/중단관리 = 확정테이블관리(2014)</p>
+<p>확정테이블명칭 - 주문입력_sjpark</p>
+<p>확정테이블 - sjpark_TSLSalesOrder</p>
+<p>확정체크되는컬럼레벨 - 확정할 마스터영역 갯수</p>
+<p>체크진행할테이블 - sjpark_TSLSalesOrderItem</p>
+<p>진행체크되는컬럼레벨 - 1</p>
+<p>==&gt; _TCOMConfirmTable 에 데이터가 들어간다</p>
+<p>- 코드관리(개발자) - 확정/중단관리 = 확정관리(2014)</p>
+<p><img alt="" src="assets/확정/image71.png" /></p>
+<p>확정명 - sjpark_주문확정</p>
+<p>확정ID - sjpark_TSLSalesOrderCfm</p>
+<p>확정테이블명칭</p>
+<p>사용할거기에 사용안함에 체크 x</p>
+<p>==&gt; 작성 후 더블클릭</p>
+<blockquote>
+<p>=&gt; 영향받는 프로그램에 '주문조회' '주문품목조회' '주문입력'넣기</p>
+</blockquote>
+<p><img alt="" src="assets/확정/image72.png" /></p>
+<p><img alt="" src="assets/확정/image73.png" /></p>
+<p>1. 조회</p>
+<p>2. 품목조회 (읽기전용)</p>
+<p>3. 주문입력 (읽기전용)</p>
+<p>키값이 3개인거 까지 조회가능 (진행되는 컬럼레벨3)</p>
+<p>확정생성</p>
+<p>확정번호가 _TCOMConfirm 에 들어감</p>
+<p><img alt="" src="assets/확정/image74.png" /></p>
+<p>입력에서는 확정이 안됨</p>
+<p>대신 확정생성 - 서비스명 (비즈니스-주문입력_sjpark 넣어야함)</p>
+<p><img alt="" src="assets/확정/image75.png" /></p>
+<p><img alt="" src="assets/확정/image76.png" /></p>
+<p><img alt="" src="assets/확정/image77.png" /></p>
+<blockquote>
+<p>DataBlock(DataBlock1), Seq(OrderSeq) 넣기</p>
+<p>=&gt; 더블클릭 =&gt; 저장 적용체크</p>
+</blockquote>
+<p>===================================================================</p>
+<p>_TCOMConfirm 테이블</p>
+<p>Cfmcode - 확정확인 (1이면 확정)</p>
+<p>다시 조회하면 확정 풀려있음 =&gt; SP에 넣어줘야함</p>
+<p>* SP (화면에 안보이더라도 넣어줘야함)</p>
+<p>서비스구성에도 추가</p>
+<p>(확정,중단은 컬럼명을 고정해서 쓰자)</p>
+<p>Confirm 확정 int</p>
+<p>IsStop 중단 fix String –1 (오른쪽화살표)</p>
+<p><img alt="" src="assets/확정/image78.png" /></p>
+<p>* SP</p>
+<p>cfmcode as ConFirm 추가</p>
+<p>JOIN 걸기</p>
+<p>ConfirmSeq는 알고 있어야한다</p>
+  </article>
+</div>
+</body>
+</html>

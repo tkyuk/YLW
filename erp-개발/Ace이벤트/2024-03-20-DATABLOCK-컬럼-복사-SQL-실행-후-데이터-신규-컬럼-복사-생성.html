@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DATABLOCK 컬럼 복사 / SQL 실행 후 데이터 신규 컬럼 복사 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>DATABLOCK 컬럼 복사 / SQL 실행 후 데이터 신규 컬럼 복사 생성</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="datablock-sql">DATABLOCK 컬럼 복사 / SQL 실행 후 데이터 신규 컬럼 복사 생성</h1>
+<p>-- <span class="mark">DataBlock 복사</span> 1 -&gt; 2</p>
+<p>CopyDataBlock(m_SendXml.Data, 'DataBlock1', 'DataBlock2')</p>
+<p>-- LotNo -&gt; OriLotNo <span class="mark">명칭 변경</span></p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock2', 'StkQty', 'Qty')</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock2', 'LotNo', 'OriLotNo')</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'PJTSeq', txtPJTSeq.TextCd)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'PJTName', txtPJTSeq.Text)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'PJTNo', txtPJTNo.Text)</p>
+<p><span class="mark">-- 점프인 화면에 추가</span></p>
+<p>_base.IsOpen = false</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SetText(SS1, row, 'STDUnitName', CellText(SS1, row, 'UnitName'))</p>
+<p>SetText(SS1, row, 'STDUnitSeq', tonumber(CellText(SS1, row, 'UnitSeq')))</p>
+<p>SetText(SS1, row, 'STDQty', tonumber(CellText(SS1, row, 'Qty')))        </p>
+</blockquote>
+<p>end</p>
+<p>SetDataColFill(m_RecvXml, 'DataBlock2', 'Remark2', '')</p>
+<p>for row = 0, GetDataBlock(m_RecvXml.Data, 'DataBlock2').Rows.Count - 1 do</p>
+<p>SetDataSetValue(m_RecvXml.Data, 'DataBlock2', 'Remark2', row, GetDataSetObject(m_RecvXml.Data, 'DataBlock2', 'Remark1', row).Value)</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

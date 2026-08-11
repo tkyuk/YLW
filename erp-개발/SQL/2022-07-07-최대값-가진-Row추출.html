@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>최대값 가진 Row추출</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>최대값 가진 Row추출</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="row">최대값 가진 Row추출</h1>
+<p>2. Self Left Join 을 이용한 쿼리</p>
+<p>SELECTa.id, a.rev, a.contents\
+FROMYourTable a\
+INNERJOIN(\
+SELECTid, MAX(rev) rev\
+FROMYourTable\
+GROUPBYid) b ONa.id = b.id ANDa.rev = b.rev</p>
+<p>Group By 키워드를 사용하지 않고 Self Left Join을 통해 최대값을 찾는 쿼리이다.</p>
+<p>`b.rev`가 NULL 이라면 `a.rev`가 최대값이기 때문에 최대값을 가진 row값을 추출을 할수가 있다.</p>
+<p>출처: \&lt;<a href="https://overcode.tistory.com/entry/%EC%B5%9C%EB%8C%80%EA%B0%92%EC%9D%84-%EA%B0%80%EC%A7%84-Row-%EB%93%A4%EC%9D%84-%EC%B6%94%EC%B6%9C%ED%95%98%EB%8A%94-SQL-%EC%BF%BC%EB%A6%AC-2%EA%B0%80%EC%A7%80-Group-By-MAX">https://overcode.tistory.com/entry/%EC%B5%9C%EB%8C%80%EA%B0%92%EC%9D%84-%EA%B0%80%EC%A7%84-Row-%EB%93%A4%EC%9D%84-%EC%B6%94%EC%B6%9C%ED%95%98%EB%8A%94-SQL-%EC%BF%BC%EB%A6%AC-2%EA%B0%80%EC%A7%80-Group-By-MAX</a>&gt;</p>
+<p>SELECT *</p>
+<p>FROM MCNK_TWACLoanFund AS A</p>
+<p>INNER JOIN (</p>
+<p>SELECT CompanySeq, LoanFundSeq, MAX(Serl) AS Serl</p>
+<p>FROM MCNK_TWACLoanFund</p>
+<p>GROUP BY CompanySeq, LoanFundSeq</p>
+<p>)</p>
+<p>AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.LoanFundSeq = B.LoanFundSeq</p>
+<p>AND A.Serl = B.Serl</p>
+<p>1. Group By 와 MAX 를 이용한 쿼리</p>
+<p>SELECTa.id, a.rev, a.contents\
+FROMYourTable a\
+INNERJOIN(\
+SELECTid, MAX(rev) rev\
+FROMYourTable\
+GROUPBYid) b ONa.id = b.id ANDa.rev = b.rev</p>
+<p>Group BY와 SubQuery를 활용하여 먼저 id와 max값을 가지고 온뒤 INNER JOIN을 이용하여 해당하는 ROW를 찾아오는 쿼리이다.</p>
+<p>group by 특성상 해당하는 row의 다른 필드의 값을 가지고 올수가 없다.</p>
+<p>출처: \&lt;<a href="https://overcode.tistory.com/entry/%EC%B5%9C%EB%8C%80%EA%B0%92%EC%9D%84-%EA%B0%80%EC%A7%84-Row-%EB%93%A4%EC%9D%84-%EC%B6%94%EC%B6%9C%ED%95%98%EB%8A%94-SQL-%EC%BF%BC%EB%A6%AC-2%EA%B0%80%EC%A7%80-Group-By-MAX">https://overcode.tistory.com/entry/%EC%B5%9C%EB%8C%80%EA%B0%92%EC%9D%84-%EA%B0%80%EC%A7%84-Row-%EB%93%A4%EC%9D%84-%EC%B6%94%EC%B6%9C%ED%95%98%EB%8A%94-SQL-%EC%BF%BC%EB%A6%AC-2%EA%B0%80%EC%A7%80-Group-By-MAX</a>&gt;</p>
+<p>SELECT a.id, a.rev, a.contents FROM YourTable a INNER JOIN ( SELECT id, MAX(rev) rev FROM YourTable GROUP BY id ) b ON a.id = b.id AND a.rev = b.rev</p>
+<p>출처: \&lt;<a href="https://overcode.tistory.com/entry/%EC%B5%9C%EB%8C%80%EA%B0%92%EC%9D%84-%EA%B0%80%EC%A7%84-Row-%EB%93%A4%EC%9D%84-%EC%B6%94%EC%B6%9C%ED%95%98%EB%8A%94-SQL-%EC%BF%BC%EB%A6%AC-2%EA%B0%80%EC%A7%80-Group-By-MAX">https://overcode.tistory.com/entry/%EC%B5%9C%EB%8C%80%EA%B0%92%EC%9D%84-%EA%B0%80%EC%A7%84-Row-%EB%93%A4%EC%9D%84-%EC%B6%94%EC%B6%9C%ED%95%98%EB%8A%94-SQL-%EC%BF%BC%EB%A6%AC-2%EA%B0%80%EC%A7%80-Group-By-MAX</a>&gt;</p>
+<p>CREATE TABLE #TMP_LOTNo(</p>
+<p>ItemSeq INT</p>
+<p>,Dummy5 NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TMP_LOTNo(ItemSeq,Dummy5)</p>
+<p>SELECT B.ItemSeq, MAX(Z.Dummy5)</p>
+<p>FROM (</p>
+<p>SELECT ItemSeq, MAX(RegDate) AS MaxRegDate</p>
+<p>FROM _TLGLotMaster AS A</p>
+<p>WHERE ISNULL(A.Dummy5,'') \&lt;&gt; ''</p>
+<p>GROUP BY ItemSeq</p>
+<p>) AS B</p>
+<p>LEFT OUTER JOIN _TLGLotMaster AS Z ON B.ItemSeq = Z.ItemSeq AND Z.RegDate = B.MaxRegDate</p>
+<p>GROUP BY B.ItemSeq</p>
+<p>ORDER BY B.ItemSeq</p>
+  </article>
+</div>
+</body>
+</html>

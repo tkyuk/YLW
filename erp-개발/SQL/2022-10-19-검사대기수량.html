@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>검사대기수량</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>검사대기수량</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">검사대기수량</h1>
+<hr />
+<p>-- 검사대기수량 : 조회일 기준 3개월 전까지 구매납품, 외주납품, 작업실적건 중 검사구분이 미검사인 수량 조회(입고창고 관계없이 전체 조회)</p>
+<hr />
+<p>CREATE TABLE #QCWaitQty_Temp</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>QCWaitQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 기간구하기</p>
+<p>SELECT @FoProdDate3 = CONVERT(NCHAR(8), DATEADD(MONTH, -3, @FoProdDate), 112)</p>
+<p>-- 구매납품</p>
+<p>INSERT #QCWaitQty_Temp(ItemSeq, QCWaitQty)</p>
+<p>SELECT B.ItemSeq, SUM(B.Qty) AS Qty</p>
+<p>FROM _TPUDelv AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.DelvSeq = A.DelvSeq</p>
+<p>JOIN #Fix AS C ON C.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDQCTestReport AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.SourceSeq = B.DelvSeq</p>
+<p>AND D.SourceSerl = B.DelvSerl</p>
+<p>AND D.SourceType = 6097001 -- 구매검사</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>AND A.DelvDate BETWEEN @FoProdDate3 AND @FoProdDate</p>
+<p>AND A.SMImpType IN (8008001, 8008002, 8008003)</p>
+<p>AND ISNULL(D.SMTestResult, B.SMQcType) = 6035002 -- 미검사</p>
+<p>GROUP BY B.ItemSeq</p>
+<p>-- 외주납품</p>
+<p>INSERT #QCWaitQty_Temp(ItemSeq, QCWaitQty)</p>
+<p>SELECT B.ItemSeq, SUM(B.Qty) AS Qty</p>
+<p>FROM _TPDOSPDelv AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OSPDelvSeq = A.OSPDelvSeq</p>
+<p>JOIN #Fix AS C ON C.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDQCTestReport AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.SourceSeq = B.OSPDelvSeq</p>
+<p>AND D.SourceSerl = B.OSPDelvSerl</p>
+<p>AND D.SourceType = 6097002 -- 외주검사</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>AND A.OSPDelvDate BETWEEN @FoProdDate3 AND @FoProdDate</p>
+<p>AND ISNULL(D.SMTestResult, B.SMQcType) = 6035002 -- 미검사</p>
+<p>GROUP BY B.ItemSeq</p>
+<p>-- 작업실적</p>
+<p>INSERT #QCWaitQty_Temp(ItemSeq, QCWaitQty)</p>
+<p>SELECT B.ItemSeq, SUM(A.ProdQty) AS Qty</p>
+<p>FROM _TPDSFCWorkReport AS A WITH(NOLOCK)</p>
+<p>JOIN #Fix AS B ON B.ItemSeq = A.GoodItemSeq</p>
+<p>LEFT OUTER JOIN _TPDQCTestReport AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.SourceSeq = A.WorkReportSeq</p>
+<p>AND C.SourceSerl = 0</p>
+<p>AND C.SourceType IN (6097003, 6097004) -- 최종검사, 공정검사</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>AND A.WorkDate BETWEEN @FoProdDate3 AND @FoProdDate</p>
+<p>AND ISNULL(C.SMTestResult, 0) = 6035002 -- 미검사</p>
+<p>GROUP BY B.ItemSeq</p>
+<p>-- 창고 관계없이 품목별로 집계</p>
+<p>SELECT ItemSeq, SUM(QCWaitQty) AS QCWaitQty</p>
+<p>INTO #QCWaitQty</p>
+<p>FROM #QCWaitQty_Temp</p>
+<p>GROUP BY ItemSeq</p>
+<p>-- 검사대기수량</p>
+<p>UPDATE A</p>
+<p>SET QCWaitQty = ISNULL(B.QCWaitQty, 0)</p>
+<p>FROM #Fix AS A</p>
+<p>LEFT OUTER JOIN #QCWaitQty AS B ON A.ItemSeq = B.ItemSeq</p>
+  </article>
+</div>
+</body>
+</html>

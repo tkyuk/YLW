@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.10.31 생산현장포장작업실적생성_hct</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.10.31 생산현장포장작업실적생성_hct</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-31</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241031-_hct">24.10.31 생산현장포장작업실적생성_hct</h1>
+<p>select * from _TLGLotMaster WHERE LotNo = 'A249263I'</p>
+<p>select top 100 lastdatetime,* from hct_TPDSFCProdSiteReportItem where LotNo = 'A249263I' AND MatItemSeq = 1489</p>
+<p>-- 테이블 키값으로만 가능(빠름) : 테이블, CompanySeq, 테이블 키, 테이블 키 값</p>
+<p>--EXEC _SWCOMGetTableLog '_TDAItem', 1, 'ItemSeq', 998</p>
+<p>-- 기간, 컬럼, 컬럼값으로 가능(느림) : CompanySeq, 테이블, 기간Fr, 기간To, 컬럼명, 컬럼값</p>
+<p>EXEC _SWCOMTableLogQuery</p>
+<p>@CompanySeq = 1,</p>
+<p>@TableName = '_TLGLotMaster',</p>
+<p>@LogDateFr = '20240901',</p>
+<p>@LogDateTo = '20241031',</p>
+<p>@TXTCol1 = 'LotNo',</p>
+<p>@TXTData1 = 'A249202I',</p>
+<p>@TXTCol2 = 'ItemSeq',</p>
+<p>@TXTData2 = '1489'</p>
+<p>EXEC _SWCOMTableLogQuery</p>
+<p>@CompanySeq = 1,</p>
+<p>@TableName = 'hct_TPDSFCProdSiteReportItem',</p>
+<p>@LogDateFr = '20240901',</p>
+<p>@LogDateTo = '20241030',</p>
+<p>@TXTCol1 = 'SiteReportSeq',</p>
+<p>@TXTData1 = '10986'</p>
+<p>select top 100 * from _TLGLotMaster order by LastDateTime desc</p>
+<p>select top 100 * from _TLGLotMaster order by LastDateTime desc</p>
+<p>select top 100 lastdatetime,* from hct_TPDSFCProdSiteReportItem where SiteReportSeq = 9554 and SiteReportSerl =        1</p>
+<p>SELECT A.CreateDate,A.lastdatetime, B.ItemNo, B.ItemName,A.*</p>
+<p>from _TLGLotMaster AS A</p>
+<p>JOIN _TDAItem AS B ON B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.LotNo = 'A248212H'</p>
+<p>--AND B.ItemNo = ''</p>
+<p>order by 1</p>
+<p>select * from _TDAItem where ItemSeq = 1490</p>
+<p>작업지시번호</p>
+<p>2409-M-01-113C-H</p>
+<p>자재번호</p>
+<p>CS-113C-P1 (도금후)</p>
+<p>A249202I</p>
+<p>1489_/A249202I11_/8000</p>
+<p>1489_/A249202I12_/8000</p>
+<p>1489_/A249202I1A_/8000</p>
+<p>1489_/A249202I13_/8000</p>
+<p>1489_/A249202I14_/8000</p>
+<p>1489_/A249202I15_/8000</p>
+  </article>
+</div>
+</body>
+</html>

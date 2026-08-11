@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조인셋 구매발주서 메일 수정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>조인셋 구매발주서 메일 수정</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">조인셋 구매발주서 메일 수정</h1>
+<p>DROP PROCEDURE JIS_SWPUKumsTemplatePO</p>
+<p>GO</p>
+<p>CREATE PROCEDURE JIS_SWPUKumsTemplatePO</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 1 ,</p>
+<p>@LanguageSeq INT = 1 ,</p>
+<p>@UserSeq INT = 0 ,</p>
+<p>@PgmSeq INT = 0 ,</p>
+<p>@MessageDiv CHAR(1) = '',</p>
+<p>@MessageType VARCHAR(50) = '',</p>
+<p>@TemplateCode VARCHAR(30) = '',</p>
+<p>@TemplateContent NVARCHAR(1000)='',</p>
+<p>@Param1 NVARCHAR(4000) , -- POSeq</p>
+<p>@Param2 NVARCHAR(4000) ,</p>
+<p>@Param3 NVARCHAR(4000) ,</p>
+<p>@Param4 NVARCHAR(4000) ,</p>
+<p>@Param5 NVARCHAR(4000)</p>
+<p>AS</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>DECLARE @ReplaceContent NVARCHAR(1000) = ''</p>
+<p>, @RecvNames NVARCHAR(1000) = ''</p>
+<p>, @RecvValues NVARCHAR(1000) = ''</p>
+<p>, @DisplayReportName NVARCHAR(1000) = ''</p>
+<p>, @ReportName NVARCHAR(200) = ''</p>
+<p>, @IDXNO INT</p>
+<p>, @ContactNumber NVARCHAR(400) = ''</p>
+<p>, @CNT INT = 1</p>
+<p>, @SendEmail NVARCHAR(1000) = ''</p>
+<p>, @Subject NVARCHAR(1000) = ''</p>
+<p>-- 템플릿내용 담기</p>
+<p>SELECT @TemplateContent = (SELECT TemplateContent</p>
+<p>FROM OTCAKumsTemplate WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND TemplateCode = @TemplateCode)</p>
+<p>/***************************** #{content} 시작 **************************/</p>
+<p>DECLARE @CompanyName NVARCHAR(100), @PgmName NVARCHAR(200), @UserDept NVARCHAR(100), @UserName NVARCHAR(100), @Remark NVARCHAR(1000), @CurrDate NCHAR(8)</p>
+<p>DECLARE @PONo NVARCHAR(20), @DeptName NVARCHAR(100),@EmpName NVARCHAR(100), @PODate NCHAR(10), @ItemName NVARCHAR(100), @UnitName NVARCHAR(100), @Qty DECIMAL(19, 5), @CustName NVARCHAR(100)</p>
+<p>SELECT @CurrDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>SELECT @CompanyName = (SELECT CompanyName FROM _TCACompany WITH(NOLOCK) WHERE CompanySeq = @CompanySeq)</p>
+<p>SELECT @PgmName = (SELECT Caption FROM _TCAPgm WITH(NOLOCK) WHERE PgmSeq = @PgmSeq)</p>
+<p>SELECT @UserDept = (SELECT ISNULL(D.DeptName, ISNULL(H.DeptName, N''))</p>
+<p>FROM _TCAUser AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAEmp AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRAdmOrdEmp AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.EmpSeq = C.EmpSeq -- 발령일내에 있는 사원.</p>
+<p>AND C.OrdDate+RIGHT(N'00000'+CONVERT(NVARCHAR(5),C.IntSeq),5) = (SELECT MAX(OrdDate+RIGHT(N'00000'+CONVERT(NVARCHAR(5),IntSeq),5))</p>
+<p>FROM _THRAdmOrdEmp</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = C.EmpSeq</p>
+<p>AND IsOrdDateLast = N'1'</p>
+<p>AND OrdDate \&lt;= @CurrDate) -- 발령일자 기준 이전발령</p>
+<p>LEFT OUTER JOIN _TDADept AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.DeptSeq = D.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS H WITH(NOLOCK) ON B.CompanySeq = H.CompanySeq --제품군이 WBS인 경우는 _TDAEmpOutContract 테이블 사용하지 않음</p>
+<p>AND B.WkDeptSeq = H.DeptSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq AND A.UserSeq = @UserSeq)</p>
+<p>SELECT @UserName = (SELECT UserName FROM _TCAUser WHERE UserSeq = @UserSeq AND CompanySeq = @CompanySeq )</p>
+<p>SELECT @PONo = A.PONo ,</p>
+<p>@DeptName = B.DeptName,</p>
+<p>@EmpName = C.EmpName,</p>
+<p>@PODate = LEFT(A.PODate, 4) + '-' + SUBSTRING(A.PODate, 5, 2) + '-' + RIGHT(A.PODate, 2),</p>
+<p>@Remark = A.Remark,</p>
+<p>@CustName = ISNULL(D.CUSTNAME,'')</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TDADept AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.DeptSeq = A.DeptSeq</p>
+<p>JOIN _TDAEmp AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.EmpSeq = C.EmpSeq</p>
+<p>JOIN _TDACust AS D WITH(NOLOCK) ON A.CustSeq = D.CustSeq</p>
+<p>AND A.CompanySeq = D.CompanySeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = @Param1</p>
+<p>SELECT @Qty = SUM(B.Qty)</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.POSeq = A.POSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = @Param1</p>
+<p>SELECT @ItemName = C.ItemName,</p>
+<p>@UnitName = D.UnitName</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.POSeq = A.POSeq</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>JOIN _TDAUnit AS D WITH(NOLOCK) ON B.UnitSeq = D.UnitSeq</p>
+<p>AND B.CompanySeq = D.CompanySeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = @Param1</p>
+<p>GROUP BY C.ItemName, D.UnitName, B.Qty</p>
+<p>ORDER BY B.Qty</p>
+<p>--SELECT @TemplateContent = REPLACE(@TemplateContent, '#{content}',</p>
+<p>-- '[' + @CompanyName + ']' + NCHAR(13) +</p>
+<p>-- '- 발주번호 : ' + @PONo + NCHAR(13) +</p>
+<p>-- '- 발신자 : ' + @UserDept + ' / ' + @UserName + NCHAR(13) +</p>
+<p>-- '- 구매거래처 : ' + @CustName + NCHAR(13) +</p>
+<p>-- '- 대표품명 : ' + @ItemName + NCHAR(13) +</p>
+<p>-- '- 특이사항 : ' + @Remark</p>
+<p>-- )</p>
+<p>/*****************************************************************************/</p>
+<p>DECLARE @CellPhone NVARCHAR(20),</p>
+<p>@UMJpName NVARCHAR(20)</p>
+<p>SELECT</p>
+<p>@CellPhone = dbo._FWCOMDecrypt(B.Cellphone, N'_TDAEmpIn', 'Cellphone', B.CompanySeq),</p>
+<p>@UMJpName = C.UMJpName</p>
+<p>FROM _TCAUser AS A</p>
+<p>JOIN _TDAEmpIn AS B ON A.CompanySeq = B.CompanySeq AND A.EmpSeq = B.EmpSeq</p>
+<p>JOIN _fnAdmEmpOrdEmp(@CompanySeq, @CurrDate, 0) AS C ON A.EmpSeq = C.EmpSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq AND A.UserSeq = @UserSeq</p>
+<p>IF ISNULL(@CellPhone,'') = '' SELECT @CellPhone = ''</p>
+<p>IF ISNULL(@UMJpName, '') = '' SELECT @UMJpName = ''</p>
+<p>SELECT @TemplateContent = REPLACE(@TemplateContent, '#{content}',</p>
+<p>'안녕하세요.'+ NCHAR(13)</p>
+<p>+ @CompanyName +' '+ @UserDept + ' 입니다.'+ NCHAR(13)</p>
+<p>+ NCHAR(13)</p>
+<p>+ '첨부와 같이 발주서 송부드립니다.'+ NCHAR(13)</p>
+<blockquote>
+<p>+ NCHAR(13)</p>
+</blockquote>
+<p>--+ '\&lt;p style="color:red; font-size:14pt;"&gt;\&lt;u&gt;발주서 상 문제(단가, Delivery date(납기요청일) 내에 납품불가 등)가 있다면 메일로 회신요청드리며,\&lt;/u&gt;\&lt;/p&gt;'</p>
+<p>--+ '\&lt;p style="color:red; font-size:14pt;"&gt;\&lt;u&gt;발주서 상 문제 없을 시에도 발주확인완료라고 간단히 메일 회신 부탁드립니다.\&lt;/u&gt;\&lt;/p&gt;'</p>
+<p>+ '\&lt;p style="font-size:13pt"&gt;발주서 상 문제(단가, Delivery date(납기요청일) 내에 납품불가 등)가 있다면 메일로 회신요청드리며,\&lt;/p&gt;'</p>
+<p>+ '\&lt;p style="font-size:13pt"&gt;발주서 상 문제 없을 시에도 발주확인완료라고 간단히 메일 회신 부탁드립니다.\&lt;/p&gt;'</p>
+<p>+ NCHAR(13)</p>
+<p>+ '1. 모든 발주는 조인셋의 거래기본계약서에 따른다.'+ NCHAR(13)</p>
+<p>+ '2. 거래사는 조인셋이 발주서를 보낸 날부터 근무일 2일 내 서면 거절의사표시를 하지 않으면 상기 발주서대로 납품함을 동의한다고 간주한다.'+ NCHAR(13)</p>
+<p>+ '3. 거래사는 납기 내 납품하지 못한 때 발생하는 책임을 지며, 이와 별개로 조인셋은 해당 발주를 취소할 수 있다.'+ NCHAR(13)</p>
+<p>+ '4.거래사는 납품 시 거래명세서, 검사성적서 필요시 시료를 제출하여야 납품이 완료된다.'+ NCHAR(13)</p>
+<p>+ '5. 제조일로부터 자재보증기간이 지났거나, 임박한(보증기간 제조일로부터 6개월이나 납품시점에 보증기간 2달 남은 자재 등) 자재는 납품 불가한다.'+ NCHAR(13)</p>
+<p>+ NCHAR(13)</p>
+<p>+ 'Delivery Location(납품요청장소)는 조인셋 본사 경기도 안산시 단원구 해안로 329 하역장(지게차 옆)이며,'+ NCHAR(13)</p>
+<p>+ '네비게이션에 "'+@CompanyName+'"을 검색하시면 길 찾기가 용이합니다.'+ NCHAR(13)</p>
+<p>+ '(당사는 왕복 6차선 큰 길가에 정문으로만 출입 가능합니다.)'+ NCHAR(13)</p>
+<p>+ '납품 시 장누리 프로 혹은 정영화 파트장 (031-495-4721)로 연락 주십시오.'+ NCHAR(13)</p>
+<p>+ NCHAR(13)</p>
+<p>+ '성적서는 하기 메일주소로 송부 요청드립니다.'+ NCHAR(13)</p>
+<p>+ 'joinsetqa2@joinset.com (품질부 전체수신메일)'+ NCHAR(13)</p>
+<p>+ NCHAR(13)</p>
+<p>+ '세금계산서 송부용 구매팀 전체수신메일 : purchasing@joinset.com'+ NCHAR(13)</p>
+<p>+ NCHAR(13)</p>
+<p>+ '감사합니다.')</p>
+<p>/*****************************************************************************/</p>
+<p>/***************************** #{content} 끝 **************************/</p>
+<p>-- 출력물명 구매발주서_201905220001.pdf</p>
+<p>SELECT @ReportName = ISNULL(Word, N'구매발주서') FROM _TCADictionary WHERE WordSeq = 66988 AND LanguageSeq = @LanguageSeq -- 구매발주서</p>
+<p>SELECT @DisplayReportName = @ReportName+'_'+@PONo</p>
+<p>/**********************수신자에 기본적으로 거래처의 영업담당자 세팅 시작***********************/</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>CREATE TABLE #CustContact(IDX_NO INT IDENTITY(1, 1),CustSeq INT, ContactName NVARCHAR(200), ContactNumber NVARCHAR(400))</p>
+<p>INSERT INTO #CustContact(CustSeq, ContactName, ContactNumber)</p>
+<p>SELECT A.CustSeq,</p>
+<p>C.ContactName,</p>
+<p>CASE WHEN @MessageDiv IN ('A','S') THEN ISNULL(dbo._FWCOMDecrypt(C.ContactNumber, N'_TDAContact', N'ContactNumber', @CompanySeq),'') --알림톡,SMS인 경우 인맥의 전화번호</p>
+<p>ELSE C.EMAIL END -- Mail인 경우 인맥의 메일</p>
+<p>FROM _TDACustEmpInfo AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPO AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.CustSeq = B.CustSeq</p>
+<p>AND B.POSeq = @Param1</p>
+<p>LEFT OUTER JOIN _TDAContact AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ContactSeq = C.ContactSeq</p>
+<p>AND C.ContactType = 500035003</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.UMJobRollKind = 8024002</p>
+<p>SELECT @IDXNO = MAX(IDX_NO) FROM #CustContact</p>
+<p>-- 3번 루프돈다 1.성지원 2.박성호 3.권기석</p>
+<p>WHILE @CNT \&lt;= @IDXNO</p>
+<p>BEGIN</p>
+<p>-- RecvNames= 성지원;박성호;권기석; RecvValues= 01012345678;01012345678;12345645678; 형태로 조회되어야 함</p>
+<p>SELECT @RecvNames = @RecvNames + CASE WHEN ISNULL(ContactName,'') = '' THEN ' ' ELSE ContactName END+ ';',</p>
+<p>@RecvValues = @RecvValues + CASE WHEN ISNULL(ContactNumber,'') = '' THEN ' ' ELSE ContactNumber END+ ';'</p>
+<p>FROM #CustContact</p>
+<p>WHERE IDX_NO = @CNT</p>
+<p>SELECT @CNT = @CNT + 1</p>
+<p>END</p>
+<p>-- Mail 보내는 사람 세팅</p>
+<p>-- SELECT @SendEmail = B.EMail FROM _TCAUser AS A JOIN _TDAEmpIn AS B ON A.CompanySeq = B.CompanySeq AND A.EmpSeq = B.EmpSeq WHERE A.CompanySeq = @CompanySeq AND A.UserSeq = @UserSeq</p>
+<p>SELECT @SendEmail = B.ValText FROM _TCAUser AS A JOIN _TDAEmpUserDefine AS B ON A.CompanySeq = B.CompanySeq AND A.EmpSeq = B.EmpSeq AND B.Serl = 1000011 WHERE A.CompanySeq = @CompanySeq AND A.UserSeq = @UserSeq</p>
+<p>IF ISNULL(@SendEmail,'') = ''</p>
+<p>BEGIN</p>
+<p>SELECT @SendEmail = B.EMail FROM _TCAUser AS A JOIN _TDAEmpIn AS B ON A.CompanySeq = B.CompanySeq AND A.EmpSeq = B.EmpSeq WHERE A.CompanySeq = @CompanySeq AND A.UserSeq = @UserSeq</p>
+<p>END</p>
+<p>-- 메일 제목</p>
+<p>-- [영림원ERP]에서 영림원 제거 :: 20200416 장경선</p>
+<p>-- 2021.01.11 [ERP]-&gt;[법인명]으로 변경 by.김수연</p>
+<p>SELECT @Subject = '['+@CompanyName+'] 발주번호 '+@PONo+' 메일 발송 드립니다.'</p>
+<p>IF @MessageDiv IN ('A','S')</p>
+<p>BEGIN</p>
+<p>-- 최종 Output (알림톡,SMS인 경우 템플렛내용대로 뿌려주기, 출력물명은 공백)</p>
+<p>SELECT @TemplateCode AS TemplateCode,</p>
+<p>@TemplateContent AS TemplateContent,</p>
+<p>@RecvNames AS RecvNames,</p>
+<p>@RecvValues AS RecvValues,</p>
+<p>'' AS DisplayReportName,</p>
+<p>@CustName AS CustName</p>
+<p>END</p>
+<p>ELSE IF @MessageDiv = 'M'</p>
+<p>BEGIN</p>
+<p>-- 최종 Output (Mail인 경우 템플릿내용 비어둠, 출력물명 세팅, 보내는사람 메일 세팅, 메일 제목 세팅)</p>
+<p>SELECT @TemplateCode AS TemplateCode,</p>
+<p>REPLACE(REPLACE(@TemplateContent, CHAR(10), ''), CHAR(13), ' \&lt;br&gt; ') AS TemplateContent,</p>
+<p>@RecvNames AS RecvNames,</p>
+<p>@RecvValues AS RecvValues,</p>
+<p>@DisplayReportName AS DisplayReportName,</p>
+<p>@SendEmail AS SendEmail,</p>
+<p>@Subject AS Subject,</p>
+<p>@CustName AS CustName</p>
+<p>END</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

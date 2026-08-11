@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>숫자 테이블 0 ~ 2047 (master..spt_values)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>숫자 테이블 0 ~ 2047 (master..spt_values)</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="0-2047-masterspt_values">숫자 테이블 0 ~ 2047 (master..spt_values)</h1>
+<p><span class="mark">숫자 출력</span></p>
+<p>SELECT number</p>
+<p>FROM master..spt_values</p>
+<p>WHERE type = 'P' AND number BETWEEN 0 AND 2047</p>
+<p><span class="mark">날짜 사이 모든 날짜 출력</span></p>
+<p>DECLARE @StartDate DATE = '2024-01-01'</p>
+<p>DECLARE @EndDate DATE = '2024-12-31'</p>
+<p>SELECT DATEADD(DAY, number, @StartDate) AS GeneratedDate</p>
+<p>FROM master..spt_values</p>
+<p>WHERE type = 'P'</p>
+<p>AND number BETWEEN 0 AND DATEDIFF(DAY, @StartDate, @EndDate)</p>
+<p><span class="mark">알파벳 생성</span></p>
+<p>SELECT CHAR(number + 65) AS Letter</p>
+<p>INTO #TMP</p>
+<p>FROM master..spt_values</p>
+<p>WHERE type = 'P'</p>
+<p>AND number BETWEEN 0 AND 25</p>
+<p>SELECT * FROM #TMP</p>
+  </article>
+</div>
+</body>
+</html>

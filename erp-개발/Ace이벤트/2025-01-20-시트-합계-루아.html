@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 합계 루아</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 합계 루아</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트 합계 루아</h1>
+<p>-- * 부자재 계산</p>
+<p>local QtyNumerator, QtyDenominator, Price, CalcPrice, MatCostSUM, MatPrice, MatHandling, LogiCost</p>
+<p>-- 부자재 핸들링비용</p>
+<p>MatHandling = fltMatHandling.Value</p>
+<p>-- 제품단위당 물류비</p>
+<p>LogiCost = fltLogiCost.Value</p>
+<p>-- 반영단가 계산</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>if (CellText(SS1, row, 'IsCustSupply'))        == '1' then</p>
+<p>SetText(SS1, row, 'CalcPrice', 0)</p>
+<p>else</p>
+<blockquote>
+<p>QtyNumerator = tonumber(CellText(SS1, row, 'QtyNumerator'))        </p>
+<p>QtyDenominator = tonumber(CellText(SS1, row, 'QtyDenominator'))</p>
+<p>Price = tonumber(CellText(SS1, row, 'Price'))</p>
+<p>CalcPrice = math.floor(QtyNumerator/QtyDenominator * Price + 0.5)</p>
+</blockquote>
+<p>SetText(SS1, row, 'CalcPrice', CalcPrice)</p>
+<p>end</p>
+<p>end</p>
+<p><span class="mark">MatPrice = GetSumValue(SS1, 0, 'CalcPrice', SS1.DataRowCnt-1, 'CalcPrice')                </span></p>
+<p>-- 부자재소계                        </p>
+<p>fltMatPrice.Value = MatPrice</p>
+<p>-- 부자재소계(제품정보쪽)</p>
+<p>fltMatPriceM.Value = MatPrice        </p>
+<p>-- 부자재비용합계</p>
+<p>fltMatCostSUM.Value        = math.floor(MatPrice * ( 1 +MatHandling / 100) + 0.5)                                                                 </p>
+<p>-- 부자재비용합계(제품정보쪽)</p>
+<p>fltMatCostSUMM.Value        = math.floor(MatPrice * ( 1 +MatHandling / 100) + 0.5)                                                 </p>
+<p>-- 제품단위당 물류비</p>
+<p>fltLogiCostM.Value = LogiCost</p>
+  </article>
+</div>
+</body>
+</html>

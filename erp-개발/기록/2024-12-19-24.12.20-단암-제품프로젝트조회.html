@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.20 단암 제품프로젝트조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.20 단암 제품프로젝트조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241220">24.12.20 단암 제품프로젝트조회</h1>
+<p>DROP PROCEDURE danam_SPJTProjecItemBatch_sys_ttest</p>
+<p>GO</p>
+<p>/**********************************************************</p>
+<p>-- SYS 수정내역</p>
+<p>24.04.12 SJPARK - 프로젝트 유형이 변경되는 경우 매출인식기준도 같이 변경되도록 로직 추가</p>
+<p>*********************************************************/</p>
+<p>CREATE PROCEDURE danam_SPJTProjecItemBatch_sys_ttest</p>
+<p>@xmlDocument NVARCHAR(MAX),</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>DECLARE @Count INT,</p>
+<p>@Seq INT,</p>
+<blockquote>
+<p>@BizPJTSeq INT</p>
+<p>DECLARE @XmlData NVARCHAR(MAX)</p>
+<p>,@ST INT</p>
+<p>,@RT NVARCHAR(100)</p>
+</blockquote>
+<p>CREATE TABLE #TPJTProject(WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TPJTProject'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<blockquote></blockquote>
+<p>--=====================================================================================</p>
+<p>-- 로그데이터 남기기. 사용자가 화면에서 입력 또는 삭제한 항목들...로그테이블에 저장.</p>
+<p>--=====================================================================================</p>
+<p>INSERT INTO danam_TPJTProjectBatchlog</p>
+<p>(</p>
+<p>WorkingTag, LogDateTime, LogUserSeq, ProdItemSeq, ProdItemSpec, ProdItemName, ProdItemNo, Qty, Price, Amt, Vat,</p>
+<p>UnitFr, UnitTo, DelvDueDate, ItemGubunSeq, ItemGubunName, BizPJTSeq, BizPJTName, PlanFrDate, PlanToDate, CustSeq, Summary, Object, Etc,</p>
+<p>PJTNo, PJTName,PJTSeq, EstDeliveryDate, PJTTypeSeq)</p>
+<p>SELECT WorkingTag, GETDATE(), @UserSeq, ProdItemSeq, ProdItemSpec, ProdItemName, ProdItemNo, Qty, Price, Amt, Vat,</p>
+<p>UnitFr, UnitTo, DelvDueDate, ItemGubunSeq, ItemGubunName, BizPJTSeq, BizPJTName, PlanFrDate, PlanToDate, CustSeq, Summary, Object, Etc,</p>
+<p>PJTNo, PJTName,PJTSeq, EstDeliveryDate, PJTTypeSeq</p>
+<p>FROM #TPJTProject</p>
+<p>WHERE WorkingTag IN('A','U','D')</p>
+<p>UPDATE A</p>
+<p>SET BizUnit = (SELECT TOP 1 BizUnit FROM _TDABizUnit WHERE CompanySeq = @CompanySeq),</p>
+<p>AccUnit = (SELECT TOP 1 AccUnit FrOm _TDAAccUnit WHERE CompanySeq = @CompanySEq )</p>
+<p>FROM #TPJTProject AS A</p>
+<p>--=====================================================================================</p>
+<p>-- DELETE</p>
+<p>--=====================================================================================</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TPJTProject WHERE WorkingTag = 'D' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>-- 체크 추가 2016.04.27</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '생산이 진행되어 삭제 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPDProdOrder AS B ON B.CompanySeq = @companySeq AND A.PJTSEq = B.PJtSeq</p>
+<p>WHERE A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '구매가 진행되어 삭제 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPUORDPOReqItem AS B ON B.CompanySeq = @companySeq AND A.PJTSEq = B.PJtSeq</p>
+<p>WHERE A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '불출이 진행되어 삭제 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPDMMOutReqItem AS B ON B.CompanySeq = @companySeq AND A.PJTSEq = B.PJtSeq</p>
+<p>WHERE A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '거래명세서가 진행되어 삭제 할 수 없습니다.(납품품목)'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTWBSPJTUnion AS P ON @CompanySeq = P.CompanySeq AND A.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 ON P2.CompanySeq = P.CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @companySeq AND A.PJTNo = C2.ItemNo</p>
+<p>JOIN _TPJTProjectDelivery AS B2 ON B2.CompanySeq = @CompanySeq AND B2.ProgFromSubSerl = A.PJTSeq</p>
+<p>JOIN _TSLInvoiceItem AS C ON C.CompanySeq = @companySeq AND B2.ItemSEq = C.ItemsEq</p>
+<p>WHERE A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '거래명세서가 진행되어 삭제 할 수 없습니다.(계약품목)'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTWBSPJTUnion AS P ON @CompanySeq = P.CompanySeq AND A.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 ON P2.CompanySeq = P.CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @companySeq AND A.PJTNo = C2.ItemNo</p>
+<p>JOIN _TPJTProjectItem AS B2 ON B2.CompanySeq = @CompanySeq AND B2.ProgFromSubSerl = A.PJTSeq</p>
+<p>JOIN _TSLInvoiceItem AS C ON C.CompanySeq = @companySeq AND B2.ItemSEq = C.ItemsEq</p>
+<p>WHERE A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '공수할당이 진행되어 삭제 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPDWorkHourDistribute AS B ON B.CompanySeq = @companySeq AND A.PJTSeq = B.ItemPJTSeq</p>
+<p>WHERE A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '실적공수가 입력되어 삭제 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPDWorkHourResult AS B ON B.CompanySeq = @companySeq AND A.PJTSeq = B.ItemPJTSeq</p>
+<p>WHERE A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 비고 삭제</p>
+<p>DELETE _TPJTProjectRemark</p>
+<p>FROM _TPJTProjectRemark AS A</p>
+<p>JOIN #TPJTProject AS B ON A.PJTSeq =B.PJTseq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 부가정보 삭제</p>
+<p>DELETE _TPJTProjectDesc</p>
+<p>FROM _TPJTProjectDesc AS A</p>
+<p>JOIN #TPJTProject AS B ON A.PJTSeq =B.PJTseq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<blockquote>
+<p>AND B.WorkingTag = 'D'</p>
+</blockquote>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 납품내역 삭제</p>
+<p>DELETE _TPJTProjectDelivery</p>
+<p>FROM _TPJTProjectDelivery AS A</p>
+<p>JOIN #TPJTProject AS B ON A.PJTSeq =B.PJTseq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 납품내역 삭제</p>
+<p>DELETE danam_TPJTProjectDelivery</p>
+<p>FROM danam_TPJTProjectDelivery AS A</p>
+<p>JOIN #TPJTProject AS B ON A.PJTSeq =B.PJTseq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 계약 품목 삭제</p>
+<p>DELETE _TPJTProjectItem</p>
+<p>FROM _TPJTProjectItem AS A</p>
+<p>JOIN #TPJTProject AS B ON A.PJTSeq =B.PJTseq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 활동센터 삭제</p>
+<p>DELETE _TDACCtr</p>
+<p>FROM _TDACCtr AS A</p>
+<p>JOIN _TPJTProject AS P ON P.CompanySeq = A.CompanySeq AND P.CCtrSeq = A.CCtrSeq</p>
+<p>JOIN #TPJTProject AS B ON P.PJTSeq =B.PJTSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SMSourceType = 5511001 -- 프로젝트</p>
+<p>AND B.Status = 0</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 관리항목 삭제</p>
+<p>DELETE _TPJTBaseMngItem</p>
+<p>FROM _TPJTBaseMngItem AS A</p>
+<p>JOIN #TPJTProject AS B ON A.SomeSeq =B.PJTseq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 프로젝트 삭제</p>
+<p>DELETE _TPJTProject</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DELETE _TPJTWBSPJTUnion</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 프로젝트 삭제</p>
+<p>DELETE danam_TPJTProject</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPJTProject AS B ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<blockquote></blockquote>
+<p>/*</p>
+<p>-- 사업프로젝트 계약품목 삭제</p>
+<p>DELETE B2</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTWBSPJTUnion AS P ON @CompanySeq = P.CompanySeq AND A.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 ON P2.CompanySeq = P.CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @companySeq AND A.PJTNo = C2.ItemNo</p>
+<p>JOIN _TPJTProjectDelivery AS B2 ON B2.CompanySeq = @CompanySeq AND B2.ProgFromSubSerl = A.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 사업프로젝트 납품품목 삭제</p>
+<p>DELETE B2</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTWBSPJTUnion AS P WITH(NOLOCK) ON @CompanySeq = P.CompanySeq AND A.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 WITH(NOLOCK) ON P2.CompanySeq = @CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @companySeq AND A.PJTNo = C2.ItemNo</p>
+<p>JOIN _TPJTProjectItem AS B2 ON B2.CompanySeq = @CompanySeq AND B2.ProgFromSubSerl = A.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'D' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>*/</p>
+<p>DELETE A</p>
+<p>FROM danam_TPJTItemByItemGubun A LEFT OUTER JOIN _TPJTProjectItem B</p>
+<p>ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #TPJTProject C</p>
+<p>ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ProdItemSeq</p>
+<p>AND C.WorkingTag = 'D'</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq IS NULL</p>
+<p>END</p>
+<p>--=====================================================================================</p>
+<p>-- UPDATE</p>
+<p>--=====================================================================================</p>
+<p>IF EXISTS (SELECT 1 FROM #TPJTProject WHERE WorkingTag = 'U' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>-- 체크 추가 2016.04.27</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '생산이 진행되어 호기를 수정 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPJTProject AS C ON C.CompanySeq = @CompanySeq AND A.PJtSeq = C.PJTSEq</p>
+<p>JOIN danam_TPJTProjectDelivery AS Delv2 WITH (NOLOCK) ON @CompanySeq =Delv2.CompanySeq</p>
+<p>AND A.PJTSeq = Delv2.PJTSeq</p>
+<p>AND Delv2.DelvSerl = (SELECT MIN(DelvSerl)</p>
+<p>FROM _TPJTProjectDelivery AS DD WITH(NOLOCK)</p>
+<p>WHERE DD.CompanySeq = @CompanySeq</p>
+<p>AND DD.PJTSeq = A.PJTSeq)</p>
+<p>JOIN danam_TPDProdOrder AS B ON B.CompanySeq = @companySeq AND A.PJTSEq = B.PJtSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND ((Convert(int,convert(decimal(19,5), A.UnitFr))) \&lt;&gt; Convert(int,convert(decimal(19,5),Delv2.UnitFr)))</p>
+<p>OR (Convert(int,convert(decimal(19,5),A.UnitTo)) \&lt;&gt; Convert(int,convert(decimal(19,5),Delv2.UnitTo)))</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>---- 16.07.26 구매진행체크 부분 주석처리</p>
+<p>--UPDATE #TPJTProject</p>
+<p>-- SET Status = 1,</p>
+<p>-- Result = '구매가 진행되어 호기를 수정 할 수 없습니다.'</p>
+<p>-- FROM #TPJTProject AS A</p>
+<p>-- JOIN danam_TPJTProjectDelivery AS Delv2 WITH (NOLOCK) ON @CompanySeq =Delv2.CompanySeq</p>
+<p>-- AND A.PJTSeq = Delv2.PJTSeq</p>
+<p>-- AND Delv2.DelvSerl = (SELECT MIN(DelvSerl)</p>
+<p>-- FROM _TPJTProjectDelivery AS DD WITH(NOLOCK)</p>
+<p>-- WHERE Dd.CompanySeq = @CompanySeq</p>
+<p>-- AND DD.PJTSeq = A.PJTSeq)</p>
+<p>-- JOIN _TPUORDPOReqItem AS B ON B.CompanySeq = @companySeq AND A.PJTSEq = B.PJtSeq</p>
+<p>-- WHERE A.WorkingTag = 'U'</p>
+<p>-- AND A.Status = 0</p>
+<p>-- AND ((A.UnitFr \&lt;&gt; Delv2.UnitFr) OR (A.UnitTo \&lt;&gt; Delv2.UnitTo))</p>
+<p>--IF @@ROWCOunt &gt; 0</p>
+<p>--BEGIN</p>
+<p>-- SELECT * FROM #TPJTProject</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<p>--UPDATE #TPJTProject</p>
+<p>-- SET Status = 1,</p>
+<p>-- Result = '불출이 진행되어 호기를 수정 할 수 없습니다.'</p>
+<p>-- FROM #TPJTProject AS A</p>
+<p>-- JOIN danam_TPJTProjectDelivery AS Delv2 WITH (NOLOCK) ON @CompanySeq =Delv2.CompanySeq</p>
+<p>-- AND A.PJTSeq = Delv2.PJTSeq</p>
+<p>-- AND Delv2.DelvSerl = (SELECT MIN(DelvSerl)</p>
+<p>-- FROM _TPJTProjectDelivery aS DD WITH(NOLOCK)</p>
+<p>-- WHERE DD.CompanySeq = @CompanySeq</p>
+<p>-- AND DD.PJTSeq = A.PJTSeq)</p>
+<p>-- JOIN _TPDMMOutReqItem AS B ON B.CompanySeq = @companySeq AND A.PJTSEq = B.PJtSeq</p>
+<p>-- WHERE A.WorkingTag = 'U'</p>
+<p>-- AND A.Status = 0</p>
+<p>-- AND ((A.UnitFr \&lt;&gt; Delv2.UnitFr) OR (A.UnitTo \&lt;&gt; Delv2.UnitTo))</p>
+<p>--IF @@ROWCOunt &gt; 0</p>
+<p>--BEGIN</p>
+<p>-- SELECT * FROM #TPJTProject</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '공수할당이 진행되어 호기를 수정 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPJTProjectDelivery AS Delv2 WITH (NOLOCK) ON @CompanySeq =Delv2.CompanySeq</p>
+<p>AND A.PJTSeq = Delv2.PJTSeq</p>
+<p>AND Delv2.DelvSerl = (SELECT MIN(DelvSerl)</p>
+<p>FROM _TPJTProjectDelivery aS DD WITH(NOLOCK)</p>
+<p>WHERE DD.CompanySeq = @CompanySeq</p>
+<p>AND DD.PJTSeq = A.PJTSeq)</p>
+<p>JOIN danam_TPDWorkHourDistribute AS B ON B.CompanySeq = @companySeq AND A.PJTSeq = B.ItemPJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND ((Convert(int,convert(decimal(19,5), A.UnitFr))) \&lt;&gt; Convert(int,convert(decimal(19,5),Delv2.UnitFr)))</p>
+<p>OR (Convert(int,convert(decimal(19,5),A.UnitTo)) \&lt;&gt; Convert(int,convert(decimal(19,5),Delv2.UnitTo)))</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--============================================================================================================</p>
+<p>-- 6. 프로젝트명 변경 시 품목도 변경되도록 추가 2016.05.20</p>
+<p>--============================================================================================================</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '같은 품목번호가 있어 수정 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN (SELECT C.ItemSEq, AA.PJTSeq, AA.PJTName, AA.PJTNo</p>
+<p>FROM #TPJTProject AS AA</p>
+<p>JOIN _TPJTWBSPJTUnion AS P WITH(NOLOCK) ON @CompanySeq = P.CompanySeq AND AA.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 WITH(NOLOCK) ON P2.CompanySeq = P.CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TPJTProjectItem AS C WITH(NOLOCK)ON C.companySEq = @companySeq AND P2.PJTSeq = C.PJTSeq AND AA.PJTSeq = C.ProgFromSubSerl</p>
+<p>) AS C ON A.PJTSeq = C.PJTSeq</p>
+<p>JOIN _TDAItem AS S WITH(NOLOCK)ON S.CompanySEq = @companySeq AND C.ItemSeq \&lt;&gt; S.ItemSEq AND (A.PJtNo = S.ItemNo)</p>
+<p>JOIN _TPJTProject AS D WITH(NOLOCK)ON D.companySEq = @companySeq aND A.PJTSEq = D.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND ((A.PJtName \&lt;&gt; D.PJTName OR A.PJTNo \&lt;&gt; D.PJtNo) AND A.PJTSeq \&lt;&gt; D.PJTSeq)</p>
+<p>ANd A.PJtNo = S.ItemNo</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result = '같은 품명이 있어 수정 할 수 없습니다.'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN (SELECT C.ItemSEq, AA.PJTSeq, AA.PJTName, AA.PJTNo</p>
+<p>FROM #TPJTProject AS AA</p>
+<p>JOIN _TPJTWBSPJTUnion AS P WITH(NOLOCK) ON @CompanySeq = P.CompanySeq AND AA.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 WITH(NOLOCK) ON P2.CompanySeq = P.CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TPJTProjectItem AS C WITH(NOLOCK)ON C.companySEq = @companySeq AND P2.PJTSeq = C.PJTSeq AND AA.PJTSeq = C.ProgFromSubSerl</p>
+<p>) AS C ON A.PJTSeq = C.PJTSeq</p>
+<p>JOIN _TDAItem AS S WITH(NOLOCK)ON S.CompanySEq = @companySeq AND C.ItemSeq \&lt;&gt; S.ItemSEq</p>
+<p>JOIN _TPJTProject AS D WITH(NOLOCK)ON D.companySEq = @companySeq aND A.PJTSEq = D.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND ((A.PJtName \&lt;&gt; D.PJTName OR A.PJTNo \&lt;&gt; D.PJtNo) AND A.PJTSeq \&lt;&gt; D.PJTSeq)</p>
+<p>AND A.PJTName = S.ItemName</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE _TDAItem</p>
+<p>SET ItemNo = B.PJTNo,</p>
+<p>ItemName = B.PJTName</p>
+<p>FROM _TDAItem AS A</p>
+<p>JOIN (SELECT C.ItemSEq, AA.PJTSeq, AA.PJTName, AA.PJTNo</p>
+<p>FROM #TPJTProject AS AA</p>
+<p>JOIN _TPJTWBSPJTUnion AS P WITH(NOLOCK) ON @CompanySeq = P.CompanySeq AND AA.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 WITH(NOLOCK) ON P2.CompanySeq = P.CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TPJTProjectItem AS C WITH(NOLOCK)ON C.companySEq = @companySeq AND P2.PJTSeq = C.PJTSeq AND AA.PJTSeq = C.ProgFromSubSerl</p>
+<p>) AS C ON A.ItemSEq = C.ItemSEq</p>
+<p>JOIN #TPJTProject AS B ON B.PJTSEq = C.PJTSeq</p>
+<p>JOIN _TPJTProject AS D WITH(NOLOCK)ON D.companySEq = @companySeq aND B.PJTSEq = D.PJTSeq</p>
+<p>WHERE A.CompanySEq = @companySeq</p>
+<p>AND ((B.PJtName \&lt;&gt; D.PJTName OR B.PJTNo \&lt;&gt; D.PJtNo) AND B.PJTSeq \&lt;&gt; D.PJTSeq)</p>
+<p>ANd B.WorkingTag = 'U'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--============================================================================================================</p>
+<p>-- 7. 프로젝트명 변경 시 활동센터 변경되도록 추가 2016.05.20</p>
+<p>--============================================================================================================</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET Status = 1,</p>
+<p>Result= '같은 활동센터명이 있어 수정 할 수 없습니다. 확인해 주세요.'</p>
+<p>FROM #TPJTProject AS B</p>
+<p>JOIN _TPJTProject AS C WITH(NOLOCK)ON C.companySEq = @companySeq AND B.PJTSeq = C.PJTSeq</p>
+<p>JOIN _TDACCtr AS A ON B.PJTSEq \&lt;&gt; C.PJTSeq</p>
+<p>WHERE A.CompanySEq = @companySeq</p>
+<p>AND (B.PJtName \&lt;&gt; C.PJTName OR B.PJTNo \&lt;&gt; C.PJtNo)</p>
+<p>ANd B.WorkingTag = 'U'</p>
+<p>AND A.CCtrName = B.PJTName</p>
+<p>IF @@ROWCOunt &gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE _TDACCtr</p>
+<p>SET CCTrNAme = B.PJTNo + '_' + B.PJTName</p>
+<p>FROM _TDACCtr AS A</p>
+<p>JOIN _TPJTProject AS C WITH(NOLOCK)ON C.companySEq = @companySeq AND A.CCtrSeq = C.CCtrSeq</p>
+<p>JOIN #TPJTProject AS B ON B.PJTSEq = C.PJTSeq</p>
+<p>JOIN _TPJTProject AS D WITH(NOLOCK)ON D.companySEq = @companySeq AND D.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.CompanySEq = @companySeq</p>
+<p>AND (B.PJtName \&lt;&gt; D.PJTName OR B.PJTNo \&lt;&gt; D.PJtNo)</p>
+<p>ANd B.WorkingTag = 'U'</p>
+<blockquote>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+</blockquote>
+<hr />
+<blockquote>
+<p>--납기일이 변경되는 경우 팀원공수할당 데이터 삭제.</p>
+<p>IF Exists (Select top 1 1</p>
+<p>FROM #TPJTProject AS A JOIN _TPJTProject AS B</p>
+<p>ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvDueDate \&lt;&gt; B.PlanToDate)</p>
+<p>Begin</p>
+<p>Delete danam_TPDPJTMemberWorkTimeDiv</p>
+<p>From danam_TPDPJTMemberWorkTimeDiv A Join (Select C.PJTSeq AS BusinessPJTSeq, A.ProdItemSeq, b.PlanToDate</p>
+<p>FROM #TPJTProject AS A JOIN _TPJTProject AS B</p>
+<p>ON A.PJTSeq = B.PJTSeq</p>
+<p>Join _TPJTWBSPJTUnion C</p>
+<p>ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.PJTSeq = C.JoinPJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvDueDate \&lt;&gt; B.PlanToDate) AS B</p>
+<p>ON A.BusinessPJTSeq = B.BusinessPJTSeq</p>
+<p>AND A.ItemSeq = B.ProdItemSeq</p>
+<p>AND A.ContractToDate = B.PlanToDate</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>End</p>
+<p>--품목이 변경되는 경우 팀원공수할당 데이터 삭제.</p>
+<p>IF Exists (Select top 1 1</p>
+<p>FROM #TPJTProject AS A JOIN _TPJTProjectDelivery AS B</p>
+<p>ON A.PJTSeq = B.PJTSeq</p>
+<p>AND B.DelvSerl = 1</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdItemSeq \&lt;&gt; B.ItemSeq)</p>
+<p>Begin</p>
+<p>Delete danam_TPDPJTMemberWorkTimeDiv</p>
+<p>From danam_TPDPJTMemberWorkTimeDiv A Join (Select C.PJTSeq AS BusinessPJTSeq, B.ItemSeq, A.DelvDueDate</p>
+<p>FROM #TPJTProject AS A JOIN _TPJTProjectDelivery AS B</p>
+<p>ON A.PJTSeq = B.PJTSeq</p>
+<p>AND B.DelvSerl = 1</p>
+<p>Join _TPJTWBSPJTUnion C</p>
+<p>ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.PJTSeq = C.JoinPJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdItemSeq \&lt;&gt; B.ItemSeq) AS B</p>
+<p>ON A.BusinessPJTSeq = B.BusinessPJTSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.ContractToDate = B.DelvDueDate</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>End</p>
+<p>--품목이 변경되는 경우 팀원공수할당 데이터 삭제.</p>
+<p>IF Exists (Select top 1 1</p>
+<p>FROM #TPJTProject AS A JOIN _TPJTProjectDelivery AS B</p>
+<p>ON A.PJTSeq = B.PJTSeq</p>
+<p>AND B.DelvSerl = 1</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.Qty \&lt;&gt; B.DelvQty)</p>
+<p>Begin</p>
+<p>Delete danam_TPDPJTMemberWorkTimeDiv</p>
+<p>From danam_TPDPJTMemberWorkTimeDiv A Join (Select C.PJTSeq AS BusinessPJTSeq, B.ItemSeq, A.DelvDueDate</p>
+<p>FROM #TPJTProject AS A JOIN _TPJTProjectDelivery AS B</p>
+<p>ON A.PJTSeq = B.PJTSeq</p>
+<p>AND B.DelvSerl = 1</p>
+<p>Join _TPJTWBSPJTUnion C</p>
+<p>ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.PJTSeq = C.JoinPJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.Qty \&lt;&gt; B.DelvQty) AS B</p>
+<p>ON A.BusinessPJTSeq = B.BusinessPJTSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.ContractToDate = B.DelvDueDate</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>End</p>
+<p>-- 프로젝트 유형이 변경되는 경우 매출인식기준도 같이 변경되도록 로직 추가 24.04.12 SJPARK</p>
+<p>IF Exists (Select top 1 1</p>
+<p>FROM #TPJTProject AS A JOIN _TPJTProject AS B</p>
+<p>ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTTypeSeq \&lt;&gt; B.PJTTypeSeq)</p>
+</blockquote>
+<p>BEGIN</p>
+<p>UPDATE _TPJTProject</p>
+<p>SET SMSalesRecognize = C.SMSalesRecognize,</p>
+<p>SMSalesReceipt = C.SMSalesReceipt</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON A.PJTSeq = B.PJTSeq</p>
+<p>JOIN _TPJTType AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.PJTTypeSeq = A.PJTTypeSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTTypeSeq \&lt;&gt; B.PJTTypeSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>SELECT a.PJTTypeSeq,A.DelvdueDate,A.PlanToDate</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>-- 프로젝트 업데이트</p>
+<p>UPDATE _TPJTProject</p>
+<p>SET PJTNo = A.PJTNo,</p>
+<p>PJTName = A.PJTName,</p>
+<p>CustSeq                 = A.CustSeq,</p>
+<p>PJTTypeSeq = ISNULL(A.PJTTypeSeq,0),</p>
+<p>PlanFrDate = ISNULL(A.PlanFrDate,''),</p>
+<p>PlanToDate = CASE WHEN a.PJTTypeSeq = 5 THEN A.DelvdueDate ELSE A.PlanToDate END ,</p>
+<p>--PlanToDate = ISNULL(A.PlanToDate,''),</p>
+<p>Summary = ISNULL(A.Summary,''),</p>
+<p>Object = ISNULL(A.Object,''),</p>
+<p>Etc = ISNULL(A.Etc,''),</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE(),</p>
+<p>ContractFrDate = A.ContractFrDate,</p>
+<p>ContractToDate = A.ContractToDate,</p>
+<p>PJTItemSeq = A.ProdItemSeq -- 2021-06-08 추가</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--단암 프로젝트 업데이트</p>
+<p>UPDATE danam_TPJTProject</p>
+<p>SET ItemGubunSeq = A.ItemGubunSeq,</p>
+<p>EstDeliveryDate = A.EstDeliveryDate,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE(),</p>
+<p>SortNum = A.SortNum,</p>
+<p>IsWorkTimeEnd = A.IsWorkTimeEnd,</p>
+<p>ConDelvDate = A.ConDelvDate -- 계약납기일</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPJTProject AS B ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 납품테이블 업데이트</p>
+<p>UPDATE _TPJTProjectDelivery</p>
+<p>SET ItemSeq = A.ProdItemSeq,</p>
+<p>UnitSeq = C.UnitSeq,</p>
+<p>DelvQty = A.Qty,</p>
+<p>DelvPrice = A.Price,</p>
+<p>DelvAmt = A.Amt,</p>
+<p>DelvDomPrice = A.Price,</p>
+<p>DelvDomAmt = A.Amt,</p>
+<p>DelvVatAmt = A.Vat,</p>
+<p>SumDelvAmt = A.Amt + A.Vat,</p>
+<p>DelvDomVatAmt = A.Vat,</p>
+<p>SumDelvDomAmt = A.Amt + A.Vat,</p>
+<p>DelvExpectDate = A.DelvDueDate,</p>
+<p>--DelvCustSeq = A.DelvCustSeq,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProjectDelivery AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>JOIN (Select A.PJTSeq, Max(B.DelvSerl) AS DelvSerl</p>
+<blockquote>
+<p>From #TPJTProject AS A</p>
+<p>JOIN _TPJTProjectDelivery AS B ON B.CompanySeq = @CompanySeq</p>
+</blockquote>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<blockquote>
+<p>Where B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>--AND B.ItemSeq = A.ProdITemSeq</p>
+<p>Group by A.PJTSeq) B2 ON B.PJTseq = B2.PJTseq</p>
+<p>AND B.DelvSerl = B2.DelvSerl</p>
+</blockquote>
+<p>JOIN _TDAItem AS C ON C.CompanySeq = @CompanySeq AND A.ProdItemSeq = C.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>----단암 납품테이블 업데이트</p>
+<p>--UPDATE danam_TPJTProjectDelivery</p>
+<p>-- SET UnitFr = A.UnitFr,</p>
+<p>-- UnitTo = A.UnitTo,</p>
+<p>-- Vat = A.Vat,</p>
+<p>-- LastUserSeq = @UserSeq,</p>
+<p>-- LastDateTime = GETDATE()</p>
+<p>-- FROM #TPJTProject AS A</p>
+<p>-- JOIN danam_TPJTProjectDelivery AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.PJTSeq = A.PJTSeq</p>
+<p>-- AND 1 = B.DelvSerl</p>
+<p>-- WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>--IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<blockquote>
+<p>--단암 납품테이블 업데이트</p>
+</blockquote>
+<p>UPDATE danam_TPJTProjectDelivery</p>
+<p>SET UnitFr = 1,</p>
+<p>UnitTo = A.Qty,</p>
+<p>Vat = A.Vat,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN danam_TPJTProjectDelivery AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>AND 1 = B.DelvSerl</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<hr />
+<p>INSERT INTO _TPJTProjectDelivery</p>
+<p>(</p>
+<p>CompanySeq , PJTSeq , DelvSerl , ItemSeq , UnitSeq,</p>
+<p>ISPJTSales ,</p>
+<p>DelvQty , DelvPrice , DelvAmt , DelvDomPrice,</p>
+<p>DelvDomAmt , DelvVatAmt , SumDelvAmt, DelvDomVatAmt, SumDelvDomAmt,</p>
+<p>DelvExpectDate, LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.PJTSeq, 1 , A.ProdItemSeq, C.UnitSeq,</p>
+<p>(CASE A.SMSalesRecognize WHEN 7002002 THEN '1' ELSE '0' END),</p>
+<p>A.Qty, A.Price, A.Amt , A.Price,</p>
+<p>A.Amt, A.Vat , A.Amt + A.Vat, A.Vat, A.Amt + A.Vat,</p>
+<p>A.DelvDueDate,@UserSeq,GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>LEFT OUTER JOIN _TPJTProjectDelivery AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<blockquote>
+<p>JOIN (Select A.PJTSeq, Max(B.DelvSerl) AS DelvSerl</p>
+<p>From #TPJTProject AS A</p>
+<p>JOIN _TPJTProjectDelivery AS B ON B.CompanySeq = @CompanySeq</p>
+</blockquote>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<blockquote>
+<p>Where B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>AND B.ItemSeq = A.ProdITemSeq</p>
+<p>Group by A.PJTSeq) B2 ON B.PJTseq = B2.PJTseq</p>
+<p>AND B.DelvSerl = B2.DelvSerl</p>
+</blockquote>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdItemSeq = C.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(B.PJTSeq, 0) = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--INSERT INTO danam_TPJTProjectDelivery(CompanySeq,PJTSeq,DelvSerl,UnitFr,UnitTo,Remark,LastUserSeq,LastDateTime,Vat)</p>
+<p>--SELECT @CompanySeq, A.PJTSeq, 1, A.UnitFr, A.UnitTo, '', @UserSeq, GETDATE(), A.Vat</p>
+<p>-- FROM #TPJTProject AS A</p>
+<p>--LEFT OUTER JOIN danam_TPJTProjectDelivery AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.PJTSeq = A.PJTSeq</p>
+<p>-- WHERE A.WorkingTag = 'U'</p>
+<p>-- AND A.Status = 0</p>
+<p>-- AND ISNULL(B.PJTSeq, 0) = 0</p>
+<p>--IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<blockquote>
+<p>INSERT INTO danam_TPJTProjectDelivery(CompanySeq,PJTSeq,DelvSerl,UnitFr,UnitTo,Remark,LastUserSeq,LastDateTime,Vat)</p>
+</blockquote>
+<p>SELECT @CompanySeq, A.PJTSeq, 1, 1, A.Qty, '', @UserSeq, GETDATE(), A.Vat</p>
+<p>FROM #TPJTProject AS A</p>
+<p>LEFT OUTER JOIN danam_TPJTProjectDelivery AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(B.PJTSeq, 0) = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<hr />
+<p>-- 계약품목</p>
+<p>UPDATE _TPJTProjectItem</p>
+<p>SET ItemSeq = A.ProdItemSeq,</p>
+<p>UnitSeq = C.UnitSeq,</p>
+<p>ItemQty = A.Qty,</p>
+<p>ItemPrice = A.Price,</p>
+<p>ItemAmt = A.Amt,</p>
+<p>ItemDomPrice = A.Price,</p>
+<p>ItemDomAmt = A.Amt,</p>
+<p>ItemVatAmt = A.Vat,</p>
+<p>SumItemAmt = A.Amt + A.Vat,</p>
+<p>ItemDomVatAmt = A.Vat,</p>
+<p>SumItemDomAmt = A.Amt + A.Vat,</p>
+<p>-- Remark = A.Remark,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProjectItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>JOIN (Select A.PJTSeq, Max(B.PJTItemSerl) AS PJTItemSerl</p>
+<blockquote>
+<p>From #TPJTProject AS A</p>
+<p>JOIN _TPJTProjectItem AS B ON B.CompanySeq = @CompanySeq</p>
+</blockquote>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<blockquote>
+<p>Where B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>--AND B.ItemSeq = A.ProdITemSeq</p>
+<p>Group by A.PJTSeq) B2 ON B.PJTseq = B2.PJTseq</p>
+<p>AND B.PJTItemSerl = B2.PJTItemSerl</p>
+</blockquote>
+<p>JOIN _TDAItem AS C ON C.CompanySeq = @CompanySeq AND A.ProdItemSeq = C.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<hr />
+<p>-- 데이터 없을경우 생성</p>
+<p>INSERT INTO _TPJTProjectItem</p>
+<p>(</p>
+<p>CompanySeq , PJTSeq , PJTItemSerl, SMInputType , ItemSeq,</p>
+<p>UnitSeq , ItemQty , ItemPrice , ItemAmt , ItemDomPrice,</p>
+<p>ItemDomAmt , ItemVatAmt, SumItemAmt , ItemDomVatAmt, SumItemDomAmt,</p>
+<p>LastUserSeq,LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.PJTSeq, 1 , 7017001, A.ProdItemSeq,</p>
+<p>C.UnitSeq , A.Qty , A.Price , A.Amt , A.Price,</p>
+<p>A.Amt , A.Vat , A.Amt + A.Vat, A.Vat , A.Amt + A.Vat,</p>
+<p>@UserSeq , GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>LEFT OUTER JOIN _TPJTProjectItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<blockquote>
+<p>--AND A.ProdItemSeq = B.ItemSeq -- 20210126.제품프로젝트에서 등록시 _TPJTProjectItem은 1건씩만 생성됨, 그래서 품목을 조건으로 걸 필요 없음(품목변경시 없는건으로 인식해 INSERT해서 오류남)</p>
+</blockquote>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdItemSeq = C.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(B.PJTSeq, 0) = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<blockquote>
+<p>--사업프로젝트에 등록된 품목정보 수정</p>
+<p>Select B.PJTSeq AS BizPJTSeq</p>
+<p>Into #BizPJTSeq</p>
+<p>from #TPJTProject A Join _TPJTWBSPJTUnion B On A.PJTSeq = B.JoinPJTSeq</p>
+<p>where B.CompanySeq = @CompanySeq</p>
+<p>UPDATE _TPJTProjectItem</p>
+<p>SET ItemSeq = C.ProdItemSeq,</p>
+</blockquote>
+<p>UnitSeq = C2.UnitSeq,</p>
+<p>ItemQty = C.Qty,</p>
+<p>ItemPrice = C.Price,</p>
+<p>ItemAmt = C.Amt,</p>
+<p>ItemDomPrice = C.Price,</p>
+<p>ItemDomAmt = C.Amt,</p>
+<p>ItemVatAmt = C.Vat,</p>
+<p>SumItemAmt = C.Amt + C.Vat,</p>
+<p>ItemDomVatAmt = C.Vat,</p>
+<p>SumItemDomAmt = C.Amt + C.Vat,</p>
+<p>-- Remark = A.Remark,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<blockquote>
+<p>From #BizPJTSeq A Join _TPJTProjectItem B ON A.BizPJTSeq = B.PJTSeq</p>
+<p>Join #TPJTProject C On B.ProgFromSubSerl = C.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @CompanySeq AND C.ProdItemSeq = C2.ItemSeq</p>
+<p>Where B.CompanySeq = @CompanySeq</p>
+<p>UPDATE _TPJTProjectDelivery</p>
+</blockquote>
+<p>SET ItemSeq = C.ProdItemSeq,</p>
+<p>UnitSeq = C2.UnitSeq,</p>
+<p>DelvQty = C.Qty,</p>
+<p>DelvPrice = C.Price,</p>
+<p>DelvAmt = C.Amt,</p>
+<p>DelvDomPrice = C.Price,</p>
+<p>DelvDomAmt = C.Amt,</p>
+<p>DelvVatAmt = C.Vat,</p>
+<p>SumDelvAmt = C.Amt + C.Vat,</p>
+<p>DelvDomVatAmt = C.Vat,</p>
+<p>SumDelvDomAmt = C.Amt + C.Vat,</p>
+<p>DelvExpectDate = C.DelvDueDate,</p>
+<p>--DelvCustSeq = A.DelvCustSeq,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<blockquote>
+<p>From #BizPJTSeq A Join _TPJTProjectDelivery B ON A.BizPJTSeq = B.PJTSeq</p>
+<p>Join #TPJTProject C On B.ProgFromSubSerl = C.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @CompanySeq AND C.ProdItemSeq = C2.ItemSeq</p>
+<p>Where B.CompanySeq = @CompanySeq</p>
+</blockquote>
+<hr />
+<p>/*</p>
+<p>--============================================================================================================</p>
+<p>-- 프로젝트 품목등록 사업프로젝트에 업데이트 2016.04.26추가</p>
+<p>--============================================================================================================</p>
+<p>UPDATE B2</p>
+<p>SET --ItemSeq = A.ProdItemSeq,</p>
+<p>--UnitSeq = C.UnitSeq,</p>
+<p>ItemQty = A.Qty,</p>
+<p>ItemPrice = A.Price,</p>
+<p>ItemAmt = A.Amt,</p>
+<p>ItemDomPrice = A.Price,</p>
+<p>ItemDomAmt = A.Amt,</p>
+<p>ItemVatAmt = A.Vat,</p>
+<p>SumItemAmt = A.Amt + A.Vat,</p>
+<p>ItemDomVatAmt = A.Vat,</p>
+<p>SumItemDomAmt = A.Amt + A.Vat,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>--select C2.ItemSEq, C2.ItemName--, B2.*</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTWBSPJTUnion AS P WITH(NOLOCK) ON @CompanySeq = P.CompanySeq AND A.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 WITH(NOLOCK) ON P2.CompanySeq = @CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @companySeq AND A.PJTNo = C2.ItemNo</p>
+<p>JOIN _TPJTProjectItem AS B2 ON B2.CompanySeq = @CompanySeq AND B2.ProgFromSubSerl = A.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>--============================================================================================================</p>
+<p>-- 5. 프로젝트 납품내역 사업프로젝트에 업데이트 2016.04.26추가</p>
+<p>--============================================================================================================</p>
+<p>-- 납품테이블 업데이트</p>
+<p>UPDATE B2</p>
+<p>SET --ItemSeq = A.ProdItemSeq,</p>
+<p>--UnitSeq = C.UnitSeq,</p>
+<p>DelvQty = A.Qty,</p>
+<p>DelvPrice = A.Price,</p>
+<p>DelvAmt = A.Amt,</p>
+<p>DelvDomPrice = A.Price,</p>
+<p>DelvDomAmt = A.Amt,</p>
+<p>DelvVatAmt = A.Vat,</p>
+<p>SumDelvAmt = A.Amt + A.Vat,</p>
+<p>DelvDomVatAmt = A.Vat,</p>
+<p>SumDelvDomAmt = A.Amt + A.Vat,</p>
+<p>DelvExpectDate = A.DelvDueDate,</p>
+<p>--DelvCustSeq = A.DelvCustSeq,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTWBSPJTUnion AS P ON @CompanySeq = P.CompanySeq AND A.PJTSeq = P.JoinPJTSeq</p>
+<p>JOIN _TPJTProject AS P2 ON P2.CompanySeq = P.CompanySeq AND P2.PJTSeq = P.PJTSeq</p>
+<p>JOIN _TDAItem AS C2 ON C2.CompanySeq = @companySeq AND A.PJTNo = C2.ItemNo</p>
+<p>JOIN _TPJTProjectDelivery AS B2 ON B2.CompanySeq = @CompanySeq AND B2.ProgFromSubSerl = A.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>*/</p>
+<p>DELETE A</p>
+<p>FROM danam_TPJTItemByItemGubun A</p>
+<p>LEFT OUTER JOIN _TPJTProjectItem B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq IS NULL</p>
+<p>/*</p>
+<p>-- 20191016.BizPJTSeq들어가는 부분 수정</p>
+<p>INSERT INTO danam_TPJTItemByItemGubun(CompanySeq,BizPJTSeq,ItemSeq,ItemGubunSeq,LastUserSeq,LastDateDateTime)</p>
+<p>SELECT DISTINCT</p>
+<p>@CompanySeq,A.BizPJTSeq,A.ProdItemSeq,ItemGubunSeq,@UserSeq,GETDATE()</p>
+<p>FROM #TPJTProject A</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM danam_TPJTItemByItemGubun WHERE CompanySeq = @CompanySeq AND ItemSeq = A.ProdItemSeq)</p>
+<p>*/</p>
+<p>END</p>
+<p>--=====================================================================================</p>
+<p>-- INSERT</p>
+<p>--=====================================================================================</p>
+<p>IF EXISTS (SELECT 1 FROM #TPJTProject WHERE WorkingTag = 'A' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>--============================================================================================================</p>
+<p>--0. 기본정보</p>
+<p>--============================================================================================================</p>
+<p>-- 활동센터 구분 넣기</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET UMCCtrKind = B.UMCCtrKind,</p>
+<p>UMCostType =B.UMCostType,</p>
+<p>SMExpKind = 8009001 -- 내수 내외구분</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTType AS B ON B.CompanySeq = @CompanySeq AND B.PJTTypeSeq = A.PJTTypeSeq</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET PJTRev = '00',</p>
+<p>PJTRevSeq = 1</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET UnitSeq = A.StkUnitSeq,</p>
+<p>SMStatus = A.SMItemStatus,</p>
+<p>AssetSeq = A.AssetSeq,</p>
+<p>SMInOutKind = A.SMInOutType,</p>
+<p>UMItemClassSeq = A.UMItemClass,</p>
+<p>SMVatKind = A.SMVatKind,</p>
+<p>SMVatType = A.SMVatType, -- 20110105 부가세종류 추가 (품목생성기본값등록에서 설정한 값으로 입력되도록 추가)</p>
+<p>IsVat = A.IsCurVat,</p>
+<p>IsLotMng = A.IsLotMng,</p>
+<p>SMOutKind = A.SMOutKind,</p>
+<p>SMProdMethod = A.SMProdMethod,</p>
+<p>SMPurKind = A.SMPurKind,</p>
+<p>IsPurVat = A.IsPurVat,</p>
+<p>IsOutQC = ISNULL(A.IsOutQC,'0'),</p>
+<p>IsLastQC = ISNULL(A.IsLastQC,'0'),</p>
+<p>IsInQC = ISNULL(A.IsInQC,'0')</p>
+<p>,SMSalesRecognize =A1.SMSalesRecognize</p>
+<p>,SMSalesReceipt =A1.SMSalesReceipt</p>
+<p>,ResultStdUnitSeq =A1.ResultStdUnitSeq</p>
+<p>,AccUnit = Bi.AccUnit -- 16.07.26 분개전표처리시 회계단위가 달라 에러발생</p>
+<p>,SMPriceKind = 7003001</p>
+<p>, whseq = 0</p>
+<p>, tftdeptseq = 0</p>
+<p>, bkcustseq = 0</p>
+<p>, agcustseq = 0</p>
+<p>, summary = ''</p>
+<p>, object = ''</p>
+<p>, SalesDelvDate = ''</p>
+<p>,FileSeq = 0</p>
+<p>FROM #TPJTProject AS B</p>
+<p>LEFT OUTER JOIN _TPJTType AS A1 ON B.PJTTypeSeq = A1.PJTTypeSeq</p>
+<p>LEFT OUTER JOIN _TPJTProjectItemClass AS A ON A1.CompanySeq = A.CompanySeq</p>
+<p>AND A1.ItemClassSeq = A.UMItemClass</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS Bi ON Bi.CompanySeq = A.CompanySeq</p>
+<p>AND Bi.BizUnit = B.BizUnit</p>
+<p>WHERE A1.CompanySeq = @CompanySeq</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET ItemSName = A.PJTName,</p>
+<p>BizUnitOld = B.BizUnit</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND Status = 0</p>
+<p>--============================================================================================================</p>
+<p>--1. 활동센터등록</p>
+<p>--============================================================================================================</p>
+<p>SELECT @Count = COUNT(1) FROM #TPJTProject WHERE WorkingTag = 'A' --@Count값수정(AND Status = 0 제외)</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TDACCtr', 'CCtrSeq', @Count</p>
+<p>-- SELECT * FROm _TCOMCreateSeqMax WHERE TableName ='_TDACCtr'</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET CCtrSeq = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>END</p>
+<p>INSERT INTO _TDACCtr(</p>
+<p>CompanySeq ,CCtrSeq ,CCtrName ,EmpSeq ,DeptSeq ,</p>
+<p>UMCCtrKind ,UMCostType ,IsNotUse ,IsNotUseDate,RegDate ,</p>
+<p>RegUserSeq ,IsCCtr ,Remark ,SMSourceType,LastUserSeq ,</p>
+<p>LastDateTime,AccUnit ,IsTemp ,FactUnit ,BizUnit ,CostUnit , ProfCostUnit, PgmSeq)</p>
+<p>SELECT @CompanySeq ,CCtrSeq , PJTNo + '_' + PJTName ,ISNULL(ChargeEmpSeq , 0) ,ISNULL(ChargeDeptSeq,0) ,</p>
+<p>ISNULL(UMCCtrKind, 0) ,ISNULL(UMCostType, 0) ,'' ,CONVERT(CHAR(8),GETDATE(), 112), CONVERT(CHAR(8),GETDATE(), 112),</p>
+<p>@UserSeq ,'0' ,'',5511001 , @UserSeq,</p>
+<p>GETDATE() ,ISNULL(AccUnit, 0) , '0' , 0 ,BizUnit ,A.AccUnit ,A.AccUnit, 1038000</p>
+<p>FROM #TPJTProject A</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--============================================================================================================</p>
+<p>-- 2. 프로젝트 품목 등록</p>
+<p>--============================================================================================================</p>
+<p>ALTER TABLE #TPJTProject ADD TrunName NVARCHAR(100)</p>
+<hr />
+<p>-- INSERT 번호부여</p>
+<hr />
+<p>SELECT @Count = 0</p>
+<p>SELECT @Seq = 0</p>
+<p>SELECT @Count = COUNT(1) FROM #TPJTProject WHERE WorkingTag = 'A' --@Count값수정(AND Status = 0 제외)</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TDAItem', 'ItemSeq', @Count</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET ItemSeq = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<blockquote>
+<p>END</p>
+</blockquote>
+<hr />
+<p>-- 프로젝트유형생성에서 품목생성 여부에 체크된건 #TPJTProject_Item 에서</p>
+<hr />
+<p>SELECT A.*</p>
+<p>INTO #TPJTProject_Item</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTType AS B ON B.CompanySeq = @Companyseq</p>
+<p>AND B.PJTTypeSeq = A.PJTTypeSeq</p>
+<p>AND B.IsItemCreate ='1'</p>
+<p>WHERE A.WorkingTag = 'A' -- 16.07.28 'U'와 같이 입력된 경우 생성오류 발생 보완</p>
+<p>/*★ 품목 마스터 저장*/</p>
+<p>DECLARE @ItemSave NVARCHAR(MAX)</p>
+<p>SET @ItemSave = N'\&lt;ROOT&gt;'+( SELECT WorkingTag,IDX_NO,DataSeq,Selected,Status</p>
+<p>,ItemSeq,PJTName AS ItemName,PJTNo AS ItemNo,PJTName AS TrunName</p>
+<p>,AssetSeq,UnitSeq,SMStatus,SMInOutKind,ChargeDeptSeq AS DeptSeq</p>
+<p>,ChargeEmpSeq AS EmpSeq,ModelSeq, UMItemClassSeq AS UMItemClassS,IsInherit</p>
+<p>FROM #TPJTProject_Item</p>
+<p>FOR XML PATH ('DataBlock1') )+'\&lt;/ROOT&gt;'</p>
+<p>CREATE TABLE #Temp1(WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 1735, 'DataBlock1', '#Temp1'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO #Temp1</p>
+<p>exec _SDAItemSave @xmlDocument=@ItemSave,@xmlFlags=2,@ServiceSeq=1735,@WorkingTag=N'',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1958</p>
+<p>/*★ 품목 단위 정의 저장*/</p>
+<p>DECLARE @ItemDefUnitSave NVARCHAR(MAX)</p>
+<p>SET @ItemDefUnitSave = N'\&lt;ROOT&gt;'+( SELECT WorkingTag,IDX_NO,DataSeq,Selected,Status</p>
+<p>,1003002 AS UMModuleSeq,ItemSeq,UnitSeq AS STDUnitSeq</p>
+<p>FROM #TPJTProject_Item</p>
+<p>FOR XML PATH ('DataBlock1') )+'\&lt;/ROOT&gt;'</p>
+<p>CREATE TABLE #Temp2(WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 8069, 'DataBlock1', '#Temp2'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO #Temp2</p>
+<p>exec _SDAPJTItemDefUnitSave @xmlDocument=@ItemDefUnitSave,@xmlFlags=2,@ServiceSeq=8069,@WorkingTag=N'',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1958</p>
+<p>/*★ 품목 단위 환산 저장*/</p>
+<p>DECLARE @ItemUnitSave NVARCHAR(MAX)</p>
+<p>SET @ItemUnitSave = N'\&lt;ROOT&gt;'+( SELECT WorkingTag,IDX_NO,DataSeq,Selected,Status</p>
+<p>,1003002 AS UMModuleSeq,ItemSeq,UnitSeq ,1 ConvNum , 1 AS ConvDen</p>
+<p>FROM #TPJTProject_Item</p>
+<p>FOR XML PATH ('DataBlock3') )+'\&lt;/ROOT&gt;'</p>
+<p>CREATE TABLE #Temp3(WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 8080, 'DataBlock3', '#Temp3'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO #Temp3</p>
+<p>exec _SPJTItemUnitSave @xmlDocument=@ItemUnitSave,@xmlFlags=2,@ServiceSeq=8080,@WorkingTag=N'',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1958</p>
+<p>/*★ 품목 판매정보 저장*/</p>
+<p>DECLARE @ItemSalesSave NVARCHAR(MAX)</p>
+<p>SET @ItemSalesSave = N'\&lt;ROOT&gt;'+( SELECT WorkingTag,IDX_NO,DataSeq,Selected,Status</p>
+<p>,SMVatKind,IsVat,SMVatType,ItemSeq</p>
+<p>FROM #TPJTProject_Item</p>
+<p>FOR XML PATH ('DataBlock1') )+'\&lt;/ROOT&gt;'</p>
+<p>CREATE TABLE #Temp4(WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 1738, 'DataBlock1', '#Temp4'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO #Temp4</p>
+<p>exec _SDAItemSalesSave @xmlDocument=@ItemSalesSave,@xmlFlags=2,@ServiceSeq=1738,@WorkingTag=N'',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1958</p>
+<p>/*★ 품목 재고 저장*/</p>
+<p>DECLARE @ItemStockSave NVARCHAR(MAX)</p>
+<p>SET @ItemStockSave = N'\&lt;ROOT&gt;'+( SELECT WorkingTag,IDX_NO,DataSeq,Selected,Status</p>
+<p>,IsLotMng,ItemSeq</p>
+<p>FROM #TPJTProject_Item</p>
+<p>FOR XML PATH ('DataBlock1') )+'\&lt;/ROOT&gt;'</p>
+<p>CREATE TABLE #Temp5(WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 1737, 'DataBlock1', '#Temp5'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO #Temp5</p>
+<p>exec _SDAItemStockSave @xmlDocument=@ItemStockSave,@xmlFlags=2,@ServiceSeq=1737,@WorkingTag=N'',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1958</p>
+<p>/*★ 품목 생산정보 저장*/</p>
+<p>DECLARE @ItemProductSave NVARCHAR(MAX)</p>
+<p>SET @ItemProductSave = N'\&lt;ROOT&gt;'+( SELECT WorkingTag,IDX_NO,DataSeq,Selected,Status</p>
+<p>,SMOutKind,SMProdMethod,ItemSeq</p>
+<p>FROM #TPJTProject_Item</p>
+<p>FOR XML PATH ('DataBlock1') )+'\&lt;/ROOT&gt;'</p>
+<p>CREATE TABLE #Temp6(WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 1740, 'DataBlock1', '#Temp6'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO #temp6</p>
+<p>exec _SDAItemProductSave @xmlDocument=@ItemProductSave,@xmlFlags=2,@ServiceSeq=1740,@WorkingTag=N'',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1958</p>
+<p>/*★ 품목 구매정보 저장*/</p>
+<p>DECLARE @ItemPurchaseSave NVARCHAR(MAX)</p>
+<p>SET @ItemPurchaseSave = N'\&lt;ROOT&gt;'+( SELECT WorkingTag,IDX_NO,DataSeq,Selected,Status</p>
+<p>,SMPurKind,IsPurVat,ItemSeq</p>
+<p>FROM #TPJTProject_Item</p>
+<p>FOR XML PATH ('DataBlock1') )+'\&lt;/ROOT&gt;'</p>
+<p>CREATE TABLE #Temp7(WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 1739, 'DataBlock1', '#Temp7'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO #temp7</p>
+<p>exec _SDAItemPurchaseSave @xmlDocument=@ItemProductSave,@xmlFlags=2,@ServiceSeq=1739,@WorkingTag=N'',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1958</p>
+<p>-- 최종 ItemSeq update</p>
+<p>UPDATE A</p>
+<p>SET PJTItemSeq = CASE WHEN B.IsItemCreate = '0' THEN PJTTypeItemSeq</p>
+<p>WHEN B.IsItemCreate = '1' THEN ItemSeq</p>
+<p>ELSE 0 END</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTType AS B ON B.CompanySeq = @Companyseq</p>
+<p>AND B.PJTTypeSeq = A.PJTTypeSeq</p>
+<p>--============================================================================================================</p>
+<p>-- 3. 프로젝트 등록</p>
+<p>--============================================================================================================</p>
+<p>SELECT @Count = 0</p>
+<p>SELECT @Seq = 0</p>
+<p>SELECT @Count = COUNT(1) FROM #TPJTProject WHERE WorkingTag = 'A' --@Count값수정(AND Status = 0 제외)</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TPJTProject', 'PJTSeq', @Count</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET PJTSeq = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>END</p>
+<p>UPDATE #TPJTProject</p>
+<p>SET PJTRev = '00',</p>
+<p>PJTRevSeq = 1</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>--기본 책임부서와 책임자 2016.08.12</p>
+<p>DECLARE @ChargeDeptSeq INT,</p>
+<p>@ChargeEmpSeq INT,</p>
+<p>@TmpMajorSeq INT</p>
+<p>SELECT @TmpMajorSeq = MajorSeq</p>
+<p>FROM _TDAUMajor WITH(NOLOCK)</p>
+<p>WHERE CompanySEq = @companySeq</p>
+<p>AND MajorName = '프로젝트책임부서와책임자_danam'</p>
+<p>SELECT @ChargeDeptSeq = B.ValueSeq,</p>
+<p>@ChargeEmpSeq = C.ValueSeq</p>
+<p>FROM _TDAUMinor AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAUMinorValue AS B WITH(NOLOCK)ON B.CompanySeq = @CompanySeq AND A.MinorSeq = B.MinorSeq AND B.Serl = 1000001</p>
+<p>JOIN _TDAUMinorValue AS C WITH(NOLOCK)ON C.CompanySeq = @CompanySeq AND A.MinorSeq = C.MinorSeq AND C.Serl = 1000002</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSEq = @TmpMajorSeq</p>
+<p>-- 프로젝트 삽입</p>
+<p>INSERT INTO _TPJTProject</p>
+<p>(CompanySeq, PJTSeq, BizUnit, PJTTypeSeq, PJTNo,</p>
+<p>PJTName, PJTRev, RegDate, ChargeDeptSeq, ChargeEmpSeq,</p>
+<p>SMPriceKind, SMSalesRecognize, SMSalesReceipt, PlanFrDate, PlanToDate, CustSeq,</p>
+<p>PJTAmt, CurrSeq, CurrRate, Summary, Object, Location, SalesResultSeq, SMResultKind,</p>
+<p>Etc, LastUserSeq, LastDateTime, TFTDeptSeq, WHSeq, CCtrSeq, PJTItemSeq, SMExpKind, RegUserSeq,</p>
+<p>PMSeq, BKCustSeq, AGCustSeq, ContractDate,</p>
+<p>ContractFrDate, ContractToDate,</p>
+<p>WBSResrcLevel, SLTaskSeq, PJTRevSeq,PgmSeq)</p>
+<p>SELECT @CompanySeq , A.PJTSeq, A.BizUnit, A.PJTTypeSeq, A.PJTNo,</p>
+<p>A.PJTName , A.PJTRev, CONVERT(NCHAR(8),GETDATE(),112), @ChargeDeptSeq, @ChargeEmpSeq,</p>
+<p>ISNULL(A.SMPriceKind,0), A.SMSalesRecognize, A.SMSalesReceipt, A.PlanFrDate,</p>
+<p>CASE WHEN a.PJTTypeSeq = 5 THEN A.DelvdueDate ELSE A.PlanToDate END, A.CustSeq,--제품프로젝트일 경우 A.PlanToDate -&gt; A.DelvdueDate로 변경</p>
+<p>A.PJTAmt, 1, 1, ISNULL(A.Summary,''), ISNULL(A.Object,''), ISNULL(A.Location,''), 0, 0,</p>
+<p>A.Etc, @UserSeq , GETDATE(), A.TFTDeptSeq, ISNULL(A.WHSeq,0), A.CCtrSeq,</p>
+<p>CASE ISNULL(B.ISItemCreate,'0') WHEN '0' THEN B.PJTTypeItemSeq ELSE ISNULL(A.PJTItemSeq,0) END, ISNULL(A.SMExpKind,0),</p>
+<p>@UserSeq,PMSeq, BKCustSeq, AGCustSeq, A.ContractDate,</p>
+<p>A.ContractFrDate, A.ContractToDate,</p>
+<p>A.WBSResrcLevel, A.SLTaskSeq, A.PJTRevSeq, @PgmSeq</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTType AS B ON A.PJTTypeSeq = B.PJTTypeSeq</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 프로젝트 부가정보 삽입</p>
+<p>INSERT INTO _TPJTProjectDesc</p>
+<p>(CompanySeq, PJTSeq, FactUnit, CalenderKind, ResultStdUnitSeq,</p>
+<p>ConstAsstSeq, ISUnionPJT, QrySort, SalesDelvDate, FileSeq,</p>
+<p>LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq, PJTSeq, FactUnit, CalenderKind, ResultStdUnitSeq,</p>
+<p>ConstAsstSeq, '', 0, SalesDelvDate, FileSeq,</p>
+<p>@UserSeq , GETDATE()</p>
+<p>FROM #TPJTProject</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 프로젝트 부가정보 삽입 사이트테이블 (제품구분값)</p>
+<p>INSERT INTO danam_TPJTProject</p>
+<p>(CompanySeq, PJTSeq, ItemGubunSeq,LastUserSeq, LastDateTime, UMProgSeq, EstDeliveryDate, SortNum,IsWorkTimeEnd, ConDelvDate)</p>
+<p>SELECT @CompanySeq, PJTSeq, ItemGubunSeq, @UserSeq , GETDATE(), 1012431004, EstDeliveryDate, SortNum, IsWorkTimeEnd, ConDelvDate</p>
+<p>FROM #TPJTProject</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 확정테이블 데이터 삽입</p>
+<p>INSERT INTO _TPJTProject_Confirm</p>
+<p>(CompanySeq, CfmSeq, CfmSerl, CfmSubSerl, CfmSecuSeq</p>
+<p>, IsAuto, CfmCode, CfmDate, CfmEmpSeq, UMCfmReason, CfmReason, LastDateTime )</p>
+<p>SELECT @CompanySeq, PJTSeq, 1, 0, 6307,</p>
+<p>'1', 1, '', 0, 0,'',GETDATE()</p>
+<p>FROM #TPJTProject</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>-- --============================================================================================================</p>
+<p>-- -- 4. 프로젝트 품목등록 사업프로젝트에 저장시키기.</p>
+<p>-- --============================================================================================================ -- -- 프로젝트 계약내역 삽입</p>
+<p>-- DECLARE @PJTItemSerl INT</p>
+<p>-- SELECT @PJTItemSerl = ISNULL((SELECT MAX(PJTItemSerl)</p>
+<p>-- FROM _TPJTProjectItem</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND PJTSeq = (SELECT TOP 1 BizPJTSeq FROM #TPJTProject)),0)</p>
+<p>-- INSERT INTO _TPJTProjectItem</p>
+<p>-- (CompanySeq, PJTSeq, PJTItemSerl, SMInputType, ItemName,</p>
+<p>-- ItemNo, Spec, ItemSeq, UnitSeq, ItemQty,</p>
+<p>-- ItemPrice, ItemAmt, ItemDomPrice, ItemDomAmt, Remark,</p>
+<p>-- LastUserSeq, LastDateTime</p>
+<p>-- , ItemVatAmt , SumItemAmt , ItemDomVatAmt , SumItemDomAmt , ProgFromSubSerl )</p>
+<p>-- --ProgFromSubSerl에 제품프로젝트코드를 넣음: 제품프로젝트 수정 시 같이 적용되기 위해 구분값으로 넣음 2016.04.27</p>
+<p>-- SELECT @CompanySeq, A.BizPJTSeq, @PJTItemSerl+DataSeq , 7017001, '',</p>
+<p>-- '', '', B.PJTItemSeq, C.UnitSeq, Qty,</p>
+<p>-- Price, Amt, Price, Amt, '',</p>
+<p>-- @UserSeq, GETDATE(), Vat , Amt+Vat , Vat , Amt+Vat, A.PJTseq</p>
+<p>-- FROM #TPJTProject AS A</p>
+<p>-- JOIN _TPJTProject AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.PJTSeq = B.PJTSeq</p>
+<p>-- JOIN _TDAItem AS C ON C.CompanySeq = @CompanySeq</p>
+<p>-- AND B.PJTItemSeq = C.ItemSeq</p>
+<blockquote>
+<p>--WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+</blockquote>
+<p>-- IF @@ERROR \&lt;&gt; 0</p>
+<p>-- RETURN</p>
+<p>-- --============================================================================================================</p>
+<p>-- -- 5. 프로젝트 납품내역 사업프로젝트에 저장시키기.</p>
+<p>-- --============================================================================================================</p>
+<p>-- DECLARE @DelvSerl INT</p>
+<p>-- SELECT @DelvSerl = ISNULL((SELECT MAX(DelvSerl)</p>
+<p>-- FROM _TPJTProjectDelivery</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND PJTSeq = (SELECT TOP 1 BizPJTSeq FROM #TPJTProject)),0)</p>
+<p>-- -- 매출대상외 : 매출인식기준이 '진행율(7002002)'일 경우 매출대상외 ISPJTSales = 1 \&lt;20101111 HJEOM 요청 구춘림님&gt;</p>
+<p>-- INSERT INTO _TPJTProjectDelivery</p>
+<p>-- (CompanySeq, PJTSeq, DelvSerl, ItemSeq, UnitSeq,</p>
+<p>-- DelvQty, DelvPrice, DelvAmt, DelvDomPrice, DelvDomAmt,</p>
+<p>-- DelvExpectDate, DelvCustSeq, WHSeq, WBSSeq, Remark,</p>
+<p>-- ISPJTSales, LastUserSeq, LastDateTime, SMDelvType</p>
+<p>-- , DelvVatAmt , SumDelvAmt , DelvDomVatAmt , SumDelvDomAmt , ProgFromSubSerl</p>
+<p>-- --ProgFromSubSerl에 제품프로젝트코드를 넣음: 제품프로젝트 수정 시 같이 적용되기 위해 구분값으로 넣음 2016.04.27</p>
+<p>-- )</p>
+<p>-- SELECT @CompanySeq, A.BizPJTSeq, @DelvSerl+DataSeq , B.PJTItemSeq, C.UnitSeq,</p>
+<p>-- A.Qty,A. Price, A.Amt, A.Price, Amt,</p>
+<p>-- A.DelvDueDate ,A.CustSeq, 0, 0, '',</p>
+<p>-- (CASE A.SMSalesRecognize WHEN 7002002 THEN '1' ELSE '0' END), @UserSeq, GETDATE(), (CASE A.SMSalesRecognize WHEN 7002001 THEN 7054002 ELSE 7054001 END)</p>
+<p>-- ,A.Vat,A.Amt+A.Vat ,A.Vat, A.Amt+A.Vat, A.PJTseq</p>
+<p>-- FROM #TPJTProject AS A</p>
+<p>-- JOIN _TPJTProject AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.PJTSeq = B.PJTSeq</p>
+<p>-- JOIN _TDAItem AS C ON C.CompanySeq = @CompanySeq</p>
+<p>-- AND B.PJTItemSeq = C.ItemSeq</p>
+<p>-- WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>-- IF @@ERROR \&lt;&gt; 0</p>
+<p>-- RETURN</p>
+<p>--============================================================================================================</p>
+<p>-- 6. 일괄등록의품목정보 계약정보에 저장시키기. (제품프로젝트에 속함)</p>
+<p>--============================================================================================================</p>
+<p>-- 프로젝트 계약내역 삽입</p>
+<p>DECLARE @DelvSerl INT</p>
+<blockquote>
+<p>DECLARE @PJTItemSerl INT</p>
+</blockquote>
+<p>SELECT @PJTItemSerl = 1</p>
+<p>INSERT INTO _TPJTProjectItem</p>
+<p>(CompanySeq, PJTSeq, PJTItemSerl, SMInputType, ItemName,</p>
+<p>ItemNo, Spec, ItemSeq, UnitSeq, ItemQty,</p>
+<p>ItemPrice, ItemAmt, ItemDomPrice, ItemDomAmt, Remark,</p>
+<p>LastUserSeq, LastDateTime</p>
+<p>, ItemVatAmt , SumItemAmt , ItemDomVatAmt , SumItemDomAmt</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.PJTSeq, @PJTItemSerl , 7017001, '',</p>
+<p>'', '', A.ProdItemSeq, C.UnitSeq, Qty,</p>
+<p>Price, Amt, Price, Amt, '',</p>
+<p>@UserSeq, GETDATE()</p>
+<p>, Vat , Amt+Vat , Vat , Amt+Vat</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTSeq = B.PJTSeq</p>
+<p>JOIN _TDAItem AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdItemSeq = C.ItemSeq WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>--============================================================================================================</p>
+<p>-- 7. 일괄등록의품목정보 납품내역에 저장시키기.(제품프로젝트에 속함)</p>
+<p>--============================================================================================================</p>
+<p>SELECT @DelvSerl = 1</p>
+<p>-- 매출대상외 : 매출인식기준이 '진행율(7002002)'일 경우 매출대상외 ISPJTSales = 1 \&lt;20101111 HJEOM 요청 구춘림님&gt;</p>
+<p>INSERT INTO _TPJTProjectDelivery</p>
+<p>(CompanySeq, PJTSeq, DelvSerl, ItemSeq, UnitSeq,</p>
+<p>DelvQty, DelvPrice, DelvAmt, DelvDomPrice, DelvDomAmt,</p>
+<p>DelvExpectDate, DelvCustSeq, WHSeq, WBSSeq, Remark,</p>
+<p>ISPJTSales, LastUserSeq, LastDateTime, SMDelvType</p>
+<p>, DelvVatAmt , SumDelvAmt , DelvDomVatAmt , SumDelvDomAmt</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.PJTSeq, @DelvSerl , A.ProdItemSeq, C.UnitSeq,</p>
+<p>A.Qty,A. Price, A.Amt, A.Price, Amt,</p>
+<p>A.DelvDueDate ,A.CustSeq, 0, 0, '',</p>
+<p>(CASE A.SMSalesRecognize WHEN 7002002 THEN '1' ELSE '0' END), @UserSeq, GETDATE(), (CASE A.SMSalesRecognize WHEN 7002001 THEN 7054002 ELSE 7054001 END)</p>
+<p>, Vat , Amt+Vat , Vat , Amt+Vat</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTSeq = B.PJTSeq</p>
+<p>JOIN _TDAItem AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdItemSeq = C.ItemSeq</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>---- 단암 추가정보 입력</p>
+<p>--INSERT INTO danam_TPJTProjectDelivery</p>
+<p>--(CompanySeq, PJTSeq, DelvSerl, UnitFr,UnitTo, LastUserSeq, LastDateTime)</p>
+<p>--SELECT @CompanySeq, A.PJTSeq, @DelvSerl , A.UnitFr, A.UnitTo, @UserSeq, GETDATE()</p>
+<p>-- FROM #TPJTProject AS A</p>
+<p>-- WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>-- IF @@ERROR \&lt;&gt; 0</p>
+<p>-- RETURN</p>
+<blockquote>
+<p>-- 단암 추가정보 입력 --UnitFr은 무조건 1, UnitTo는 수량으로 변경.</p>
+</blockquote>
+<p>INSERT INTO danam_TPJTProjectDelivery</p>
+<p>(CompanySeq, PJTSeq, DelvSerl, UnitFr,UnitTo, LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq, A.PJTSeq, @DelvSerl , 1, A.Qty, @UserSeq, GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>IF Exists (Select top 1 1 FROM #TPJTProject AS A</p>
+<p>JOIN _TDACCtr AS B ON A.CCtrSeq = B.CCtrSeq</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND B.UMCCtrKind In (5003001, 5003005, 5003008)) --직접 활동센터 사용안함으로 설정.</p>
+<p>BEGIN</p>
+<p>UPDATE _TDACCtr SET IsNotUse = '1'</p>
+<p>FROM #TPJTProject AS A</p>
+<p>JOIN _TDACCtr AS B ON A.CCtrSeq = B.CCtrSeq</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND B.UMCCtrKind In (5003001, 5003005, 5003008)</p>
+<p>END</p>
+<blockquote>
+<p>/*</p>
+</blockquote>
+<p>--============================================================================================================</p>
+<p>-- 8. 사업프로젝트 하위에 제품프로젝트 연결.</p>
+<p>--============================================================================================================</p>
+<p>DECLARE @UnionSerl INT</p>
+<p>SELECT @UnionSerl = ISNULL((SELECT MAX(UnionSerl)</p>
+<p>FROM _TPJTWBSPJTUnion</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTSeq = (SELECT TOP 1 BizPJTSeq FROM #TPJTProject)),0)</p>
+<p>INSERT INTO _TPJTWBSPJTUnion</p>
+<p>( CompanySeq, PJTSeq, WBSSeq, UnionSerl, JoinPJTSeq, QrySort, LastUserSeq, LastDateTime )</p>
+<p>SELECT @CompanySeq, A.BizPJTSeq, 0 , @UnionSerl+DataSeq,A.PJTSeq,@UnionSerl+DataSeq,</p>
+<p>@UserSeq ,GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>-- 9. 관리항목추가</p>
+<p>INSERT INTO _TPJTBaseMngItem(CompanySeq, PJTTypeSeq, PgmSeq, SomeSeq, RemSerl,</p>
+<p>RemValSeq, RemValText, LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq , A.PJTTypeSeq, @PgmSeq, PJTSeq, 1000001,</p>
+<p>ItemGubunSeq, '', @UserSeq, GETDATE()</p>
+<p>FROM #TPJTProject AS A</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>*/</p>
+<p>/*</p>
+<p>-- 20191016.BizPJTSeq들어가는 부분 수정</p>
+<p>INSERT INTO danam_TPJTItemByItemGubun( CompanySeq</p>
+<p>,BizPJTSeq</p>
+<p>,ItemSeq</p>
+<p>,ItemGubunSeq</p>
+<p>,LastUserSeq</p>
+<p>,LastDateDateTime</p>
+<p>)</p>
+<p>SELECT DISTINCT @CompanySeq,A.BizPJTSeq,A.ProdItemSeq,ItemGubunSeq,@UserSeq,GETDATE()</p>
+<p>FROM #TPJTProject A</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM danam_TPJTItemByItemGubun WHERE CompanySeq = @CompanySeq AND ItemSeq = A.ProdItemSeq )</p>
+<blockquote>
+<p>*/        </p>
+<p>/***************************************************************************************</p>
+</blockquote>
+<p>*창고 체크</p>
+<p>****************************************************************************************/</p>
+<p>/*        </p>
+<hr />
+<p>-- 1. (INPUT DATA) Temp테이블 데이터 생성</p>
+<hr />
+<blockquote>
+<p>SELECT WorkingTag AS WorkingTag</p>
+</blockquote>
+<p>, IDENTITY(INT,1,1) AS DataSeq</p>
+<p>, 0 AS Status</p>
+<p>, 0 AS WHSeq -- 창고 코드 (Check SP 실행시 생성 )</p>
+<blockquote>
+<p>,PJT.PJTNo AS WHName -- 창고 이름</p>
+</blockquote>
+<p>, 8002001 AS SMWHKind -- 창고유형</p>
+<p>, '제품프로젝트입력 :'+ CONVERT(NVARCHAR(10),GETDATE(),25) AS WHAddress</p>
+<blockquote>
+<p>, (Select top 1 BizUnit From _TDABizUnit WHERE CompanySeq = @CompanySeq) AS BizUnit</p>
+</blockquote>
+<p>--, ISNULL(BizUnit,0) AS BizUnit -- 사업부문</p>
+<blockquote>
+<p>, (SELECT TOP 1 FactUnit FROM _TDAFactUnit WHERE CompanySeq = @CompanySeq)AS FactUnit -- 생산사업장</p>
+<p>--, (SELECT TOP 1 FactUnit FROM _TDAFactUnit WHERE CompanySeq = @CompanySeq aND BizUnit = PJT.BIzUnit)AS FactUnit -- 생산사업장</p>
+<p>INTO #TMP_WHCheck</p>
+<p>FROM #TPJTProject AS PJT</p>
+<p>WHERE WorkingTag = 'A' -- 신규 저장일때만</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM #TMP_WHCheck)</p>
+<p>BEGIN</p>
+<p>--SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+</blockquote>
+<hr />
+<p>-- 2. Temp테이블 데이터 XMl로 생성</p>
+<hr />
+<p>SET @XmlData = ''</p>
+<p>SELECT @XmlData = CONVERT(NVARCHAR(MAX),(</p>
+<p>SELECT DataSeq AS IDX_NO,*</p>
+<p>FROM #TMP_WHCheck</p>
+<p>FOR XML RAW ('DataBlock2'), ROOT('ROOT'), ELEMENTS</p>
+<p>))</p>
+<hr />
+<p>-- 3. Temp테이블 생성</p>
+<hr />
+<p>CREATE TABLE #TDAWH (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp '\&lt;ROOT&gt;\&lt;/ROOT&gt;', 2, @CompanySeq, 877,'DataBlock2', '#TDAWH'</p>
+<blockquote>
+<hr />
+</blockquote>
+<p>-- 4. Check SP 실행</p>
+<hr />
+<p>INSERT INTO #TDAWH</p>
+<p>EXEC _SDAWHMainCheck</p>
+<p>@xmlDocument = @XmlData,</p>
+<p>@xmlFlags = 2,</p>
+<p>@ServiceSeq = 877,</p>
+<p>@WorkingTag = '',</p>
+<p>@CompanySeq = @CompanySeq,</p>
+<p>@LanguageSeq = 1,</p>
+<p>@UserSeq = @UserSeq,</p>
+<p>@PgmSeq = @PgmSeq</p>
+<blockquote>
+<hr />
+</blockquote>
+<p>-- 5. Check 실행 후 오류 있으면 RETURN</p>
+<hr />
+<blockquote>
+<p>IF EXISTS ( SELECT 1 FROM #TDAWH WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>--SET @ST = 1</p>
+<p>--SET @RT = (SELECT TOP 1 Result FROM #TDAWH WHERE Status \&lt;&gt; 0) + 'SP명 :_SDAWHMainCheck'</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999</p>
+<p>, Result = B.Result + ' SP명 :_SDAWHMainCheck'</p>
+<p>FROM #TPJTProject AS A JOIN #TDAWH B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>--SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>END</p>
+</blockquote>
+<hr />
+<p>-- 6. 임시 테이블에 키값 UPDATE 및 해당 연동 테이블 키값 UPDATE</p>
+<hr />
+<p>UPDATE A</p>
+<p>SET WHSeq = C.WHSeq</p>
+<p>FROM #TMP_WHCheck AS A</p>
+<p>JOIN #TDAWH AS C ON C.DataSeq = A.DataSeq</p>
+<p>-- 제품프로젝트에 창고연결...</p>
+<blockquote>
+<p>UPDATE A</p>
+</blockquote>
+<p>--SET WHSeq = C.WHSeq</p>
+<p>SET WHSeq = C.WHSeq</p>
+<blockquote>
+<p>FROM _TPJTProject AS A</p>
+<p>JOIN #TPJTProject AS B ON B.PJTSeq = A.PJTSeq</p>
+<p>JOIN #TDAWh AS C ON B.IDX_NO = C.IDX_NO</p>
+<p>-- JOIN #TDAWH AS C ON C.DataSeq = B.DataSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND C.Status = 0</p>
+</blockquote>
+<hr />
+<p>-- 7. Check SP OutPut Data를 토대로 XML데이터 구성</p>
+<hr />
+<p>SELECT @XmlData = CONVERT(NVARCHAR(MAX),(</p>
+<p>SELECT DataSeq AS IDX_NO,*</p>
+<p>FROM #TDAWH</p>
+<p>FOR XML RAW ('DataBlock2'), ROOT('ROOT'), ELEMENTS</p>
+<p>))</p>
+<hr />
+<p>-- 8. Check SP OutPut Data로 OutPutData임시테이블 구성</p>
+<hr />
+<p>CREATE TABLE #TDAWH_Save (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp '\&lt;ROOT&gt;\&lt;/ROOT&gt;', 2, @CompanySeq, 877, 'DataBlock2', '#TDAWH_Save'</p>
+<hr />
+<p>-- 9. Save SP 실행</p>
+<hr />
+<p>INSERT INTO #TDAWH_Save</p>
+<p>EXEC _SDAWHMainSave</p>
+<p>@xmlDocument = @XmlData,</p>
+<p>@xmlFlags = 2,</p>
+<p>@ServiceSeq = 877,</p>
+<p>@WorkingTag = '',</p>
+<p>@CompanySeq = @CompanySeq,</p>
+<p>@LanguageSeq = 1,</p>
+<p>@UserSeq = @UserSeq,</p>
+<blockquote>
+<p>@PgmSeq = @PgmSeq</p>
+</blockquote>
+<hr />
+<p>-- 8-1. Check SP OutPut Data로 OutPutData임시테이블 구성</p>
+<hr />
+<p>CREATE TABLE #TDAWH_Create (WorkingTag NCHAR(1) NULL)</p>
+<blockquote>
+<p>EXEC dbo._SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, 877, 'DataBlock2', '#TDAWH_Create'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+</blockquote>
+<hr />
+<p>-- 9. SaveSub SP 실행</p>
+<hr />
+<p>INSERT INTO #TDAWH_Create</p>
+<p>EXEC _SDAWHSubAutoCreate</p>
+<p>@xmlDocument = @XmlData,</p>
+<p>@xmlFlags = 2,</p>
+<p>@ServiceSeq = 877,</p>
+<p>@WorkingTag = '',</p>
+<p>@CompanySeq = @CompanySeq,</p>
+<p>@LanguageSeq = 1,</p>
+<p>@UserSeq = @UserSeq,</p>
+<p>@PgmSeq = @PgmSeq</p>
+<p>*/</p>
+<p>END -- INSERT END</p>
+<p>SELECT * FROM #TPJTProject</p>
+<p>RETURN</p>
+<p>go</p>
+<p>BEGIN TRAN</p>
+<p>exec danam_SPJTProjecItemBatch_sys_ttest @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;U\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;0\&lt;/Selected&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;ProdItemSeq&gt;154015\&lt;/ProdItemSeq&gt;</p>
+<p>\&lt;ProdItemName&gt;텔레키트\&lt;/ProdItemName&gt;</p>
+<p>\&lt;ProdItemNo&gt;SA242622A\&lt;/ProdItemNo&gt;</p>
+<p>\&lt;Qty&gt;1.00000\&lt;/Qty&gt;</p>
+<p>\&lt;Price&gt;24235000.00000\&lt;/Price&gt;</p>
+<p>\&lt;Amt&gt;24235000.00000\&lt;/Amt&gt;</p>
+<p>\&lt;Vat&gt;2423500.00000\&lt;/Vat&gt;</p>
+<p>\&lt;UnitFr&gt;0\&lt;/UnitFr&gt;</p>
+<p>\&lt;UnitTo&gt;0\&lt;/UnitTo&gt;</p>
+<p>\&lt;DelvDueDate&gt;20250307\&lt;/DelvDueDate&gt;</p>
+<p>\&lt;ItemGubunSeq&gt;1011243001\&lt;/ItemGubunSeq&gt;</p>
+<p>\&lt;ItemGubunName&gt;제작\&lt;/ItemGubunName&gt;</p>
+<p>\&lt;PJTSeq&gt;15028\&lt;/PJTSeq&gt;</p>
+<p>\&lt;PJTNo&gt;SA242622A-001\&lt;/PJTNo&gt;</p>
+<p>\&lt;PJTName&gt;텔레키트\&lt;/PJTName&gt;</p>
+<p>\&lt;PJTTypeName&gt;제품\&lt;/PJTTypeName&gt;</p>
+<p>\&lt;PJTTypeSeq&gt;5\&lt;/PJTTypeSeq&gt;</p>
+<p>\&lt;PlanFrDate xml:space="preserve"&gt; \&lt;/PlanFrDate&gt;</p>
+<p>\&lt;PlanToDate&gt;20250307\&lt;/PlanToDate&gt;</p>
+<p>\&lt;CustSeq&gt;492\&lt;/CustSeq&gt;</p>
+<p>\&lt;Etc /&gt;</p>
+<p>\&lt;CustName&gt;엘아이지넥스원\&lt;/CustName&gt;</p>
+<p>\&lt;ContractFrDate xml:space="preserve"&gt; \&lt;/ContractFrDate&gt;</p>
+<p>\&lt;ContractToDate xml:space="preserve"&gt; \&lt;/ContractToDate&gt;</p>
+<p>\&lt;EstDeliveryDate xml:space="preserve"&gt; \&lt;/EstDeliveryDate&gt;</p>
+<p>\&lt;SortNum&gt;1\&lt;/SortNum&gt;</p>
+<p>\&lt;IsWorkTimeEnd&gt;0\&lt;/IsWorkTimeEnd&gt;</p>
+<p>\&lt;ConDelvDate&gt;20250701\&lt;/ConDelvDate&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=1517225,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1038000</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT A.PlanToDate</p>
+<p>,Delv.DelvVatAmt AS Vat</p>
+<p>FROM _TPJTProject A</p>
+<p>LEFT OUTER JOIN _TPJTProjectDelivery AS Delv WITH(NOLOCK) ON A.CompanySeq =Delv.CompanySeq</p>
+<p>AND A.PJTSeq = Delv.PJTSeq</p>
+<p>AND Delv.DelvSerl = (SELECT MIN(DelvSerl)</p>
+<p>FROM _TPJTProjectDelivery</p>
+<p>WHERE CompanySeq = A.CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq)</p>
+<p>WHERE A.PJTSeq = 15028</p>
+<p>DROP PROC danam_SPJTProjecItemBatchQuery_sys_TTEST</p>
+<p>GO</p>
+<p>/*************************************************************************************************</p>
+<p>설 명 - 제품프로젝트일괄등록 조회</p>
+<p>작성일 - 20160308 단암</p>
+<p>수정일 - 2016.07.26 인도예정일 추가</p>
+<p>*************************************************************************************************/</p>
+<p>CREATE PROC danam_SPJTProjecItemBatchQuery_sys_TTEST</p>
+<p>@xmlDocument NVARCHAR(MAX) ,</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@BizPJTSeq INT,</p>
+<p>@PJTNo NVARCHAR(100), -- 프로젝트번호</p>
+<p>@PJTName NVARCHAR(100), -- 프로젝트명</p>
+<p>@PlanFrDate NCHAR(8), -- 계획시작일자</p>
+<p>@PlanToDate NCHAR(8), -- 계획종료일자</p>
+<p>@IsBizPJTType INT, -- 통합프로젝트유형</p>
+<p>@IsLotPJTType INT -- 차수프로젝트(제품Lot)</p>
+<p>EXEC sp_xml_preparedocument @docHandle OUTPUT, @xmlDocument</p>
+<p>SELECT @BizPJTSeq = ISNULL(BizPJTSeq , 0),</p>
+<p>@PJTNo = ISNULL(PJTNo , ''),</p>
+<p>@PJTName = ISNULL(PJTName , ''),</p>
+<p>@PlanFrDate = ISNULL(PlanFrDate, ''),</p>
+<p>@PlanToDate = ISNULL(PlanToDate, '')</p>
+<p>FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags)</p>
+<p>WITH (BizPJTSeq INT,</p>
+<p>PJTNo NVARCHAR(100),</p>
+<p>PJTName NVARCHAR(100),</p>
+<p>PlanFrDate NCHAR(8),</p>
+<p>PlanToDate NCHAR(8)</p>
+<p>)</p>
+<p>IF @PlanFrDate = '' SELECT @PlanFrDate = '19000101'</p>
+<p>IF @PlanToDate = '' SELECT @PlanToDate = '99991231'</p>
+<p>SELECT @IsBizPJTType = A.MinorSeq</p>
+<p>FROM _TDAUMinorValue AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1021491</p>
+<p>AND A.Serl = 1000003 -- 통합여부</p>
+<p>AND A.ValueText = '1'</p>
+<p>SELECT @IsLotPJTType = A.ValueSeq</p>
+<p>FROM _TDAUMinorValue AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1021148</p>
+<p>AND A.Serl = 1000001 -- 프로젝트유형</p>
+<p>AND A.MinorSeq = (SELECT MinorSeq</p>
+<p>FROM _TDAUMinorValue</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND MajorSeq = 1021148</p>
+<p>AND Serl = 1000004 -- 차수프로젝트여부(제품Lot여부)</p>
+<p>AND ValueText = '1')</p>
+<p>SELECT A.PJTSeq AS PJTSeq,</p>
+<p>A.PJTNo,</p>
+<p>A.PJTName,</p>
+<p>A.PlanFrDate,</p>
+<p>A.PlanToDate,</p>
+<p>A.RegDate,</p>
+<p>A.PJTAmt,</p>
+<p>A.CurrSeq,</p>
+<p>A.CurrRate,</p>
+<p>I.CurrName as CurrName,</p>
+<p>A.PJTTypeSeq,</p>
+<p>F.PJTTypeName,</p>
+<p>A.CustSeq,</p>
+<p>H.CustName AS CustName,</p>
+<p>A.CCtrSeq,</p>
+<p>J.CCtrName,</p>
+<p>A.ETC,</p>
+<p>A.Summary,</p>
+<p>A.Object,</p>
+<p>K.ItemQty AS Qty,</p>
+<p>K.ItemPrice AS Price,</p>
+<p>K.ItemAmt AS Amt,</p>
+<p>K.ItemDomPrice AS DomPrice,</p>
+<p>K.ItemDomAmt AS DomAmt,</p>
+<p>L.ItemSeq AS ProdItemSeq,</p>
+<p>L.ItemName AS ProdItemName,</p>
+<p>L.ItemNo AS ProdItemNo,</p>
+<p>L.Spec AS ProdItemSpec,</p>
+<p>Delv.DelvExpectDate AS DelvDueDate,</p>
+<p>--납품추가정보</p>
+<p>Delv2.UnitFr,</p>
+<p>Delv2.UnitTo,</p>
+<p>Delv.DelvVatAmt AS Vat,</p>
+<p>A2.ItemGubunSeq,</p>
+<p>M.MinorName AS ItemGubunName,</p>
+<p>A2.EstDeliveryDate, -- 16.07.26 인도예정일</p>
+<p>A.ContractFrDate,</p>
+<p>A.ContractToDate,</p>
+<p>A2.SortNum, -- 순서 추가</p>
+<p>A2.IsWorkTimeEnd, -- 공수마감 추가</p>
+<p>A2.ConDelvDate AS ConDelvDate -- 계약납기일</p>
+<p>FROM _TPJTProject A</p>
+<p>LEFT OUTER JOIN danam_TPJTProject AS A2 WITH (NOLOCK) ON A2.CompanySeq = A.CompanySeq</p>
+<p>AND A2.PJTSeq = A.PJTSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS M WITH (NOLOCK) ON M.CompanySeq = A.CompanySeq</p>
+<p>AND M.MinorSeq = A2.ItemGubunSeq</p>
+<p>LEFT OUTER JOIN _TPJTProjectDesc AS D WITH (NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.PJTSeq = D.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTType AS F WITH (NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.PJTTypeSeq = F.PJTTypeSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS H WITH (NOLOCK) ON A.CompanySeq = H.CompanySeq</p>
+<p>AND A.CustSeq = H.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS I WITH (NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.CurrSeq = I.CurrSeq</p>
+<p>LEFT OUTER JOIN _TDACCtr AS J WITH (NOLOCK) ON A.CompanySeq = J.CompanySeq</p>
+<p>AND A.CCtrSeq = J.CCtrSeq</p>
+<p>LEFT OUTER JOIN _TPJTProjectItem AS K WITH (NOLOCK) ON A.CompanySeq = K.CompanySeq</p>
+<p>AND A.PJTSeq = K.PJTSeq</p>
+<p>AND K.PJTItemSerl = (SELECT MAX(PJTItemSerl)</p>
+<p>FROM _TPJTProjectItem</p>
+<p>WHERE CompanySeq = A.CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq)</p>
+<p>LEFT OUTER JOIN _TDAItem AS L WITH(NOLOCK) ON A.CompanySeq = L.CompanySeq</p>
+<p>AND K.ItemSeq = L.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTWBSPJTUnion AS P WITH(NOLOCK) ON A.CompanySeq = P.CompanySeq</p>
+<p>AND A.PJTSeq = P.JoinPJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS P2 WITH(NOLOCK) ON P2.CompanySeq = P.CompanySeq</p>
+<p>AND P2.PJTSeq = P.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTProjectDelivery AS Delv WITH(NOLOCK) ON A.CompanySeq =Delv.CompanySeq</p>
+<p>AND A.PJTSeq = Delv.PJTSeq</p>
+<p>AND Delv.DelvSerl = (SELECT MAX(DelvSerl)</p>
+<p>FROM _TPJTProjectDelivery</p>
+<p>WHERE CompanySeq = A.CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq)</p>
+<p>LEFT OUTER JOIN danam_TPJTProjectDelivery AS Delv2 WITH(NOLOCK) ON A.CompanySeq = Delv2.CompanySeq</p>
+<p>AND A.PJTSeq = Delv2.PJTSeq</p>
+<p>AND Delv2.DelvSerl = (SELECT MAX(DelvSerl)</p>
+<p>FROM _TPJTProjectDelivery</p>
+<p>WHERE CompanySeq = A.CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@BizPJTSeq = 0 OR P2.PJTSeq = @BizPJTSeq)</p>
+<p>AND (A.PJTNo LIKE @PJTNo + '%')</p>
+<p>AND (A.PJTName LIKE @PJTName + '%')</p>
+<p>AND (A.PlanFrDate \&lt;= @PlanToDate)</p>
+<p>AND (A.PlanToDate = '' OR A.PlanToDate &gt;= @PlanFrDate)</p>
+<p>AND (A.PJTTypeSeq NOT IN (SELECT ValueSeq FROM _TDAUMinorValue WHERE CompanySeq = @CompanySeq AND MajorSeq = 1021491 AND Serl = 1000001 AND MinorSeq = @IsBizPJTType))</p>
+<p>AND (A.PJTTypeSeq \&lt;&gt; @IsLotPJTType) -- 제품Lot(차수)프로젝트 제외</p>
+<p>RETURN</p>
+<p>go</p>
+<p>exec danam_SPJTProjecItemBatchQuery_sys_TTEST @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;0\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;BizPJTSeq&gt;15027\&lt;/BizPJTSeq&gt;</p>
+<p>\&lt;PlanFrDate /&gt;</p>
+<p>\&lt;PlanToDate /&gt;</p>
+<p>\&lt;PJTName /&gt;</p>
+<p>\&lt;PJTNo&gt;SA242622A-001\&lt;/PJTNo&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=1517225,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1038000</p>
+  </article>
+</div>
+</body>
+</html>

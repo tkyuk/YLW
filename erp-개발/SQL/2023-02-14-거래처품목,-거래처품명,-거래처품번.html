@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래처품목, 거래처품명, 거래처품번</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래처품목, 거래처품명, 거래처품번</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래처품목, 거래처품명, 거래처품번</h1>
+<blockquote>
+<p>CASE WHEN ISNULL(N.CustItemName, '') = '' THEN N2.CustItemName</p>
+</blockquote>
+<p>ELSE N.CustItemName END AS CustItemName,</p>
+<p>CASE WHEN ISNULL(N.CustItemNo, '') = '' THEN N2.CustItemNo</p>
+<p>ELSE N.CustItemNo END AS CustItemNo,</p>
+<p>LEFT OUTER JOIN _TSLCustItem         AS N WITH(NOLOCK) ON N.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND N.ItemSeq         = A.ItemSeq</p>
+<p>AND N.CustSeq         = A.CustSeq</p>
+<p>AND N.UnitSeq         = A.UnitSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TSLCustItem         AS N2 WITH(NOLOCK) ON N2.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND N2.ItemSeq         = A.ItemSeq</p>
+<p>AND N2.CustSeq         = A.CustSeq</p>
+<p>AND N2.UnitSeq         = 0</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

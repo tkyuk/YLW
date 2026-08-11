@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단가 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>단가 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">단가 가져오기</h1>
+<p>/*</p>
+<p>PriceStep :</p>
+<p>0 단가 적용 안됨</p>
+<p>1 품목단가 (단위 일치)</p>
+<p>2 품목단가 (단위 불일치 : 기준단위)</p>
+<p>3 품목단가 (단위 불일치 : 등록단위 유일)</p>
+<p>4 유통단가 (단위 일치)</p>
+<p>5 거래처단가(단위 일치)</p>
+<p>6 프로모션단가</p>
+<p>7 옵션단가</p>
+<p>*/</p>
+<p>----------------------------------- 1. 품목단가</p>
+<p>--------------- 1 품목단가(단위 일치)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET ItemStdPrice = B.StdPrice,</p>
+<p>CustStdPrice = B.StdPrice,</p>
+<p>ItemMinPrice = B.MinPrice,</p>
+<p>PriceStep = 1</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>JOIN _TSLItemUnitPrice B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>AND A.CurrSeq = B.CurrSeq</p>
+<p>AND A.SalesDate BETWEEN B.SDate AND B.EDate</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.OptionSeq = 0</p>
+<p>--------------- 2 품목단가(단위 불일치 : 기준단위)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET ItemStdPrice = Case A.CurrSeq when @StdDomCurrSeq</p>
+<p>THEN Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE AAA.ConvNum / AAA.ConvDen END, @GoodDomPriceDecLength)</p>
+<p>ELSE Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE AAA.ConvNum / AAA.ConvDen END, @GoodPriceDecLength) END,</p>
+<p>CustStdPrice = Case A.CurrSeq when @StdDomCurrSeq</p>
+<p>THEN Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE AAA.ConvNum / AAA.ConvDen END, @GoodDomPriceDecLength)</p>
+<p>ELSE Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE AAA.ConvNum / AAA.ConvDen END, @GoodPriceDecLength) END,</p>
+<p>ItemMinPrice = Case A.CurrSeq when @StdDomCurrSeq</p>
+<p>THEN Round(B.MinPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE AAA.ConvNum / AAA.ConvDen END, @GoodDomPriceDecLength)</p>
+<p>ELSE Round(B.MinPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE AAA.ConvNum / AAA.ConvDen END, @GoodPriceDecLength) END,</p>
+<p>PriceStep = 2</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>JOIN _TDAItem AA On A.ItemSeq = AA.ItemSeq</p>
+<p>JOIN _TDAItemUnit AAA On A.ItemSeq = AAA.ItemSeq</p>
+<p>AND A.UnitSeq = AAA.UnitSeq</p>
+<p>AND AAA.CompanySeq = @CompanySeq</p>
+<p>JOIN _TSLItemUnitPrice B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.CurrSeq = B.CurrSeq</p>
+<p>AND A.SalesDate Between B.SDate And B.EDate</p>
+<p>AND AA.UnitSeq = B.UnitSeq</p>
+<p>AND AA.CompanySeq = B.CompanySeq</p>
+<p>WHERE AA.CompanySeq = @CompanySeq AND A.PriceStep = 0</p>
+<p>AND A.OptionSeq = 0</p>
+<p>--------------- 3 품목단가(단위 불일치 : 단가유일)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET ItemStdPrice = Case A.CurrSeq when @StdDomCurrSeq</p>
+<p>THEN Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE (AAA.ConvNum / AAA.ConvDen) END</p>
+<p>* CASE BBB.ConvNum WHEN 0 THEN 0 ELSE (BBB.ConvDen / BBB.ConvNum) END, @GoodDomPriceDecLength)</p>
+<p>ELSE Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE (AAA.ConvNum / AAA.ConvDen) END</p>
+<p>* CASE BBB.ConvNum WHEN 0 THEN 0 ELSE (BBB.ConvDen / BBB.ConvNum) END, @GoodPriceDecLength) END,</p>
+<p>CustStdPrice = Case A.CurrSeq when @StdDomCurrSeq</p>
+<p>THEN Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE (AAA.ConvNum / AAA.ConvDen) END</p>
+<p>* CASE BBB.ConvNum WHEN 0 THEN 0 ELSE (BBB.ConvDen / BBB.ConvNum) END, @GoodDomPriceDecLength)</p>
+<p>ELSE Round(B.StdPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE (AAA.ConvNum / AAA.ConvDen) END</p>
+<p>* CASE BBB.ConvNum WHEN 0 THEN 0 ELSE (BBB.ConvDen / BBB.ConvNum) END, @GoodPriceDecLength) END,</p>
+<p>ItemMinPrice = Case A.CurrSeq when @StdDomCurrSeq</p>
+<p>THEN Round(B.MinPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE (AAA.ConvNum / AAA.ConvDen) END</p>
+<p>* CASE BBB.ConvNum WHEN 0 THEN 0 ELSE (BBB.ConvDen / BBB.ConvNum) END, @GoodDomPriceDecLength)</p>
+<p>ELSE Round(B.MinPrice * CASE AAA.ConvDen WHEN 0 THEN 0 ELSE (AAA.ConvNum / AAA.ConvDen) END</p>
+<p>* CASE BBB.ConvNum WHEN 0 THEN 0 ELSE (BBB.ConvDen / BBB.ConvNum) END, @GoodPriceDecLength) END,</p>
+<p>PriceStep = 3</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>JOIN (SELECT X.IDX_NO, Y.CompanySeq, Y.ItemSeq, Y.CurrSeq, X.SalesDate</p>
+<p>FROM #BIZ_OUT_DataBlock1 X</p>
+<p>JOIN _TSLItemUnitPrice Y WITH(NOLOCK) ON Y.CompanySeq = @CompanySeq</p>
+<p>AND Y.ItemSeq = X.ItemSeq</p>
+<p>AND Y.CurrSeq = X.CurrSeq</p>
+<p>AND X.SalesDate BETWEEN Y.SDate And Y.EDate</p>
+<p>AND X.PriceStep = 0</p>
+<p>GROUP BY X.IDX_NO, Y.CompanySeq, Y.ItemSeq, Y.CurrSeq, X.SalesDate</p>
+<p>HAVING COUNT(1) = 1) AA ON A.IDX_NO = AA.IDX_NO</p>
+<p>JOIN _TSLItemUnitPrice B ON AA.ItemSeq = B.ItemSeq</p>
+<p>AND AA.CurrSeq = B.CurrSeq</p>
+<p>AND AA.SalesDate Between B.SDate And B.EDate</p>
+<p>AND AA.CompanySeq = B.CompanySeq</p>
+<p>JOIN _TDAItemUnit AAA On A.ItemSeq = AAA.ItemSeq</p>
+<p>AND A.UnitSeq = AAA.UnitSeq</p>
+<p>AND AAA.CompanySeq = @CompanySeq</p>
+<p>JOIN _TDAItemUnit BBB On B.ItemSeq = BBB.ItemSeq</p>
+<p>AND B.UnitSeq = BBB.UnitSeq</p>
+<p>AND B.CompanySeq = BBB.CompanySeq</p>
+<p>WHERE AA.CompanySeq = @CompanySeq AND A.PriceStep = 0</p>
+<p>AND A.OptionSeq = 0</p>
+<p>--------------- 5 유통단가 (단위 일치) :: 20170131 박성호</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustStdPrice = CASE C.SMPriceKind WHEN 8011001 THEN CASE A.PriceStep WHEN 0 THEN 0</p>
+<p>ELSE CASE ISNULL(C.DiscountRate, 0) WHEN 0 THEN A.CustStdPrice</p>
+<p>ELSE (CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(A.ItemStdPrice * (100. - C.DiscountRate) / 100., @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(A.ItemStdPrice * (100. - C.DiscountRate) / 100., @GoodPriceDecLength)</p>
+<p>END)</p>
+<p>END</p>
+<p>END</p>
+<p>WHEN 8011002 THEN CASE A.PriceStep WHEN 0 THEN 0</p>
+<p>ELSE CASE ISNULL(C.DiscountPrice, 0) WHEN 0 THEN A.CustStdPrice</p>
+<p>ELSE (CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(A.ItemStdPrice - C.DiscountPrice, @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(A.ItemStdPrice - C.DiscountPrice, @GoodPriceDecLength)</p>
+<p>END)</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE CASE ISNULL(C.Price, 0) WHEN 0 THEN A.CustStdPrice</p>
+<p>ELSE (CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(C.Price, @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(C.Price, @GoodPriceDecLength)</p>
+<p>END)</p>
+<p>END</p>
+<p>END,</p>
+<p>PriceStep = (CASE C.SMPriceKind WHEN 8011001 THEN CASE A.PriceStep WHEN 0 THEN 0 ELSE 5 END</p>
+<p>WHEN 8011002 THEN CASE A.PriceStep WHEN 0 THEN 0 ELSE 5 END</p>
+<p>ELSE 5</p>
+<p>END)</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDACustClass AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>AND B.UMajorCustClass = 8004</p>
+<p>JOIN _TSLChannelPrice AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>AND C.UnitSeq = A.UnitSeq</p>
+<p>AND C.CurrSeq = A.CurrSeq</p>
+<p>AND C.ChannelSeq = B.UMCustClass</p>
+<p>AND A.SalesDate BETWEEN C.SDATE AND C.EDATE</p>
+<p>WHERE A.OptionSeq = 0</p>
+<p>--------------- 5 거래처단가(단위 일치)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustStdPrice = CASE C.SMPriceKind</p>
+<p>WHEN 8011001 THEN</p>
+<p>CASE A.PriceStep WHEN 0 THEN 0 ELSE</p>
+<p>CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(A.ItemStdPrice * (100. - C.DiscountRate) / 100., @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(A.ItemStdPrice * (100. - C.DiscountRate) / 100., @GoodPriceDecLength) END</p>
+<p>END</p>
+<p>WHEN 8011002 THEN</p>
+<p>CASE A.PriceStep WHEN 0 THEN 0 ELSE</p>
+<p>CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(A.ItemStdPrice - C.DiscountPrice, @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(A.ItemStdPrice - C.DiscountPrice, @GoodPriceDecLength) END</p>
+<p>END</p>
+<p>ELSE</p>
+<p>CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(C.Price, @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(C.Price, @GoodPriceDecLength) END</p>
+<p>END,</p>
+<p>PriceStep = CASE C.SMPriceKind</p>
+<p>WHEN 8011001 THEN</p>
+<p>CASE A.PriceStep WHEN 0 THEN 0 ELSE 4 END</p>
+<p>WHEN 8011002 THEN</p>
+<p>CASE A.PriceStep WHEN 0 THEN 0 ELSE 4 END</p>
+<p>ELSE 4 END</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>JOIN _TSLCustItemPrice C WITH(NOLOCK) ON A.ItemSeq = C.ItemSeq</p>
+<p>AND A.UnitSeq = C.UnitSeq</p>
+<p>AND A.CurrSeq = C.CurrSeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>AND A.SalesDate BETWEEN C.SDATE AND C.EDATE</p>
+<p>WHERE C.CompanySeq = @CompanySeq</p>
+<p>AND A.OptionSeq = 0</p>
+<p>--------------- 6 프로모션단가</p>
+<p>--UPDATE #BIZ_OUT_DataBlock1</p>
+<p>-- SET CustStdPrice = CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(B.Price, @GoodDomPriceDecLength)</p>
+<p>-- ELSE ROUND(B.Price, @GoodPriceDecLength)</p>
+<p>-- END,</p>
+<p>-- PriceStep = 5</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- JOIN (SELECT O.IDX_NO, MIN(P.Price) AS Price</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 O</p>
+<p>-- JOIN _TDACustClass Q WITH(NOLOCK) ON O.CustSeq = Q.CustSeq</p>
+<p>-- AND Q.UMajorCustClass = 8004</p>
+<p>-- AND Q.CompanySeq = @CompanySeq</p>
+<p>-- JOIN _TSLPromotionPrice P WITH(NOLOCK) ON P.ItemSeq = O.ItemSeq</p>
+<p>-- AND P.UnitSeq = O.UnitSeq</p>
+<p>-- AND P.CurrSeq = O.CurrSeq</p>
+<p>-- AND O.SalesDate BETWEEN P.SDate AND P.EDate</p>
+<p>-- AND P.CompanySeq = @CompanySeq</p>
+<p>-- AND P.QtyCond \&lt;= O.Qty</p>
+<p>-- LEFT OUTER JOIN _TSLPromotionPriceExCust AS R WITH(NOLOCK) ON P.PromotionSeq = R.PromotionSeq</p>
+<p>-- AND P.CompanySeq = R.CompanySeq</p>
+<p>-- AND O.CustSeq = R.CustSeq</p>
+<p>-- WHERE R.CustSeq IS NULL</p>
+<p>-- AND (P.BizUnit = 0 OR P.BizUnit = O.BizUnit)</p>
+<p>-- AND (P.UMCustClass = 0 OR P.UMCustClass = Q.UMCustClass)</p>
+<p>-- GROUP BY O.IDX_NO) AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>-- WHERE A.OptionSeq = 0</p>
+<p>-- 6 프로모션단가 (적용예외거래처 고려)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustStdPrice = CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(B.Price, @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(B.Price, @GoodPriceDecLength)</p>
+<p>END,</p>
+<p>PriceStep = 5</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN (SELECT O.IDX_NO, MIN(P.Price) AS Price</p>
+<p>FROM #BIZ_OUT_DataBlock1 O</p>
+<p>JOIN _TDACustClass Q WITH(NOLOCK) ON O.CustSeq = Q.CustSeq</p>
+<p>AND Q.UMajorCustClass = 8004</p>
+<p>AND Q.CompanySeq = @CompanySeq</p>
+<p>JOIN _TSLPromotionPrice P WITH(NOLOCK) ON P.ItemSeq = O.ItemSeq</p>
+<p>AND P.UnitSeq = O.UnitSeq</p>
+<p>AND P.CurrSeq = O.CurrSeq</p>
+<p>AND O.SalesDate BETWEEN P.SDate AND P.EDate</p>
+<p>AND P.CompanySeq = @CompanySeq</p>
+<p>AND P.QtyCond \&lt;= O.Qty</p>
+<p>LEFT OUTER JOIN _TSLPromotionPriceExCust AS R WITH(NOLOCK) ON R.PromotionSeq = P.PromotionSeq</p>
+<p>AND R.CompanySeq = P.CompanySeq</p>
+<p>AND R.CustSeq = O.CustSeq</p>
+<p>ANd R.SMApplyKind = 100015002 -- 적용예외</p>
+<p>WHERE R.CustSeq IS NULL</p>
+<p>AND (P.BizUnit = 0 OR P.BizUnit = O.BizUnit)</p>
+<p>AND (P.UMCustClass = 0 OR P.UMCustClass = Q.UMCustClass)</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TSLPromotionPriceExCust WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = P.CompanySeq</p>
+<p>AND PromotionSeq = P.PromotionSeq</p>
+<p>AND SMApplyKind = 100015001) -- 특별적용</p>
+<p>GROUP BY O.IDX_NO) AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.OptionSeq = 0</p>
+<p>-- 6 프로모션단가 (특별적용거래처 고려)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustStdPrice = CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(B.Price, @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(B.Price, @GoodPriceDecLength)</p>
+<p>END,</p>
+<p>PriceStep = 5</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN (SELECT O.IDX_NO, MIN(P.Price) AS Price</p>
+<p>FROM #BIZ_OUT_DataBlock1 O</p>
+<p>JOIN _TDACustClass Q WITH(NOLOCK) ON O.CustSeq = Q.CustSeq</p>
+<p>AND Q.UMajorCustClass = 8004</p>
+<p>AND Q.CompanySeq = @CompanySeq</p>
+<p>JOIN _TSLPromotionPrice P WITH(NOLOCK) ON P.ItemSeq = O.ItemSeq</p>
+<p>AND P.UnitSeq = O.UnitSeq</p>
+<p>AND P.CurrSeq = O.CurrSeq</p>
+<p>AND O.SalesDate BETWEEN P.SDate AND P.EDate</p>
+<p>AND P.CompanySeq = @CompanySeq</p>
+<p>AND P.QtyCond \&lt;= O.Qty</p>
+<p>JOIN _TSLPromotionPriceExCust AS R WITH(NOLOCK) ON R.PromotionSeq = P.PromotionSeq</p>
+<p>AND R.CompanySeq = P.CompanySeq</p>
+<p>AND R.CustSeq = O.CustSeq</p>
+<p>ANd R.SMApplyKind = 100015001 -- 특별적용</p>
+<p>WHERE (P.BizUnit = 0 OR P.BizUnit = O.BizUnit)</p>
+<p>AND (P.UMCustClass = 0 OR P.UMCustClass = Q.UMCustClass)</p>
+<p>GROUP BY O.IDX_NO) AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.OptionSeq = 0</p>
+<p>--------------- 7 옵션단가</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustStdPrice = CASE A.CurrSeq WHEN @StdDomCurrSeq THEN ROUND(B.Price, @GoodDomPriceDecLength)</p>
+<p>ELSE ROUND(B.Price, @GoodPriceDecLength)</p>
+<p>END,</p>
+<p>PriceStep = 6</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>JOIN _TSLOptionItemPrice B ON A.OptionSeq = B.OptionSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.UnitSeq = B.SalesUnitSeq</p>
+<p>AND A.CurrSeq = B.CurrSeq</p>
+<p>AND A.SalesDate BETWEEN B.SDate AND B.EDate</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>/** 거래처품명, 거래처품번, 거래처품목규격, 거래처품목단위 가져오기 **/</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustItemName = ISNULL(C.CustItemName, '') ,</p>
+<p>CustItemNo = ISNULL(C.CustItemNo, '') ,</p>
+<p>CustItemSpec = ISNULL(C.CustItemSpec, '') ,</p>
+<p>CustItemUnit = ISNULL(C.CustItemUnit, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>JOIN _TSLCustItem C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustItemName = ISNULL(C.CustItemName, '') ,</p>
+<p>CustItemNo = ISNULL(C.CustItemNo, '') ,</p>
+<p>CustItemSpec = ISNULL(C.CustItemSpec, '') ,</p>
+<p>CustItemUnit = ISNULL(C.CustItemUnit, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>JOIN _TSLCustItem C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.UnitSeq = C.UnitSeq</p>
+<p>---------------------------- 마지막 거래처기준 거래명세서 최종단가 가져오기</p>
+<p>IF ISNULL(@GetSalesPrice,'') = '1'</p>
+<p>BEGIN</p>
+<blockquote></blockquote>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET MaxDate = (SELECT MAX(X.InvoiceDate) --AS MaxDate</p>
+<p>FROM _TSLInvoice x WITH(NOLOCK)</p>
+<p>JOIN _TSLInvoiceItem y WITH(NOLOCK) ON x.companyseq = y.companyseq</p>
+<p>AND x.invoiceseq = y.invoiceseq</p>
+<p>WHERE x.CompanySeq = @CompanySeq</p>
+<p>AND x.CustSeq = a.CustSeq and x.CurrSeq = a.CurrSeq</p>
+<p>AND y.ItemSeq = a.ItemSeq and y.UnitSeq = a.UnitSeq</p>
+<p>AND (y.CurAmt \&lt;&gt; 0 and y.Qty \&lt;&gt; 0)</p>
+<p>GROUP BY x.CompanySeq, x.CustSeq, x.CurrSeq, y.ItemSeq, y.UnitSeq )</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS a</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustStdPrice = CASE WHEN A.MaxDate IS NULL THEN A.CustStdPrice</p>
+<p>ELSE ISNULL( (SELECT CASE K.IsVat WHEN '0' THEN J.CurAmt / J.Qty ELSE (J.CurAmt + J.CurVat) / J.Qty END</p>
+<p>FROM (SELECT X.CompanySeq, X.CustSeq, X.CurrSeq, Y.ItemSeq, Y.UnitSeq,</p>
+<p>MAX(Y.InvoiceSeq) AS MaxInvoiceSeq,</p>
+<p>--MAX(Y.InvoiceSeq + Y.InvoiceSerl) - MAX(Y.InvoiceSeq) AS MaxInvoiceSerl</p>
+<p>(SELECT MAX(InvoiceSerl)</p>
+<blockquote>
+<p>FROM _TSLInvoiceItem WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND InvoiceSeq = MAX(Y.InvoiceSeq)</p>
+<p>AND ItemSeq = A.ItemSeq) AS MaxInvoiceSerl</p>
+</blockquote>
+<p>FROM _TSLInvoice AS X WITH(NOLOCK)</p>
+<p>JOIN _TSLInvoiceItem AS Y WITH(NOLOCK) ON X.CompanySeq = Y.CompanySeq AND X.InvoiceSeq = Y.InvoiceSeq</p>
+<p>WHERE X.CompanySeq = @CompanySeq</p>
+<p>AND X.InvoiceDate = A.MaxDate</p>
+<p>AND X.CustSeq = A.CustSeq</p>
+<p>AND X.CurrSeq = A.CurrSeq</p>
+<p>AND Y.ItemSeq = A.ItemSeq</p>
+<p>AND Y.UnitSeq = A.UnitSeq</p>
+<p>AND (Y.CurAmt \&lt;&gt; 0 and Y.Qty \&lt;&gt; 0)</p>
+<p>GROUP BY X.CompanySeq, X.CustSeq, X.CurrSeq, Y.ItemSeq, Y.UnitSeq</p>
+<p>) AS I</p>
+<p>JOIN _TSLInvoiceItem AS J WITH(NOLOCK) ON I.CompanySeq = J.CompanySeq AND I.MaxInvoiceSeq = J.InvoiceSeq AND I.MaxInvoiceSerl = J.InvoiceSerl</p>
+<p>JOIN _TDAItemSales AS K WITH(NOLOCK) ON K.CompanySeq = J.CompanySeq AND J.ItemSeq = K.ItemSeq</p>
+<p>), CustStdPrice)</p>
+<p>END,</p>
+<p>PriceStep = 9</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

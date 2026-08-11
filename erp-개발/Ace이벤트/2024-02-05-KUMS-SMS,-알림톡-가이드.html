@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUMS - SMS, 알림톡 가이드</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>KUMS - SMS, 알림톡 가이드</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="kums-sms">KUMS - SMS, 알림톡 가이드</h1>
+<blockquote>
+<p>KUMS - SMS, 알림톡 가이드</p>
+<p>KUMSSMS알림톡</p>
+<p>[사전준비]</p>
+<p>KDC 매뉴얼 [KUMS - 1. 계약진행 프로세스] 를 참고하여 사전에 필요한 계약 및 진행 프로세스를 확인하실 수 있습니다.</p>
+<p>[설정화면정보]</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">PgmSeq</th>
+<th style="text-align: center;">PgmID</th>
+<th style="text-align: center;">화면명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">524763</td>
+<td style="text-align: center;">FrmWKumsCompany</td>
+<td style="text-align: center;">법인별KUMS설정값관리</td>
+</tr>
+<tr>
+<td style="text-align: center;">524764</td>
+<td style="text-align: center;">FrmWKumsTemplate</td>
+<td style="text-align: center;">KUMS템플릿관리</td>
+</tr>
+<tr>
+<td style="text-align: center;">524770</td>
+<td style="text-align: center;">FrmWKumsMessagePgm</td>
+<td style="text-align: center;">프로그램별KUMS설정</td>
+</tr>
+<tr>
+<td style="text-align: center;">524766</td>
+<td style="text-align: center;">FrmWKumsTransLog</td>
+<td style="text-align: center;">KUMS전송이력조회</td>
+</tr>
+<tr>
+<td style="text-align: center;">524769</td>
+<td style="text-align: center;">FrmWKumsAdminTransLog</td>
+<td style="text-align: center;">KUMS전송이력조회(관리자)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>프로세스 메뉴에서는 코드관리(개발자) &gt; KUMS 항목에 위치</p>
+<p>[법인별 KUMS 설정값 관리]</p>
+<p><img alt="" src="assets/KUMS-SMS,-알림톡-가이드/image70.png" /></p>
+</blockquote>
+<ul>
+<li>
+<p>\&lt;법인별로 KUMS를 사용하기 위해 처음 세팅해줘야 할 값&gt;</p>
+</li>
+<li>
+<p>고객사구분값, 발신프로필키 : M&amp;WISE 에서 제공해주는 값</p>
+</li>
+<li>
+<p>조직유형내부코드 : 조직도 사용시 사용될 조직유형코드값 키인</p>
+</li>
+<li>
+<p>엠지기아이디, 엠지기사용자데이터1, 엠지기사용자데이터2 : M&amp;WISE 알림톡 템플릿 관리 시스템 로그인정보\
+  (<a href="https://alimtalk.carrym.com">https://alimtalk.carrym.com</a>)</p>
+</li>
+<li>
+<p>알림톡 사용, SMS사용, Mail사용, Fax사용 : 법인별로 사용여부 체크</p>
+</li>
+<li>
+<p>거래처조회사용 : 기본적으로 개인별 주소록이 제공되며, 거래처 탭을 사용시에 체크(1)</p>
+</li>
+<li>
+<p>조직도조회사용 : 위에 등록한 조직유형내부코드를 가지고 조회되는 조직도 탭을 사용시에 체크(1)</p>
+</li>
+<li>
+<p>설정이 변경되면 재로그인 필요</p>
+</li>
+</ul>
+<blockquote>
+<p>[KUMS 템플릿 관리]</p>
+<p><img alt="" src="assets/KUMS-SMS,-알림톡-가이드/image71.gif" /></p>
+</blockquote>
+<ul>
+<li>
+<p>KDC 매뉴얼 [KUMS - 알림톡 템플릿 추가 방법] 를 참고하여 템플릿 등록</p>
+</li>
+<li>
+<p>KUMS 알림톡을 사용하기 위해 우선적으로 M&amp;WISE에서 제공하는 엠지기알림톡(https://alimtalk.carrym.com/)에서 알림톡 메시지 템플릿을 승인 받는 절차가 필요(M&amp;WISE -&gt; 카카오)</p>
+</li>
+<li>
+<p>KUMS 알림톡을 사용하기 위한 템플릿 관리 화면</p>
+</li>
+<li>
+<p>템플릿코드 : 엠지기알림톡에서 등록한 템플릿코드</p>
+</li>
+<li>
+<p>템플릿내용 : 엠지기알림톡에서 등록한 템플릿내용</p>
+</li>
+<li>
+<p>새로운 템플릿이 필요한 경우, 카카오의 승인을 받아야 하기 때문에 ‘클라우드플랫폼WG <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#99;&#112;&#119;&#103;&#64;&#107;&#115;&#121;&#115;&#116;&#101;&#109;&#46;&#99;&#111;&#46;&#107;&#114;">&#99;&#112;&#119;&#103;&#64;&#107;&#115;&#121;&#115;&#116;&#101;&#109;&#46;&#99;&#111;&#46;&#107;&#114;</a>’ 으로 요청</p>
+</li>
+</ul>
+<blockquote>
+<p>[프로그램별 KUMS 설정]</p>
+<p><img alt="" src="assets/KUMS-SMS,-알림톡-가이드/image72.png" /></p>
+</blockquote>
+<ul>
+<li>
+<p>프로그램별 KUMS 설정만으로 알림톡, SMS, MAIL 기능을 사용할 수 있다.</p>
+</li>
+<li>
+<p>저장 후 화면을 다시 오픈하면 적용(재로그인 필요없음)\
+  \
+  \&lt;컬럼설명&gt;</p>
+</li>
+<li>
+<p>거래처조회, 조직도조회 사용여부 : 체크 시 해당 조회 조건 화면을 볼 수 있다.</p>
+</li>
+<li>
+<p>알림톡 사용여부, 템플릿, SP명</p>
+</li>
+<li>
+<p>사용여부 : 체크 시 툴바에 나옴</p>
+</li>
+<li>
+<p>템플릿 : 메세지 내용에 사용하는 템플릿코드</p>
+</li>
+<li>
+<p>SP명 : 메세지 내용에 사용하는 개발자 SP명</p>
+</li>
+<li>
+<p>출력물SP명 : 첨부파일에 들어가는 출력물관련 SP명</p>
+</li>
+<li>
+<p>출력물Id : 첨부파일에 들어가는 출력물Id</p>
+</li>
+<li>
+<p>Seq컨트럴명, Seq데이타블럭필드명, Serl컨트럴명, Serl데이타블럭필드명, SubSerl컨트럴명, SubSerl데이타필드명, 시트선택컬럼명, 시트키컬럼명 -&gt;화면의 컨트럴명 및 데이터필드명 또는 시트의 선택된 컬럼명 또는 키컬럼명</p>
+</li>
+</ul>
+<blockquote>
+<p>[전송이력조회]</p>
+</blockquote>
+<ul>
+<li>KUMS 전송이력조회: 로그인한 사원이 전송한 내역에 대해서 조회</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/KUMS-SMS,-알림톡-가이드/image73.gif" /></p>
+</blockquote>
+<ul>
+<li>KUMS 전송이력조회(관리자): 전송 내역 전체가 조회되며, 사용자별로 조회 가능</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/KUMS-SMS,-알림톡-가이드/image74.gif" /></p>
+<p>[기타 개발관련 내용]</p>
+<p>1) SP 관련 내용</p>
+</blockquote>
+<ul>
+<li>
+<p>Input</p>
+</li>
+<li>
+<p>MessageDiv : A(알림톡), S(SMS), M(Mail)</p>
+</li>
+<li>
+<p>TemplateCode, TemplateContent : 템플릿 코드 및 내용</p>
+</li>
+<li>
+<p>Param1, 2, 3, 4, 5 : 프로그램별 설정에서 설정된 컬럼 및 필드의 조회된 연속된 값</p>
+</li>
+</ul>
+<blockquote>
+<p>2) Select시 화면에 설정되는 값</p>
+</blockquote>
+<ul>
+<li>
+<p>SP 에서 해당 컬럼이름으로 SELECT 하면, 화면에 자동 세팅됨</p>
+</li>
+<li>
+<p>TemplateContent : 파라메터들을 Replace한 템플릿 내용(Mail인 경우 HTML TAG로 작성)</p>
+</li>
+<li>
+<p>RecvNames : 수신인 이름(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>RecvValues : 수신번호 및 메일주소(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>ReferNames : 참조인 이름(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>ReferValues : 참조번호 및 메일주소(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>CustName : 거래처조회란에 거래처명</p>
+</li>
+<li>
+<p>Subject : 메일 제목(Mail인 경우만)</p>
+</li>
+<li>
+<p>SendEmail : 송신인 메일주소(Mail인 경우만)</p>
+</li>
+<li>
+<p>DisplayReportName : 첨부되는 레포트 파일 이름(Mail인 경우만)</p>
+</li>
+<li>
+<p>CustomUserName : 알림톡 경우 추가메시지란에 \&lt;’유저명’의 메시지&gt;란 문구가 추가되는데, 유저명 변경</p>
+</li>
+</ul>
+<blockquote>
+<p>[Lua 바로 전송]</p>
+<p>Lua복사</p>
+<p>WKumsServiceInit(m_RecvXml, 'A')\
+--\&lt;async&gt;function(resultXml)m_RecvXml = resultXml\
+--전화번호 세팅m_RecvXml = WKumsServiceSend(m_RecvXml, 'A')\
+--메시지 처리--\&lt;/async&gt;</p>
+<p>WKumsServiceInit(m_RecvXml, 'A')</p>
+<p>- 프로그램별KUMS설정에서 등록한 알림톡('A')의 개발자SP를 실행 하고 난 후의 데이터가 리턴</p>
+<p>‘DataBlock1’ Table</p>
+<p>- sendPhoneNum : 발신번호</p>
+<p>- templateCode : 템플릿코드</p>
+<p>- message : 템플릿메시지</p>
+<p>- recvSeq : 수신자순번</p>
+<p>- recvValue : 수신자번호</p>
+<p>- recvName : 수신자이름</p>
+<p>\&lt;개발자SP에서 수신자를 선택하지 않은 경우&gt;</p>
+<p>SetDataSetValue(m_RecvXml.Data, 'DataBlock1', ‘recvSeq’, 0, '0')</p>
+<p>SetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'recvValue', 0, '010-1111-2222')</p>
+<p>SetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'reccName', 0, '홍길동')</p>
+<p>-&gt; DataBlock1에 수신자의 순번, 핸드폰번호, 이름 등을 추가한다</p>
+<p>CopyDataRow(m_RecvXml, 'DataBlock1', 0) : 0번째 ROW을 복사한다. : 복사후 순번, 핸드폰번호, 이름등을 변경한다.</p>
+<p>m_RecvXml = WKumsServiceSend(m_RecvXml, 'A') : 앞에서 수신자를 추가 한 m_RecvXml을 알림톡('A') 전송</p>
+<p>\&lt;알림톡 전송 후 메시지 처리&gt;</p>
+<p>- 기본적으로 Status가 ‘0’이면 성공 ‘1’이면 실패</p>
+<p>- 알림톡의 경우 메시지 경우수가 많아서 중요한 내용만 상세메시지 처리</p>
+<p>Lua복사</p>
+<p>localcode, altcode, name, num, status, msg\
+forrow = 0, GetDataBlock(m_RecvXml.Data, 'DataBlock1').Rows.Count - 1docode = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Code', row)\
+altcode = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'AltCode', row)\
+name = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'RecvName', row)\
+num = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'RecvValue', row)\
+status= GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Status', row)\
+ifcode == 'AS'then-- 전송이 완료되었습니다.msg = GetMessage('4', GetDictionary(1405),'', '', '', '', '', '', '', '', '')\
+MessageBoxShow(tostring(row+1)..'. '..msg..' '..name..' ['..num..']', '')\
+elseifaltcode == '3008'then-- 휴대폰번호를 확인하세요.msg = GetMessage('1196', GetDictionary(24931),'', '', '', '', '', '', '', '', '')\
+MessageBoxShow(tostring(row+1)..'. '..msg..' '..name..' ['..num..']', '')\
+elseifaltcode == '3018'then-- 전송오류 KakaoTalk 사용여부를 확인하세요.msg = GetMessage('1196', GetDictionary(1471),'', '', '', '', '', '', '', '', '')\
+MessageBoxShow(tostring(row+1)..'. '..GetDictionary(53894)..' '..'KakaoTalk'..' '..msg..' '..name..' ['..num..']', '')\
+elseifstatus== '1'then-- 처리 작업중 오류가 발생하였습니다.msg = GetMessage('1053', '','', '', '', '', '', '', '', '', '')\
+MessageBoxShow(msg..' '..name..' ['..num..']', '')\
+endend</p>
+<p>[툴바버튼없이 Lua로 KUMS화면 열기] - 공통버전 6.1.6.1009 이상</p>
+<p>제목대로 툴바버튼을 눌렀을 때 실행되는 이벤트를 Lua로 호출 가능합니다.</p>
+<p>예) 화면 저장 후 KUMS 메일화면을 열어서 전송하고 싶을 때</p>
+<p>Lua복사</p>
+<p>WOpenKums(m_RecvXml, 'A')\
+--'A' : 알림톡--'S' : SMS--'M' : MAIL</p>
+<p>출처: \&lt;<a href="https://kdc.ksystem.co.kr/WebDev">https://kdc.ksystem.co.kr/WebDev</a>&gt;</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

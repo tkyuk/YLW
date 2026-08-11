@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출력물 가로 병합</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>출력물 가로 병합</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">출력물 가로 병합</h1>
+<p>\&lt;\&lt;HorizontalMerge.ozr&gt;&gt;</p>
+<ol>
+<li>
+<p>고정 테이블</p>
+<ol>
+<li>오즈 스크립트 사용</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>string gubun;</p>
+<p>string type;</p>
+<p>gubun = #GUBUN#;</p>
+<p>type = #TYPE#;</p>
+<p>if(gubun == "A" || type == "" || type == null) {</p>
+<p>setattr("leftlabelmergeto","FixedTableLabel1");</p>
+<p>}</p>
+</blockquote>
+<ol start="2">
+<li>
+<p>테이블</p>
+<ol>
+<li>
+<p>자바 스크립트 (OnBind)</p>
+<ol>
+<li>왼쪽</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>var gubun = This.GetDataSetValue("GUBUN");</p>
+<p>var type = This.GetDataSetValue("TYPE");</p>
+<p>if(gubun == "A" || type == "" || type == null) {</p>
+<p>This.SetRightGroupingCount(1);</p>
+<p>}</p>
+</blockquote>
+<ol start="2">
+<li>오른쪽</li>
+</ol>
+<blockquote>
+<p>var gubun = This.GetDataSetValue("GUBUN");</p>
+<p>var type = This.GetDataSetValue("TYPE");</p>
+<p>if(gubun == "A" || type == "" || type == null) {</p>
+<p>This.SetLeftGroupingCount(1);</p>
+<p>This.SetText(gubun);</p>
+<p>}</p>
+</blockquote>
+<p>\&lt;\&lt;가로병합 예시.ozr&gt;&gt;</p>
+  </article>
+</div>
+</body>
+</html>

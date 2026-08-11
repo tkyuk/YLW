@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뷰테이블 패치 스크립트 (없으면 CREATE 있으면 ALTER)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>뷰테이블 패치 스크립트 (없으면 CREATE 있으면 ALTER)</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="create-alter">뷰테이블 패치 스크립트 (없으면 CREATE 있으면 ALTER)</h1>
+<p>IF NOT EXISTS (SELECT * FROM sys.views WHERE name = 'dhi_VPDPartsList')</p>
+<p>BEGIN</p>
+<p>EXEC('</p>
+<p>CREATE VIEW dhi_VPDPartsList</p>
+<p>AS</p>
+<p>SELECT A.ItemNo AS [대호코드]</p>
+<p>,A.ItemName AS [품명(공정명)]</p>
+<p>--,A.ItemSpec AS [규격]</p>
+<p>--,A.BOMRev AS [차수]</p>
+<p>,ISNULL(A.RawMaterialCostSum, 0) AS [원자재비]</p>
+<p>,ISNULL(A.SubMaterialCostSum, 0) AS [부자재비]</p>
+<p>,ISNULL(A.MaterialCostSum , 0) AS [자재비합계]</p>
+<p>,ISNULL(A.ProdCost , 0) AS [가공비]</p>
+<p>,ISNULL(A.SalesPrice , 0) AS [견적 단가(판매단가)]</p>
+<p>FROM dhi_IF_TPDPartsList AS A</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>')</p>
+<p>END</p>
+<p>ELSE</p>
+<p>EXEC('</p>
+<p>ALTER VIEW dhi_VPDPartsList</p>
+<p>AS</p>
+<p>SELECT A.ItemNo AS [대호코드]</p>
+<p>,A.ItemName AS [품명(공정명)]</p>
+<p>--,A.ItemSpec AS [규격]</p>
+<p>--,A.BOMRev AS [차수]</p>
+<p>,ISNULL(A.RawMaterialCostSum, 0) AS [원자재비]</p>
+<p>,ISNULL(A.SubMaterialCostSum, 0) AS [부자재비]</p>
+<p>,ISNULL(A.MaterialCostSum , 0) AS [자재비합계]</p>
+<p>,ISNULL(A.ProdCost , 0) AS [가공비]</p>
+<p>,ISNULL(A.SalesPrice , 0) AS [견적 단가(판매단가)]</p>
+<p>FROM dhi_IF_TPDPartsList AS A</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>')</p>
+  </article>
+</div>
+</body>
+</html>

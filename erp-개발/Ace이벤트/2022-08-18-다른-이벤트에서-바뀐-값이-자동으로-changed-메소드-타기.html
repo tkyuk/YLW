@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다른 이벤트에서 바뀐 값이 자동으로 changed 메소드 타기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>다른 이벤트에서 바뀐 값이 자동으로 changed 메소드 타기</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="changed">다른 이벤트에서 바뀐 값이 자동으로 changed 메소드 타기</h1>
+<p>local W_UnitQty, B_UnitQty, ConvQty, UnitSeq, W_UnitSeq, Qty</p>
+<p>A_UnitQty = tonumber(CellText(SS1, SS1.ActiveRow, 'A_UnitQty'))</p>
+<p>W_UnitQty = tonumber(CellText(SS1, SS1.ActiveRow, 'W_UnitQty'))</p>
+<p>B_UnitQty = tonumber(CellText(SS1, SS1.ActiveRow, 'B_UnitQty'))</p>
+<p>ConvQty = tonumber(CellText(SS1, SS1.ActiveRow, 'ConvQty'))</p>
+<p>UnitSeq = tonumber(CellText(SS1, SS1.ActiveRow, 'UnitSeq'))</p>
+<p>W_UnitSeq = tonumber(CellText(SS1, SS1.ActiveRow, 'W_UnitSeq'))</p>
+<p>Qty = tonumber(CellText(SS1, SS1.ActiveRow, 'Qty'))</p>
+<p>if UnitSeq == W_UnitSeq then                                                                                                         </p>
+<p>Qty = W_UnitQty                                                                                                </p>
+<p>else                                                                                                        </p>
+<p>Qty = A_UnitQty * B_UnitQty                                                                                                </p>
+<p>end                                </p>
+<p>SetText(SS1, SS1.ActiveRow, 'W_UnitQty', W_UnitQty)        </p>
+<p>SetText(SS1, SS1.ActiveRow, 'Qty', Qty)        </p>
+<p>수량, 중량 변경 =&gt; 판매수량 계산</p>
+<p>판매수량 changed =&gt; TestCnt</p>
+<p>단순히 RunPgmMethod 만 태우는게 아니라</p>
+<p>ActiveColumnName으로 판매수량을 태워야함</p>
+<p>같은 이벤트를 실행해도 ActiveColumnName에 따라 달라짐</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>for row = SS1.ActiveRow, EndRow, 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>RunPgmMethod('RollCalc')</p>
+<p>end</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+<p><span class="mark">SS1.ActiveColumnName = 'Qty'</span></p>
+<p>RunPgmMethod('TestCnt')</p>
+  </article>
+</div>
+</body>
+</html>

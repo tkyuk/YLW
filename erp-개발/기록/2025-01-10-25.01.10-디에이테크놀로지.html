@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.01.10 디에이테크놀로지</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.01.10 디에이테크놀로지</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250110">25.01.10 디에이테크놀로지</h1>
+<p>--[활동센터별전표발행조회]</p>
+<p>-- 전표집계 (전표번호별로 비용항목계정인 전표들을 따로 EsM용 테이블에 저장시킨다)</p>
+<p>SELECT DISTINCT LEFT(AccDate,6)</p>
+<p>FROM _TESMGSlipCost</p>
+<p>WHERE LEFT(AccDate,6) = '202402'</p>
+<p>AND AccSeq = 418</p>
+<p>--[활동센터별비용집계조회]</p>
+<p>-- 활동센터별금액집계</p>
+<p>SELECT *</p>
+<p>FROM _TESMCProfCostSum AS A WITH(NOLOCK)</p>
+<p>JOIN _TESMDCostKey AS K WITH(NOLOCK) ON A.CompanySeq = K.CompanySeq</p>
+<p>AND A.CostKeySeq = K.CostKeySeq</p>
+<p>WHERE K.CostYm = '202402'</p>
+<p>AND A.CostAccSeq = 247</p>
+<p>-- dbsafer007!</p>
+<p>SELECT * FROM _TESMBAccount WHERE CostAccSeq = 247</p>
+  </article>
+</div>
+</body>
+</html>

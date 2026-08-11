@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\_/ 앞뒤 반환</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\_/ 앞뒤 반환</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_">_/ 앞뒤 반환</h1>
+<p>EXEC _SWCOMSplitStr @ItemBarcodeTmp OUTPUT, @MatItemSeq OUTPUT</p>
+<p>EXEC _SWCOMSplitStr @ItemBarcodeTmp OUTPUT, @LotNo OUTPUT</p>
+<p>EXEC _SWCOMSplitStr @ItemBarcodeTmp OUTPUT, @ProdQty OUTPUT</p>
+<p>IF ISNUMERIC(@ProdQty) = 0 SELECT @ProdQty = '0'</p>
+<p>IF ISNUMERIC(@MatItemSeq) = 0 SELECT @MatItemSeq = '0'</p>
+  </article>
+</div>
+</body>
+</html>

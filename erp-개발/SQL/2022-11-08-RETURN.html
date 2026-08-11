@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RETURN</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>RETURN</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="return">RETURN</h1>
+<p>SELECT subject, [1반],[2반],[3반]</p>
+<p>-- 가져올 컬럼명 열로 변환시킬 행</p>
+<p>FROM (SELECT class,subject,score FROM #examresult) AS EXAM</p>
+<p>-- 테이블</p>
+<p>PIVOT (</p>
+<p>AVG(score)</p>
+<p>-- 집계 함수(검색할 열)</p>
+<p>FOR class</p>
+<p>-- 크로스탭의 기준이 되는열</p>
+<p>IN ([1반],[2반],[3반])</p>
+<p>-- 변환시킬 행</p>
+<p>) AS PIVOTTABLE1</p>
+<p>-- 피벗 테이블의 별칭</p>
+<p>-- PIVOT 함수 (행을 열로 바꾸기)</p>
+<p>-- 그룹함수를 이용하여 통계를 추출할 때 많이 사용</p>
+<p>-- 그룹함수는 SUM(), COUNT(), AVG() 등을 사용할 수 있다.</p>
+<p>-- 피벗컬럼값의 대괄호([ ])는 존재해야하며, FROM절과 PIVOT절의 별칭(result, pivot_result)은 꼭 붙여줘야 오류가 발생하지 않는다.</p>
+<p>DROP TABLE #examresult</p>
+<p>Create table #examresult</p>
+<p>(</p>
+<p>exameid int identity(1,1) primary key ,</p>
+<p>class varchar(10),</p>
+<p>student varchar(20),</p>
+<p>subject varchar(10),</p>
+<p>score int</p>
+<p>)</p>
+<p>go</p>
+<p>INSERT INTO #examresult VALUES ('1반','학생1','수학',100)</p>
+<p>INSERT INTO #examresult VALUES ('1반','학생1','과학',80)</p>
+<p>INSERT INTO #examresult VALUES ('1반','학생1','국어',90)</p>
+<p>INSERT INTO #examresult VALUES ('1반','학생1','수학',80)</p>
+<p>INSERT INTO #examresult VALUES ('1반','학생1','과학',100)</p>
+<p>INSERT INTO #examresult VALUES ('1반','학생1','국어',100)</p>
+<p>INSERT INTO #examresult VALUES ('2반','학생2','수학',100)</p>
+<p>INSERT INTO #examresult VALUES ('2반','학생2','과학',100)</p>
+<p>INSERT INTO #examresult VALUES ('2반','학생2','국어',90)</p>
+<p>INSERT INTO #examresult VALUES ('3반','학생3','수학',80)</p>
+<p>INSERT INTO #examresult VALUES ('3반','학생3','과학',80)</p>
+<p>INSERT INTO #examresult VALUES ('3반','학생3','국어',60)</p>
+<p>--SELECT * FROM #examresult</p>
+<p>SELECT CLASS,subject,AVG(SCORE) AS '평균' FROM #examresult GROUP BY class, subject</p>
+<p>SELECT subject, [1반],[2반],[3반]</p>
+<p>-- 가져올 컬럼명 열로 변환시킬 행</p>
+<p>FROM (SELECT class,subject,score FROM #examresult) AS EXAM</p>
+<p>-- 테이블</p>
+<p>PIVOT (</p>
+<p>AVG(score)</p>
+<p>-- 집계 함수(검색할 열)</p>
+<p>FOR class</p>
+<p>-- 크로스탭의 기준이 되는열</p>
+<p>IN ([1반],[2반],[3반])</p>
+<p>-- 변환시킬 행</p>
+<p>) AS PIVOTTABLE1</p>
+<p>-- 피벗 테이블의 별칭</p>
+  </article>
+</div>
+</body>
+</html>

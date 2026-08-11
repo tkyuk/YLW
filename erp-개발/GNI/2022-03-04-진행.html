@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진행</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>진행</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">진행</h1>
+<p>GNI 진행</p>
+<p>TSSInvoiceItem --거래명세서 // SONo,SOSerl join하면 진행</p>
+<p>진행된 상태인지 안된 상태인지</p>
+<p>제뉴인과 달리 찾아주는 sp가 없음</p>
+<p>수주 - 출하 - 거래명세서 - 세금명세서 순</p>
+<p>밑으로 내려갈수록 이전의 키값들을 다 가지고 있다 (누적)</p>
+<p>SELECT * FROM TSASOItem -- 수주</p>
+<p>SELECT * FROM TSSDelvReqItem</p>
+<p>-- 출하의뢰 (수주번호의 SONo, SOSerl를 가지고 있음) -- DelvNo - 출하의뢰번호</p>
+<p>SELECT * FROM TSSInvoiceITem</p>
+<p>-- 거래명세서 (수주번호의 SONo, SOSerl + 출하의뢰의 DelvNo, DelvSerl를 가지고 있음)</p>
+<p>TssbillItem - 세금계산</p>
+<p>이후 프로세스가 이전 프로세스의 키값을 가지고 있음</p>
+<p>(출하에는 수주 키값 있지만 수주에는 출하 키값은 없다)</p>
+<p>수주 1 - 100</p>
+<p>(수주1의) 거래명세서 1 - 50 A/1</p>
+<p>(수주1의) 거래명세서 2 - 50 마스터 키값, 시리얼 = A/2</p>
+<p>세금계산서 1 - 25 A/2</p>
+<p>세금계산서 2- 25 A/2</p>
+<p>(A만 걸면 안되고 2까지 같이 걸어줘야함)</p>
+<p>* 거래명세서 입장에서 봤을 때</p>
+<p>수주는 그냥 가져올 수 있지만</p>
+<p>세금계산서 여러개가 발생했으므로 모든 건을 집계 해서 (sum) 가져와야함</p>
+<p>25 + 25 이렇게 집계해야 50개를 가져올 수 있기 때문에</p>
+<p>진행은 Seq, Serl(아이템 키)까지 걸어줘야함</p>
+<p>+. 키 값들이 다 CHAR형 / 숫자는 NUMERIC</p>
+<p>SCTQry_ylwsh05008</p>
+<p>SSASalesOrder01Save</p>
+<p>채번 시</p>
+<p>날짜 기준으로 가져옴</p>
+<p>날짜 + MAX값 가져와서 + 1</p>
+<p>SDANextSerialno // @wSONo =&gt; 새로 채번한 값</p>
+<p>MAX값 구하고 저장하기 전 그 찰나에 누가 데이터를 저장할 수 있기 때문에</p>
+<p>if문 부분이 있다</p>
+<p>여러 사람의 중복으로 병목현상 =&gt; 무한루프 =&gt; 채번같은 경우는 밖으로 빼줘서 해야한다</p>
+<p>* 업무별 외부키가 별도로 없다</p>
+<p>번호자체가 테이블에서 키값으로 쓰이기 때문</p>
+<p>** TSASOM ProgressType</p>
+<p>TSASOItem - ProgClss</p>
+<p>0 - 초기값</p>
+<p>1 - 완료</p>
+<p>1이 아닌값 2 - 중단</p>
+<p>StkQty - 전체</p>
+<p>NextQty - 진행 수량</p>
+<p>StkQty, NextQty 비교하여 진행, 중단 결정</p>
+<p>SSADelvReq2Save</p>
+<p>진행수량 관리해주는 로직</p>
+<p>TDACONTROLSUB =&gt; 수량통제</p>
+<p>영업/수출관리 - 기본정보 - 운영환경관리 (영업수출) 진행 =&gt; 요청수량 초과허용 체크</p>
+<p>영업/수출관리 - 기본정보 - 판매단가</p>
+<p>(컨트롤)화폐에 따라서 판매단가가 바뀜</p>
+<p>SDAEnvModSal</p>
+<p>영업/수출관리 - 판매단가</p>
+<p>우선순위</p>
+<p>( 거래처 - 유통 - 품목 순 ) 단가등록 // 운영환경관리에 나와 있음</p>
+  </article>
+</div>
+</body>
+</html>

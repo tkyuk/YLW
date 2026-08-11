@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사원 부서 테이블 (발령 / 내부 외부직원)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사원 부서 테이블 (발령 / 내부 외부직원)</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사원 부서 테이블 (발령 / 내부 외부직원)</h1>
+<p>SELECT A.EmpSeq, C.DeptSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS Z</p>
+<p>JOIN _TDAEmpIn AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = Z.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRAdmOrdEmp AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.EmpSeq = C.EmpSeq</p>
+<p>AND CASE WHEN CONVERT(NVARCHAR(8), GETDATE(), 112) \&lt;= A.EntDate THEN A.EntDate -- 입사발령이 미래시점으로 난 경우 입사일</p>
+<p>WHEN CONVERT(NVARCHAR(8), GETDATE(), 112) &gt;= A.RetireDate THEN A.RetireDate -- 퇴사자는 퇴사일 기준</p>
+<p>ELSE CONVERT(NVARCHAR(8), GETDATE(), 112)</p>
+<p>END BETWEEN C.OrdDate AND C.OrdEndDate</p>
+<p>AND C.IsOrdDateLast = '1'</p>
+<p>UNION</p>
+<p>SELECT ISNULL(B.EmpSeq , 0)        AS EmpSeq , -- 사원, 사원코드 ,</p>
+<p>(CASE WHEN ISNULL(C.ContractSeq, 0) = 0 THEN ISNULL(B.WkDeptSeq, 0) ELSE ISNULL(C.WkDeptSeq, 0 ) END) AS WkDeptSeq -- 부서코드</p>
+<blockquote>
+<p>FROM #BIZ_OUT_DataBlock1 AS Z</p>
+</blockquote>
+<p>JOIN _TDAEmp AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.EmpSeq = Z.EmpSeq</p>
+<blockquote>
+<p>LEFT OUTER JOIN _THRLabDailyEmpContract AS C WITH(NOLOCK)</p>
+<p>ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.EmpSeq = C.EmpSeq</p>
+<p>AND C.BegDate = (SELECT MAX(BegDate)</p>
+<p>FROM _THRLabDailyEmpContract WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = C.CompanySeq</p>
+<p>AND EmpSeq = C.EmpSeq</p>
+<p>AND BegDate \&lt;= CONVERT(NCHAR(8), GETDATE(), 112) )</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDADept AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.DeptSeq = B.WkDeptSeq</p>
+  </article>
+</div>
+</body>
+</html>

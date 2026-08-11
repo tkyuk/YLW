@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-01-21-untitled</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2026-01-21-untitled</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>local StdWorkTime, Qty, WorkHour, ProcHour, WorkerQty, CapaType, temp, EnvValue</p>
+<p>EnvValue = GetPgmEnv('COMEnv', 6205)</p>
+<p>--rtnType = MessageBox(GetMessage('3644', '', '', '', '', '', '', '', '', '', ''), '', 'MsgBoxTypeYesNo')</p>
+<p>--if rtnType == 0 then</p>
+<p>--GoTo('END')</p>
+<p>-- return</p>
+<p>--end</p>
+<p>function round(num, idp)-- 반올림</p>
+<p>num = tonumber(num)</p>
+<p>idp = tonumber(idp)</p>
+<p>if idp == nil then</p>
+<p>mult = 10^0</p>
+<p>else</p>
+<p>mult = 10^idp</p>
+<p>end</p>
+<p>if num &gt;= 0 then</p>
+<p>return math.floor(num * mult + 0.50001) / mult</p>
+<p>else</p>
+<p>return math.ceil(num * mult - 0.50001) / mult</p>
+<p>end</p>
+<p>end</p>
+<p>for row = 0, SS.DataRowCnt -1 do</p>
+<blockquote>
+<p>SS.ActiveRow = row</p>
+<p>if CellText(SS, row, 'Sel') == '1' then</p>
+</blockquote>
+<p>StdWorkTime = tonumber(CellText(SS, row, 'StdWorkTime'))</p>
+<p>Qty = tonumber(CellText(SS, row, 'Qty'))</p>
+<p>WorkerQty = tonumber(CellText(SS, row, 'WorkerQty'))</p>
+<p>WorkHour = StdWorkTime * Qty</p>
+<p>StdWorkTime = tonumber(CellText(SS, row, 'StdWorkTime'))</p>
+<p>SetText(SS, SS.ActiveRow, 'WorkHour', WorkHour)</p>
+<blockquote>
+<p>if WorkHour ~= '' then</p>
+<p>CapaType = CellText(SS, row, 'SMCapaType')</p>
+<p>if CapaType == '6038001' then</p>
+<p>temp = tonumber(CellText(SS, row, 'WorkHour'))</p>
+<p>elseif CapaType == '6038002' then</p>
+<p>temp = tonumber(CellText(SS, row, 'WorkHour')) * tonumber(CellText(SS, row, 'WorkerQty'))</p>
+<p>else</p>
+<p>temp = 0</p>
+<p>end</p>
+<p>if EnvValue == '6050001' then</p>
+<p>SetText(SS, row, 'ProcHour', (temp * 60))</p>
+<p>elseif EnvValue == '6050002' then</p>
+<p>SetText(SS, row, 'ProcHour', (temp))                        </p>
+<p>elseif EnvValue == '6050003' then</p>
+<p>SetText(SS, row, 'ProcHour', (temp / 60))</p>
+<p>elseif EnvValue == '6050004' then</p>
+<p>SetText(SS, row, 'ProcHour', ((temp / 60) / 24))</p>
+<p>else</p>
+<p>--SetText(SS, row, 'ProcHour', (temp * 60))</p>
+<p>end</p>
+<p>end                </p>
+<p>if SS.WorkingTag ~= 'A' then</p>
+<p>SS.WorkingTag = 'U'</p>
+</blockquote>
+<p>end</p>
+<blockquote>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

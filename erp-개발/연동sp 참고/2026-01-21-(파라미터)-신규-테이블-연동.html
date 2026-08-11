@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(파라미터) 신규 테이블 연동</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(파라미터) 신규 테이블 연동</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">(파라미터) 신규 테이블 연동</h1>
+<p>DROP PROC smc_MESPDQCReportSave</p>
+<p>GO</p>
+<p>CREATE PROC smc_MESPDQCReportSave</p>
+<p>@WorkingTag NCHAR(1) , -- 저장상태값 / A:삽입 D:삭제</p>
+<p>@ReportSeq INT OUTPUT, -- 검사내부코드 / A(삽입)일경우 숫자 0으로 보내주시고, D(삭제)일 경우 검사내부코드</p>
+<p>@SourceType INT , -- 서비스처리내부코드 / 생산실적:1 /서비스처리:2</p>
+<p>@SourceSeq INT , -- 서비스처리내부순번 / 작업실적내부코드 OR 서비스처리내부코드</p>
+<p>@SMTestResult INT , -- 검사결과 / 합격: 6035003 / 불합격: 6035004</p>
+<p>@SMChargeType INT , -- 유무상구분 / 유상:1 / 무상:2</p>
+<p>@EmpSeq INT , -- 담당자내부코드 /</p>
+<p>@UserSeq INT , -- 등록자내부코드 /</p>
+<p>@Status NVARCHAR(10) OUTPUT, -- 에러상태코드 / OK / 그 외</p>
+<p>@Results NVARCHAR(250) OUTPUT -- 에러메시지 /</p>
+<p>AS</p>
+<p>SET NOCOUNT ON</p>
+<p>SET XACT_ABORT ON</p>
+<p>-- 들어온 파라미터 저장</p>
+<p>INSERT smc_TMESPDQCReport_Param</p>
+<p>(</p>
+<p>LogDateTime ,</p>
+<p>WorkingTag ,</p>
+<p>ReportSeq ,</p>
+<p>SourceType ,</p>
+<p>SourceSeq ,</p>
+<p>SMTestResult,</p>
+<p>SMChargeType,</p>
+<p>EmpSeq ,</p>
+<p>UserSeq ,</p>
+<p>Status ,</p>
+<p>Results</p>
+<p>)</p>
+<p>SELECT GETDATE() ,</p>
+<p>@WorkingTag ,</p>
+<p>@ReportSeq ,</p>
+<p>@SourceType ,</p>
+<p>@SourceSeq ,</p>
+<p>@SMTestResult,</p>
+<p>@SMChargeType,</p>
+<p>@EmpSeq ,</p>
+<p>@UserSeq ,</p>
+<p>@Status ,</p>
+<p>@Results</p>
+<p>SELECT @ReportSeq = ISNULL(@ReportSeq, 0),</p>
+<p>@Status = 'OK',</p>
+<p>@Results = ''</p>
+<p>DECLARE @MaxSeq INT,</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@PgmSeq INT = 9999,</p>
+<p>@CurrDate NCHAR(8),</p>
+<p>@DeptSeq INT,</p>
+<p>@ERROR_TEXT NVARCHAR(100)</p>
+<p>DECLARE @CheckItemSeq INT,</p>
+<p>@IsFinalQC NVARCHAR(50)</p>
+<p>SELECT @CurrDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>SELECT @DeptSeq = WkDeptSeq</p>
+<p>FROM _TDAEmp</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = @EmpSeq</p>
+<p>-- 삭제 로그용 테이블</p>
+<p>CREATE TABLE #smc_TPDQCReportLog</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>WorkingTag NVARCHAR(10),</p>
+<p>ReportSeq INT,</p>
+<p>SourceType INT,</p>
+<p>SourceSeq INT,</p>
+<p>SMTestResult INT,</p>
+<p>SMChargeType INT,</p>
+<p>EmpSeq INT,</p>
+<p>UserSeq INT,</p>
+<p>Status INT,</p>
+<p>Result NVARCHAR(250),</p>
+<p>MessageType INT</p>
+<p>)</p>
+<p>-- 체크</p>
+<p>IF @WorkingTag = 'A'</p>
+<p>BEGIN</p>
+<p>IF ISNULL(@SourceType , 0) = 0 OR</p>
+<p>ISNULL(@SourceSeq , 0) = 0 OR</p>
+<p>ISNULL(@SMTestResult, 0) = 0 OR</p>
+<p>ISNULL(@SMChargeType, 0) = 0 OR</p>
+<p>ISNULL(@EmpSeq , 0) = 0 OR</p>
+<p>ISNULL(@UserSeq , 0) = 0</p>
+<p>BEGIN</p>
+<p>SELECT @ERROR_TEXT = CASE WHEN ISNULL(@SourceType , 0) = 0 THEN '서비스처리내부코드'</p>
+<p>WHEN ISNULL(@SourceSeq , 0) = 0 THEN '서비스처리내부순번'</p>
+<p>WHEN ISNULL(@SMTestResult , 0) = 0 THEN '검사결과'</p>
+<p>WHEN ISNULL(@SMChargeType , 0) = 0 THEN '유무상구분'</p>
+<p>WHEN ISNULL(@EmpSeq , 0) = 0 THEN '담당자내부코드'</p>
+<p>WHEN ISNULL(@UserSeq , 0) = 0 THEN '등록자내부코드'</p>
+<p>END</p>
+<p>SELECT @Status = 'ERROR',</p>
+<p>@Results = '필수 값(' + @ERROR_TEXT + ')이(가) 입력되지 않았습니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>END</p>
+<p>IF ISNULL(@SourceType, 0) NOT IN (1, 2)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 'ERROR',</p>
+<p>@Results = '서비스처리내부코드가 정상적으로 입력되지 않았습니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>END</p>
+<p>IF ISNULL(@SMTestResult, 0) NOT IN (6035003, 6035004)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 'ERROR',</p>
+<p>@Results = '검사결과가 정상적으로 입력되지 않았습니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>END</p>
+<p>IF ISNULL(@SMChargeType, 0) NOT IN (1, 2)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 'ERROR',</p>
+<p>@Results = '유무상구분이 정상적으로 입력되지 않았습니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>END</p>
+<p>-- 최종검사여부 대상 품목인지 사전 확인</p>
+<p>IF @SourceType = 1 -- 생산실적</p>
+<p>BEGIN</p>
+<p>SELECT @CheckItemSeq = AssyItemSeq</p>
+<p>FROM _TPDSFCWorkReport WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND WorkReportSeq = @SourceSeq</p>
+<p>END</p>
+<p>ELSE IF @SourceType = 2 -- 서비스처리</p>
+<p>BEGIN</p>
+<p>SELECT @CheckItemSeq = B.ItemSeq</p>
+<p>FROM _TSIASServiceProc AS A WITH(NOLOCK)</p>
+<p>JOIN _TSIASServiceReq AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ReceiptSeq = A.ReceiptSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProcSeq = @SourceSeq</p>
+<p>END</p>
+<p>-- 가져온 ItemSeq로 사용자정의값(1000021:최종검사여부) 확인</p>
+<p>SELECT @IsFinalQC = ISNULL(MngValText, '0')</p>
+<p>FROM _TDAItemUserDefine WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND ItemSeq = @CheckItemSeq</p>
+<p>AND MngSerl = 1000021</p>
+<p>-- 값이 '1'이 아니면 에러 리턴</p>
+<p>IF @IsFinalQC \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 'ERROR',</p>
+<p>@Results = CASE WHEN @SourceType = 1 THEN '생산실적' ELSE '서비스처리' END + '의 품목이 최종검사 대상이 아닙니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE IF @WorkingTag = 'D'</p>
+<p>BEGIN</p>
+<p>IF ISNULL(@ReportSeq, 0) = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 'ERROR',</p>
+<p>@Results = '검사내부코드가 입력되지 않았습니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>END</p>
+<p>INSERT #smc_TPDQCReportLog</p>
+<p>(</p>
+<p>IDX_NO ,</p>
+<p>WorkingTag ,</p>
+<p>ReportSeq ,</p>
+<p>SourceType ,</p>
+<p>SourceSeq ,</p>
+<p>SMTestResult,</p>
+<p>SMChargeType,</p>
+<p>EmpSeq ,</p>
+<p>UserSeq ,</p>
+<p>Status ,</p>
+<p>Result ,</p>
+<p>MessageType</p>
+<p>)</p>
+<p>SELECT 1 ,</p>
+<p>@WorkingTag ,</p>
+<p>@ReportSeq ,</p>
+<p>@SourceType ,</p>
+<p>@SourceSeq ,</p>
+<p>@SMTestResult,</p>
+<p>@SMChargeType,</p>
+<p>@EmpSeq ,</p>
+<p>@UserSeq ,</p>
+<p>0 ,</p>
+<p>@Results ,</p>
+<p>0</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'smc_TPDQCReport' , -- 원테이블명</p>
+<p>'#smc_TPDQCReportLog', -- 템프테이블명</p>
+<p>'ReportSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>END</p>
+<p>BEGIN TRY</p>
+<p>BEGIN TRAN</p>
+<p>-- DELETE</p>
+<p>IF @WorkingTag = 'D'</p>
+<p>BEGIN</p>
+<p>-- 하위 테이블 삭제</p>
+<p>DELETE smc_TPDQCReportItemTC WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportItemHJ WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportVGBreakdown WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportVGRepair WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportVGBefCali WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportVGAftCali WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportMFCItem1 WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportMFCItem2 WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportMFCItem3 WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportMFCItem4 WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportMFCItem5 WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportTool WHERE ReportSeq = @ReportSeq</p>
+<p>DELETE smc_TPDQCReportImage WHERE ReportSeq = @ReportSeq</p>
+<p>-- 테이블 삭제</p>
+<p>DELETE smc_TPDQCReport WHERE ReportSeq = @ReportSeq</p>
+<p>END</p>
+<p>ELSE IF @WorkingTag = 'A'</p>
+<p>BEGIN</p>
+<p>-- 번호 채번</p>
+<p>SELECT @MaxSeq = ISNULL(MAX(A.ReportSeq), 0)</p>
+<p>FROM smc_TPDQCReport AS A WITH(UPDLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT @ReportSeq = @MaxSeq + 1</p>
+<p>IF @SourceType = 1 -- 생산실적</p>
+<p>BEGIN</p>
+<p>INSERT INTO smc_TPDQCReport</p>
+<p>(</p>
+<p>CompanySeq, ReportSeq, SourceType, SourceSeq, SourceSerl, SerialNo, LotNo, CustSeq, ItemSeq, QCDate, QCEmpSeq, QCDeptSeq, SMTestResult, Remark, UseToolNo, DrawingSN, UseTemp,</p>
+<p>TrendNo, RetedVoltage, AccuRacy, IsTYLAN, Gas, CF, InletPressure, HeadPressure, Description, FullScale, LastUserSeq, LastDateTime, SMChargeType</p>
+<p>)</p>
+<p>SELECT @CompanySeq, @ReportSeq, @SourceType, @SourceSeq, 0, B.SerialNo, A.RealLotNo, E.CustSeq, A.AssyItemSeq, @CurrDate, @EmpSeq, @DeptSeq, @SMTestResult, '', '', '', '',</p>
+<p>'', '', '', '0', '', '', '', '', '', '', @UserSeq, GETDATE(), @SMChargeType</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>JOIN smc_TPDSFCWorkReportSerial AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WorkReportSeq = A.WorkReportSeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.WorkOrderSeq = A.WorkOrderSeq</p>
+<p>AND C.WorkOrderSerl = A.WorkOrderSerl</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.ProdPlanSeq = C.ProdPlanSeq</p>
+<p>LEFT OUTER JOIN _TPDMPSProdReqItem AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.ProdReqSeq = D.SourceSeq</p>
+<p>AND E.Serl = D.SourceSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.WorkReportSeq = @SourceSeq</p>
+<p>END</p>
+<p>ELSE IF @SourceType = 2 -- 서비스처리</p>
+<p>BEGIN</p>
+<p>INSERT INTO smc_TPDQCReport</p>
+<p>(</p>
+<p>CompanySeq, ReportSeq, SourceType, SourceSeq, SourceSerl, SerialNo, LotNo, CustSeq, ItemSeq, QCDate, QCEmpSeq, QCDeptSeq, SMTestResult, Remark, UseToolNo, DrawingSN, UseTemp,</p>
+<p>TrendNo, RetedVoltage, AccuRacy, IsTYLAN, Gas, CF, InletPressure, HeadPressure, Description, FullScale, LastUserSeq, LastDateTime, SMChargeType</p>
+<p>)</p>
+<p>SELECT @CompanySeq, @ReportSeq, @SourceType, @SourceSeq, 0, B.SerialNo, A.ProcNo, B.CustSeq, B.ItemSeq, @CurrDate, @EmpSeq, @DeptSeq, @SMTestResult, '', '', '', '',</p>
+<p>'', '', '', '0', '', '', '', '', '', '', @UserSeq, GETDATE(), @SMChargeType</p>
+<p>FROM _TSIASServiceProc AS A</p>
+<p>LEFT OUTER JOIN _TSIASServiceReq AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ReceiptSeq = A.ReceiptSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProcSeq = @SourceSeq</p>
+<p>END</p>
+<p>END</p>
+<p>COMMIT TRAN</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>IF @@TRANCOUNT &gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>-- 에러 정보 수집</p>
+<p>SELECT @Status = 'ERROR',</p>
+<p>@Results = ERROR_MESSAGE() -- 실제 SQL 에러 메시지 반환</p>
+<p>END CATCH</p>
+<p>RESULT_PROC:</p>
+<p>INSERT smc_TMESPDQCReport_Result</p>
+<p>(</p>
+<p>LogDateTime ,</p>
+<p>WorkingTag ,</p>
+<p>ReportSeq ,</p>
+<p>SourceType ,</p>
+<p>SourceSeq ,</p>
+<p>SMTestResult,</p>
+<p>SMChargeType,</p>
+<p>EmpSeq ,</p>
+<p>UserSeq ,</p>
+<p>Status ,</p>
+<p>Results</p>
+<p>)</p>
+<p>SELECT GETDATE() ,</p>
+<p>@WorkingTag ,</p>
+<p>@ReportSeq ,</p>
+<p>@SourceType ,</p>
+<p>@SourceSeq ,</p>
+<p>@SMTestResult,</p>
+<p>@SMChargeType,</p>
+<p>@EmpSeq ,</p>
+<p>@UserSeq ,</p>
+<p>@Status ,</p>
+<p>@Results</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

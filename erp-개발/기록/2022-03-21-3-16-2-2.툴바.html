@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3/16 - 2-2.툴바</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>3/16 - 2-2.툴바</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="316-2-2">3/16 - 2-2.툴바</h1>
+<p>** 조회 시 컬럼 DIS처리 =&gt; 신규일 때는 DIS 없어져야함</p>
+<ul>
+<li>신규</li>
+</ul>
+<blockquote>
+<p>txtBizUnitName1.ControlKey = 'NON;'</p>
+<p>datStdYM.ControlKey = 'NON;'</p>
+<p>txtWHName.ControlKey = 'NON;'</p>
+<p><img alt="" src="assets/3-16-2-2.툴바/image14.png" /></p>
+</blockquote>
+<ul>
+<li>조회</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/3-16-2-2.툴바/image15.png" /></p>
+<p>(조회 시 컬럼 DIS처리)</p>
+<p>txtBizUnitName1.ControlKey = 'DIS;NON;'</p>
+<p>datStdYM.ControlKey = 'DIS;NON;'</p>
+<p>txtWHName.ControlKey = 'DIS;NON;'</p>
+</blockquote>
+<ul>
+<li>저장</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/3-16-2-2.툴바/image16.png" /></p>
+<p>마스터, 아이템 영역 모두 같은 테이블에 있기 때문에 마스터영역을 따로 Get 할 필요는 없다</p>
+<p>다만, 이 경우 마스터 영역 3개가 null값으로 들어오기 때문에</p>
+<p>Change를 사용하여 별도로 값을 넣어준다</p>
+</blockquote>
+<ul>
+<li>삭제</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/3-16-2-2.툴바/image17.png" /></p>
+</blockquote>
+<ul>
+<li>행 삭제</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/3-16-2-2.툴바/image18.png" /></p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

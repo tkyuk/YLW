@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래명세서 / 수출 Invoice</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래명세서 / 수출 Invoice</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="invoice">거래명세서 / 수출 Invoice</h1>
+<table>
+<thead>
+<tr>
+<th>WBS.svs.Sales.BSSSLInvoice_svs</th>
+<th>비즈니스-거래명세서_svs</th>
+<th>SalesDelv</th>
+<th>쿼리문 추가</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> </td>
+<td> </td>
+<td>ExpDelv</td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+<p><img alt="" src="assets/거래명세서-수출-Invoice/image5.png" /></p>
+<p>--=====================================================================</p>
+<p>-- Serial 수불반영 _TLGInOutSerialStock / _TLGInOutSerialSub</p>
+<p>--=====================================================================</p>
+<p>-- 셀바스 추가 25.11.17 SJPARK</p>
+<p>IF ISNULL(OBJECT_ID('tempdb..#TLGInOutSerialStock'),1)=1</p>
+<p>BEGIN</p>
+<blockquote>
+<p>CREATE TABLE #TLGInOutSerialStock</p>
+</blockquote>
+<p>(</p>
+<p>WorkingTag NCHAR(1),</p>
+<p>IDX_NO INT,</p>
+<p>DataSeq INT,</p>
+<p>Selected INT,</p>
+<p>MessageType INT,</p>
+<p>Status INT,</p>
+<p>Result NVARCHAR(255),</p>
+<p>InOutType INT,</p>
+<p>InOutSeq INT,</p>
+<p>InOutSerl INT,</p>
+<p>InOutSubSerl INT,</p>
+<p>InOutDataSerl INT,</p>
+<p>InOutSerialSerl INT,</p>
+<p>DataKind INT,</p>
+<p>SerialNo NVARCHAR(100),</p>
+<p>SerialNoOld NVARCHAR(100)</p>
+<p>)</p>
+<p>END</p>
+<p>INSERT INTO #TLGInOutSerialStock</p>
+<p>(</p>
+<p>WorkingTag, IDX_NO, DataSeq, Selected, Status, MessageType, Result, InOutType,</p>
+<p>InOutSeq, InOutSerl, InOutSubSerl, InOutDataSerl, InOutSerialSerl, DataKind, SerialNo, SerialNoOld</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>Z.WorkingTag AS WorkingTag</p>
+<p>,Z.IDX_NO AS IDX_NO</p>
+<p>,Z.DataSeq AS DataSeq</p>
+<p>,Z.Selected AS Selected</p>
+<p>,Z.Status AS Status</p>
+<p>,Z.MessageType AS MessageType</p>
+<p>,Z.Result AS Result</p>
+<p>,A.InOutType AS InOutType</p>
+<p>,A.InOutSeq AS InOutSeq</p>
+<p>,A.InOutSerl AS InOutSerl</p>
+<p>,0 AS InOutSubSerl</p>
+<p>,1 AS InOutDataSerl</p>
+<p>,A.InOutSerialSerl AS InOutSerialSerl</p>
+<p>,ISNULL(A.DataKind,0) AS DataKind</p>
+<p>,A.SerialNo AS SerialNo</p>
+<p>,A.SerialNo AS SerialNoOld</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS Z</p>
+<p>JOIN _TLGInOutSerialSub AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.InOutType = Z.InOutType</p>
+<p>AND A.InOutSeq = Z.InvoiceSeq</p>
+<p>WHERE Z.Status = 0</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TLGInOutSerialStock)</p>
+<p>BEGIN</p>
+<p>EXEC svs_SWLGInOutSerialStockProc @CompanySeq = @CompanySeq,</p>
+<p>@UserSeq = @UserSeq,</p>
+<p>@PgmSeq = @PgmSeq</p>
+<p>IF EXISTS ( SELECT TOP 1 1 FROM #TLGInOutSerialStock WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET MessageType = B.MessageType</p>
+<p>,Status = B.Status</p>
+<p>,Result = B.Result</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN #TLGInOutSerialStock AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>END</p>
+<p>END</p>
+<p>--=====================================================================</p>
+<p>-- 종료 : Serial 수불반영 _TLGInOutSerialStock / _TLGInOutSerialSub</p>
+<p>--=====================================================================</p>
+  </article>
+</div>
+</body>
+</html>

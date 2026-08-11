@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한미반도체 주문금액 - 매출금액 데이터 수정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>한미반도체 주문금액 - 매출금액 데이터 수정</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">한미반도체 주문금액 - 매출금액 데이터 수정</h1>
+<p>CREATE TABLE #Tmp(</p>
+<p>IDX_NO INT</p>
+<p>,SONo NVARCHAR(100)</p>
+<p>,SODate NCHAR(8)</p>
+<p>,ItemNo NVARCHAR(100)</p>
+<p>,ItemNm NVARCHAR(100)</p>
+<p>,CustNm NVARCHAR(100)</p>
+<p>,CustNo NVARCHAR(100)</p>
+<p>,BeforeAmt DECIMAL(19,5)</p>
+<p>,BeforeVat DECIMAL(19,5)</p>
+<p>,Amt DECIMAL(19,5)</p>
+<p>,Vat DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #Tmp (IDX_NO,SODate,CustNm,CustNo,ItemNo,SONo,BeforeAmt,BeforeVat,Amt,Vat)</p>
+<p>SELECT 1 ,'20240326' ,'앰코테크놀로지코리마(송도)' ,'AK5' ,'H0X879-00000-000' ,'202403260013', 54000000 ,5400000 ,55000000 ,5500000</p>
+<p>UNION SELECT 2 ,'20230721' ,'앰코테크놀로지코리마(송도)' ,'4K5' ,'HOW415-00000-000' ,'202307210014', 72999982 ,7299998 ,65499982 ,6549998</p>
+<p>UNION SELECT 3 ,'20230703' ,'에스에프에이반도체[(구)STS 반도체통신]' ,'ST1' ,'S27918-00000-000' ,'202307030003', 21350000 ,2135000 ,7750000 ,775000</p>
+<p>UNION SELECT 4 ,'20230724' ,'JCET STATSChipPAC Korea' ,'JSK' ,'S28097-00000-000' ,'202307240002', 3300000 ,330000 ,3155756 ,315576</p>
+<p>UNION SELECT 5 ,'20230607' ,'JCET STATSChipPAC Korea' ,'JSK' ,'S27708-00000-000' ,'202306070017', 36000000 ,3600000 ,29098800 ,2909880</p>
+<p>UNION SELECT 6 ,'20230711' ,'JCET STATSChipPAC Korea' ,'JSK' ,'S27978-00000-000' ,'202307110003', 27000000 ,2700000 ,25687260 ,2568726</p>
+<p>UNION SELECT 7 ,'20230919' ,'JCET STATSChipPAC Korea' ,'JSK' ,'S28614-00000-000' ,'202309190013', 50400000 ,5040000 ,48897600 ,4889760</p>
+<p>UNION SELECT 8 ,'20230911' ,'JCET STATSChipPAC Korea' ,'JSK' ,'S28511-00000-000' ,'202309110006', 44100000 ,4410000 ,39587640 ,3958764</p>
+<p>UNION SELECT 9 ,'20240326' ,'JCET STATSChipP AC Korea' ,'JSK' ,'S30145-00000-000' ,'202403260019', 4729950 ,472995 ,2877210 ,287721</p>
+<p>UNION SELECT 10,'20231012' ,'JCET STATSChipPAC Korea' ,'JSK' ,'S28769-00000-000' ,'202310120001', 55680000 ,5568000 ,50888640 ,5088864</p>
+<p>UNION SELECT 11,'20230726' ,'STATSChip PAC Korea' ,'SCK' ,'S28119-00000-000' ,'202307260009', 16000000 ,1600000 ,15856800 ,1585680</p>
+<p>UNION SELECT 12,'20230620' ,'STATSChip PAC Korea' ,'SCK' ,'S27818-00000-000' ,'202306200004', 19500000 ,1950000 ,16651400 ,1665140</p>
+<p>UNION SELECT 13,'20220311' ,'SK 하미닉스(미천)' ,'HV1' ,'HOT911-00000-000' ,'202203110042', 11000000 ,1100000 ,12000000 ,1200000</p>
+<p>BEGIN TRAN</p>
+<p>-- 백업 데이터 생성</p>
+<p>SELECT A.*</p>
+<p>INTO TSASOItem_BAK241105</p>
+<p>FROM TSASOItem AS A</p>
+<p>JOIN #TMP AS B ON B.SONO = A.SONO</p>
+<p>ORDER BY IDX_NO</p>
+<p>-- 수정 전 데이터 확인</p>
+<p>SELECT A.PRICE, A.KorPrice,A.OriginPrice ,</p>
+<p>A.Amt , A.KorAmt , B.Amt AS AfterAmt,</p>
+<p>A.Vat , A.KorVat , B.Vat AS AfterVat</p>
+<p>FROM TSASOItem AS A</p>
+<p>JOIN #TMP AS B ON B.SONO = A.SONO</p>
+<p>ORDER BY IDX_NO</p>
+<p>-- UPDATE</p>
+<p>UPDATE TSASOItem</p>
+<p>SET PRICE = B.Amt,</p>
+<p>KorPrice = B.Amt,</p>
+<p>OriginPrice = B.Amt,</p>
+<p>Amt = B.Amt,</p>
+<p>KorAmt = B.Amt,</p>
+<p>Vat = B.Vat,</p>
+<p>KorVat = B.Vat</p>
+<p>FROM TSASOItem AS A</p>
+<p>JOIN #TMP AS B ON B.SONO = A.SONO</p>
+<p>-- 수정 후 데이터</p>
+<p>SELECT A.PRICE, A.KorPrice,A.OriginPrice ,</p>
+<p>A.Amt , A.KorAmt , B.Amt AS AfterAmt,</p>
+<p>A.Vat , A.KorVat , B.Vat AS AfterVat</p>
+<p>FROM TSASOItem AS A</p>
+<p>JOIN #TMP AS B ON B.SONO = A.SONO</p>
+<p>ORDER BY IDX_NO</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

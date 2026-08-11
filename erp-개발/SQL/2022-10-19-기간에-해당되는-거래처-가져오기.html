@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기간에 해당되는 거래처 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>기간에 해당되는 거래처 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">기간에 해당되는 거래처 가져오기</h1>
+<hr />
+<p>-- 거래처 : 구매단가등록, 외주계약등록의 기간에 해당되는 구매거래처, 외주거래처.(구매거래처는 대표단가여부 체크된건 적용)</p>
+<hr />
+<p>-- 구매단가등록</p>
+<p>SELECT A.ItemSeq, MAX(B.Serl) AS Serl</p>
+<p>INTO #TPUBASEBuyPriceItem_MAX_Serl</p>
+<p>FROM #Fix AS A</p>
+<p>JOIN _TPUBASEBuyPriceItem AS B WITH(NOLOCK) ON A.ItemSeq = b.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND @FoProdDate BETWEEN B.StartDate AND B.EndDate</p>
+<p>AND B.IsPrice = '1' -- 대표단가</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>-- 외주계약등록</p>
+<p>SELECT A.ItemSeq, MAX(B.Serl) AS Serl</p>
+<p>INTO #TPDOSPPriceItem_MAX_Serl</p>
+<p>FROM #Fix AS A</p>
+<p>JOIN _TPDOSPPriceItem AS B WITH(NOLOCK) ON A.ItemSeq = b.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND @FoProdDate BETWEEN B.StartDate AND B.EndDate</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>-- 구매거래처</p>
+<p>UPDATE A</p>
+<p>SET CustSeq = ISNULL(C.CustSeq, 0)</p>
+<p>FROM #Fix AS A</p>
+<p>JOIN #TPUBASEBuyPriceItem_MAX_Serl AS B ON B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TPUBASEBuyPriceItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>AND C.Serl = B.Serl</p>
+<p>-- 외주거래처</p>
+<p>UPDATE A</p>
+<p>SET CustSeq = ISNULL(C.CustSeq, 0)</p>
+<p>FROM #Fix AS A</p>
+<p>JOIN #TPDOSPPriceItem_MAX_Serl AS B ON B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TPDOSPPriceItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>AND C.Serl = B.Serl</p>
+  </article>
+</div>
+</body>
+</html>

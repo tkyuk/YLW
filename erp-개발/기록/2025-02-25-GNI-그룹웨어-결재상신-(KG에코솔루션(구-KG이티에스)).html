@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI 그룹웨어 결재상신 (KG에코솔루션(구 KG이티에스))</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI 그룹웨어 결재상신 (KG에코솔루션(구 KG이티에스))</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni-kg-kg">GNI 그룹웨어 결재상신 (KG에코솔루션(구 KG이티에스))</h1>
+<p>BEGIN TRAN</p>
+<p>SELECT *FROM TDAGroupWare WHERE TblKey = 'HESK_0101202502240002'</p>
+<p>SELECT *FROM TDAGroupWareSlip_ESK WHERE Slipno in( '0101202502240002')</p>
+<p>SELECT *FROM TDAGroupWare_ESK WHERE APPRO_KEY= 'HESK_0101202502240002'</p>
+<p>EXEC SGWSlipPrint_esk 'Q','0101202502240002001_/','251001 ','00019'</p>
+<p>go</p>
+<p>EXEC SDAGroupWareCfm 'frmGWSlip','HESK_0101202502240002','2511001 ','00019'</p>
+<p>go</p>
+<p>EXEC SDAGroupWareStatus 'G','frmGWSlip','HESK_0101202502240002','251001 ','00019'</p>
+<p>SELECT *FROM TDAGroupWare WHERE TblKey = 'HESK_0101202502240002'</p>
+<p>SELECT *FROM TDAGroupWareSlip_ESK WHERE Slipno in( '0101202502240002')</p>
+<p>SELECT *FROM TDAGroupWare_ESK WHERE APPRO_KEY= 'HESK_0101202502240002'</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT * FROM TASSlip AS A WHERE substring(a.SlipNo,5,8) + '-' + substring(a.SlipNo,14,4)= '20250224-002'</p>
+<p>SELECT * FROM TASSlip AS A WHERE substring(a.SlipNo,5,8) + '-' + substring(a.SlipNo,14,4)= '20250224-004'</p>
+<p>SELECT * FROM TASSlipRow AS A WHERE slipno = '0101202502240002'</p>
+<p>SELECT * FROM TASSlipRow AS A WHERE slipno = '0101202502240004'</p>
+<p>SELECT TOP 100 * FROM TDAGroupWare AS A ORDER BY RegDate DESC</p>
+<p>BEGIN TRAN</p>
+<p>DELETE FROM TDAGroupWare WHERE TblKey = 'HESK_0101202502240002'</p>
+<p>DELETE FROM TDAGroupWareSlip_ESK WHERE Slipno in( '0101202502240002')</p>
+<p>DELETE FROM TDAGroupWare_ESK WHERE APPRO_KEY= 'HESK_0101202502240002'</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT * FROM TDAGroupWareSlip_ESK AS A WHERE Slipno in( '0101202502240002','0101202502240004')</p>
+<p>SELECT * FROM TDAGroupWare_ESK AS A WHERE APPRO_KEY in( 'HESK_0101202502240002','HESK_0101202502240004')</p>
+<p>SELECT * FROM TDAGroupWare_ESK AS A WHERE APPRO_KEY= 'HESK_0101202502240002'</p>
+  </article>
+</div>
+</body>
+</html>

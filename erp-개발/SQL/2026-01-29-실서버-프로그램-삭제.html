@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>실서버 프로그램 삭제</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>실서버 프로그램 삭제</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">실서버 프로그램 삭제</h1>
+<p>-- 프로그램</p>
+<p>DELETE FROM _TCAPgm where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmLog where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmMethod where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmMethodItem where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmRecentList where PgmSeq = 149710198</p>
+<p>DELETE FROM OTCAPgmServiceSecuGathering where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmControls where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmControlsCodeHelpLink where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmControlsEvent where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmDev where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmEnv where PgmSeq = 149710198</p>
+<p>DELETE FROM _TCAPgmEvent where PgmSeq = 149710198</p>
+<p>-- 서비스</p>
+<p>DELETE FROM _TCAService WHERE ServiceSeq = 149710102</p>
+<p>DELETE FROM _TCAServiceDataBlock WHERE ServiceSeq = 149710102</p>
+<p>DELETE FROM _TCAServiceMethodLink WHERE ServiceSeq = 149710102</p>
+<p>DELETE FROM _TCAServiceMethod WHERE ServiceSeq = 149710102</p>
+<p>DELETE FROM _TCAServiceMethodKWF WHERE ServiceSeq = 149710102</p>
+<p>-- SP</p>
+<p>DELETE FROM _TCASQLScripts WHERE SqlScriptSeq in(149710514,149710515,149710516,149710517,149710518,149710519,149710520)</p>
+<p>-- Jump</p>
+<p>DELETE FROM _TCAJump WHERE JumpName LIKE '%구매품의%SVS%'</p>
+  </article>
+</div>
+</body>
+</html>

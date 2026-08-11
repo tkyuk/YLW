@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사업단위</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사업단위</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사업단위</h1>
+<p>CREATE OR ALTER VIEW mcm_VMESDABizUnit</p>
+<p>AS</p>
+<p>SELECT ISNULL(A.CompanySeq , 0) AS CompanySeq , -- 법인내부코드</p>
+<p>ISNULL(B.CompanyName ,'') AS CompanyName , -- 법인명</p>
+<p>ISNULL(A.BizUnit , 0) AS BizUnit , -- 사업단위내부코드</p>
+<p>ISNULL(A.BizUnitName ,'') AS BizUnitName , -- 사업단위명</p>
+<p>ISNULL(A.LastUserSeq , 0) AS LastUserSeq , -- 최종등록자</p>
+<p>ISNULL(A.LastDateTime,'') AS LastDateTime -- 최종등록일자</p>
+<p>FROM _TDABizUnit AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCACompany AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>종료일 자동으로 UPDATE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>종료일 자동으로 UPDATE</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="update">종료일 자동으로 UPDATE</h1>
+<p>-- 신규 최종사용자 =&gt; 종료일 = 99991231</p>
+<p>-- 기존 최종사용자 =&gt; 종료일 = 신규사용자의 시작일 - 1</p>
+<p>DECLARE @BeforeStartDate NCHAR(8),</p>
+<p>@BeforeUserSeq INT</p>
+<p>-- 기존에 99991231 이었던 데이터 찾기</p>
+<p>SELECT @BeforeStartDate = StartDate,</p>
+<p>@BeforeUserSeq = UserSeq</p>
+<p>FROM hsg_TDAHWUser AS A WITH(NOLOCK)</p>
+<p>WHERE A.EndDate = '99991231'</p>
+<p>AND A.HwSeq = @HwSeq</p>
+<p>-- 시작일이 제일 높은 데이터의 종료일 99991231 로 업데이트</p>
+<p>UPDATE hsg_TDAHWUser</p>
+<p>SET EndDate = '99991231'</p>
+<p>WHERE StartDate = (SELECT MAX(A.StartDate)</p>
+<p>FROM hsg_TDAHWUser AS A WITH(NOLOCK)</p>
+<p>WHERE A.HwSeq = @HwSeq)</p>
+<p>DECLARE @AfterStartDate NCHAR(8)</p>
+<p>SELECT @AfterStartDate = StartDate</p>
+<p>FROM hsg_TDAHWUser AS A WITH(NOLOCK)</p>
+<p>WHERE StartDate = (SELECT max(StartDate) FROM hsg_TDAHWUser WHERE HwSeq = @HwSeq)</p>
+<p>-- 바뀌었는지 확인 (1에서 찾은 시작일과 현재 max시작일 비교)</p>
+<p>IF(@BeforeStartDate \&lt;&gt; @AfterStartDate)</p>
+<p>BEGIN</p>
+<p>UPDATE hsg_TDAHWUser</p>
+<p>SET EndDate = CONVERT(NCHAR(8),DATEADD(DAY,-1, CONVERT(date,@AfterStartDate)),112)</p>
+<p>WHERE StartDate = @BeforeStartDate</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

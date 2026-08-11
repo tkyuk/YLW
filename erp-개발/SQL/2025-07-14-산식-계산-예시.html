@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>산식 계산 예시</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>산식 계산 예시</h1>
+    <div class="meta">
+      <span class="note-date">2025-07-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">산식 계산 예시</h1>
+<p>DROP PROCEDURE das_SWDFCPJTContractAmtListQuery</p>
+<p>GO</p>
+<p>CREATE PROCEDURE das_SWDFCPJTContractAmtListQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @MasterPJTName         NVARCHAR(100)</p>
+<p>,@MasterPJTNo         NVARCHAR(100)</p>
+<p>,@CustSeq INT</p>
+<p>,@PJTName         NVARCHAR(100)</p>
+<p>,@PJTNo         NVARCHAR(100)</p>
+<p>,@UMItemGubun INT</p>
+<p>,@UMDFCSheetSeq INT</p>
+<p>,@UMProfitType INT</p>
+<p>,@ContractDateFr        NCHAR(8)</p>
+<p>,@ContractDateTo        NCHAR(8)</p>
+<p>,@PJTSeq INT = 0</p>
+<p>SELECT @MasterPJTName        = ISNULL(MasterPJTName ,'')        </p>
+<p>,@MasterPJTNo        = ISNULL(MasterPJTNo ,'')</p>
+<p>,@CustSeq = ISNULL(CustSeq , 0)</p>
+<p>,@PJTName         = ISNULL(PJTName ,'')</p>
+<p>,@PJTNo         = ISNULL(PJTNo ,'')</p>
+<p>,@UMItemGubun = ISNULL(UMItemGubun , 0)</p>
+<p>,@UMDFCSheetSeq = ISNULL(UMDFCSheetSeq , 0)</p>
+<p>,@UMProfitType = ISNULL(UMProfitType , 0)</p>
+<p>,@ContractDateFr = ISNULL(ContractDateFr,'')</p>
+<p>,@ContractDateTo = ISNULL(ContractDateTo,'')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>--das_TDFCShtStruct</p>
+<p>-- 정렬</p>
+<p>CREATE TABLE #Tmp</p>
+<p>( STSerl INT,</p>
+<p>SortNum NVARCHAR(30),</p>
+<p>UpperSortNum NVARCHAR(30) NULL,</p>
+<p>QrySort INT,</p>
+<p>UpperSTSerl INT ,</p>
+<p>NodeCode NVARCHAR(6),</p>
+<p>TreeCode NVARCHAR(100),</p>
+<p>TmpSortNum NCHAR(30),</p>
+<p>Pos INT</p>
+<p>)</p>
+<p>INSERT INTO #Tmp</p>
+<p>(STSerl, SortNum, TmpSortnum)</p>
+<p>SELECT STSerl, LTRIM(RTRIM(STLevel)), STLevel+'.'</p>
+<p>FROM das_TDFCShtStruct</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND (@UMDFCSheetSeq = 0 OR UMDFCSheetSeq = @UMDFCSheetSeq)</p>
+<p>UPDATE #Tmp</p>
+<p>SET QrySort = CONVERT(INT, RIGHT(SortNum, CHARINDEX('.', REVERSE('.'+SortNum))-1)),</p>
+<p>UpperSortNum = SUBSTRING(SortNum, 1, LEN(SortNum) - CHARINDEX('.', REVERSE(SortNum)))</p>
+<p>UPDATE #Tmp</p>
+<p>SET UpperSTSerl = CASE WHEN B.STSerl = A.STSerl THEN -1 ELSE B.STSerl END,</p>
+<p>NodeCode = CASE WHEN B.STSerl = A.STSerl THEN REPLICATE('0',6- len(convert(varchar,A.QrySort)))+convert(varchar,A.QrySort)</p>
+<p>ELSE REPLICATE('0',4- len(convert(varchar,A.QrySort)))+convert(varchar,A.QrySort) END --2017.10.11 박수영 ::4자리 지원하도록 수정</p>
+<p>FROM #Tmp AS A</p>
+<p>LEFT OUTER JOIN das_TDFCShtStruct AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.STSerl = B.STSerl</p>
+<p>AND A.UpperSortNum = B.STLevel</p>
+<p>UPDATE #Tmp</p>
+<p>SET TreeCode = NodeCode,</p>
+<p>TmpSortnum = SortNum</p>
+<p>WHERE UpperSTSerl = -1</p>
+<p>DECLARE @Cnt INT</p>
+<p>SELECT @Cnt = 0</p>
+<p>WHILE(@Cnt \&lt; 9)</p>
+<p>BEGIN</p>
+<p>UPDATE B</p>
+<p>SET TreeCode = A.TreeCode + LTRIM(RTRIM(B.NodeCode))</p>
+<p>FROM #Tmp AS A</p>
+<p>JOIN #Tmp AS B ON A.STSerl = B.UpperSTSerl</p>
+<p>WHERE A.TreeCode is not null</p>
+<p>SELECT @Cnt = @Cnt+1</p>
+<p>END</p>
+<p>-- 상위없는것도 트리코드 부여</p>
+<p>SELECT @Cnt = 0</p>
+<p>WHILE(@Cnt \&lt; 9)</p>
+<p>BEGIN</p>
+<p>UPDATE B</p>
+<p>SET TreeCode = A.TreeCode + LTRIM(RTRIM(B.NodeCode))</p>
+<p>FROM #Tmp AS A</p>
+<p>JOIN #Tmp AS B ON A.SortNum = B.UpperSortNum</p>
+<p>WHERE B.UpperSTSerl IS NULL</p>
+<p>SELECT @Cnt = @Cnt+1</p>
+<p>END</p>
+<p>--================================================================================================================================</p>
+<p>-- 컬럼 정보 생성</p>
+<p>--================================================================================================================================</p>
+<p>CREATE TABLE #TempTitle</p>
+<p>(</p>
+<p>ColIDX INT,</p>
+<p>Title NVARCHAR(100),</p>
+<p>TitleSeq INT</p>
+<p>,ShtItemSeq INT</p>
+<p>,IsSystemItem NCHAR(1)</p>
+<p>)</p>
+<p>INSERT #TempTitle(Title, TitleSeq, ColIDX, ShtItemSeq, IsSystemItem)</p>
+<p>SELECT B.ShtItemName</p>
+<p>,A.STSerl</p>
+<p>,ROW_NUMBER() OVER(ORDER BY A1.TreeCode) - 1 AS ColIDX</p>
+<p>,B.ShtItemSeq</p>
+<p>,B.IsSystemItem</p>
+<p>FROM das_TDFCShtStruct AS A WITH(NOLOCK)</p>
+<p>JOIN das_TDFCSheetItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ShtItemSeq = A.ShtItemSeq</p>
+<p>JOIN #Tmp AS A1 WITH(NOLOCK) ON A.STSerl = A1.STSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.UMDFCSheetSeq = @UMDFCSheetSeq</p>
+<p>ORDER BY A1.TreeCode</p>
+<p>SELECT * FROM #TempTitle ORDER BY ColIDX</p>
+<p>--================================================================================================================================</p>
+<p>-- 고정컬럼값 조회</p>
+<p>--================================================================================================================================</p>
+<p>CREATE TABLE #TempFixedCol</p>
+<p>(</p>
+<p>RowIDX INT</p>
+<p>,MasterPJTName NVARCHAR(100)</p>
+<p>,MasterPJTNo NVARCHAR(100)</p>
+<p>,MasterPJTSeq INT</p>
+<p>,ContractFrDate NCHAR(8)</p>
+<p>,ContractToDate NCHAR(8)</p>
+<p>,CustName NVARCHAR(100)</p>
+<p>,CustSeq INT</p>
+<p>,PJTName NVARCHAR(100)</p>
+<p>,PJTNo NVARCHAR(100)</p>
+<p>,PJTSeq INT</p>
+<p>,PJTTypeName NVARCHAR(100)</p>
+<p>,PJTTypeSeq INT</p>
+<p>,UMContractTypeName NVARCHAR(100)</p>
+<p>,UMContractType INT</p>
+<p>,UMProductionTypeName NVARCHAR(100)</p>
+<p>,UMProductionType INT</p>
+<p>,UMItemGubunName NVARCHAR(100)</p>
+<p>,UMItemGubun INT</p>
+<p>,UMProfitTypeName NVARCHAR(100)</p>
+<p>,UMProfitType INT</p>
+<p>,UMRiskRewardTypeName NVARCHAR(100)</p>
+<p>,UMRiskRewardType INT</p>
+<p>,SMImpTypeName NVARCHAR(100)</p>
+<p>,SMImpType INT</p>
+<p>)</p>
+<p>--========================================================================================</p>
+<p>-- 권한범위내의 프로젝트만 가져오기</p>
+<p>--========================================================================================</p>
+<p>CREATE TABLE #TPJT_AUTH(PJTSeq INT)</p>
+<p>IF EXISTS (SELECT 1 FROM _TCOMEnv WITH(NOLOCK) WHERE EnvSeq = 7020 AND EnvValue = '1' AND CompanySeq = @CompanySeq)</p>
+<p>BEGIN</p>
+<p>EXEC _SWPJTGetAuthProject @CompanySeq, @UserSeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TPJT_AUTH(PJTSeq)</p>
+<p>SELECT PJTSeq FROM _TPJTProject WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>--========================================================================================</p>
+<p>INSERT INTO #TempFixedCol</p>
+<p>(</p>
+<p>MasterPJTName ,MasterPJTNo ,MasterPJTSeq ,CustSeq ,CustName ,ContractFrDate ,</p>
+<p>ContractToDate ,PJTName ,PJTNo ,PJTSeq ,PJTTypeName ,PJTTypeSeq ,</p>
+<p>UMItemGubunName ,UMItemGubun ,UMContractTypeName ,UMContractType ,UMProductionTypeName,UMProductionType ,</p>
+<p>UMProfitTypeName ,UMProfitType ,UMRiskRewardTypeName,UMRiskRewardType ,SMImpTypeName ,SMImpType ,</p>
+<p>RowIDX</p>
+<p>)</p>
+<p>-- 최종SELECT</p>
+<p>SELECT E.PJTName AS MasterPJTName -- 사업프로젝트명</p>
+<p>,E.PJTNo AS MasterPJTNo -- 사업프로젝트번호</p>
+<p>,E.PJTSeq AS MasterPJTSeq -- 사업프로젝트코드</p>
+<p>,A.CustSeq AS CustSeq -- 거래처</p>
+<p>,C.CustName AS CustName -- 거래처</p>
+<p>,A.ContractFrDate AS ContractFrDate -- 계약시작일</p>
+<p>,A.ContractToDate AS ContractToDate -- 계약종료일</p>
+<p>,A.PJTName AS PJTName -- 제품프로젝트명</p>
+<p>,A.PJTNo AS PJTNo -- 제품프로젝트번호</p>
+<p>,A.PJTSeq AS PJTSeq -- 제품프로젝트코드</p>
+<p>,F.PJTTypeName AS PJTTypeName -- 제품프로젝트유형</p>
+<p>,A.PJTTypeSeq AS PJTTypeSeq -- 제품프로젝트유형코드</p>
+<p>,ISNULL(H.MinorName ,'') AS UMItemGubunName -- 제품구분</p>
+<p>,ISNULL(G.UMItemGubun , 0) AS UMItemGubun -- 제품구분코드</p>
+<p>,ISNULL(L.MinorName ,'') AS UMContractTypeName -- 계약구분</p>
+<p>,ISNULL(G.UMContractType , 0) AS UMContractType -- 계약구분코드</p>
+<p>,ISNULL(I.MinorName ,'') AS UMProductionTypeName -- 생산구분</p>
+<p>,ISNULL(G.UMProductionType, 0) AS UMProductionType -- 생산구분코드</p>
+<p>,ISNULL(M.MinorName ,'') AS UMProfitTypeName -- 이윤산정구분</p>
+<p>,ISNULL(G.UMProfitType , 0) AS UMProfitType -- 이윤산정구분코드</p>
+<p>,ISNULL(N.MinorName ,'') AS UMRiskRewardTypeName -- 위험보상구분</p>
+<p>,ISNULL(G.UMRiskRewardType, 0) AS UMRiskRewardType -- 위험보상구분코드</p>
+<p>,ISNULL(O.MinorName ,'') AS SMImpTypeName -- 내외자구분</p>
+<p>,ISNULL(G.SMImpType , 0) AS SMImpType -- 내외자구분코드</p>
+<p>,ROW_NUMBER() OVER(ORDER BY E.PJTNo, A.PJTNo) - 1 AS RowIDX</p>
+<p>FROM _TPJTProject AS A</p>
+<p>JOIN #TPJT_AUTH AS AUTH ON AUTH.PJTSeq = A.PJTSeq</p>
+<p>JOIN _TPJTType AS F WITH (NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.PJTTypeSeq = A.PJTTypeSeq</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS B WITH (NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.BizUnit = A.BizUnit</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH (NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.CustSeq = A.CustSeq</p>
+<p>JOIN _TPJTProject AS E WITH (NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.PJTSeq = A.RelationPJTSeq</p>
+<p>JOIN das_TPJTProject AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.PJTSeq = A.PJTSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON H.CompanySeq = G.CompanySeq</p>
+<p>AND H.MinorSeq = G.UMItemGubun</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS I WITH(NOLOCK) ON I.CompanySeq = G.CompanySeq</p>
+<p>AND I.MinorSeq = G.UMProductionType</p>
+<p>LEFT OUTER JOIN das_TPJTProjectType AS J WITH(NOLOCK) ON J.CompanySeq = A.CompanySeq</p>
+<p>AND J.PJTTypeSeq = A.PJTTypeSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON K.CompanySeq = J.CompanySeq</p>
+<p>AND K.MinorSeq = J.UMProjectKind</p>
+<p>AND K.Serl = 15000001</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS L WITH(NOLOCK) ON L.CompanySeq = G.CompanySeq</p>
+<p>AND L.MinorSeq = G.UMContractType</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS M WITH(NOLOCK) ON M.CompanySeq = G.CompanySeq</p>
+<p>AND M.MinorSeq = G.UMProfitType</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS N WITH(NOLOCK) ON N.CompanySeq = G.CompanySeq</p>
+<p>AND N.MinorSeq = G.UMRiskRewardType</p>
+<p>LEFT OUTER JOIN _TDASMinor AS O WITH(NOLOCK) ON O.CompanySeq = G.CompanySeq</p>
+<p>AND O.MinorSeq = G.SMImpType</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND K.ValueText = '1' -- 제품프로젝트만 조회 25.03.20 SJPARK</p>
+<p>AND (@CustSeq = 0 OR A.CustSeq = @CustSeq )</p>
+<p>AND (@MasterPJTName = '' OR E.PJTName LIKE @MasterPJTName +'%')</p>
+<p>AND (@MasterPJTNo = '' OR E.PJTNo LIKE @MasterPJTNo +'%')</p>
+<p>AND (@PJTName = '' OR A.PJTName LIKE @PJTName +'%')</p>
+<p>AND (@PJTNo = '' OR A.PJTNo LIKE @PJTNo +'%')</p>
+<p>AND (@UMItemGubun = 0 OR G.UMItemGubun = @UMItemGubun )</p>
+<p>AND (@UMProfitType = 0 OR G.UMProfitType = @UMProfitType )</p>
+<p>ORDER BY E.PJTNo, A.PJTNo</p>
+<p>SELECT * FROM #TempFixedCol ORDER BY RowIDX</p>
+<p>CREATE TABLE #Formula</p>
+<p>(</p>
+<p>Seq INT,</p>
+<p>PJTSeq INT,</p>
+<p>Formula NVARCHAR(100),</p>
+<p>ReplaceFormula NVARCHAR(4000),</p>
+<p>Gubn NVARCHAR(100),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>STSerl INT,</p>
+<p>Sort INT,</p>
+<p>)</p>
+<p>CREATE TABLE #Formula_Result</p>
+<p>(</p>
+<p>Seq INT,</p>
+<p>PJTSeq INT,</p>
+<p>Formula NVARCHAR(100),</p>
+<p>ReplaceFormula NVARCHAR(4000),</p>
+<p>Gubn NVARCHAR(100),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>STSerl INT,</p>
+<p>Sort INT,</p>
+<p>)</p>
+<p>CREATE TABLE #Variable</p>
+<p>(</p>
+<p>PJTSeq INT,</p>
+<p>Variable NVARCHAR(100),</p>
+<p>Gubn NVARCHAR(100),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>STSerl INT,</p>
+<p>Sort INT,</p>
+<p>)</p>
+<p>DECLARE @Start INT ,</p>
+<p>@End INT</p>
+<p>SELECT @Start = MIN(A.RowIDX),</p>
+<p>@End = MAX(A.RowIDX)</p>
+<p>FROM #TempFixedCol AS A</p>
+<p>WHILE (@Start \&lt;= @End)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@PJTSeq = PJTSeq</p>
+<p>FROM #TempFixedCol</p>
+<p>WHERE RowIDX = @Start</p>
+<p>INSERT INTO #Formula(Seq, PJTSeq, Formula, ReplaceFormula, Gubn, Amt, STSerl, Sort)</p>
+<p>SELECT A.STSerl AS Seq</p>
+<p>, Z.PJTSeq AS PJTSeq</p>
+<p>, A.CalcString AS Formula</p>
+<p>, A.CalcString AS ReplaceFormula</p>
+<p>, '' AS Gubn</p>
+<p>, 0 AS Amt</p>
+<p>, A.STSerl AS STSerl</p>
+<p>, A.STSerl AS Sort</p>
+<p>FROM (SELECT DISTINCT PJTSeq FROM #TempFixedCol) AS Z</p>
+<p>JOIN das_TDFCShtStruct AS A WITH(NOLOCK) ON 1=1</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.UMDFCSheetSeq = @UMDFCSheetSeq</p>
+<p>AND ISNULL(A.CalcString, '') \&lt;&gt; ''</p>
+<p>AND Z.PJTSeq = @PJTSeq</p>
+<p>INSERT INTO #Variable(PJTSeq, Variable, Gubn, Amt, STSerl, Sort)</p>
+<p>SELECT A.PJTSeq AS PJTSeq</p>
+<p>, C.CalcVariable AS Variable</p>
+<p>, D.ShtItemName AS Gubn</p>
+<p>, B.Amt AS Amt</p>
+<p>, C.STSerl AS STSerl</p>
+<p>, C.STVariSerl AS Sort</p>
+<p>FROM #TempFixedCol AS A</p>
+<p>JOIN das_TDFCPJTContractAmt AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>JOIN das_TDFCShtStructCalcVari AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ShtItemSeq = B.ShtItemSeq</p>
+<p>LEFT OUTER JOIN das_TDFCSheetItem AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.ShtItemSeq = B.ShtItemSeq</p>
+<p>WHERE A.PJTSeq = @PJTSeq</p>
+<p>-- 재무상태표 등에서 사용하는 산식계산 표준 SP를 호출합니다.(예산)</p>
+<p>EXEC dbo._SWCOMFormulaResult '#Formula' , -- 산식테이블</p>
+<p>'STSerl' , -- 산식키컬럼</p>
+<p>'Formula' , -- 산식컬럼</p>
+<p>'ReplaceFormula' , -- 산식을숫자로변환할컬럼</p>
+<p>'Amt' , -- 산식의결과값컬럼</p>
+<p>'#Variable' , -- 변수테이블</p>
+<p>'STSerl' , -- 변수일련번호컬럼</p>
+<p>'Variable' , -- 변수컬럼</p>
+<p>'Amt' -- 변수의값컬럼</p>
+<p>INSERT INTO #Formula_Result(Seq, PJTSeq, Formula, ReplaceFormula, Gubn, Amt, STSerl, Sort)</p>
+<p>SELECT Seq, PJTSeq, Formula, ReplaceFormula, Gubn, Amt, STSerl, Sort FROM #Formula</p>
+<p>TRUNCATE TABLE #Formula</p>
+<p>TRUNCATE TABLE #Variable</p>
+<p>SELECT @Start = @Start +1</p>
+<p>END</p>
+<p>-- 산식 종료</p>
+<p>--================================================================================================================================</p>
+<p>-- 변동컬럼값 조회(관리항목)</p>
+<p>--================================================================================================================================</p>
+<p>SELECT B.RowIDX,</p>
+<p>A.ColIDX,</p>
+<p>IIF(A.IsSystemItem = '1', ISNULL(C.Amt, 0), ISNULL(D.Amt,0) ) AS Amt</p>
+<p>FROM #TempTitle AS A</p>
+<p>JOIN #TempFixedCol AS B ON 1=1</p>
+<p>LEFT OUTER JOIN das_TDFCPJTContractAmt AS C WITH(NOLOCK) ON C.ShtItemSeq = A.ShtItemSeq</p>
+<p>AND C.PJTSeq = B.PJTSeq</p>
+<p>LEFT OUTER JOIN #Formula_Result AS D WITH(NOLOCK) ON D.Seq = A.TitleSeq</p>
+<p>AND D.PJTSeq = B.PJTSeq</p>
+<p>ORDER BY B.RowIDX, ColIDX</p>
+<p>RETURN</p>
+<p>begin tran</p>
+<p>declare @CompanySeq int = 1</p>
+<p>DECLARE @CalcSerl INT</p>
+<p>SELECT @CalcSerl = 0</p>
+<p>DECLARE @AccYM NCHAR(6),</p>
+<p>@MRRev NCHAR(2),</p>
+<p>@MM INT</p>
+<p>SELECT @AccYM = '202212',</p>
+<p>@MRRev = '02'</p>
+<p>SELECT @MM = ISNULL(CONVERT(INT, RIGHT('00' + @AccYM, 2)), 0)</p>
+<p>CREATE TABLE #FormulaSS2</p>
+<p>(</p>
+<p>Seq INT,</p>
+<p>Formula NVARCHAR(100),</p>
+<p>ReplaceFormula NVARCHAR(4000),</p>
+<p>Gubn NVARCHAR(100),</p>
+<p>BudgetAmt DECIMAL(19, 5),</p>
+<p>CalcSerl INT,</p>
+<p>Sort INT</p>
+<p>)</p>
+<p>CREATE TABLE #VariableSS2</p>
+<p>(</p>
+<p>Seq INT,</p>
+<p>Variable NVARCHAR(100),</p>
+<p>Gubn NVARCHAR(100),</p>
+<p>BudgetAmt DECIMAL(19, 5),</p>
+<p>CalcSerl INT,</p>
+<p>Sort INT</p>
+<p>)</p>
+<p>CREATE TABLE #VariableSS2Temp</p>
+<p>(</p>
+<p>Seq INT,</p>
+<p>Variable NVARCHAR(100),</p>
+<p>Gubn NVARCHAR(100),</p>
+<p>BudgetAmt DECIMAL(19, 5),</p>
+<p>CalcSerl INT,</p>
+<p>Sort INT</p>
+<p>)</p>
+<p>-- 변수(Variable)에 해당하는 항목의 금액을 집계합니다.</p>
+<p>INSERT INTO #VariableSS2(Seq, Variable, Gubn, BudgetAmt, CalcSerl, Sort)</p>
+<p>SELECT A.Seq,</p>
+<p>A.Variable,</p>
+<p>A.MRCheckItemName AS Gubn,</p>
+<p>CASE WHEN @MM = 1 THEN a.Seq</p>
+<p>WHEN @MM = 2 THEN a.Seq</p>
+<p>WHEN @MM = 3 THEN a.Seq</p>
+<p>WHEN @MM = 4 THEN a.Seq</p>
+<p>WHEN @MM = 5 THEN a.Seq</p>
+<p>WHEN @MM = 6 THEN a.Seq</p>
+<p>WHEN @MM = 7 THEN a.Seq</p>
+<p>WHEN @MM = 8 THEN a.Seq</p>
+<p>WHEN @MM = 9 THEN a.Seq</p>
+<p>WHEN @MM = 10 THEN a.Seq</p>
+<p>WHEN @MM = 11 THEN a.Seq</p>
+<p>WHEN @MM = 12 THEN a.Seq</p>
+<p>ELSE 0</p>
+<p>END AS BudgetAmt,</p>
+<p>0 AS CalcSerl,</p>
+<p>A.Sort AS Sort</p>
+<p>FROM emk_TACMRDataCheckForm2 AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN emk_TACMR1 AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq -- 잔액O</p>
+<p>AND A.MR1ItemSeq = B.Form1Seq</p>
+<p>AND B.AccYM = @AccYM</p>
+<p>AND B.MR1Rev = @MRRev</p>
+<p>LEFT OUTER JOIN emk_TACMR2CF AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq -- 잔액O</p>
+<p>AND A.MR2CFItemSeq = C.Form2Seq</p>
+<p>AND C.AccYM = @AccYM</p>
+<p>AND C.MR2Rev = @MRRev</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.Variable, '') \&lt;&gt; ''</p>
+<p>AND ISNULL(A.Formula, '') = ''</p>
+<p>select '#VariableSS2', * from #VariableSS2</p>
+<p>INSERT INTO #FormulaSS2(Seq, Formula, ReplaceFormula, Gubn, BudgetAmt, CalcSerl, Sort)</p>
+<p>SELECT A.Seq,</p>
+<p>A.Formula,</p>
+<p>A.Formula AS ReplaceFormula,</p>
+<p>A.MRCheckItemName AS Gubn,</p>
+<p>0 AS BudgetAmt,</p>
+<p>A.Seq AS CalcSerl,</p>
+<p>A.Sort AS Sort</p>
+<p>FROM emk_TACMRDataCheckForm2 AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.Variable, '') = ''</p>
+<p>AND ISNULL(A.Formula, '') \&lt;&gt; ''</p>
+<p>ORDER BY A.Seq</p>
+<p>select '#FormulaSS2',* from #FormulaSS2</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@CalcSerl = CalcSerl</p>
+<p>FROM #FormulaSS2</p>
+<p>WHERE CalcSerl &gt; @CalcSerl</p>
+<p>ORDER BY CalcSerl</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>INSERT INTO #VariableSS2Temp(Seq, Variable, Gubn, BudgetAmt, CalcSerl, Sort)</p>
+<p>SELECT B.Seq, B.Variable, B.Gubn, B.BudgetAmt, @CalcSerl, B.Sort</p>
+<p>FROM #FormulaSS2 AS A</p>
+<p>JOIN #VariableSS2 AS B ON 1=1</p>
+<p>WHERE A.Formula LIKE '%' + ISNULL(B.Variable, '') + '%'</p>
+<p>AND A.CalcSerl = @CalcSerl</p>
+<p>END</p>
+<p>select '#VariableSS2Temp',* from #VariableSS2Temp</p>
+<p>-- 재무상태표 등에서 사용하는 산식계산 표준 SP를 호출합니다.(예산)</p>
+<p>EXEC dbo._SWCOMFormulaResult '#FormulaSS2' , -- 산식테이블</p>
+<p>'CalcSerl' , -- 산식키컬럼</p>
+<p>'Formula' , -- 산식컬럼</p>
+<p>'ReplaceFormula' , -- 산식을숫자로변환할컬럼</p>
+<p>'BudgetAmt' , -- 산식의결과값컬럼</p>
+<p>'#VariableSS2Temp' , -- 변수테이블</p>
+<p>'CalcSerl' , -- 변수일련번호컬럼</p>
+<p>'Variable' , -- 변수컬럼</p>
+<p>'BudgetAmt' -- 변수의값컬럼</p>
+<p>select BudgetAmt,* from #FormulaSS2</p>
+<p>rollback tran</p>
+  </article>
+</div>
+</body>
+</html>

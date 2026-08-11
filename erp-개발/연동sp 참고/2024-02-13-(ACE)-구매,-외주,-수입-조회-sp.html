@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(ACE) 구매, 외주, 수입 조회 sp</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(ACE) 구매, 외주, 수입 조회 sp</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ace-sp">(ACE) 구매, 외주, 수입 조회 sp</h1>
+<p>CREATE PROCEDURE TNT_SLGPDAInReqQry</p>
+<p>@CompanySeq INT = 1 , -- 법인코드 법인코드 (1:디폴트)</p>
+<p>@InReqNo NVARCHAR(200) , -- 입고대상번호 업무구분 (P:구매발주, O:외주발주, I:수입BL)</p>
+<p>@PDANo NVARCHAR(30) -- PDA일련번호 ERP의 PDA 기준 번호로 입고창고 체크용도 (PDA 환경설정의 번호)</p>
+<p>AS</p>
+<p>-- PDA연동 입고조회 SP                                </p>
+<p>SET NOCOUNT ON</p>
+<p>--Serl INT 입고대상내부순번</p>
+<p>--ItemSeq INT 품목내부코드</p>
+<p>--ItemNo NVARCHAR(100) 품목번호</p>
+<p>--Qty DECIMAL(19,5) 수량 수량(기준단위수량)</p>
+<p>--IsLotMng INT Lot관리여부</p>
+<p>SELECT @CompanySeq = ISNULL(@CompanySeq , 0),</p>
+<p>@InReqNo = ISNULL(@InReqNo , ''),</p>
+<p>@PDANo = ISNULL(@PDANo , '')</p>
+<p>IF @CompanySeq = 0 SELECT @CompanySeq = 1</p>
+<p>DECLARE @No NVARCHAR(200),</p>
+<p>@WHSeq INT</p>
+<p>SELECT @No = SUBSTRING(@InReqNo, 2, LEN(@InReqNo))</p>
+<p>SELECT @WHSeq = B.ValueSeq</p>
+<p>FROM _TDAUMinor AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq -- 소속창고</p>
+<p>AND A.MinorSeq = B.MinorSeq</p>
+<p>AND B.Serl = 15000001</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1001005 -- tnt_PDA일련번호</p>
+<p>AND A.MinorName = @PDANo</p>
+<p>IF LEFT(@InReqNo,1) = 'P' -- 구매발주</p>
+<p>BEGIN</p>
+<p>SELECT B.POSerl AS Serl ,</p>
+<p>B.ItemSeq AS ItemSeq ,</p>
+<p>C.ItemNo AS ItemNo ,</p>
+<p>B.StdUnitQty - ISNULL(E.InQty,0) AS Qty ,</p>
+<p>ISNULL(D.IsLotMng,'0') AS IsLotMng</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemStock AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.ItemSeq = D.ItemSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.POSeq</p>
+<p>AND Z.FromSerl = B.POSerl</p>
+<p>AND Z.FromTableSeq = 13 -- _TPUORDPOItem         구매발주(수입Order)</p>
+<p>AND Z.ToTableSeq = 9 -- _TPUDelvInItem 구매입고</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PONo = @No</p>
+<p>AND A.SMImpType IN (8008001, 8008002, 8008003)</p>
+<p>AND B.WhSeq = @WHSeq</p>
+<p>AND (B.StdUnitQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>END</p>
+<p>ELSE IF LEFT(@InReqNo,1) = 'O' -- 외주발주</p>
+<p>BEGIN</p>
+<p>SELECT B.OSPPOSerl AS Serl ,</p>
+<p>B.ItemSeq AS ItemSeq ,</p>
+<p>C.ItemNo AS ItemNo ,</p>
+<p>B.StdUnitQty - ISNULL(E.InQty,0) AS Qty ,</p>
+<p>ISNULL(D.IsLotMng,'0') AS IsLotMng</p>
+<p>FROM _TPDOSPPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPPOItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.OSPPOSeq = B.OSPPOSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemStock AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.ItemSeq = D.ItemSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.OSPPOSeq</p>
+<p>AND Z.FromSerl = B.OSPPOSerl</p>
+<p>AND Z.FromTableSeq = 4        -- _TPDOSPPOItem 외주발주</p>
+<p>AND Z.ToTableSeq = 2        -- _TPDOSPDelvInItem 외주입고</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OSPPONo = @No</p>
+<p>AND B.WhSeq = @WHSeq</p>
+<p>AND (B.StdUnitQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>END</p>
+<p>ELSE IF LEFT(@InReqNo,1) = 'I' -- 수입BL</p>
+<p>BEGIN</p>
+<p>SELECT B.BLSerl AS Serl ,</p>
+<p>B.ItemSeq AS ItemSeq ,</p>
+<p>C.ItemNo AS ItemNo ,</p>
+<p>B.StdQty - ISNULL(E.InQty,0) AS Qty ,</p>
+<p>ISNULL(D.IsLotMng,'0') AS IsLotMng</p>
+<p>FROM _TUIImpBL AS A WITH(NOLOCK)</p>
+<p>JOIN _TUIImpBLItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.BLSeq = B.BLSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemStock AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.ItemSeq = D.ItemSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.BLSeq</p>
+<p>AND Z.FromSerl = B.BLSerl</p>
+<p>AND Z.FromTableSeq = 43        -- _TUIImpBLItem        수입BL</p>
+<p>AND Z.ToTableSeq = 49        -- _TUIImpDelvItem 수입입고</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BLNo = @No</p>
+<p>AND B.WhSeq = @WHSeq</p>
+<p>AND (B.StdQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>END</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

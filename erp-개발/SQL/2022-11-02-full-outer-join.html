@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>full outer join</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>full outer join</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="full-outer-join">full outer join</h1>
+<p>SELECT ISNULL(A.CustSeq, B.CustSeq) AS CustSeq,</p>
+<p>ISNULL(A.DeptSeq, B.DeptSeq) AS DeptSeq,</p>
+<p>ISNULL(A.ItemSeq, B.ItemSeq) AS ItemSeq,</p>
+<p>ISNULL(A.SalesQty,0) AS SalesQty,</p>
+<p>ISNULL(B.PlanQty ,0) AS PlanQty</p>
+<p>INTO #Result</p>
+<p>FROM #SalesQty AS A</p>
+<p>FULL OUTER JOIN #PlanQty AS B ON A.CustSeq = B.CustSeq</p>
+<p>AND A.DeptSeq = B.DeptSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>GROUP BY ISNULL(A.CustSeq, B.CustSeq),</p>
+<p>ISNULL(A.DeptSeq, B.DeptSeq),</p>
+<p>ISNULL(A.ItemSeq, B.ItemSeq),        </p>
+<p>ISNULL(A.SalesQty,0),</p>
+<p>ISNULL(B.PlanQty ,0)</p>
+  </article>
+</div>
+</body>
+</html>

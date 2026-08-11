@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>복사저장 sp</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>복사저장 sp</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">복사저장 sp</h1>
+<p>DROP PROCEDURE ovcos_SWSLPriceCopySave</p>
+<p>GO</p>
+<p>CREATE PROCEDURE ovcos_SWSLPriceCopySave</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @TargetDateFr NCHAR(8),</p>
+<p>@TargetDateTo NCHAR(8),</p>
+<p>@RegDate NCHAR(8)</p>
+<p>SELECT @TargetDateFr        = ISNULL(TargetDateFr, ''),</p>
+<p>@TargetDateTo        = ISNULL(TargetDateTo, ''),</p>
+<p>@RegDate = ISNULL(RegDate,'')</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>IF NOT EXISTS(SELECT 1 FROM ovcos_TSLPriceList AS A WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.RegDate = @RegDate)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Status = 9999,</p>
+<p>Result = '해당 작성일자에 데이터가 존재하지 않습니다.'</p>
+<p>WHERE Status = 0</p>
+<p>END</p>
+<p>--UPDATE A</p>
+<p>-- SET Status = 9999,</p>
+<p>-- Result = '주문내역이 존재하여 삭제 할 수 없습니다. (' + B.RegDate + ') '</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A JOIN ovcos_TSLPriceList AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.RegDate BETWEEN A.TargetDateFr AND B.TargetDateTo</p>
+<p>-- JOIN ovcos_TWEBPriceListOrder AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>-- AND B.PLSeq = C.PLSeq</p>
+<p>-- WHERE A.Status = 0</p>
+<p>IF EXISTS(SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 기존데이터 삭제.</p>
+<p>DELETE</p>
+<p>FROM ovcos_TSLPriceList</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RegDate BETWEEN @TargetDateFr AND @TargetDateTo</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 넣기</p>
+<p>-- 대상건찾기.</p>
+<p>DECLARE @Date NCHAR(8)</p>
+<p>SELECT @Date = @TargetDateFr</p>
+<p>CREATE TABLE #ovcos_TSLPriceList (</p>
+<p>DataSeq INT IDENTITY,</p>
+<p>PLSeq INT,</p>
+<p>RegDate NCHAR(8),</p>
+<p>UMPLTarget INT,</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>UMPLCategory INT,</p>
+<p>ItemChnName NVARCHAR(1000),</p>
+<p>FOBPrice DECIMAL(19,5),</p>
+<p>WholesalePrice DECIMAL(19,5),</p>
+<p>RetailPrice DECIMAL(19,5),</p>
+<p>UMPLFuction INT,</p>
+<p>UMPLNMPA INT,</p>
+<p>IsCPNP NCHAR(1),</p>
+<p>IsBPOM NCHAR(1),</p>
+<p>IntroURL NVARCHAR(1000),</p>
+<p>DetailURL NVARCHAR(1000),</p>
+<p>VideoURL NVARCHAR(1000),</p>
+<p>UMPLPromotion INT</p>
+<p>)</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>INSERT INTO #ovcos_TSLPriceList</p>
+<p>SELECT 0,</p>
+<p>@Date,</p>
+<p>UMPLTarget,</p>
+<p>ItemSeq,</p>
+<p>UnitSeq,</p>
+<p>UMPLCategory,</p>
+<p>ItemChnName,</p>
+<p>FOBPrice,</p>
+<p>WholesalePrice,</p>
+<p>RetailPrice,</p>
+<p>UMPLFuction,</p>
+<p>UMPLNMPA,</p>
+<p>IsCPNP,</p>
+<p>IsBPOM,</p>
+<p>IntroURL,</p>
+<p>DetailURL,</p>
+<p>VideoURL,</p>
+<p>UMPLPromotion</p>
+<p>FROM ovcos_TSLPriceList</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RegDate = @RegDate</p>
+<p>SELECT @Date = CONVERT(NCHAR(8), DATEADD(DD, 1, @Date), 112)</p>
+<p>IF @Date &gt; @TargetDateTo BREAK</p>
+<p>END</p>
+<p>DECLARE @Count INT ,</p>
+<p>@Seq INT</p>
+<p>SELECT @Count = COUNT(1) FROM #ovcos_TSLPriceList</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq, 'ovcos_TSLPriceList', 'PLSeq', @Count</p>
+<p>-- Temp Table 에 생성된 키값 UPDATE</p>
+<p>UPDATE #ovcos_TSLPriceList</p>
+<p>SET PLSeq = @Seq + DataSeq</p>
+<p>END</p>
+<p>-- INSERT</p>
+<p>--IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'A' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>INSERT INTO ovcos_TSLPriceList</p>
+<p>(</p>
+<p>CompanySeq ,</p>
+<p>PLSeq ,</p>
+<p>RegDate ,</p>
+<p>UMPLTarget ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>UMPLCategory ,</p>
+<p>ItemChnName ,</p>
+<p>FOBPrice ,</p>
+<p>WholesalePrice ,</p>
+<p>RetailPrice ,</p>
+<p>UMPLFuction ,</p>
+<p>UMPLNMPA ,</p>
+<p>IsCPNP ,</p>
+<p>IsBPOM ,</p>
+<p>IntroURL ,</p>
+<p>DetailURL ,</p>
+<p>VideoURL ,</p>
+<p>UMPLPromotion ,</p>
+<p>LastDateTime ,</p>
+<p>LastUserSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,</p>
+<p>A.PLSeq ,</p>
+<p>A.RegDate,</p>
+<p>ISNULL(A.UMPLTarget , 0),</p>
+<p>ISNULL(A.ItemSeq , 0),</p>
+<p>ISNULL(A.UnitSeq , 0),</p>
+<p>ISNULL(A.UMPLCategory , 0),</p>
+<p>ISNULL(A.ItemChnName ,''),</p>
+<p>ISNULL(A.FOBPrice , 0),</p>
+<p>ISNULL(A.WholesalePrice, 0),</p>
+<p>ISNULL(A.RetailPrice , 0),</p>
+<p>ISNULL(A.UMPLFuction , 0),</p>
+<p>ISNULL(A.UMPLNMPA , 0),</p>
+<p>ISNULL(A.IsCPNP ,''),</p>
+<p>ISNULL(A.IsBPOM ,''),</p>
+<p>ISNULL(A.IntroURL ,''),</p>
+<p>ISNULL(A.DetailURL ,''),</p>
+<p>ISNULL(A.VideoURL ,''),</p>
+<p>ISNULL(A.UMPLPromotion , 0),</p>
+<p>GETDATE() ,</p>
+<p>@UserSeq</p>
+<p>FROM #ovcos_TSLPriceList A</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

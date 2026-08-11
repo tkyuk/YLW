@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹 테이블 및 화면</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹 테이블 및 화면</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">그룹 테이블 및 화면</h1>
+<p>FrmWCMUserGrpEntry 사용자그룹등록</p>
+<p>SELECT *</p>
+<p>FROM _TCAUserGrp AS C WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAUserGrpMember AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq AND C.GroupSeq = D.GroupSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS E WITH(NOLOCK) ON D.UserSeq = E.UserSeq</p>
+<p><img alt="" src="assets/그룹-테이블-및-화면/image43.png" /></p>
+  </article>
+</div>
+</body>
+</html>

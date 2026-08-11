@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(마스터) 체크박스 업데이트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(마스터) 체크박스 업데이트</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">(마스터) 체크박스 업데이트</h1>
+<p><img alt="" src="assets/(마스터)-체크박스-업데이트/image78.png" /></p>
+<p>FrmWPOSCMDelvReq_gcos</p>
+<p>if fltDelvReqSeq.Value == '0' then</p>
+<p>if chkIsDelvReqCfm.Value == '1' then</p>
+<blockquote>
+<p>chkIsDelvReqCfm.Value = '0'</p>
+<p>else</p>
+<p>chkIsDelvReqCfm.Value = '1'</p>
+<p>end        </p>
+<p>MessageBoxShow('저장 후 진행해주세요.','')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>local status, IsDelvReqCancel, msg</p>
+<p>status = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Status', 0)</p>
+<p>IsDelvReqCfm = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'IsDelvReqCfm', 0)</p>
+<p>if status ~= '0' then</p>
+<p>if IsDelvReqCfm == '1' then</p>
+<blockquote>
+<p>chkIsDelvReqCfm.Value = '0'</p>
+<p>else</p>
+<p>chkIsDelvReqCfm.Value = '1'</p>
+<p>end</p>
+<p>msg = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Result', 0)</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>if IsDelvReqCfm == '1' then</p>
+<p>msg = '예약확정 되었습니다.'</p>
+<p>else</p>
+<p>msg = '예약확정취소 되었습니다.'</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<blockquote></blockquote>
+<p>MessageBoxShow(msg, '')</p>
+  </article>
+</div>
+</body>
+</html>

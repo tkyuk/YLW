@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>휴게시간 제외 (익일여부 없음)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>휴게시간 제외 (익일여부 없음)</h1>
+    <div class="meta">
+      <span class="note-date">2025-07-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">휴게시간 제외 (익일여부 없음)</h1>
+<p>CREATE TABLE #Tmp_BreakTime(</p>
+<p>BegTime NCHAR(4)</p>
+<p>,EndTime NCHAR(4)</p>
+<p>)</p>
+<p>CREATE TABLE #Result_WkTime(</p>
+<p>IDX_NO INT</p>
+<p>,WkTime DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_BreakTime(BegTime,EndTime)</p>
+<p>SELECT B.BegTime, B.EndTime</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS Z</p>
+<p>JOIN _TDAEmpIn AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = Z.TripEmpSeq</p>
+<p>LEFT OUTER JOIN _TXPRWkTypeEmp AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.EmpSeq = A.EmpSeq</p>
+<p>AND D.EndDate = '99991231'</p>
+<p>--LEFT OUTER JOIN _TXPRWkTypeTimeSet AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>-- AND E.WkTypeSeq = D.WkTypeSeq</p>
+<p>-- AND E.SMWkKindSeq= 5037002</p>
+<p>-- AND E.DayTypeSeq = 1</p>
+<p>-- AND E.WkFormSeq = -1</p>
+<blockquote>
+<p>JOIN _TXPRWkTypeBreakTimeSet AS B WITH(NOLOCK) ON B.WkTypeSeq = D.WkTypeSeq</p>
+<p>AND B.WkFormSeq = -1</p>
+<p>AND B.DayTypeSeq = 1</p>
+</blockquote>
+<p>INSERT INTO #Result_WkTime(IDX_NO, WkTime)</p>
+<p>SELECT A.IDX_NO</p>
+<p>-- WkTime에서 겹치는 분(OverlapMin)을 시간으로 환산 후 차감</p>
+<p>,CAST(A.WkTime AS FLOAT) - ISNULL(SUM(CASE WHEN WorkEnd \&lt;= BreakStart OR WorkStart &gt;= BreakEnd THEN 0</p>
+<p>ELSE (CASE WHEN WorkEnd \&lt; BreakEnd THEN WorkEnd ELSE BreakEnd END)</p>
+<p>- (CASE WHEN WorkStart &gt; BreakStart THEN WorkStart ELSE BreakStart END)</p>
+<p>END), 0) / 60.0 AS AdjustedWkTime</p>
+<p>FROM (SELECT *,</p>
+<p>CAST(LEFT(TimeFrom, 2) AS INT) * 60 + CAST(RIGHT(TimeFrom, 2) AS INT) AS WorkStart,</p>
+<p>CAST(LEFT(TimeTO, 2) AS INT) * 60 + CAST(RIGHT(TimeTO, 2) AS INT) AS WorkEnd</p>
+<p>FROM #BIZ_OUT_DataBlock2</p>
+<p>) A</p>
+<p>LEFT OUTER JOIN(SELECT *,</p>
+<p>CAST(LEFT(BegTime, 2) AS INT) * 60 + CAST(RIGHT(BegTime, 2) AS INT) AS BreakStart,</p>
+<p>CAST(LEFT(EndTime, 2) AS INT) * 60 + CAST(RIGHT(EndTime, 2) AS INT) AS BreakEnd</p>
+<p>FROM #Tmp_BreakTime ) B ON NOT (</p>
+<p>(CAST(LEFT(A.TimeTO, 2) AS INT) * 60 + CAST(RIGHT(A.TimeTO, 2) AS INT))</p>
+<p>\&lt;= (CAST(LEFT(B.BegTime, 2) AS INT) * 60 + CAST(RIGHT(B.BegTime, 2) AS INT))</p>
+<p>OR (CAST(LEFT(A.TimeFrom, 2) AS INT) * 60 + CAST(RIGHT(A.TimeFrom, 2) AS INT))</p>
+<p>&gt;= (CAST(LEFT(B.EndTime, 2) AS INT) * 60 + CAST(RIGHT(B.EndTime, 2) AS INT))</p>
+<p>)</p>
+<p>GROUP BY A.IDX_NO,A.TimeFrom, A.TimeTO, A.WkTime</p>
+<p>UPDATE A</p>
+<p>SET WkTime = B.WkTime</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #Result_WkTime AS B ON B.IDX_NO = A.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN('A','U')</p>
+  </article>
+</div>
+</body>
+</html>

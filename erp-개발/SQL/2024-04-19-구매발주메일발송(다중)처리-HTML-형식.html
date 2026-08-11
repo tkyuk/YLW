@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매발주메일발송(다중)처리 HTML 형식</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매발주메일발송(다중)처리 HTML 형식</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="html">구매발주메일발송(다중)처리 HTML 형식</h1>
+<p>DROP PROCEDURE ets_SPUORDPOListSendMail</p>
+<p>GO</p>
+<p>/************************************************************************************************</p>
+<p>설 명 - 데이터-구매발주메일발송다중처리 : 메일생성</p>
+<p>작성일 - 20130701</p>
+<p>작성자 - 허승남</p>
+<p>수정자 - 임희진 :: 2018.04.05 - 발신자, 수신자 이메일 주소 존재여부 체크로직 추가</p>
+<p>- 임희진 :: 2018.08.14 - SendMessage의 Html 데이터 상에 사업자상호명이 정상 매핑되도록 수정 (요청번호 201808140043)</p>
+<p>- 임희진 :: 2018.08.16 - 납품장소 -&gt; 발주부서로 변경 (요청번호 201808160092)</p>
+<p>- 임희진 :: 2018.08.17 - 사이트 SP 호출 로직 추가</p>
+<p>*************************************************************************************************/</p>
+<p>CREATE PROCEDURE ets_SPUORDPOListSendMail</p>
+<p>@xmlDocument NVARCHAR(MAX) , -- 화면의 정보를 XML문서로 전달</p>
+<p>@xmlFlags INT = 0 , -- 해당 XML문서의 TYPE</p>
+<p>@ServiceSeq INT = 0 , -- 서비스 번호</p>
+<p>@WorkingTag NVARCHAR(10)= '', -- 워킹 태그</p>
+<p>@CompanySeq INT = 1 , -- 회사 번호</p>
+<p>@LanguageSeq INT = 1 , -- 언어 번호</p>
+<p>@UserSeq INT = 0 , -- 사용자 번호</p>
+<p>@PgmSeq INT = 0 -- 프로그램 번호</p>
+<p>AS</p>
+<p>--================================================================</p>
+<p>-- 사이트 SP 호출 로직 추가 :: 18.08.17 #임희진</p>
+<p>--================================================================</p>
+<p>--DECLARE @SiteInitialName NVARCHAR(100), @SPName NVARCHAR(100)</p>
+<p>--SELECT @SiteInitialName = ISNULL(EnvValue,'') FROM _TCOMEnv WITH(NOLOCK) WHERE EnvSeq = 2 AND CompanySeq = @CompanySeq</p>
+<p>--SELECT @SPName = @SiteInitialName +'_SPUORDPOListSendMail'</p>
+<p>--IF EXISTS (SELECT * FROM sysobjects WITH(NOLOCK) WHERE id = object_id(@SPName) and xtype = 'P')</p>
+<p>--BEGIN</p>
+<p>-- EXEC @SPName @xmlDocument,@xmlFlags,@ServiceSeq,@WorkingTag,@CompanySeq,@LanguageSeq,@UserSeq,@PgmSeq</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<hr />
+<p>-- 서비스 마스타 등록 생성</p>
+<p>CREATE TABLE #TPUORDPOItem (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TPUORDPOItem'</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<blockquote>
+<p>@Word1                        NVARCHAR(20),</p>
+<p>@Word2                        NVARCHAR(20),</p>
+<p>@Word3                        NVARCHAR(20),</p>
+</blockquote>
+<p>@PricePoint INT,</p>
+<p>@CurAmtPoint INT,</p>
+<p>@QtyPoint INT</p>
+<p>-- 거래통화 단가 소수점 자리수</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,7,@UserSeq,@@PROCID,@PricePoint OUTPUT</p>
+<p>-- 외화부가세, 외화금액 소수점 자리수</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,14,@UserSeq,@@PROCID,@CurAmtPoint OUTPUT</p>
+<p>-- 구매/자재 수량 소수점 자리수</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,5,@UserSeq,@@PROCID,@QtyPoint OUTPUT</p>
+<p>EXEC dbo._SCOMGetDictionary @LanguageSeq, 6,        @Word1 OUTPUT -- 거래처</p>
+<p>EXEC dbo._SCOMGetDictionary @LanguageSeq, 7817, @Word2 OUTPUT -- 이메일 주소</p>
+<blockquote>
+<p>EXEC dbo._SCOMGetDictionary @LanguageSeq, 994, @Word3 OUTPUT -- 발주담당자</p>
+<p>--=============================================</p>
+</blockquote>
+<p>--거래처 이메일 주소가 누락된 건은 오류 메시지 처리</p>
+<blockquote>
+<p>--=============================================</p>
+</blockquote>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1001 , -- @1가 없습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1001)</p>
+<p>@LanguageSeq ,</p>
+<p>5498,'' -- SELECT * FROM _TCADictionary WHERE Word like '%받는사람 email%'</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results + ' [' + @Word1 + ' ' + @Word2 + ']',</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPUORDPOItem AS A                </p>
+<p>WHERE ISNULL(Email,'') = ''</p>
+<blockquote>
+<p>-- 오류발생 시 Return 되도록 추가                By 18.04.05 hjlim</p>
+<p>IF @@ROWCOUNT &gt; 0</p>
+</blockquote>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPUORDPOItem</p>
+<p>RETURN</p>
+<p>END        </p>
+<p>--=======================================================================================================================</p>
+<p>-- 1. 메일 보낼 데이터 수집</p>
+<p>DECLARE @SumAmt DECIMAL(19,5),</p>
+<p>@SumVAT DECIMAL(19,5),</p>
+<p>@POSeq INT,</p>
+<p>@DeptSeq INT,</p>
+<p>@BizUnit INT,</p>
+<p>@FactUnit INT</p>
+<p>-- 납품으로 점프시 창고 가져가기(1.창고별품목등록의 창고 2.구매단가등록의 창고 3.이전 품목별 납품창고)</p>
+<p>CREATE TABLE #DelvWH</p>
+<p>(</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>WHSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #DelvWH</p>
+<p>SELECT A.POSeq, A.POSerl , 0</p>
+<p>FROM _TPUORDPOItem AS A WITH(NOLOCK)</p>
+<p>JOIN #TPUORDPOItem AS B ON B.POSeq = A.POSeq</p>
+<p>WHERE A.POSeq = @POSeq</p>
+<p>AND B.Status = 0</p>
+<p>SELECT @DeptSeq = ISNULL(A.DeptSeq, 0)</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = @POSeq</p>
+<p>SELECT @BizUnit = ISNULL(BizUnit, 0),</p>
+<p>@FactUnit = ISNULL(FactUnit, 0)</p>
+<p>FROM _TDADept WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND DeptSeq = @DeptSeq</p>
+<p>--1. 품목별 기본창고</p>
+<p>IF EXISTS (SELECT 1 FROM _TPUORDPOItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAWHItem AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>JOIN #TPUORDPOItem AS B ON B.POSeq = A.POSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0)</p>
+<p>BEGIN</p>
+<p>UPDATE #DelvWH</p>
+<p>SET WHSeq = (SELECT TOP 1 WHSeq FROM _TDAWHItem WITH(NOLOCK) WHERe CompanySeq = D.CompanySeq AND ItemSeq = D.ItemSeq)</p>
+<p>FROM #DelvWH AS A</p>
+<p>JOIN _TPUORDPOItem AS D WITH(NOLOCK) ON A.POSeq = D.POSeq</p>
+<p>AND A.POSerl = D.POSerl</p>
+<p>WHERE D.CompanySeq = @CompanySeq</p>
+<p>AND A.WHSeq = 0</p>
+<p>END</p>
+<p>-- 2. 구매단가등록의 창고</p>
+<p>ELSE IF EXISTS (SELECT 1 FROM _TPUBaseBuyPriceItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #DelvWH AS C ON B.POSeq = C.POSeq</p>
+<p>AND B.POSerl = C.POSerl</p>
+<p>JOIN _TPUORDPO AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND B.POSeq = D.POSeq</p>
+<p>AND A.CustSeq = D.CustSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND C.WHSeq = 0)</p>
+<p>BEGIN</p>
+<p>UPDATE #DelvWH</p>
+<p>SET WHSeq = D.WHSeq</p>
+<p>FROM #DelvWH AS A</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON A.POSeq = B.POSeq</p>
+<p>AND A.POSerl = B.POSerl</p>
+<p>JOIN _TPUORDPO AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.POSeq = C.POSeq</p>
+<p>JOIN _TPUBaseBuyPriceItem AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.ItemSeq = D.ItemSeq</p>
+<p>AND C.CustSeq = D.CustSeq</p>
+<p>WHERE C.PODate BETWEEN D.StartDate AND D.EndDate</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.WHSeq = 0</p>
+<p>END</p>
+<p>-- 3. 이전 품목별 납품창고</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>UPDATE #DelvWH</p>
+<p>SET WHSeq = C.WHSeq</p>
+<p>FROM #DelvWH AS A</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON A.POSeq = B.POSeq</p>
+<p>AND A.POSerl = B.POSerl</p>
+<p>JOIN _TPUDelvItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND DelvSeq IN (SELECT DelvSeq</p>
+<p>FROM _TPUDelv WITH(NOLOCK)</p>
+<p>WHERE DelvNo IN (SELECT MAX(A.DelvNo)</p>
+<p>FROM _TPUDelv AS A</p>
+<p>JOIN _TPUDelvItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.DelvSeq = B.DelvSeq</p>
+<p>JOIN _TPUORDPOItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>JOIN #DelvWH AS D ON C.POSeq = D.POSeq</p>
+<p>AND C.POSerl = D.POSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND D.WHSeq = 0 ) )</p>
+<p>END</p>
+<p>--DECLARE @STaxName NVARCHAR(100), @STaxNo NVARCHAR(100), @SVATRptAddr NVARCHAR(100), @SOwner NVARCHAR(100)</p>
+<p>-- 하드코딩된 사업자번호 정보 주석처리 :: 18.08.16 #임희진</p>
+<p>--SELECT @STaxName = TaxName,</p>
+<p>-- @STaxNo = TaxNo,</p>
+<p>-- @SVATRptAddr = VATRptAddr,</p>
+<p>-- @SOwner = Owner</p>
+<p>-- FROM _TDATaxUnit</p>
+<p>--WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND TaxUnit = 4</p>
+<p>SELECT DISTINCT --Master</p>
+<p>-- IDENTITY(INT,0,1) AS IDX_NO ,</p>
+<p>ISNULL(Z.PONo,'') AS PONo , --발주번호</p>
+<p>ISNULL(Z.PODate,'') AS PODate , --발주일</p>
+<p>--발주처 정보</p>
+<p>ISNULL(N.TaxName,'') AS TaxName , --사업자 상호</p>
+<p>ISNULL(N.TaxNo,'') AS TaxNo , --사업자번호</p>
+<p>-- ISNULL(N.TaxNoAlias,'') AS TaxNoAlias , --사업자번호명</p>
+<p>ISNULL(N.VATRptAddr,'') AS VATRptAddr , --사업자 주소</p>
+<p>-- ISNULL(N.Zip,'') AS VATRptZip , --사업자 우편번호</p>
+<p>ISNULL(N.Owner,'') AS Owner , --대표자</p>
+<p>-- ISNULL(N.TelNo,'') AS TaxTelNo , --사업자 전화번호</p>
+<p>ISNULL(N.FAXNo,'') AS TaxFAXNo , --사업자 FAX ,구매담당자 FAX</p>
+<p>ISNULL(J.DeptName,'') AS DeptName , --구매담당부서</p>
+<p>-- ISNULL(R.DeptPhone,'') AS DeptTelNo , --구매담당 부서 전화번호</p>
+<p>ISNULL(K1.Extension,'') AS DeptTelNo , --구매담당 담당자 사내전화번호</p>
+<p>ISNULL(R.DeptFax,'') AS DeptFAXNo , --구매담당 부서 FAX</p>
+<p>--ISNULL(O.Fax,'') AS DeptFAXNo , --구매담당 부서 FAX</p>
+<p>ISNULL(K.EmpName,'') AS EmpName , --구매담당자</p>
+<p>Z.EmpSeq,</p>
+<p>ISNULL(P.Phone,'') AS EmpPhone , --구매담당자 전화번호</p>
+<p>ISNULL(P.CellPhone,'') AS EmpCellPhone , --구매담당자 핸드폰번호 20100523 이성덕 추가</p>
+<p>ISNULL(P.Email,'') AS EmpEmail , --구매담당자 Email 20100426 박소연 추가</p>
+<p>ISNULL(L.BizAddr,'') AS BizAddr , --거래처주소 20110108 이상화 추가</p>
+<p>-- ISNULL(F1.BizUnitName,'')AS BizUnitName , --매입 사업장 20110108 이상화 추가</p>
+<p>CASE WHEN ISNULL(A.PJTSeq,0) \&lt;&gt; 0 THEN ISNULL(F1.BizUnitName,'') ELSE ISNULL(E1.BizUnitName,'') END AS BizUnitName , --매입 사업장 20110121 이성덕 수정 : 프로젝트일경우 프로젝트의 사업부문, 양산일 경우 창고의 사업부문</p>
+<p>ISNULL(F2.Addr,'') AS FactAddr , --납품처 20110108 이상화 추가</p>
+<p>--수주처 정보</p>
+<p>Z.CustSeq , --거래처 내부번호</p>
+<p>ISNULL(L.CustName,'') AS CustName , --거래처명</p>
+<p>ISNULL(L.Owner,'') AS CustEmpName , --거래처 대표담당자</p>
+<p>ISNULL(Q.JpName,'') AS CustJpName , --거래처 대표담당자 직위</p>
+<p>ISNULL(Q.DeptName,'') AS CustDeptName , --거래처 대표담당자 부서</p>
+<p>-- ISNULL(L.TelNo,'') AS TelNo , --거래처 대표담당자, 부서 전화번호</p>
+<p>ISNULL(L.TELNo,'') AS TelNo , --거래처 대표담당자, 부서 전화번호</p>
+<p>ISNULL(Q.MobileNo,'') AS MobileNo , --거래처 대표담당자, 핸드폰번호</p>
+<p>ISNULL(Q.FAX,'') AS FAX , --거래처 대표담당자, 부서 FAX</p>
+<p>ISNULL(Q.TELNo,'') AS CustEmpTELNo, --거래처 대표담당자 전화번호 :: 18.08.16 #임희진 (항목은 존재하나 공백으로 출력되고 있어 추가)</p>
+<p>ISNULL(Y.Email,'') AS CustEmail , --거래처 담당자 EMail</p>
+<p>--Detail</p>
+<p>ISNULL(F.PJTName,'') AS PJTName , --프로젝트명</p>
+<p>ISNULL(F.PJTNo,'') AS PJTNo , --프로젝트 번호</p>
+<p>ISNULL(B.ItemNo,'') AS ItemNo , --품번</p>
+<p>ISNULL(A.DelvDate,'') AS DelvDate , --납품기일</p>
+<p>ISNULL(B.ItemName,'') AS ItemName , --품명</p>
+<p>ISNULL(B.Spec,'') AS Spec , --규격</p>
+<p>ISNULL(C.UnitName,'') AS UnitName , --단위</p>
+<p>ISNULL(A.Qty,0) AS Qty , --발주수량</p>
+<p>ISNULL(A.Price,0) AS Price , --단가</p>
+<p>ISNULL(A.CurAmt,0) AS CurAmt , --금액</p>
+<p>ISNULL(A.CurVAT,0) AS CurVAT , --부가세</p>
+<p>ISNULL(A.Remark1,'') AS Remark1 , --내부비고</p>
+<p>ISNULL(B.ItemSName,'') AS ItemSName , --품목약명 20100428 김가원 추가</p>
+<p>ISNULL(B.ItemEngName,'') AS ItemEngName , --품목영문명 20100428 김가원 추가</p>
+<p>ISNULL(B.ItemEngSName,'')AS ItemEngSName , --품목영문약명 20100428 김가원 추가</p>
+<p>--Trailer</p>
+<p>ISNULL(A.Remark2,'') AS Remark2 , --외부비고</p>
+<p>ISNULL(M.CurrName,'') AS CurrName , --통화</p>
+<p>ISNULL(M.CurrUnit,'') AS CurrUnit , --통화표기</p>
+<p>ISNULL(D.CustName,'') AS MakerName , --MakerName</p>
+<p>CONVERT(DECIMAL(19,5),0) AS SumAmt , --금액합계 20100203 박소연 수정</p>
+<p>CONVERT(DECIMAL(19,5),0) AS SumVAT , --부가세합계 20100203 박소연 수정</p>
+<p>ISNULL(Z.Payment,'') AS Payment , --지불조건</p>
+<p>ISNULL(Z.Remark ,'') AS Remark , --NOTE</p>
+<p>ISNULL(O.FAX,'') AS CustFax , --Fax</p>
+<p>CASE ISNULL(A.WHSeq, 0) WHEN 0 THEN S.WHSeq ELSE A.WHSeq END AS WHSeq,</p>
+<p>CASE ISNULL(A.WHSeq, 0) WHEN 0 THEN EE.WHName ELSE E.WHName END AS WHName,</p>
+<p>ISNULL(M4.ItemName,'') AS TopUnitName, ISNULL(M4.ItemNo,'') AS TopUnitNo,</p>
+<p>A.POSeq AS POSeq,</p>
+<p>A.POSerl AS POSerl</p>
+<p>INTO #TEMP_POPrint</p>
+<p>FROM _TPUORDPO AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS A WITH(NOLOCK) ON Z.POSeq = A.POSeq</p>
+<p>AND Z.CompanySeq = A.CompanySeq</p>
+<p>JOIN #TPUORDPOItem AS Y ON Y.POSeq = A.POSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.UnitSeq = C.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.MakerSeq = D.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.WHSeq = E.WHSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.PJTSeq = F.PJTSeq</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS F1 WITH(NOLOCK) ON F.CompanySeq = F1.CompanySeq</p>
+<p>AND F.BizUnit = F1.BizUnit</p>
+<p>LEFT OUTER JOIN _TDAFactUnit AS F2 WITH(NOLOCK) ON F1.CompanySeq = F2.CompanySeq</p>
+<p>AND F1.BizUnit = F2.BizUnit</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS E1 WITH(NOLOCK) ON E1.CompanySeq = E.CompanySeq</p>
+<p>AND E1.BizUnit = E.BizUnit</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS H WITH(NOLOCK) ON A.CompanySeq = H.CompanySeq</p>
+<p>AND A.ItemSeq = H.ItemSeq</p>
+<p>AND H.UMItemclass LIKE '2001%'</p>
+<p>LEFT OUTER JOIN _TPDQAItemClassQC AS I WITH(NOLOCK) ON H.CompanySeq = I.CompanySeq</p>
+<p>AND H.UMItemClass= I.UMItemClass</p>
+<p>AND I.IsPurQC = '1'</p>
+<p>LEFT OUTER JOIN _TDADept AS J WITH(NOLOCK) ON Z.CompanySeq = J.CompanySeq</p>
+<p>AND Z.DeptSeq = J.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS K WITH(NOLOCK) ON Z.CompanySeq = K.CompanySeq</p>
+<p>AND Z.EmpSeq = K.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDAEmpIN AS K1 WITH(NOLOCK) ON Z.CompanySeq = K1.CompanySeq</p>
+<p>AND Z.EmpSeq = K1.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS L WITH(NOLOCK) ON Z.CompanySeq = L.CompanySeq</p>
+<p>AND Z.CustSeq = L.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS M WITH(NOLOCK) ON Z.CompanySeq = M.CompanySeq</p>
+<p>AND Z.CurrSeq = M.CurrSeq</p>
+<p>LEFT OUTER JOIN _TDATaxUnit AS N WITH(NOLOCK) ON Z.CompanySeq = N.CompanySeq</p>
+<p>AND N.TaxUnit = J.TaxUnit</p>
+<p>LEFT OUTER JOIN _TDACustAdd AS O WITH(NOLOCK) ON Z.CompanySeq = O.CompanySeq</p>
+<p>AND Z.CustSeq = O.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAEmpIn AS P WITH(NOLOCK) ON Z.CompanySeq = P.CompanySeq</p>
+<p>AND Z.EmpSeq = P.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACustEmpInfo AS Q WITH(NOLOCK) ON Z.CompanySeq = Q.CompanySeq</p>
+<p>AND Z.CustSeq = Q.CustSeq</p>
+<p>AND Q.IsSTD = '1'</p>
+<p>AND Q.EmpSerl = (SELECT TOP 1 EmpSerl --거래처대표담당자정보 가져올때 TOP 1 Serl로 가져오도록 수정</p>
+<p>FROM _TDACustEmpInfo WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND CustSeq = Z.CustSeq AND IsSTD = '1')</p>
+<p>LEFT OUTER JOIN _TDADept AS R WITH(NOLOCK) ON Z.CompanySeq = R.CompanySeq</p>
+<p>AND Z.DeptSeq = R.DeptSeq</p>
+<p>LEFT OUTER JOIN #DelvWH AS S ON A.POSeq = S.POSeq</p>
+<p>AND A.POSerl = S.POSerl</p>
+<p>LEFT OUTER JOIN _TDAWH AS EE WITH(NOLOCK) ON EE.CompanySeq = @CompanySeq</p>
+<p>AND S.WHSeq = EE.WHSeq</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M5 WITH(NOLOCK) ON A.CompanySeq = M5.CompanySEq</p>
+<p>AND A.PJTSeq = M5.PJTSeq</p>
+<p>AND A.WBSSeq = M5.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M1 WITH(NOLOCK) ON A.CompanySeq = M1.CompanySeq</p>
+<p>AND A.PJTSeq = M1.PJTSeq AND M1.BOMSerl \&lt;&gt; -1 AND M5.UpperBOMSerl = M1.BOMSerl AND M1.BeforeBOMSerl = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TDAItem AS M2 WITH(NOLOCK) ON A.CompanySEq = M2.CompanySeq</p>
+<p>AND M1.ItemSeq = M2.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M3 WITH(NOLOCK) ON A.CompanySeq = M3.CompanySeq</p>
+<p>AND A.PJTSeq = M3.PJTSeq</p>
+<p>AND M3.BOMSerl \&lt;&gt; -1</p>
+<p>AND M3.BeforeBOMSerl = 0</p>
+<p>AND SUBSTRING(M1.TreeCode,1,6) = M3.TreeCode -- 최상위</p>
+<p>LEFT OUTER JOIN _TDAItem AS M4 WITH(NOLOCK) ON A.CompanySeq = M4.CompanySeq</p>
+<p>AND M3.ItemSeq = M4.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND Y.Status = 0</p>
+<blockquote>
+<p>--=========================================================================</p>
+<p>--발주담당자(발신자) 이메일 주소가 누락된 건은 오류 메시지 처리 By 18.04.05 hjlim</p>
+<p>--=========================================================================</p>
+</blockquote>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1001 , -- @1가 없습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1001)</p>
+<p>@LanguageSeq ,</p>
+<p>5803,'' -- SELECT * FROM _TCADictionary WHERE Word like '%보내는 사람 email%'</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results + ' [' + @Word3 + ' ' + @Word2 + ']',</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPUORDPOItem AS A        </p>
+<blockquote>
+<p>JOIN #TEMP_POPrint AS B ON A.POSeq = B.POSeq</p>
+</blockquote>
+<p>WHERE ISNULL(B.EmpEmail,'') = ''</p>
+<blockquote>
+<p>IF @@ROWCOUNT &gt; 0</p>
+</blockquote>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPUORDPOItem</p>
+<p>RETURN</p>
+<p>END        </p>
+<p>--======================================================</p>
+<blockquote>
+<p>-- 체크 끝</p>
+<p>--======================================================</p>
+</blockquote>
+<p>SELECT IDENTITY(INT,0,1) AS IDX_NO,</p>
+<p>A.*</p>
+<p>INTO #TPUORDPOPrint</p>
+<p>FROM #TEMP_POPrint AS A</p>
+<p>ORDER BY A.PONo, A.Spec</p>
+<hr />
+<p>--품의번호 추적 --- 20100716 박소연 추가</p>
+<hr />
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT '1','_TPUORDApprovalReqItem'</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPUORDPOItem', '#TPUORDPOPrint', 'POSeq', 'POSerl', ''</p>
+<p>-- 품의번호 업데이트</p>
+<p>ALTER TABLE #TPUORDPOPrint ADD ApproReqNo NCHAR(24)</p>
+<p>UPDATE #TPUORDPOPrint</p>
+<p>SET ApproReqNo = ISNULL(D.ApproReqNo, '')</p>
+<p>FROM #TPUORDPOPrint AS A</p>
+<p>JOIN #TCOMSourceTracking AS C ON A.IDX_NO = C.IDX_NO</p>
+<p>AND C.IDOrder = '1'</p>
+<p>LEFT OUTER JOIN _TPUORDApprovalReq AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND C.Seq = D.ApproReqSeq</p>
+<p>--===============================================================================================================</p>
+<p>--금액 합계 구하기</p>
+<p>-- SELECT @SumAmt = SUM(ISNULL(A.CurAmt,0)),</p>
+<p>-- @SumVAT = SUM(ISNULL(A.CurVAT,0))</p>
+<p>-- FROM _TPUORDPOItem AS A</p>
+<p>-- JOIN (SELECT DISTINCT POSeq FROM #TPUORDPOPrint) AS B ON A.POSeq = B.POSeq</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>--AND POSeq = @POSeq 2010. 10. 18 hkim 총 금액이 출력 안되서 변경</p>
+<p>SELECT A.POSeq,</p>
+<p>SUM(ISNULL(A.CurAmt,0)) AS SumAmt,</p>
+<p>SUM(ISNULL(A.CurVAT,0)) AS SumVAT</p>
+<p>INTO #TEMP_SUMAmt</p>
+<p>FROM _TPUORDPOItem AS A</p>
+<p>JOIN (SELECT DISTINCT POSeq FROM #TPUORDPOPrint) AS B ON A.POSeq = B.POSeq</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>GROUP BY A.POSeq</p>
+<p>UPDATE A</p>
+<p>SET SumAmt = B.SumAmt,</p>
+<p>SumVAT = B.SumVAT</p>
+<p>FROM #TPUORDPOPrint AS A</p>
+<p>LEFT OUTER JOIN #TEMP_SUMAmt AS B ON B.POSeq = A.POSeq</p>
+<p>--===============================================================================================================</p>
+<p>--=======================================================================================================================</p>
+<p>-- 2. 메일 내용 생성</p>
+<p>DECLARE @IDX_NO INT,</p>
+<p>@Count INT,</p>
+<p>-- @POSeq INT,</p>
+<p>@PrevPOSeq INT,</p>
+<p>@html NVARCHAR(MAX),</p>
+<p>@html_head NVARCHAR(MAX),</p>
+<p>@html_tail NVARCHAR(MAX),</p>
+<p>@html_tail_inData NVARCHAR(MAX),</p>
+<p>@html_msg NVARCHAR(MAX),</p>
+<p>@MailMsg NVARCHAR(MAX),</p>
+<p>@SendUserSeq INT,</p>
+<p>@RecvUserSeq INT,</p>
+<p>@RecvEmpMail NVARCHAR(MAX), -- 테이블 내 RecvMail 길이만큼 수정 100 -&gt; MAX :: 20.12.03 #임희진</p>
+<p>@SendEmpMail NVARCHAR(200),</p>
+<p>@TaxName NVARCHAR(100),</p>
+<p>@TaxNo NVARCHAR(100),</p>
+<p>@Owner NVARCHAR(100),</p>
+<p>@VATRptAddr NVARCHAR(100),</p>
+<p>@BizUnitName NVARCHAR(100),</p>
+<p>@CurrName NVARCHAR(100),</p>
+<p>@CustName NVARCHAR(100),</p>
+<p>@CustEmpName NVARCHAR(100),</p>
+<p>@EmpName NVARCHAR(100),</p>
+<p>@BizAddr NVARCHAR(100),</p>
+<p>@TaxFAXNo NVARCHAR(100),</p>
+<p>@TelNo NVARCHAR(100),</p>
+<p>@CustFax NVARCHAR(100),</p>
+<p>@EmpEmail NVARCHAR(100),</p>
+<p>@PJTNo NVARCHAR(100),</p>
+<p>@CurAmt NVARCHAR(100),</p>
+<p>@StrSumAmt NVARCHAR(100),</p>
+<p>@StrSumVAT NVARCHAR(100),</p>
+<p>@TotAmt NVARCHAR(100),</p>
+<p>@FactAddr NVARCHAR(100),</p>
+<p>@ItemNo NVARCHAR(100),</p>
+<p>@ItemName NVARCHAR(100),</p>
+<p>@Spec NVARCHAR(100),</p>
+<p>@Qty NVARCHAR(100),</p>
+<p>@UnitName NVARCHAR(100),</p>
+<p>@Price NVARCHAR(100),</p>
+<p>@DelvDate NVARCHAR(100),</p>
+<p>@MakerName NVARCHAR(100),</p>
+<p>@Remark1 NVARCHAR(1000),</p>
+<p>@WHName NVARCHAR(100),</p>
+<p>@PONo NVARCHAR(100),</p>
+<p>@PODate NVARCHAR(100),</p>
+<p>@Remark NVARCHAR(1000),</p>
+<p>@Payment NVARCHAR(500),</p>
+<p>@Subjects NVARCHAR(100),</p>
+<p>@AttachFileName NVARCHAR(100),</p>
+<p>@DetailCnt INT,</p>
+<p>@DeptName NVARCHAR(100), -- 발주부서 추가 :: 18.08.16 #임희진</p>
+<p>@CustEmpTELNo NVARCHAR(20) , -- 거래처대표담당자 전화번호 추가 :: 18.08.16 #임희진</p>
+<p>@CustEmpFAX NVARCHAR(20) -- 거래처대표담당자 FAX번호 추가 :: 18.08.16 #임희진</p>
+<p>SELECT @Payment = Payment FROM #TPUORDPOPrint</p>
+<p>--메일 전송을 위한 임시 테이블</p>
+<p>CREATE TABLE #TEMP_TCASendMessage (</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>POSeq INT,</p>
+<p>CompanySeq INT,</p>
+<p>SendMessageID INT,</p>
+<p>SendUserSeq INT,</p>
+<p>SendMessageType INT,</p>
+<p>Subject NVARCHAR(1024),</p>
+<p>SendMessage NVARCHAR(MAX),</p>
+<p>RecvUserSeq INT,</p>
+<p>IsMemo NCHAR(1),</p>
+<p>IsMail NCHAR(1),</p>
+<p>IsSMS NCHAR(1),</p>
+<p>SendMemo NCHAR(1),</p>
+<p>SendMail NCHAR(1),</p>
+<p>MemoDateTime DATETIME,</p>
+<p>MailDateTime DATETIME,</p>
+<p>SMSDateTime DATETIME,</p>
+<p>SendSMS NCHAR(1),</p>
+<p>TblKey NVARCHAR(400),</p>
+<p>CrDateTime DATETIME,</p>
+<p>RecvEmail NVARCHAR(MAX), -- 테이블 내 RecvMail 길이만큼 수정 100 -&gt; MAX :: 20.12.03 #임희진</p>
+<p>RecvTelNo NVARCHAR(60),</p>
+<p>LoginPwd NVARCHAR(60),</p>
+<p>States NVARCHAR(200),</p>
+<p>Result NVARCHAR(MAX),</p>
+<p>EmailPass NVARCHAR(100),</p>
+<p>AttachMessage NVARCHAR(MAX),</p>
+<p>AttachFileName NVARCHAR(200),</p>
+<p>SendEmail NVARCHAR(200),</p>
+<p>CCEmail NVARCHAR(MAX) -- 테이블 내 RecvMail 길이만큼 수정 100 -&gt; MAX :: 20.12.03 #임희진</p>
+<p>)</p>
+<p>--수집된 대상이 있는지 체크</p>
+<p>SELECT @Count = COUNT(*) FROM #TPUORDPOPrint</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 1) HTML 메시지 생성</p>
+<p>---메시지 생성시, 오류가 발생하면 Agent Log를 생성</p>
+<p>---임시 테이블에서 한 건씩 가져와서,</p>
+<p>---구매발주코드가 이전구매발주코드와 다르면, 신규로 HTML소스를 작성한다.</p>
+<p>---같으면, 품목에 대한 HTML-TABLE 태그만 작성하여, 이전구매발주코드에 대한 HTML소스를 추가한다.</p>
+<p>---신규로 작성된 건은 메일을 보낼 임시 테이블에 저장한다.</p>
+<p>---이전구매발주와 다르고 이전에 작성한 메일 데이터가 존재하면, HTML태그를 닫아준다.</p>
+<p>ALTER TABLE #TPUORDPOPrint ADD HTMLSource NVARCHAR(MAX)</p>
+<p>SELECT @IDX_NO = 0</p>
+<p>SELECT @PrevPOSeq = 0</p>
+<p>--HTML 헤더</p>
+<p>SELECT @html_head =</p>
+<p>'</p>
+<p>\&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "<a href="http://www.w3.org/TR/html4/loose.dtd">http://www.w3.org/TR/html4/loose.dtd</a>"&gt;</p>
+<p>\&lt;html&gt;</p>
+<p>\&lt;head&gt;</p>
+<p>\&lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8" /&gt;</p>
+<p>\&lt;title&gt;구매발주서\&lt;/title&gt;</p>
+<p>\&lt;style type="text/css"&gt;</p>
+<p>td{font-size:12px;}</p>
+<p>th{font-size:12px;}</p>
+<p>/* ----- Tables ----- */</p>
+<p>table.tablesign .top {</p>
+<p>padding:3px 5px 3px 5px;</p>
+<p>border-left:0; border-top:.5pt solid #000000;;</p>
+<p>border-right:.5pt solid #000000; border-bottom:.5pt solid #000000;</p>
+<p>}</p>
+<p>table.tablesign .left {</p>
+<p>padding:3px 5px 3px 5px;</p>
+<p>border-left:.5pt solid #000000;; border-top:0;</p>
+<p>border-right:.5pt solid #000000; border-bottom:.5pt solid #000000;</p>
+<p>}</p>
+<p>table.tablesign th {</p>
+<p>padding:3px 0px 3px 0px;</p>
+<p>text-align:center;</p>
+<p>background-color:#cccccc;</p>
+<p>border-left:0; border-top:0;</p>
+<p>border-right:.5pt solid #000000; border-bottom:.5pt solid #000000;</p>
+<p>}</p>
+<p>table.tablesign td {</p>
+<p>padding:3px 5px 3px 5px;</p>
+<p>border-left:0; border-top:0;</p>
+<p>border-right:.5pt solid #000000; border-bottom:.5pt solid #000000;</p>
+<p>}</p>
+<p>table.tablesign .dotline{</p>
+<p>padding:3px 5px 3px 5px;</p>
+<p>border-left:0; border-top:0;</p>
+<p>border-right:.5pt solid #000000; border-bottom:.5pt dashed #000000;}</p>
+<p>table.tablesign .noneline{</p>
+<p>border-left:0; border-top:0;</p>
+<p>border-right:0; border-bottom:.5pt solid #000000;}</p>
+<p>\&lt;/style&gt;</p>
+<p>\&lt;/head&gt;</p>
+<p>\&lt;body&gt;</p>
+<p>\&lt;table border="0" cellpadding="0" cellspacing="0" class="tablesign" &gt;</p>
+<p>\&lt;tr align="center"&gt;</p>
+<p>\&lt;td colspan="7" rowspan="2" style="border-left:0px; border-top:0px; border-bottom:0px; font-size:24px;"&gt;\&lt;b&gt;발 \&nbsp; 주 \&nbsp; 서\&lt;/b&gt;\&lt;/td&gt;</p>
+<p>\&lt;td class="top"&gt;담 당 \&lt;/td&gt;</p>
+<p>\&lt;td class="top"&gt;과 장\&lt;/td&gt;</p>
+<p>\&lt;td colspan="2" class="top"&gt;부 장\&lt;/td&gt;</p>
+<p>\&lt;td class="top"&gt;이 사\&lt;/td&gt;</p>
+<p>\&lt;td class="top"&gt;전 무\&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;td height="50"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td colspan="2"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;td height="20" width="30" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="40" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="70" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="110" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="40" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="30" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="50" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="60" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="60" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="20" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="30" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="50" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td width="50" class="noneline"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;th colspan="2" style="border-left:.5pt solid #000000;"&gt;거 래 처\&lt;/th&gt;</p>
+<p>\&lt;td colspan=2&gt;##CustName##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;th colspan="2"&gt;FAX 번호\&lt;/th&gt;</p>
+<p>\&lt;td colspan=2&gt;##TaxFAXNo##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;th&gt;수 신 자\&lt;/th&gt;</p>
+<p>\&lt;td colspan="4"&gt;##EmpName## \&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;th colspan="2" style="border-left:.5pt solid #000000;"&gt;발주번호</p>
+<p>\&lt;/th&gt;</p>
+<p>\&lt;td colspan=2&gt;##PONo##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;th colspan="2"&gt;발주일자</p>
+<p>\&lt;/th&gt;</p>
+<p>\&lt;td colspan="2"&gt;##PODate##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;th&gt;지불조건\&lt;/th&gt;</p>
+<p>\&lt;td colspan="4"&gt;##Payment##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;th style="border-left:.5pt solid #000000;"&gt;화폐\&lt;/th&gt;</p>
+<p>\&lt;td &gt;##CurrName##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;th&gt;금액계\&lt;/th&gt;</p>
+<p>\&lt;td align="right"&gt;##TotAmt##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;th colspan="2"&gt;발주부서</p>
+<p>\&lt;/th&gt;</p>
+<p>\&lt;td colspan=2 &gt;##DeptName##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;th&gt;발신자</p>
+<p>\&lt;/th&gt;</p>
+<p>\&lt;td colspan="4"&gt;##EmpName##</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;\&lt;td height="20" colspan="13" class="noneline"&gt;\&nbsp;\&lt;/td&gt;\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;th rowspan="2" style="border-left:.5pt solid #000000;"&gt;순번\&lt;/th&gt;</p>
+<p>\&lt;th colspan="2" style="border-bottom:dashed .5pt #000000;"&gt;품 번\&lt;/th&gt;</p>
+<p>\&lt;th colspan="2" style="border-bottom:dashed .5pt #000000;"&gt;품 명\&lt;/th&gt;</p>
+<p>\&lt;th rowspan="2"&gt;단위\&lt;/th&gt;</p>
+<p>\&lt;th colspan="2" style="border-bottom:dashed .5pt #000000;"&gt;수 량\&lt;/th&gt;</p>
+<p>\&lt;th colspan="2" style="border-bottom:dashed .5pt #000000;"&gt;단 가\&lt;/th&gt;</p>
+<p>\&lt;th colspan="3" style="border-bottom:dashed .5pt #000000;"&gt;MAKER\&lt;/th&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;th colspan="2"&gt;품의번호\&lt;/th&gt;</p>
+<p>\&lt;th colspan="2"&gt;규 격\&lt;/th&gt;</p>
+<p>\&lt;th colspan="2"&gt;납 기\&lt;/th&gt;</p>
+<p>\&lt;th colspan="2"&gt;금 액\&lt;/th&gt;</p>
+<p>\&lt;th colspan="3"&gt;비 고\&lt;/th&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>'</p>
+<p>--HTML 꼬리</p>
+<p>SELECT @html_tail =</p>
+<p>'</p>
+<p>\&lt;tr&gt;\&lt;td height="20" colspan="13" class="noneline"&gt;\&nbsp;\&lt;/td&gt;\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;td height="70" colspan="5" valign="top" class="left" style="line-height:18px;"&gt;NOTE : ##Remark##\&lt;/td&gt;</p>
+<p>\&lt;td colspan="4"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td colspan="4" valign="top" style="line-height:18px;"&gt;전화 : ##CustEmpTELNo##\&lt;br&gt;</p>
+<p>FAX : ##CustEmpFAX##\&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;/table&gt;</p>
+<p>\&lt;/body&gt;</p>
+<p>\&lt;/html&gt;</p>
+<p>'</p>
+<p>SELECT @html_msg =</p>
+<p>'</p>
+<p>\&lt;html&gt;</p>
+<p>\&lt;head&gt;</p>
+<p>\&lt;meta http-equiv="Content-Type" content=text/html; charset=EUC-KR&gt;</p>
+<p>\&lt;/head&gt;</p>
+<p>\&lt;body&gt;</p>
+<p>\&lt;br /&gt;</p>
+<p>\&lt;center&gt;</p>
+<p>\&lt;table border=0 cellpadding=10 cellspacing=0&gt;</p>
+<p>\&lt;tr bgcolor=lightgray&gt;</p>
+<p>\&lt;td&gt;\&lt;b&gt;\&lt;font size=2 color=white&gt;첨부파일 내용을 확인할 수 없을 경우 : 오른쪽 마우스 클릭 -&gt; 인코딩 -&gt; 유니코드(utf-8)\&lt;/font&gt;\&lt;/b&gt;</p>
+<p>\&lt;/td&gt;</p>
+<p>\&lt;/tr&gt;</p>
+<p>\&lt;/table&gt;</p>
+<p>\&lt;/center&gt;</p>
+<p>\&lt;br /&gt;</p>
+<p>\&lt;br /&gt;</p>
+<p>\&lt;font color=blue&gt;\&lt;b&gt;* 당사 ERP에서 발송되는 발주서이며, 시스템 특성상 양식이 다른점 양해바랍니다.</p>
+<p>\&lt;font color=red&gt;\&lt;b&gt;-\&nbsp;바이러스 의심시 파일을 열람하지 마시고, 우선 발주 담당자에게 연락 주시기 바랍니다.</p>
+<p>\&lt;br /&gt;\&lt;br /&gt;\&lt;br /&gt;</p>
+<p>\&lt;font color=black&gt;\&lt;b&gt;1. Mail Information : ##TaxName## 발 주 서</p>
+<p>\&lt;br /&gt;\&lt;br /&gt;\&lt;br /&gt;</p>
+<p>\&lt;font color=black&gt;\&lt;b&gt;2. 합계금액 : ##TotAmt##</p>
+<p>\&lt;br /&gt;\&lt;br /&gt;\&lt;br /&gt;</p>
+<p>\&lt;font color=black&gt;\&lt;b&gt;3. 발주내역 및 납기 : 첨부 발 주 서 참조 (견적시 리스트와 순서가 다름)</p>
+<p>\&lt;br /&gt;\&lt;br /&gt;\&lt;br /&gt;</p>
+<p>\&lt;font color=black&gt;\&lt;b&gt;3. 발주접수 후 SCM에서 발주 확인 및 납기 정보 입력 바랍니다.</p>
+<p>\&lt;br /&gt;\&lt;br /&gt;\&lt;br /&gt;</p>
+<p>##TaxName##</p>
+<p>\&lt;br /&gt;\&lt;br /&gt;</p>
+<p>\&lt;/body&gt;</p>
+<p>\&lt;/html&gt;</p>
+<p>'</p>
+<p>SELECT @Payment = CASE WHEN ISNULL(@Payment,'') \&lt;&gt; '' THEN @Payment ELSE '\&nbsp;' END</p>
+<p>SELECT @html_head = REPLACE(@html_head,'##Payment##',ISNULL(@Payment,'\&nbsp;'))</p>
+<p>--WHILE문을 통한 커서 수행, 수집된 대상의 갯수만큼</p>
+<p>WHILE (@IDX_NO \&lt; @Count)</p>
+<p>BEGIN</p>
+<p>--변수 초기화</p>
+<p>SELECT @html = ''</p>
+<p>SELECT @MailMsg = ''</p>
+<p>SELECT @TaxName = '', @TaxNo = '', @Owner = '', @VATRptAddr = '', @CurrName = '',</p>
+<p>@BizUnitName = '', @CustName = '', @CustEmpName = '', @EmpName = '',</p>
+<p>@BizAddr = '', @TaxFAXNo = '', @TelNo = '', @CustFax = '',</p>
+<p>@EmpEmail = '', @StrSumAmt = '', @StrSumVAT = '', @TotAmt = '',</p>
+<p>@FactAddr = '', @DeptName = '', @Remark = '', @CustEmpTELNo = '', @CustEmpFAX = ''</p>
+<p>SELECT @PJTNo = '', @ItemNo = '', @ItemName = '', @Spec = '', @Qty = '',</p>
+<p>@UnitName = '', @Price = '', @CurAmt = '', @DelvDate = '', @WHName = '' ,</p>
+<p>@MakerName = '', @Remark1 = ''</p>
+<p>SELECT @SendUserSeq = 0, @RecvUserSeq = 0, @RecvEmpMail = '', @SendEmpMail = ''</p>
+<p>SELECT @Subjects = '', @AttachFileName = ''</p>
+<p>--POSeq수집</p>
+<p>SELECT @POSeq = POSeq FROM #TPUORDPOPrint WHERE IDX_NO = @IDX_NO</p>
+<p>--이전구매발주코드와 현구매발주코드를 비교,</p>
+<p>--같으면, HTML-TABLE 태그 작성 수행</p>
+<p>--다르면, HTML 신규 태그 작성 수행</p>
+<p>IF @PrevPOSeq \&lt;&gt; @POSeq</p>
+<p>BEGIN</p>
+<p>--디테일 순번</p>
+<p>SELECT @DetailCnt = 1</p>
+<p>--이전구매발주코드가 존재하면, 곧, 신규로 생성된 알림메일 데이터가 존재한다는 의미</p>
+<p>--이전알림메일데이터에 HTML소스 태그를 닫아준다</p>
+<p>IF @PrevPOSeq \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @html_tail_inData = ''</p>
+<p>SELECT @html_tail_inData = @html_tail_inData + @html_tail</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##PONo##',ISNULL(@PONo,'\&nbsp;')) --구매발주번호</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##Remark##',ISNULL(@Remark,'\&nbsp;')) --마스터 - 비고</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##TaxName##',ISNULL(@TaxName,'\&nbsp;')) --사업자번호상호</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##CustEmpTELNo##',ISNULL(@CustEmpTELNo,'\&nbsp;')) --거래처 대표담당자 전화번호</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##CustEmpFAX##', ISNULL(@CustEmpFAX,'\&nbsp;')) --거래처 대표담당자 FAX번호</p>
+<p>UPDATE A</p>
+<p>-- SET SendMessage = A.SendMessage + @html_tail,</p>
+<p>SET AttachMessage = A.AttachMessage + @html_tail_inData</p>
+<p>FROM #TEMP_TCASendMessage AS A</p>
+<p>WHERE A.POSeq = @PrevPOSeq</p>
+<p>SELECT @PONo = '', @Remark = '', @html_tail_inData = ''</p>
+<p>END</p>
+<p>--HTML 헤더 데이터 수집</p>
+<p>--##TaxName## --상호</p>
+<p>--##TaxNo## --사업자등록번호</p>
+<p>--##Owner## --대표자명</p>
+<p>--##VATRptAddr## --주소 - 상위</p>
+<p>--##BizUnitName## --매입사업장</p>
+<p>--##CurrName## --통화단위</p>
+<p>--##CustName## --거래처명</p>
+<p>--##CustEmpName## --대표자명</p>
+<p>--##EmpName## --담당자</p>
+<p>--##BizAddr## --주소</p>
+<p>--##TaxFAXNo## --FAX - 구매정보</p>
+<p>--##TelNo## --전화번호</p>
+<p>--##CustFax## --FAX</p>
+<p>--##EmpEmail## --E-Mail</p>
+<p>--##SumAmt## --공급가액</p>
+<p>--##SumVAT## --부가세</p>
+<p>--##TotAmt## --합계금액 (공급가액 + 부가세)</p>
+<p>--##FactAddr## --납품처</p>
+<p>SELECT @PONo = CASE WHEN ISNULL(PONo,'') \&lt;&gt; '' THEN ISNULL(PONo,'') ELSE '\&nbsp;' END, --구매발주번호</p>
+<p>@PODate = CASE WHEN ISNULL(PODate,'') \&lt;&gt; '' THEN LEFT(PODate,4) + '-' + RIGHT(LEFT(PODate,6),2) + '-' + RIGHT(PODate,2) ELSE '\&nbsp;' END, --구매발주일자</p>
+<p>@Remark = CASE WHEN ISNULL(Remark,'') \&lt;&gt; '' THEN ISNULL(Remark,'') ELSE '\&nbsp;' END, --마스터 - 비고</p>
+<p>@TaxName = CASE WHEN ISNULL(TaxName,'') \&lt;&gt; '' THEN ISNULL(TaxName,'') ELSE '\&nbsp;' END, --상호</p>
+<p>@TaxNo = CASE WHEN ISNULL(TaxNo,'') \&lt;&gt; '' THEN LEFT(LTRIM(RTRIM(TaxNo)),3) + '-' + RIGHT(LEFT(LTRIM(RTRIM(TaxNo)),5),2) + '-' + RIGHT(LTRIM(RTRIM(TaxNo)),5) ELSE '\&nbsp;' END, --사업자등록번호</p>
+<p>@Owner = CASE WHEN ISNULL(Owner,'') \&lt;&gt; '' THEN ISNULL(Owner,'') ELSE '\&nbsp;' END, --대표자명</p>
+<p>@VATRptAddr = CASE WHEN ISNULL(VATRptAddr,'') \&lt;&gt; '' THEN ISNULL(VATRptAddr,'') ELSE '\&nbsp;' END, --주소 - 상위</p>
+<p>@BizUnitName = CASE WHEN ISNULL(BizUnitName,'') \&lt;&gt; ''THEN ISNULL(BizUnitName,'') ELSE '\&nbsp;' END, --매입사업장</p>
+<p>@CurrName = CASE WHEN ISNULL(CurrName,'') \&lt;&gt; '' THEN ISNULL(CurrName,'') ELSE '\&nbsp;' END, --통화단위</p>
+<p>@CustName = CASE WHEN ISNULL(CustName,'') \&lt;&gt; '' THEN ISNULL(CustName,'') ELSE '\&nbsp;' END, --거래처명</p>
+<p>@CustEmpName = CASE WHEN ISNULL(CustEmpName,'') \&lt;&gt; ''THEN ISNULL(CustEmpName,'') ELSE '\&nbsp;' END, --대표자명</p>
+<p>@EmpName = CASE WHEN ISNULL(EmpName,'') \&lt;&gt; '' THEN ISNULL(EmpName,'') ELSE '\&nbsp;' END, --담당자</p>
+<p>@BizAddr = CASE WHEN ISNULL(BizAddr,'') \&lt;&gt; '' THEN ISNULL(BizAddr,'') ELSE '\&nbsp;' END, --주소</p>
+<p>@TaxFAXNo = CASE WHEN ISNULL(TaxFAXNo,'') \&lt;&gt; '' THEN ISNULL(TaxFAXNo,'') ELSE '\&nbsp;' END, --FAX - 구매정보</p>
+<p>@TelNo = CASE WHEN ISNULL(TelNo,'') \&lt;&gt; '' THEN ISNULL(TelNo,'') ELSE '\&nbsp;' END, --전화번호</p>
+<p>@CustFax = CASE WHEN ISNULL(CustFax,'') \&lt;&gt; '' THEN ISNULL(CustFax,'') ELSE '\&nbsp;' END, --FAX</p>
+<p>@EmpEmail = CASE WHEN ISNULL(EmpEmail,'') \&lt;&gt; '' THEN ISNULL(EmpEmail,'') ELSE '\&nbsp;' END, --E-Mail</p>
+<p>@StrSumAmt = CONVERT(NVARCHAR, ISNULL(SumAmt,0)), --공급가액</p>
+<p>@StrSumVAT = CONVERT(NVARCHAR, ISNULL(SumVAT,0)), --부가세</p>
+<p>@TotAmt = CONVERT(NVARCHAR, ISNULL(SumAmt,0) + ISNULL(SumVAT,0)), --합계금액 (공급가액 + 부가세)</p>
+<p>@FactAddr = CASE WHEN ISNULL(VATRptAddr,'') \&lt;&gt; '' THEN ISNULL(VATRptAddr,'') ELSE '\&nbsp;' END, --납품처</p>
+<p>@DeptName = CASE WHEN ISNULL(DeptName,'') \&lt;&gt; '' THEN ISNULL(DeptName,'') ELSE '\&nbsp;' END, --발주부서</p>
+<p>@CustEmpTELNo= CASE WHEN ISNULL(CustEmpTELNo,'') \&lt;&gt; '' THEN ISNULL(CustEmpTELNo,'') ELSE '\&nbsp;' END, --거래처 대표담당자 전화번호</p>
+<p>@CustEmpFAX = CASE WHEN ISNULL(FAX,'') \&lt;&gt; '' THEN ISNULL(FAX,'') ELSE '\&nbsp;' END --거래처 대표담당자 FAX번호</p>
+<p>FROM #TPUORDPOPrint</p>
+<p>WHERE IDX_NO = @IDX_NO</p>
+<p>-- 주석처리(기존에는 마스터 납품장소 항목에 생산사업장의 주소를 출력했으나, 행별로 창고가 다를 수 있기에 발주부서로 변경) :: 18.08.16 #임희진</p>
+<p>-- 납품처는 생산사업장의 주소를 보여준다 이재혁</p>
+<p>--SELECT @FactAddr = Addr</p>
+<p>-- FROM _TDAFactUnit AS A LEFT OUTER JOIN _TDAWH AS B ON A.FactUnit = B.FactUnit</p>
+<p>-- AND A.CompanySeq = B.CompanySeq</p>
+<p>-- JOIN #TPUORDPOPrint AS C ON C.WHSeq = B.WHSeq</p>
+<p>-- AND C.IDX_NO = @IDX_NO</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>--반복 데이터 수집</p>
+<p>SELECT @PJTNo = CASE WHEN ISNULL(PJTNo,'') \&lt;&gt; '' THEN ISNULL(PJTNo,'') ELSE '\&nbsp;' END, --프로젝트번호</p>
+<p>@ItemNo = CASE WHEN ISNULL(ItemNo,'') \&lt;&gt; '' THEN ISNULL(ItemNo,'') ELSE '\&nbsp;' END, --품번</p>
+<p>@ItemName = CASE WHEN ISNULL(ItemName,'') \&lt;&gt; '' THEN ISNULL(ItemName,'') ELSE '\&nbsp;' END, --품명</p>
+<p>@Spec = CASE WHEN ISNULL(Spec,'') \&lt;&gt; '' THEN ISNULL(Spec,'') ELSE '\&nbsp;' END, --규격</p>
+<p>@Qty = CONVERT(NVARCHAR, ISNULL(Qty,0)), --발주수량</p>
+<p>@UnitName = CASE WHEN ISNULL(UnitName,'') \&lt;&gt; '' THEN ISNULL(UnitName,'') ELSE '\&nbsp;' END, --단위</p>
+<p>@Price = CONVERT(NVARCHAR, ISNULL(Price,0)), --단가</p>
+<p>@CurAmt = CONVERT(NVARCHAR, ISNULL(CurAmt,0)), --금액</p>
+<p>@DelvDate = CASE WHEN ISNULL(DelvDate,'') \&lt;&gt; '' THEN SUBSTRING(DelvDate, 1, 4) + '-' + SUBSTRING(DelvDate, 5, 2) + '-' + SUBSTRING(DelvDate, 7, 2) ELSE '\&nbsp;' END, --납기예정일</p>
+<p>@MakerName = CASE WHEN ISNULL(MakerName,'') \&lt;&gt; '' THEN ISNULL(MakerName,'') ELSE '\&nbsp;' END,</p>
+<p>@Remark1 = CASE WHEN ISNULL(Remark1,'') \&lt;&gt; '' THEN ISNULL(Remark1,'') ELSE '\&nbsp;' END,</p>
+<p>@WHName = CASE WHEN ISNULL(WHName,'') \&lt;&gt; '' THEN ISNULL(WHName,'') ELSE '\&nbsp;' END --납품처</p>
+<p>FROM #TPUORDPOPrint</p>
+<p>WHERE IDX_NO = @IDX_NO</p>
+<p>--메일 전송 정보</p>
+<p>SELECT @SendUserSeq = @UserSeq, --발신자</p>
+<p>@RecvUserSeq = 0, --수신자</p>
+<p>-- @RecvEmpMail = '', --수신자메일</p>
+<p>-- @SendEmpMail = '' --발신자메일</p>
+<p>-- --테스트메일주소 입력</p>
+<p>@RecvEmpMail = EmpEmail + '; ' + CustEmail, --수신자메일</p>
+<p>-- @RecvEmpMail = 'sdlee@ksystem.co.kr', --수신자메일</p>
+<p>@SendEmpMail = EmpEmail --발신자메일</p>
+<p>-- @SendEmpMail = 'sdlee@ksystem.co.kr' --발신자메일</p>
+<p>FROM #TPUORDPOPrint</p>
+<p>WHERE IDX_NO = @IDX_NO</p>
+<p>--SELECT @Subjects = '발주번호 [' + ISNULL(@PONo,'9999') + ']의 구매발주서 입니다.'</p>
+<p>SELECT @Subjects = ' 이티에스 - 발주 등록이 완료 되었습니다. 발주번호 [' + ISNULL(@PONo,'9999') + ']'</p>
+<p>SELECT @AttachFileName = ISNULL(@PONo,'9999') + '.html'</p>
+<p>-- SELECT @html = ''</p>
+<p>SELECT @html = @html + @html_head --HTML 헤더 초기화</p>
+<p>SELECT @MailMsg = @MailMsg + @html_msg --HTML 헤더 초기화</p>
+<p>SELECT @MailMsg = REPLACE(@MailMsg,'##PONo##',ISNULL(@PONo,'\&nbsp;')) --발주번호</p>
+<p>SELECT @MailMsg = REPLACE(@MailMsg,'##TaxName##',ISNULL(@TaxName,'\&nbsp;')) --상호</p>
+<p>SELECT @MailMsg = REPLACE(@MailMsg,'##TotAmt##',ISNULL(@TotAmt,'\&nbsp;')) -- 24.04.19 SJPARK</p>
+<p>--HTML 헤더 데이터 삽입</p>
+<p>SELECT @html = REPLACE(@html,'##PONo##', ISNULL(@PONo,'\&nbsp;')) --구매발주번호</p>
+<p>SELECT @html = REPLACE(@html,'##PODate##', ISNULL(@PODate,'\&nbsp;')) --발주일자</p>
+<p>SELECT @html = REPLACE(@html,'##TaxName##', ISNULL(@TaxName,'\&nbsp;')) --상호</p>
+<p>SELECT @html = REPLACE(@html,'##TaxNo##', ISNULL(@TaxNo,'\&nbsp;')) --사업자등록번호</p>
+<p>SELECT @html = REPLACE(@html,'##Owner##', ISNULL(@Owner,'\&nbsp;')) --대표자명</p>
+<p>SELECT @html = REPLACE(@html,'##VATRptAddr##', ISNULL(@VATRptAddr,'\&nbsp;')) --주소 - 상위</p>
+<p>SELECT @html = REPLACE(@html,'##BizUnitName##', ISNULL(@BizUnitName,'\&nbsp;')) --매입사업장</p>
+<p>SELECT @html = REPLACE(@html,'##CurrName##', ISNULL(@CurrName,'\&nbsp;')) --통화단위</p>
+<p>SELECT @html = REPLACE(@html,'##CustName##', ISNULL(@CustName,'\&nbsp;')) --거래처명</p>
+<p>SELECT @html = REPLACE(@html,'##CustEmpName##', ISNULL(@CustEmpName,'\&nbsp;')) --대표자명</p>
+<p>SELECT @html = REPLACE(@html,'##EmpName##', ISNULL(@EmpName,'\&nbsp;')) --담당자</p>
+<p>SELECT @html = REPLACE(@html,'##BizAddr##', ISNULL(@BizAddr,'\&nbsp;')) --주소</p>
+<p>SELECT @html = REPLACE(@html,'##TaxFAXNo##', ISNULL(@TaxFAXNo,'\&nbsp;')) --FAX - 구매정보</p>
+<p>SELECT @html = REPLACE(@html,'##TelNo##', ISNULL(@TelNo,'\&nbsp;')) --전화번호</p>
+<p>SELECT @html = REPLACE(@html,'##CustFax##', ISNULL(@CustFax,'\&nbsp;')) --FAX</p>
+<p>SELECT @html = REPLACE(@html,'##EmpEmail##', ISNULL(@EmpEmail,'\&nbsp;')) --E-Mail</p>
+<p>SELECT @html = REPLACE(@html,'##SumAmt##', CASE WHEN ISNULL(@StrSumAmt,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@StrSumAmt, @CurAmtPoint) ELSE '\&nbsp;' END) --공급가액</p>
+<p>SELECT @html = REPLACE(@html,'##SumVAT##', CASE WHEN ISNULL(@StrSumVAT,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@StrSumVAT, @CurAmtPoint) ELSE '\&nbsp;' END) --부가세</p>
+<p>SELECT @html = REPLACE(@html,'##TotAmt##', CASE WHEN ISNULL(@TotAmt,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@TotAmt, @CurAmtPoint) ELSE '\&nbsp;' END) --합계금액 (공급가액 + 부가세)</p>
+<p>--SELECT @html = REPLACE(@html,'##FactAddr##', ISNULL(@FactAddr,'\&nbsp;')) --납품처</p>
+<p>SELECT @html = REPLACE(@html,'##DeptName##', ISNULL(@DeptName,'\&nbsp;')) --발주부서</p>
+<p>--반복데이터 삽입</p>
+<p>SELECT @html = @html + '\&lt;tr&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td class="left"&gt;' + CONVERT(NVARCHAR, @DetailCnt) + '\&lt;/td&gt;'</p>
+<p>--SELECT @html = @html + '\&lt;td colspan="2"&gt;' + ISNULL(@PJTNo,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" class="dotline"&gt;' + ISNULL(@ItemNo,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" class="dotline"&gt;' + ISNULL(@ItemName,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td class="dotline"&gt;' + ISNULL(@UnitName,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" align="right" class="dotline"&gt;' + CASE WHEN ISNULL(@Qty,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@Qty, @QtyPoint) ELSE '\&nbsp;' END + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" align="right" class="dotline"&gt;' + CASE WHEN ISNULL(@Price,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@Price, @PricePoint) ELSE '\&nbsp;' END + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="3" class="dotline"&gt;' + ISNULL(@MakerName,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;td class="left"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td colspan="2"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td colspan="2"&gt;' + ISNULL(@Spec,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td&gt;\&nbsp;\&lt;/td&gt; \&lt;td colspan="2" align="center"&gt;' + ISNULL(@DelvDate,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" align="right"&gt;' + CASE WHEN ISNULL(@CurAmt,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@CurAmt, @CurAmtPoint) ELSE '\&nbsp;' END + '\&lt;/td&gt;'</p>
+<p>-- SELECT @html = @html + '\&lt;td align=left&gt;\&lt;font size=2&gt;' + ISNULL(@WHName,'\&nbsp;') + '\&lt;/font&gt;\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="3"&gt;' + ISNULL(@Remark1,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;/tr&gt;'</p>
+<p>--신규로 생성된 값을 메일 전송 임시 테이블에 저장</p>
+<p>INSERT INTO #TEMP_TCASendMessage</p>
+<p>SELECT @POSeq AS POSeq,</p>
+<p>0 AS CompanySeq,</p>
+<p>0 AS SendMessageID,</p>
+<p>@SendUserSeq AS SendUserSeq,</p>
+<p>3 AS SendMessageType,</p>
+<p>@Subjects AS Subject,</p>
+<p>@MailMsg AS SendMessage,</p>
+<p>@RecvUserSeq AS RecvUserSeq,</p>
+<p>'0' AS IsMemo,</p>
+<p>'1' AS IsMail,</p>
+<p>'0' AS IsSMS,</p>
+<p>'' AS SendMemo,</p>
+<p>0 AS SendMail,</p>
+<p>'' AS MemoDateTime,</p>
+<p>GETDATE() AS MailDateTime,</p>
+<p>'' AS SMSDateTime,</p>
+<p>'' AS SendSMS,</p>
+<p>'PU_'+ CONVERT(NVARCHAR(10),@POSeq) AS TblKey,</p>
+<p>GETDATE() AS CrDateTime,</p>
+<p>@RecvEmpMail AS RecvEmail,</p>
+<p>'' AS RecvTelNo,</p>
+<p>'' AS LoginPwd,</p>
+<p>'' AS States,</p>
+<p>0 AS Result,</p>
+<p>'' AS EmailPass,</p>
+<p>@html AS AttachMessage,</p>
+<p>@AttachFileName AS AttachFileName,</p>
+<p>@SendEmpMail AS SendEmail,</p>
+<p>'' AS CCEmail</p>
+<p>IF @@ERROR \&lt;&gt; 0 BEGIN RETURN END -- 에러가 발생하면 리턴</p>
+<p>--이전구매발주코드를 현구매발주코드로 갱신</p>
+<p>SELECT @PrevPOSeq = @POSeq</p>
+<p>END</p>
+<p>--PrevPOSeq와 POSeq 비교하여, 같으면 테이블에 행만 추가</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>--디테일 순번</p>
+<p>SELECT @DetailCnt = @DetailCnt + 1</p>
+<p>--반복 데이터 수집</p>
+<p>SELECT @PONo = CASE WHEN ISNULL(PONo,'') \&lt;&gt; '' THEN ISNULL(PONo,'') ELSE '\&nbsp;' END, --구매발주번호</p>
+<p>@Remark = CASE WHEN ISNULL(Remark,'') \&lt;&gt; '' THEN ISNULL(Remark,'') ELSE '\&nbsp;' END, --마스터 - 비고</p>
+<p>@PJTNo = CASE WHEN ISNULL(PJTNo,'') \&lt;&gt; '' THEN ISNULL(PJTNo,'') ELSE '\&nbsp;' END, --프로젝트번호</p>
+<p>@ItemNo = CASE WHEN ISNULL(ItemNo,'') \&lt;&gt; '' THEN ISNULL(ItemNo,'') ELSE '\&nbsp;' END, --품번</p>
+<p>@ItemName = CASE WHEN ISNULL(ItemName,'') \&lt;&gt; '' THEN ISNULL(ItemName,'') ELSE '\&nbsp;' END, --품명</p>
+<p>@Spec = CASE WHEN ISNULL(Spec,'') \&lt;&gt; '' THEN ISNULL(Spec,'') ELSE '\&nbsp;' END, --규격</p>
+<p>@Qty = CONVERT(NVARCHAR, ISNULL(Qty,0)), --발주수량</p>
+<p>@UnitName = CASE WHEN ISNULL(UnitName,'') \&lt;&gt; '' THEN ISNULL(UnitName,'') ELSE '\&nbsp;' END, --단위</p>
+<p>@Price = CONVERT(NVARCHAR, ISNULL(Price,0)), --단가</p>
+<p>@CurAmt = CONVERT(NVARCHAR, ISNULL(CurAmt,0)), --금액</p>
+<p>@DelvDate = CASE WHEN ISNULL(DelvDate,'') \&lt;&gt; '' THEN LEFT(DelvDate,4) + '-' + RIGHT(LEFT(DelvDate,6),2) + '-' + RIGHT(DelvDate,2) ELSE '\&nbsp;' END, --납기예정일</p>
+<p>@MakerName = CASE WHEN ISNULL(MakerName,'') \&lt;&gt; '' THEN ISNULL(MakerName,'') ELSE '\&nbsp;' END,</p>
+<p>@Remark1 = CASE WHEN ISNULL(Remark1,'') \&lt;&gt; '' THEN ISNULL(Remark1,'') ELSE '\&nbsp;' END,</p>
+<p>@WHName = CASE WHEN ISNULL(WHName,'') \&lt;&gt; '' THEN ISNULL(WHName,'') ELSE '\&nbsp;' END, --납품처</p>
+<p>@TaxName = CASE WHEN ISNULL(TaxName,'') \&lt;&gt; '' THEN ISNULL(TaxName,'') ELSE '\&nbsp;' END, -- 사업자번호상호</p>
+<p>@CustEmpTELNo= CASE WHEN ISNULL(CustEmpTELNo,'') \&lt;&gt; '' THEN ISNULL(CustEmpTELNo,'') ELSE '\&nbsp;' END, --거래처 대표담당자 전화번호</p>
+<p>@CustEmpFAX = CASE WHEN ISNULL(FAX,'') \&lt;&gt; '' THEN ISNULL(FAX,'') ELSE '\&nbsp;' END --거래처 대표담당자 FAX번호</p>
+<p>FROM #TPUORDPOPrint</p>
+<p>WHERE IDX_NO = @IDX_NO</p>
+<p>SELECT @html = ''</p>
+<p>SELECT @html = @html + '\&lt;tr&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td class="left"&gt;' + CONVERT(NVARCHAR, @DetailCnt) + '\&lt;/td&gt;'</p>
+<p>--SELECT @html = @html + '\&lt;td colspan="2"&gt;' + ISNULL(@PJTNo,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" class="dotline"&gt;' + ISNULL(@ItemNo,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" class="dotline"&gt;' + ISNULL(@ItemName,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td class="dotline"&gt;' + ISNULL(@UnitName,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" align="right" class="dotline"&gt;' + CASE WHEN ISNULL(@Qty,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@Qty, @QtyPoint) ELSE '\&nbsp;' END + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" align="right" class="dotline"&gt;' + CASE WHEN ISNULL(@Price,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@Price, @PricePoint) ELSE '\&nbsp;' END + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="3" class="dotline"&gt;' + ISNULL(@MakerName,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;/tr&gt;</p>
+<p>\&lt;tr&gt;</p>
+<p>\&lt;td class="left"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td colspan="2"&gt;\&nbsp;\&lt;/td&gt;</p>
+<p>\&lt;td colspan="2"&gt;' + ISNULL(@Spec,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td&gt;\&nbsp;\&lt;/td&gt; \&lt;td colspan="2" align="center"&gt;' + ISNULL(@DelvDate,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="2" align="right"&gt;' + CASE WHEN ISNULL(@CurAmt,'') \&lt;&gt; '' THEN dbo._FnCOMCurrency(@CurAmt, @CurAmtPoint) ELSE '\&nbsp;' END + '\&lt;/td&gt;'</p>
+<p>-- SELECT @html = @html + '\&lt;td align=left&gt;\&lt;font size=2&gt;' + ISNULL(@WHName,'\&nbsp;') + '\&lt;/font&gt;\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;td colspan="3"&gt;' + ISNULL(@Remark1,'\&nbsp;') + '\&lt;/td&gt;'</p>
+<p>SELECT @html = @html + '\&lt;/tr&gt;'</p>
+<p>--추가될 HTML-TABLE 태그를 갱신한다.</p>
+<p>UPDATE A</p>
+<p>-- SET SendMessage = A.SendMessage + @html,</p>
+<p>SET AttachMessage = A.AttachMessage + @html</p>
+<p>FROM #TEMP_TCASendMessage AS A</p>
+<p>WHERE A.POSeq = @POSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 BEGIN RETURN END -- 에러가 발생하면 리턴</p>
+<p>END --::IF @PrevPOSeq \&lt;&gt; @POSeq</p>
+<p>--다음 커서 이동</p>
+<p>SELECT @IDX_NO = @IDX_NO + 1</p>
+<p>END --::WHILE (@IDX_NO \&lt; @Count)</p>
+<p>--추가될 HTML-TABLE 태그를 갱신한다.</p>
+<p>SELECT @html_tail_inData = ''</p>
+<p>SELECT @html_tail_inData = @html_tail_inData + @html_tail</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##PONo##', ISNULL(@PONo,'\&nbsp;')) --구매발주번호</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##Remark##', ISNULL(@Remark,'\&nbsp;')) --마스터 - 비고</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##TaxName##', ISNULL(@TaxName,'\&nbsp;')) --사업자번호상호</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##CustEmpTELNo##',ISNULL(@CustEmpTELNo,'\&nbsp;')) --거래처 대표담당자 전화번호</p>
+<p>SELECT @html_tail_inData = REPLACE(@html_tail_inData,'##CustEmpFAX##', ISNULL(@CustEmpFAX,'\&nbsp;')) --거래처 대표담당자 FAX번호</p>
+<p>UPDATE A</p>
+<p>-- SET SendMessage = A.SendMessage + @html,</p>
+<p>SET AttachMessage = A.AttachMessage + @html_tail_inData</p>
+<p>FROM #TEMP_TCASendMessage AS A</p>
+<p>WHERE A.POSeq = @PrevPOSeq</p>
+<p>END --::IF @Count &gt; 0</p>
+<p>SELECT * FROM #TEMP_TCASendMessage</p>
+<p>RETURN</p>
+<p>go</p>
+<p>begin tran</p>
+<p>exec ets_SPUORDPOListSendMail @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag /&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;Selected&gt;0\&lt;/Selected&gt;</p>
+<p>\&lt;Email&gt;sjpark@sysware.co.kr\&lt;/Email&gt;</p>
+<p>\&lt;POSeq&gt;1308\&lt;/POSeq&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=9328,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1000230,@PgmSeq=11090</p>
+<p>rollback tran</p>
+<p>색 지정 : \&lt;font color=red&gt;</p>
+<p>굵게 : \&lt;b&gt;</p>
+<p>공백 : &amp;nbsp</p>
+  </article>
+</div>
+</body>
+</html>

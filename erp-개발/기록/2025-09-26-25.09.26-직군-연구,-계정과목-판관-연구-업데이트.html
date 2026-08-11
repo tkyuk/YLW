@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.26 직군 연구, 계정과목 판관 -\> 연구 업데이트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.26 직군 연구, 계정과목 판관 -\> 연구 업데이트</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250926-">25.09.26 직군 연구, 계정과목 판관 -&gt; 연구 업데이트</h1>
+<p>-- 직군이 연구인데 판관 계정과목</p>
+<p>BEGIN TRAN</p>
+<p>SELECT A.ACCSEQ,</p>
+<p>AccName</p>
+<p>FROM das_VARBizTripReport AS A</p>
+<blockquote>
+<p>JOIN das_TARExpendAuthorityEmp AS B ON B.EmpSeq = A.TripEmpSeq</p>
+</blockquote>
+<p>JOIN das_TARExpendAuthorityM AS C ON C.GroupSeq = B.GroupSeq</p>
+<p>WHERE B.GroupSeq = 2</p>
+<p>AND A.ACCSEQ IS NOT NULL</p>
+<p>UPDATE A</p>
+<p>SET AccSeq = D.AccSeq3</p>
+<p>FROM das_TARBizTripReportAmt AS A</p>
+<p>JOIN _TARBizTripCost AS E ON E.BizTripSeq = A.BizTripSeq</p>
+<blockquote>
+<p>JOIN das_TARExpendAuthorityEmp AS B ON B.EmpSeq = E.TripEmpSeq</p>
+</blockquote>
+<p>JOIN das_TARExpendAuthorityM AS C ON C.GroupSeq = B.GroupSeq</p>
+<blockquote>
+<p>JOIN #tMP AS D ON D.AccSeq2 = A.ACCSEQ</p>
+<p>JOIN _TDAAccount AS F ON F.AccSeq = A.AccSeq</p>
+</blockquote>
+<p>WHERE B.GroupSeq = 2</p>
+<p>AND A.ACCSEQ IS NOT NULL</p>
+<p>SELECT A.ACCSEQ,</p>
+<p>AccName</p>
+<p>FROM das_VARBizTripReport AS A</p>
+<blockquote>
+<p>JOIN das_TARExpendAuthorityEmp AS B ON B.EmpSeq = A.TripEmpSeq</p>
+</blockquote>
+<p>JOIN das_TARExpendAuthorityM AS C ON C.GroupSeq = B.GroupSeq</p>
+<p>WHERE B.GroupSeq = 2</p>
+<p>AND A.ACCSEQ IS NOT NULL</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT *</p>
+<p>FROM das_VARBizTripReport AS A</p>
+<p>JOIN das_TARExpendAuthorityEmp AS B ON B.EmpSeq = A.TripEmpSeq</p>
+<p>JOIN das_TARExpendAuthorityM AS C ON C.GroupSeq = B.GroupSeq</p>
+<blockquote>
+<p>--JOIN #tMP AS D ON D.AccSeq2 = A.ACCSEQ</p>
+</blockquote>
+<p>WHERE B.GroupSeq = 2</p>
+<p>AND ACCSEQ IS NOT NULL</p>
+<p>CREATE TABLE #tMP(</p>
+<blockquote>
+<p>AccSeq1 INT</p>
+<p>,AccSeq2 INT</p>
+<p>,AccSeq3 INT</p>
+<p>,AccName1 NVARCHAR(100)</p>
+<p>,AccName2 NVARCHAR(100)</p>
+<p>,AccName3 NVARCHAR(100)</p>
+</blockquote>
+<p>)</p>
+<p>INSERT INTO #tMP</p>
+<p>SELECT DISTINCT L.ValueSeq, M.ValueSeq,N.ValueSeq,A.AccName, B.AccName,C.AccName</p>
+<p>FROM _TDAUMinor AS J</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS L WITH(NOLOCK) ON J.CompanySeq = L.CompanySeq</p>
+<p>AND J.MinorSeq = L.MinorSeq</p>
+<p>AND L.Serl = 15000007 -- 제조비용계정</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS M WITH(NOLOCK) ON J.CompanySeq = M.CompanySeq</p>
+<p>AND J.MinorSeq = M.MinorSeq</p>
+<p>AND M.Serl = 15000008 -- 판관비용계정</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS N WITH(NOLOCK) ON J.CompanySeq = N.CompanySeq</p>
+<p>AND J.MinorSeq = N.MinorSeq</p>
+<p>AND N.Serl = 15000009 -- 연구비용계정</p>
+<p>LEFT OUTER JOIN _TDAAccount AS A WITH(NOLOCK) ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.AccSeq = L.ValueSeq</p>
+<p>LEFT OUTER JOIN _TDAAccount AS B WITH(NOLOCK) ON B.CompanySeq = M.CompanySeq</p>
+<p>AND B.AccSeq = M.ValueSeq</p>
+<p>LEFT OUTER JOIN _TDAAccount AS C WITH(NOLOCK) ON C.CompanySeq = N.CompanySeq</p>
+<p>AND C.AccSeq = N.ValueSeq</p>
+<p>WHERE J.MajorSeq = 1110352</p>
+  </article>
+</div>
+</body>
+</html>

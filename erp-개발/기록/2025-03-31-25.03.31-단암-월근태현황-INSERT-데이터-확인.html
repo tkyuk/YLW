@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.03.31 단암 월근태현황 INSERT 데이터 확인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.03.31 단암 월근태현황 INSERT 데이터 확인</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-31</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250331-insert">25.03.31 단암 월근태현황 INSERT 데이터 확인</h1>
+<p>/*</p>
+<p>생성 sp : danam_ADTWorkHistoryCreate</p>
+<p>테이블 : [daou_gw].[do].[public].adt_workhistory_new</p>
+<p>OutTime 컬럼의 9번째 자리가 0인 경우 WorkDate에서 하루 뺀 날짜를 입력</p>
+<p>(9번째 자리 = 시간</p>
+<p>ex. 20250203082743</p>
+<p>-&gt; 2025-0203-08:27:43 =&gt; 08시 27분 43초의 맨 앞자리인 0</p>
+<p>=</p>
+<p>*/</p>
+<p>--select * from [daou_gw].[do].[public].adt_workhistory_new where workdate ='20250202' and employee_number ='20170601'</p>
+<p>--select * from ADT_WorkHistory_danam where empseq = 433 and WkDate ='20250202'</p>
+<p>--select * from ADT_WorkHistory_danam where empseq = 433 and WkDate ='20250203'</p>
+<p>Select IsNull(B.EmpSeq, 0) As EmpSeq</p>
+<p>, A.Employee_number</p>
+<p>, A.WorkDate</p>
+<p>, 'out' AS WorkType</p>
+<p>, Max(Right(A.OutTime, 6)) AS WorkTime</p>
+<p>, Case When Substring(A.OutTime, 9, 1) = '0' Then convert(NCHAR(8), DATEADD(Day, -1, A.WorkDate), 112) Else A.WorkDate End AS WkDate</p>
+<p>From [daou_gw].[do].[public].adt_workhistory_new a Left Outer Join _TDAEmp b on b.CompanySeq = 1 and a.Employee_number = b.EmpId</p>
+<p>Where Isnull(A.OutTime, '') \&lt;&gt; ''</p>
+<p>--and A.WorkDate Between convert(NCHAR(8), DATEADD(Day, -1, Convert(NCHAR(8), GETDATE(), 112)), 112) and Convert(NCHAR(8), GETDATE(), 112)</p>
+<p>and a.workdate like '202502%'</p>
+<p>and employee_number ='20170601'</p>
+<p>Group by IsNull(B.EmpSeq, 0), A.Employee_number, A.WorkDate,</p>
+<p>Case When Substring(A.OutTime, 9, 1) = '0' Then convert(NCHAR(8), DATEADD(Day, -1, A.WorkDate), 112) Else A.WorkDate End,</p>
+<p>Case When Left(A.Employee_number, 1) ='G' Then Convert(INT, Right(Rtrim(A.Employee_number), 3)) Else 0 End</p>
+<p>Order by a.WorkDate</p>
+<p>Select IsNull(B.EmpSeq, 0) As EmpSeq</p>
+<p>, A.Employee_number</p>
+<p>, A.WorkDate</p>
+<p>, 'out' AS WorkType</p>
+<p>,A.OutTime</p>
+<p>,Right(A.OutTime, 6)</p>
+<p>,Substring(A.OutTime, 9, 1)</p>
+<p>, convert(NCHAR(8), DATEADD(Day, -1, A.WorkDate), 112)</p>
+<p>,A.WorkDate</p>
+<p>, Case When Substring(A.OutTime, 9, 1) = '0' Then convert(NCHAR(8), DATEADD(Day, -1, A.WorkDate), 112) Else A.WorkDate End AS WkDate</p>
+<p>From [daou_gw].[do].[public].adt_workhistory_new a Left Outer Join _TDAEmp b on b.CompanySeq = 1 and a.Employee_number = b.EmpId</p>
+<p>Where Isnull(A.OutTime, '') \&lt;&gt; ''</p>
+<p>--and A.WorkDate Between convert(NCHAR(8), DATEADD(Day, -1, Convert(NCHAR(8), GETDATE(), 112)), 112) and Convert(NCHAR(8), GETDATE(), 112)</p>
+<p>and a.workdate like '202502%'</p>
+<p>and employee_number ='20170601'</p>
+<p>Order by a.WorkDate</p>
+  </article>
+</div>
+</body>
+</html>

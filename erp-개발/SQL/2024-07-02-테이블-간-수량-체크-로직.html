@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테이블 간 수량 체크 로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>테이블 간 수량 체크 로직</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">테이블 간 수량 체크 로직</h1>
+<p><span class="mark">체크 SP</span></p>
+<p>--==========================================================</p>
+<p>-- 발주 -&gt; 납품 잔량 체크 추가 24.07.02 SJPARK</p>
+<p>--==========================================================</p>
+<p>CREATE TABLE #Temp_error</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT</p>
+<p>)</p>
+<p>INSERT #Temp_error(IDX_NO, POSeq, POSerl)</p>
+<p>-- 구매발주</p>
+<p>SELECT A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.POSeq = A.POSeq</p>
+<p>AND B.POSerl = A.POSerl</p>
+<p>AND A.UMDelvKind = 1000498001</p>
+<p>LEFT OUTER JOIN mcf_TPUCustDelvItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.POSeq = A.POSeq</p>
+<p>AND C.POSerl = A.POSerl</p>
+<p>AND C.UMDelvKind = A.UMDelvKind</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>GROUP BY A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>HAVING MAX(ISNULL(B.Qty, 0)) - (MAX(ISNULL(A.Qty, 0)) + SUM(ISNULL(C.Qty, 0))) \&lt; 0</p>
+<p>UNION</p>
+<p>-- 외주발주</p>
+<p>SELECT A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN _TPDOSPPOItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.OSPPOSeq = A.POSeq</p>
+<p>AND B.OSPPOSerl = A.POSerl</p>
+<p>AND A.UMDelvKind = 1000498002</p>
+<p>LEFT OUTER JOIN mcf_TPUCustDelvItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.POSeq = A.POSeq</p>
+<p>AND C.POSerl = A.POSerl</p>
+<p>AND C.UMDelvKind = A.UMDelvKind</p>
+<p>WHERE A.WorkingTag = 'A' AND A.Status = 0</p>
+<p>GROUP BY A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>HAVING MAX(ISNULL(B.Qty, 0)) - (MAX(ISNULL(A.Qty, 0)) + SUM(ISNULL(C.Qty, 0))) \&lt; 0</p>
+<p>UPDATE A</p>
+<p>SET Status = 99999,</p>
+<p>Result = '발주수량 초과하였습니다.'</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #Temp_error AS B ON B.IDX_NO = A.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+<p>--==========================================================</p>
+<p>-- 발주 -&gt; 납품 잔량 체크 종료</p>
+<p>--==========================================================</p>
+<p><span class="mark">저장 SP</span></p>
+<p>--==========================================================</p>
+<p>-- 발주 -&gt; 납품 잔량 체크 추가 24.07.02 SJPARK</p>
+<p>--==========================================================</p>
+<p>CREATE TABLE #Temp_error</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT</p>
+<p>)</p>
+<p>INSERT #Temp_error(IDX_NO, POSeq, POSerl)</p>
+<p>-- 구매발주</p>
+<p>SELECT A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.POSeq = A.POSeq</p>
+<p>AND B.POSerl = A.POSerl</p>
+<p>AND A.UMDelvKind = 1000498001</p>
+<p>LEFT OUTER JOIN mcf_TPUCustDelvItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.POSeq = A.POSeq</p>
+<p>AND C.POSerl = A.POSerl</p>
+<p>AND C.UMDelvKind = A.UMDelvKind</p>
+<p>WHERE A.Status = 0</p>
+<p>GROUP BY A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>HAVING MAX(ISNULL(B.Qty,0)) \&lt; SUM(ISNULL(C.Qty,0))</p>
+<p>UNION</p>
+<p>-- 외주발주</p>
+<p>SELECT A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN _TPDOSPPOItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.OSPPOSeq = A.POSeq</p>
+<p>AND B.OSPPOSerl = A.POSerl</p>
+<p>AND A.UMDelvKind = 1000498002</p>
+<p>LEFT OUTER JOIN mcf_TPUCustDelvItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.POSeq = A.POSeq</p>
+<p>AND C.POSerl = A.POSerl</p>
+<p>AND C.UMDelvKind = A.UMDelvKind</p>
+<p>WHERE A.Status = 0</p>
+<p>GROUP BY A.IDX_NO, A.POSeq, A.POSerl</p>
+<p>HAVING MAX(ISNULL(B.Qty,0)) \&lt; SUM(ISNULL(C.Qty,0))</p>
+<p>UPDATE A</p>
+<p>SET Status = 99999,</p>
+<p>Result = '발주수량 초과하였습니다.'</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #Temp_error AS B ON B.IDX_NO = A.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+  </article>
+</div>
+</body>
+</html>

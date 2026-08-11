@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.10.17 단암 휴가신청 결재상신 sp</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.10.17 단암 휴가신청 결재상신 sp</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="251017-sp">25.10.17 단암 휴가신청 결재상신 sp</h1>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>,@EmpSeq INT = 964</p>
+<blockquote>
+<p>,@WkItemSeq INT = 1025</p>
+<p>,@WkFrDate NCHAR(8) = '20250903'</p>
+<p>,@WkToDate NCHAR(8) = '20250903'</p>
+</blockquote>
+<p>-- 변수 설정</p>
+<p>SELECT ISNULL(B.EmpSeq , 0) AS EmpSeq , -- 사원코드(2020.09.15) --@EmpSeq</p>
+<p>ISNULL(B.WkItemSeq, 0) AS WkItemSeq,                                                        --@WkItemSeq</p>
+<p>ISNULL(B.ConSeq , 0) AS ConSeq , --##05                                --@ConSeq</p>
+<p>ISNULL(B.AppDate , '') AS AppDate ,                                                        --@AppDate</p>
+<p>ISNULL(B.VacFrDate, '') AS VacFrDate,                                                        --@WkFrDate</p>
+<p>ISNULL(B.VacToDate, '') AS VacToDate                                                         --@WkToDate</p>
+<blockquote>
+<p>,*</p>
+</blockquote>
+<p>FROM _TXPRWkVactionApp AS B</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<blockquote>
+<p>AND B.VacAppSeq = 635</p>
+</blockquote>
+<p>SELECT A.CompanySeq, A.Serl, A.EmpSeq, A.WkItemSeq, A.UseFrDate, A.UseToDate, A.OccurDays, A.AddPileDays, A.BasePileDays, A.PileDays, A.OccurDTCnt, A.AddPileDTCnt, A.BasePileDTCnt, A.PileDTCnt</p>
+<p>FROM _TXPRWkEtcMng AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>--AND A.UseFrDate \&lt;= @WkFrDate</p>
+<p>--AND A.UseToDate &gt;= @WkToDate</p>
+<p>-- 전체 사용일수 가져오기</p>
+<p>SELECT A.DTCnt,*</p>
+<p>FROM _TXPRWkAbsence AS A LEFT OUTER JOIN _TXPRWkTypeTimeSet AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WkTypeSeq = B.WkTypeSeq</p>
+<p>AND A.WkFormSeq = B.WkFormSeq</p>
+<p>AND A.DayTypeSeq = B.DayTypeSeq</p>
+<p>AND B.SMWkKindSeq = 5037002</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<blockquote>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>SELECT * FROM _TDAEMP WHERE EMPSEQ = 964</p>
+<p>SELECT * FROM _TPRWKITEM WHERE WKITEMSEQ = 1025</p>
+</blockquote>
+<p>SELECT '기타휴가 발생',* FROM _TXPRWkEtcMng AS A WHERE EMPSEQ = 964                 </p>
+<p>SELECT '기타휴가 발생',* FROM _TXPRWkEtcMng AS A WHERE EMPSEQ = 964 AND A.UseFrDate \&lt;= '20250903'</p>
+<p>SELECT * FROM _TXPRWkAbsence WHERE EMPSEQ = 964 AND WkItemSeq = 1025</p>
+<p>BEGIN TRAN</p>
+<p>GO</p>
+<p>/************************************************************************************************</p>
+<p>설 명 - 휴가신청</p>
+<p>화면명 : FrmXPRWkVacationApp / FrmXPRWkVacationAppList</p>
+<p>작 성 일 - 2019.08.21</p>
+<p>수정내역 - 결근내역 삭제 시 Status체크 부분 추가(2019.10.30)</p>
+<p>- 근태환경설정 추가(2020.06.24)</p>
+<p>- 삭제 후 삽입에서 입력내역이 없으면 삽입으로 변경(2020.07.06)</p>
+<p>- 확정기준을 master에서 detail로 -&gt; Dtl테이블 JOIN / EmpSeq조건 제외(2020.09.15)</p>
+<p>- 확정 시 사용가능일수 체크 / 연차초과신청 추가(2020.09.21) -&gt; 우선 제외하여 패치</p>
+<p>-&gt; 다시 활성화</p>
+<p>- 환경설정1 체크시 결근내역집계 수정(2021.01.06)</p>
+<p>- 2021.03.11 정영훈 : 휴가취소신청 OR 휴가취소 Data가 있으면 확정 취소 되지 않도록 한다.</p>
+<p>- 2021.06.03 김미송 : 1일한도 초과 체크 시 조건 오류가 있어서 수정함. 근무신청확정과 동일하게 수정</p>
+<p>- 초과신청활성화 하는 과정에서 연도설정이 빠져서 다시 생성(2021.08.27)</p>
+<p>- 2022.10.17 최자명 : 일괄확정기능 추가로 인해 체크로직 및 결근내역 추가하는 구문에 반영될 수 있도록 변수-&gt;템프테이블로 변경</p>
+<p>- 2022.10.27 남수진 : 일괄확정 기능을 사전체크 sp로 이동, 사용가능일수 체크 로직 추가</p>
+<p>- 2022.12.07 남수진 : 경조휴가에 대한 사용가능일수 체크 로직 추가 (위치검색: ##01)</p>
+<p>- 2023.01.16 남수진 : 결근내역 등록 일괄 처리 (위치검색: ##02)</p>
+<p>- 2023.01.30 남수진 : 근태항목의 일,시간항목이 바뀌었을때 따로 출력되어 템프에 담아 합쳐서 반영(##03)</p>
+<p>- 2023.12.05 송유진 : 결근테이블을 바로 조인하면 중복집계 되는 오류가 있어서 따로 집계하도록 수정 --##04</p>
+<p>- 2024.08.27 정수연 : 경조사코드추가하여 경조사인 경우 휴가일수 계산하는 로직 수정 --##05</p>
+<p>- 2024.09.04 정수연 : 사용기간관리체크 조건 걸리도록 롤백 후 경조사코드만 다시 추가 및 발생일수 0으로 계산하는 부분 주석</p>
+<p>- 2024.11.19 정수연 : 경조사코드를 못 받아오는 경우에 사용일수와 발생일수 계산되도록 수정</p>
+<p>- 2024.12.12 정수연 : 사용기간관리체크 안할 경우에도 사용가능일수 계산되도록 ##05부분 수정</p>
+<p>- 2025.01.10 송유진 : 확정 해제하는 휴가의 초과 일수 찾아서 삭제 202501030273 --##06</p>
+<p>- 2025.03.31 정수연 : 경조사 프로세스 사용하지 않을 경우도 고려하여 사용가능일수 계산되도록 수정 --##07</p>
+<p>*************************************************************************************************/</p>
+<p>ALTER PROCEDURE dbo._SXPRWkVacationAppCfm</p>
+<p>@CompanySeq INT,</p>
+<p>@LanguageSeq INT,</p>
+<p>@UserSeq INT,</p>
+<p>@PgmSeq INT,</p>
+<p>@ConfirmSeq INT,</p>
+<p>@MessageType INT OUTPUT,</p>
+<p>@Status INT OUTPUT,</p>
+<p>@Results NVARCHAR(250) OUTPUT</p>
+<p>AS</p>
+<p>-- 변수 선언</p>
+<p>DECLARE @EmpSeq INT,</p>
+<p>@VacAppSeq INT,</p>
+<p>@WkItemSeq INT,</p>
+<p>@ConSeq INT, --##05</p>
+<p>@AppDate NCHAR(8),</p>
+<p>@WkFrDate NCHAR(8),</p>
+<p>@WkToDate NCHAR(8),</p>
+<p>@WkEnvVal NCHAR(1), -- 근태환경설정-휴가확정시급여용근태생성(2020.06.24)</p>
+<p>@WkEnvVal2 NCHAR(1), -- 근태환경설정-연차초과신청설정(2020.09.21)</p>
+<p>@YY NCHAR(4),</p>
+<p>@UnitTm DECIMAL(19, 5),</p>
+<p>@OverDTCnt DECIMAL(19, 5),</p>
+<p>@BasePileDays DECIMAL(19, 5),</p>
+<p>@BasePileDTCnt DECIMAL(19, 5),</p>
+<p>@IsCancel NVARCHAR(1),</p>
+<p>@OccurDays DECIMAL(19, 5),</p>
+<p>@OccurDTCnt DECIMAL(19, 5),</p>
+<p>@UseDays DECIMAL(19, 5),</p>
+<p>@UseHours DECIMAL(19, 5),</p>
+<p>@UseMin INT</p>
+<p>-- 변수 설정</p>
+<p>SELECT @EmpSeq = ISNULL(B.EmpSeq , 0), -- 사원코드(2020.09.15)</p>
+<p>@WkItemSeq = ISNULL(B.WkItemSeq, 0),</p>
+<p>@ConSeq = ISNULL(B.ConSeq , 0), --##05</p>
+<p>@AppDate = ISNULL(B.AppDate , ''),</p>
+<p>@WkFrDate = ISNULL(B.VacFrDate, ''),</p>
+<p>@WkToDate = ISNULL(B.VacToDate, ''),</p>
+<p>@VacAppSeq = ISNULL(B.VacAppSeq, 0) -- 신청코드</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionApp AS B ON A.CfmSeq = B.VacAppSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.Status = 0</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>-- 대상추가</p>
+<p>CREATE TABLE #VacEmp(EmpSeq INT)</p>
+<p>-- 대상추출</p>
+<p>INSERT INTO #VacEmp(EmpSeq)</p>
+<p>SELECT DISTINCT EmpSeq</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionAppDtl AS B ON A.CfmSeq = B.VacAppSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.Status = 0</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>-- 사용가능일수를 담을 임시 테이블</p>
+<p>CREATE TABLE #VacGetDays</p>
+<p>(</p>
+<p>EmpSeq INT,</p>
+<p>VacAppSeq INT, PossibleDays DECIMAL(19, 5),</p>
+<p>PossibleDTCnt DECIMAL(19, 5),</p>
+<p>PossibleMinCnt DECIMAL(19, 5),</p>
+<p>OccurDays DECIMAL(19, 5),</p>
+<p>IsCC NCHAR(1),</p>
+<p>WkSort INT,</p>
+<p>YY NCHAR(4)</p>
+<p>)</p>
+<p>-- 근태환경설정(2020.06.24)</p>
+<p>-- 휴가확정 시 최종 결근내역 생성</p>
+<p>SELECT @WkEnvVal = ISNULL(EnvValue, '0') FROM _TXPRWkEnv WHERE CompanySeq = @CompanySeq AND EnvSeq = 1 AND IsUse = '1'</p>
+<p>-- 연차초과신청(2020.09.21)</p>
+<p>SELECT @WkEnvVal2 = ISNULL(EnvValue, '0') FROM _TXPRWkEnv WHERE CompanySeq = @CompanySeq AND EnvSeq = 2 AND IsUse = '1'</p>
+<p>-- 연도설정(2021.08.27)</p>
+<p>SELECT @YY = YY FROM _TXPRWkVactionAppOver WHERE CompanySeq = @CompanySeq AND VacAppSeq = @VacAppSeq</p>
+<hr />
+<p>-- 근태일 마감</p>
+<hr />
+<p>IF EXISTS (SELECT 1</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionApp AS B ON A.CfmSeq = B.VacAppSeq</p>
+<p>JOIN _TXPRWkVactionAppDtl AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>--AND B.EmpSeq = C.EmpSeq -- (2020.09.15)</p>
+<p>AND B.VacAppSeq = C.VacAppSeq</p>
+<p>JOIN _TXPRWkDayClose AS D ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.VacDate = D.WkDate</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.Status = 0</p>
+<p>AND D.IsClose = '1'</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>2224 , -- 해당 @1이(가) 마감되었습니다. (SELECT * FROM _TCAMessageLanguage WHERE Message LIKE '%되었습니다.%')</p>
+<p>@LanguageSeq ,</p>
+<p>134, N'근태일' -- SELECT * FROM _TCADictionary WHERE Word like '%근태일%'</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 사용가능일수 체크</p>
+<hr />
+<p>-- 연차 임시 테이블</p>
+<p>CREATE TABLE #Tmp_YyUseDaysEmp</p>
+<p>(</p>
+<p>Yy NCHAR(4), -- 사용연도</p>
+<p>EmpSeq INT, -- 사원코드</p>
+<p>SMYyType INT, -- 연차구분</p>
+<p>WkTypeDate NCHAR(8), -- 근무유형기준일자</p>
+<p>OccurDays DECIMAL(19,5), -- 총발생일수(이월적치일수+발생일수+추가발생일수)</p>
+<p>OccurDTCnt DECIMAL(19,5), -- 총발생시간(이월적치시간+발생시간+추가발생시간)</p>
+<p>UseFrDate NCHAR(8),</p>
+<p>UseToDate NCHAR(8),</p>
+<p>YyRuleSeq INT, -- 연차기준코드</p>
+<p>YyTypeCnt INT, -- 연차구분갯수 : 1이면 자체 사용시간계산, 2이면 우선순위적용</p>
+<p>UseDispSeq INT, -- 연차사용기준에 따른 사용일수 적용 순서 (5044001 :개정연차먼저사용, 5044002: 기본연차먼저사용)</p>
+<p>SMYyUseBase INT, -- 연차사용기준</p>
+<p>WkTypeSeq INT, -- 근무유형코드</p>
+<p>UnitTm DECIMAL(19,5), -- 단위시간</p>
+<p>UseDTCnt DECIMAL(19,5), -- 사용시간</p>
+<p>PayDTCnt DECIMAL(19,5), -- 잔여시간</p>
+<p>IsOccurOver NCHAR(1) -- 발생시간을 넘어선경우</p>
+<p>)</p>
+<p>CREATE TABLE #TempUse</p>
+<p>(</p>
+<p>EmpSeq INT,</p>
+<p>UseDTCnt DECIMAL(19, 5),</p>
+<p>UseDays DECIMAL(19, 5),</p>
+<p>OccurDays DECIMAL(19, 5), --UnitTm 나누기 위해 추가</p>
+<p>OccurDTCnt DECIMAL(19, 5), --UnitTm 나누기 위해 추가</p>
+<p>UnitTm DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #TempSum</p>
+<p>(</p>
+<p>EmpSeq INT,</p>
+<p>WkSort INT,</p>
+<p>OccurDTCnt DECIMAL(19, 5),</p>
+<p>UseHours DECIMAL(19, 5),</p>
+<p>UseMin DECIMAL(19, 5),</p>
+<p>UseDays DECIMAL(19, 5),</p>
+<p>OccurDays DECIMAL(19, 5)</p>
+<p>)</p>
+<p>-- 해당항목코드가 연차가 존재하는 경우</p>
+<p>IF EXISTS (SELECT * FROM _TPRWkItem WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq AND SMAbsWkSort = 3069002 AND SMWkAppSort = 5011003)</p>
+<p>BEGIN</p>
+<p>-- 연차 발생 내역 조회</p>
+<p>INSERT INTO #Tmp_YyUseDaysEmp(Yy, EmpSeq, SMYyType, WkTypeDate, OccurDays, OccurDTCnt, UseFrDate, UseToDate,</p>
+<p>YyRuleSeq, YyTypeCnt, UseDispSeq, SMYyUseBase, WkTypeSeq, UnitTm, UseDTCnt, PayDTCnt, IsOccurOver)</p>
+<p>SELECT A.Yy, A.EmpSeq, SMYyType, @WkToDate, -- @WkToDate -&gt; OccurToDate로(2020.05.12) -&gt; @WkToDate 사용시점으로 무조건 유지하기로(2020.12.14)</p>
+<p>ISNULL(PileDays, 0) + ISNULL(OccurDays, 0) + ISNULL(AddOccurDays, 0) - ISNULL(BasePileDays, 0) - ISNULL(AddPileDays, 0),</p>
+<p>ISNULL(PileDTCnt, 0) + ISNULL(OccurDTCnt, 0) + ISNULL(AddOccurDTCnt, 0) - ISNULL(BasePileDTCnt, 0) - ISNULL(AddPileDTCnt, 0),</p>
+<p>UseFrDate, UseToDate, 0,0,0,0,0,0, 0,0,'0'</p>
+<p>FROM _TXPRWkYyOccurDays AS A WITH(NOLOCK) -- 연차발생 테이블</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = @EmpSeq</p>
+<p>AND UseFrDate \&lt;= @WkFrDate</p>
+<p>AND UseToDate &gt;= @WkToDate</p>
+<p>-- 연차 사용 내역 조회</p>
+<p>EXEC _SXPRWkYyUseDaysGet @CompanySeq</p>
+<p>SELECT @OccurDTCnt = SUM(A.OccurDTCnt), -- 0나누기 방지(2019.10.26) -&gt; 임시테이블로 구한다.(2020.02.18)</p>
+<p>@UseHours = SUM(A.UseDTCnt),</p>
+<p>@UseMin = SUM(A.UseDTCnt*60)</p>
+<p>FROM #Tmp_YyUseDaysEmp AS A</p>
+<p>INSERT INTO #TempUse(UseDTCnt,UseDays , OccurDTCnt, OccurDays, UnitTm)</p>
+<p>SELECT UseDTCnt, 0.0 ,OccurDTCnt, 0.0 , UnitTm</p>
+<p>FROM #Tmp_YyUseDaysEmp</p>
+<p>-- EmpSeq, SMAbsWkSort에 따른 사용일수, 발생일수 삽입</p>
+<p>UPDATE #TempUse</p>
+<p>SET UseDays = ISNULL(UseDTCnt, 0) / CASE WHEN ISNULL(UnitTm, 0) = 0 THEN 1.0 ELSE ISNULL(UnitTm, 0) END,</p>
+<p>OccurDays = ISNULL(OccurDTCnt, 0) / CASE WHEN ISNULL(UnitTm, 0) = 0 THEN 1.0 ELSE ISNULL(UnitTm, 0) END</p>
+<p>-- 각 라인의 값을 합한다.(2020.02.18)</p>
+<p>SELECT @UseDays = SUM(UseDays),</p>
+<p>@OccurDays = SUM(OccurDays)</p>
+<p>FROM #TempUse</p>
+<p>END</p>
+<p>-- 해당항목코드 중 기타 휴가가 존재하는 경우 @@@@</p>
+<p>ELSE IF EXISTS (SELECT * FROM _TPRWkItem WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq AND SMAbsWkSort = 3069006 AND SMWkAppSort = 5011003) -- 기타휴가</p>
+<p>BEGIN                        </p>
+<p>-- 기타휴가 발생 조회</p>
+<p>SELECT A.CompanySeq, A.Serl, A.EmpSeq, A.WkItemSeq, A.UseFrDate, A.UseToDate, A.OccurDays, A.AddPileDays, A.BasePileDays, A.PileDays, A.OccurDTCnt, A.AddPileDTCnt, A.BasePileDTCnt, A.PileDTCnt</p>
+<p>INTO #Temp_EtcOccur</p>
+<p>FROM _TXPRWkEtcMng AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.UseFrDate \&lt;= @WkFrDate</p>
+<p>AND A.UseToDate &gt;= @WkToDate</p>
+<p>-- 전체 발생일수 가져오기(발생일수 - 적치일수 + 이월일수)</p>
+<p>SELECT @OccurDays = SUM(ISNULL(A.OccurDays , 0)) - SUM(ISNULL(A.AddPileDays , 0)) - SUM(ISNULL(A.BasePileDays , 0)) + SUM(ISNULL(A.PileDays , 0)),</p>
+<p>@OccurDTCnt = SUM(ISNULL(A.OccurDTCnt, 0)) - SUM(ISNULL(A.AddPileDTCnt, 0)) - SUM(ISNULL(A.BasePileDTCnt, 0)) + SUM(ISNULL(A.PileDTCnt, 0))</p>
+<p>FROM #Temp_EtcOccur AS A</p>
+<blockquote>
+<p>SELECT '기타휴가 발생', * FROM #Temp_EtcOccur</p>
+</blockquote>
+<p>-- 전체 사용일수 가져오기</p>
+<p>SELECT A.*</p>
+<p>FROM _TXPRWkAbsence AS A LEFT OUTER JOIN _TXPRWkTypeTimeSet AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WkTypeSeq = B.WkTypeSeq</p>
+<p>AND A.WkFormSeq = B.WkFormSeq</p>
+<p>AND A.DayTypeSeq = B.DayTypeSeq</p>
+<p>AND B.SMWkKindSeq = 5037002</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>AND EXISTS (SELECT 1 FROM #Temp_EtcOccur WHERE CompanySeq = A.CompanySeq AND EmpSeq = A.EmpSeq AND WkItemSeq = A.WkItemSeq AND A.AbsDate BETWEEN UseFrDate AND UseToDate)</p>
+<p>-- 전체 사용일수 가져오기</p>
+<p>SELECT CASE WHEN A.SMDTCType = 3068001 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0)), 0)</p>
+<p>WHEN A.SMDTCType = 3068002 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0) / CASE WHEN B.FullTime = 0 THEN 1 ELSE B.FullTime END), 0)</p>
+<p>ELSE 0</p>
+<p>END AS UseDays ,</p>
+<p>CASE WHEN A.SMDTCType = 3068001 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0) * CASE WHEN B.FullTime = 0 THEN 1 ELSE B.FullTime END), 0)</p>
+<p>WHEN A.SMDTCType = 3068002 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0)), 0)</p>
+<p>ELSE 0</p>
+<p>END AS UseHours,</p>
+<p>ISNULL(SUM(ISNULL(A.MinCnt, 0)), 0) AS UseMin</p>
+<p>INTO #UseDays</p>
+<p>FROM _TXPRWkAbsence AS A LEFT OUTER JOIN _TXPRWkTypeTimeSet AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WkTypeSeq = B.WkTypeSeq</p>
+<p>AND A.WkFormSeq = B.WkFormSeq</p>
+<p>AND A.DayTypeSeq = B.DayTypeSeq</p>
+<p>AND B.SMWkKindSeq = 5037002</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>AND EXISTS (SELECT 1 FROM #Temp_EtcOccur WHERE CompanySeq = A.CompanySeq AND EmpSeq = A.EmpSeq AND WkItemSeq = A.WkItemSeq AND A.AbsDate BETWEEN UseFrDate AND UseToDate)</p>
+<p>GROUP BY A.SMDTCType</p>
+<p>--근태항목의 일,시간항목이 바뀌었을때 따로 출력되어 템프에 담아 합쳐서 반영 (2022.08.10)</p>
+<p>SELECT</p>
+<p>@UseDays = SUM(UseDays) ,</p>
+<p>@UseHours = SUM(UseHours),</p>
+<p>@UseMin = SUM(UseMin)</p>
+<p>FROM #UseDays</p>
+<blockquote>
+<p>SELECT '기타휴가 ',</p>
+<p>@OccurDays AS OccurDays</p>
+<p>,@OccurDTCnt AS OccurDTCnt</p>
+<p>,@UseDays AS UseDays</p>
+<p>,@UseHours AS UseHours</p>
+<p>,@UseMin AS UseMin</p>
+</blockquote>
+<p>END</p>
+<p>-- 해당항목코드가 월차인 경우</p>
+<p>ELSE IF EXISTS (SELECT * FROM _TPRWkItem WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq AND SMAbsWkSort = 3069003 AND SMWkAppSort = 5011003) -- 월차(2021.08.05)</p>
+<p>BEGIN</p>
+<p>SELECT A.CompanySeq, A.Ym, A.EmpSeq, A.UseFrDate, A.UseToDate, A.OccurDays, A.OccurDTCnt</p>
+<p>INTO #Temp_MmOccur</p>
+<p>FROM _TXPRWkMmEmpDays AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.UseFrDate \&lt;= @WkFrDate</p>
+<p>AND A.UseToDate &gt;= @WkToDate</p>
+<p>-- 전체 발생일수 가져오기</p>
+<p>SELECT @OccurDays = SUM(ISNULL(A.OccurDays , 0)),</p>
+<p>@OccurDTCnt = SUM(ISNULL(A.OccurDTCnt, 0))</p>
+<p>FROM #Temp_MmOccur AS A</p>
+<p>-- 전체 사용일수 가져오기</p>
+<p>SELECT CASE WHEN A.SMDTCType = 3068001 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0)), 0)</p>
+<p>WHEN A.SMDTCType = 3068002 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0) / CASE WHEN B.FullTime = 0 THEN 1 ELSE B.FullTime END), 0)</p>
+<p>ELSE 0</p>
+<p>END AS UseDays,</p>
+<p>CASE WHEN A.SMDTCType = 3068001 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0) * CASE WHEN B.FullTime = 0 THEN 1 ELSE B.FullTime END), 0)</p>
+<p>WHEN A.SMDTCType = 3068002 THEN ISNULL(SUM(ISNULL(A.DTCnt, 0)), 0)</p>
+<p>ELSE 0</p>
+<p>END AS UseHours,</p>
+<p>ISNULL(SUM(ISNULL(A.MinCnt, 0)), 0) AS UseMin</p>
+<p>INTO #UseDays2</p>
+<p>FROM _TXPRWkAbsence AS A LEFT OUTER JOIN _TXPRWkTypeTimeSet AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WkTypeSeq = B.WkTypeSeq</p>
+<p>AND A.WkFormSeq = B.WkFormSeq</p>
+<p>AND A.DayTypeSeq = B.DayTypeSeq</p>
+<p>AND B.SMWkKindSeq = 5037002</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.WkItemSeq IN (SELECT WkItemSeq FROM _TPRWkItem WHERE CompanySeq = @CompanySeq AND SMAbsWkSort = 3069003)</p>
+<p>AND EXISTS (SELECT 1 FROM #Temp_MmOccur WHERE CompanySeq = A.CompanySeq AND EmpSeq = A.EmpSeq AND A.AbsDate BETWEEN UseFrDate AND UseToDate)</p>
+<p>GROUP BY A.SMDTCType</p>
+<p>--근태항목의 일,시간항목이 바뀌었을때 따로 출력되어 템프에 담아 합쳐서 반영 (##03)</p>
+<p>SELECT</p>
+<p>@UseDays = SUM(UseDays) ,</p>
+<p>@UseHours = SUM(UseHours),</p>
+<p>@UseMin = SUM(UseMin)</p>
+<p>FROM #UseDays2</p>
+<p>END</p>
+<p>-- 경조휴가인 경우 ##01</p>
+<p>ELSE IF EXISTS (SELECT * FROM _TXHRWelCon WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq AND ConSeq = @ConSeq AND WkItemSeq \&lt;&gt; 0 AND @ConSeq \&lt;&gt; 0) --##05</p>
+<p>BEGIN</p>
+<blockquote></blockquote>
+<p>---- 경조사가 존재하는 경우만</p>
+<p>--IF EXISTS(SELECT * FROM _TXHRWelCon WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq AND ConSeq = @ConSeq AND @ConSeq \&lt;&gt; 0 ) --##05</p>
+<p>--BEGIN</p>
+<p>-- 사용일수 계산</p>
+<p>SELECT @UseDays = COUNT(G.AbsDays) --##05</p>
+<p>FROM (SELECT A.AbsDate AS AbsDays --##05</p>
+<p>FROM _TXPRWkAbsence AS A JOIN _TPRWkItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WkItemSeq = A.WkItemSeq</p>
+<p>AND B.SMAbsWkSort = 3069011 -- 경조사</p>
+<p>JOIN _TXHRWelCon AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.WkItemSeq = B.WkItemSeq</p>
+<p>--AND C.IsMatPerCtr = '1'</p>
+<p>AND C.ConSeq = @ConSeq --##05</p>
+<p>JOIN _TXHRWelConEmp AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.ConSeq = C.ConSeq</p>
+<p>AND D.EmpSeq = A.EmpSeq</p>
+<p>JOIN _TXPRWkVactionApp AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.AppSeq = E.VacAppSeq</p>
+<p>AND C.ConSeq = E.ConSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>AND C.ConSeq = @ConSeq</p>
+<p>AND ((C.IsMatPerCtr = '1' AND A.AbsDate BETWEEN D.MatUseFrDate AND D.MatUseToDate) OR (C.IsMatPerCtr = '0' AND A.AbsDate BETWEEN '19000101' AND '99991231')) --##05</p>
+<p>AND ((C.IsMatPerCtr = '1' AND @WkToDate BETWEEN D.MatUseFrDate AND D.MatUseToDate) OR (C.IsMatPerCtr = '0' AND @WkToDate BETWEEN '19000101' AND '99991231')) --##05</p>
+<p>GROUP BY A.AbsDate --##05</p>
+<p>) AS G</p>
+<p>-- 발생일수 계산</p>
+<p>SELECT @OccurDays = ISNULL(SUM(B.HoliDays), 0)</p>
+<p>FROM _TXHRWelConEmp AS A WITH(NOLOCK) JOIN _TXHRWelCon AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ConSeq = B.ConSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.WkItemSeq = @WkItemSeq</p>
+<p>AND B.ConSeq = @ConSeq --##05</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND ((B.IsMatPerCtr = '1' AND @WkToDate BETWEEN A.MatUseFrDate AND A.MatUseToDate) OR (B.IsMatPerCtr = '0' AND @WkToDate BETWEEN '19000101' AND '99991231')) --##05</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 경조사 코드가 없는 경우</p>
+<p>-- 경조사에 아예내역이 없을 경우(NULL값일 경우) @OccurDays가 0으로 바뀜</p>
+<p>SELECT @OccurDays = ISNULL(SUM(B.HoliDays), 0)</p>
+<p>FROM _TXHRWelConEmp AS A WITH(NOLOCK) JOIN _TXHRWelCon AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ConSeq = B.ConSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.WkItemSeq = @WkItemSeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>END</p>
+<p>--경조사프로세스를 사용안하는 경우 --##07</p>
+<blockquote>
+<p>IF NOT EXISTS (SELECT * FROM _TXHRWelConEmp WHERE CompanySeq = @CompanySeq AND ConSeq = @ConSeq AND @ConSeq \&lt;&gt; 0 AND EmpSeq = @EmpSeq) --##05</p>
+</blockquote>
+<p>BEGIN</p>
+<blockquote></blockquote>
+<p>-- 사용일수 계산</p>
+<p>SELECT @UseDays = COUNT(G.AbsDays)</p>
+<p>FROM (SELECT A.AbsDate AS AbsDays</p>
+<p>FROM _TXPRWkAbsence AS A JOIN _TPRWkItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WkItemSeq = A.WkItemSeq</p>
+<p>AND B.SMAbsWkSort = 3069011 -- 경조사</p>
+<p>JOIN _TXHRWelCon AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.WkItemSeq = B.WkItemSeq</p>
+<p>AND C.ConSeq = @ConSeq</p>
+<p>JOIN _TXPRWkVactionApp AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.AppSeq = E.VacAppSeq</p>
+<p>AND C.ConSeq = E.ConSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>AND C.ConSeq = @ConSeq</p>
+<p>AND (C.IsMatPerCtr = '0' AND A.AbsDate BETWEEN '19000101' AND '99991231')</p>
+<p>AND (C.IsMatPerCtr = '0' AND @WkToDate BETWEEN '19000101' AND '99991231')</p>
+<p>GROUP BY A.AbsDate</p>
+<p>) AS G</p>
+<p>-- 발생일수 계산</p>
+<p>SELECT @OccurDays = ISNULL(SUM(A.HoliDays), 0)</p>
+<p>FROM _TXHRWelCon AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>AND A.ConSeq = @ConSeq</p>
+<p>AND (A.IsMatPerCtr = '0' AND @WkToDate BETWEEN '19000101' AND '99991231')</p>
+<blockquote></blockquote>
+<p>END</p>
+<p>-- 전체 사용가능일수, 발생일수 계산</p>
+<p>INSERT INTO #VacGetDays(EmpSeq, VacAppSeq, PossibleDays, PossibleDTCnt, PossibleMinCnt, OccurDays, YY)</p>
+<p>SELECT @EmpSeq,</p>
+<p>@VacAppSeq,</p>
+<p>ISNULL(@OccurDays , 0) - ISNULL(@UseDays , 0) AS PossibleDays,</p>
+<p>ISNULL(@OccurDTCnt , 0) - ISNULL(@UseHours, 0) AS PossibleDTCnt,</p>
+<p>(ISNULL(@OccurDTCnt, 0) * 60) - ISNULL(@UseMin, 0) AS PossibleMinCnt,</p>
+<p>ISNULL(@OccurDays , 0) AS OccurDays,</p>
+<p>@YY</p>
+<blockquote>
+<p>RETURN</p>
+</blockquote>
+<p>IF EXISTS (SELECT 1</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionApp AS B WITH(NOLOCK) ON A.CfmSeq = B.VacAppSeq</p>
+<p>JOIN _TXPRWkVactionAppDtl AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.EmpSeq = C.EmpSeq</p>
+<p>AND B.VacAppSeq = C.VacAppSeq</p>
+<p>JOIN #VacGetDays AS D ON C.EmpSeq = D.EmpSeq</p>
+<p>AND C.VacAppSeq = D.VacAppSeq</p>
+<p>JOIN _TPRWkItem AS E ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.WkItemSeq = E.WkItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND B.EmpSeq = @EmpSeq</p>
+<p>AND A.Status = 0</p>
+<p>AND A.CfmCode = '1' -- 확정여부</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>AND (@WkEnvVal2 \&lt;&gt; '1' OR (@WkEnvVal2 = '1' AND E.SMAbsWkSort NOT IN (3069002,3069003))) -- 환경설정</p>
+<p>AND D.PossibleDTCnt \&lt; B.DTCnt</p>
+<p>AND ISNULL(E.SMAbsWkSort, 0) NOT IN (3069004, 3069005, 3069011, 3069007, 3069008, 3069009, 3069010) --##01 보건, 기타, 공가, 출장, 교육, 근무, 경조사 제외</p>
+<p>)</p>
+<p>BEGIN</p>
+<blockquote></blockquote>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>3055 , -- @1을(를) 초과하였습니다. (SELECT * FROM _TCAMessageLanguage WHERE Message LIKE '%초과%')</p>
+<p>@LanguageSeq ,</p>
+<p>6147, N'사용가능일수' -- SELECT * FROM _TCADictionary WHERE Word like '%사용가능%</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- ##01</p>
+<p>ELSE IF EXISTS(SELECT 1</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionApp AS B WITH(NOLOCK) ON A.CfmSeq = B.VacAppSeq</p>
+<p>JOIN _TXPRWkVactionAppDtl AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.EmpSeq = C.EmpSeq</p>
+<p>AND B.VacAppSeq = C.VacAppSeq</p>
+<p>JOIN #VacGetDays AS D ON C.EmpSeq = D.EmpSeq</p>
+<p>AND C.VacAppSeq = D.VacAppSeq</p>
+<p>JOIN _TPRWkItem AS E ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.WkItemSeq = E.WkItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND B.EmpSeq = @EmpSeq</p>
+<p>AND A.Status = 0</p>
+<p>AND A.CfmCode = '1' -- 확정여부</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>AND D.PossibleDays \&lt; B.AppDays</p>
+<p>AND E.SMAbsWkSort IN (3069011) -- 경조사만</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>3055 , -- @1을(를) 초과하였습니다. (SELECT * FROM _TCAMessageLanguage WHERE Message LIKE '%초과%')</p>
+<p>@LanguageSeq ,</p>
+<p>6147, N'사용가능일수' -- SELECT * FROM _TCADictionary WHERE Word like '%사용가능%</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 1일한도 이상일 경우 체크(분수로 체크한다)</p>
+<hr />
+<p>---- 이미 발생되어있는 결근 담기 --##04</p>
+<p>CREATE TABLE #TXPRWkAbsence (CompanySeq INT, EmpSeq INT, AbsDate NCHAR(8), MinCnt DECIMAL(19, 5))</p>
+<p>INSERT INTO #TXPRWkAbsence (CompanySeq, EmpSeq , AbsDate , MinCnt)</p>
+<p>SELECT A.CompanySeq, A.EmpSeq, A.AbsDate, SUM(ISNULL(A.MinCnt, 0)) AS MinCnt</p>
+<p>FROM _TXPRWkAbsence AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.AbsDate BETWEEN @WkFrDate AND @WkToDate</p>
+<p>GROUP BY A.CompanySeq, A.EmpSeq, A.AbsDate</p>
+<p>---- 총 결근시간이 근무한도 넘을때 메세지 띄움</p>
+<p>IF EXISTS (SELECT 1</p>
+<p>FROM (SELECT C.EmpSeq, C.VacDate AS VacDate, SUM(ISNULL(C.MinCnt, 0)) + ISNULL(D.MinCnt, 0) AS MinCnt, C.LimitWkCnt * 60 AS WkHour</p>
+<p>FROM _TXPRWkVactionAppDtl AS C JOIN #TCOMConfirm AS A ON C.VacAppSeq = A.CfmSeq -- 자기 데이터를 가져와서 체크해야 함.</p>
+<p>AND C.VacDate BETWEEN @WkFrDate AND @WkToDate</p>
+<p>JOIN _TXPRWkVactionApp AS B WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.VacAppSeq = B.VacAppSeq</p>
+<p>LEFT OUTER JOIN #TXPRWkAbsence AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.VacDate = D.AbsDate</p>
+<p>AND C.EmpSeq = D.EmpSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.CfmCode = '1' -- 확정처리할 때만 걸린다.</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>AND C.EmpSeq IN (SELECT EmpSeq FROM #VacEmp) -- Dtl의 사원으로 체크</p>
+<p>-- 휴가취소건이 있는 경우 한도체크 제외</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TXPRWkVactionAppCancel</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND VacAppSeq = C.VacAppSeq</p>
+<p>AND EmpSeq = C.EmpSeq</p>
+<p>AND IsCancel = '1' -- 휴가취소</p>
+<p>)</p>
+<p>GROUP BY C.EmpSeq, C.VacDate, C.LimitWkCnt, C.MinCnt, D.MinCnt) AS A</p>
+<p>WHERE (1=1)</p>
+<p>AND A.MinCnt &gt; A.WKHour</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1192 , -- 해당 @1 @2이(가) 초과되었습니다. (SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1192)</p>
+<p>@LanguageSeq ,</p>
+<p>0, '휴가일에' , -- SELECT * FROM _TCADictionary WHERE Word like '%결근자내역%'</p>
+<p>0, '1일한도'</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 휴가취소/취소신청된 자료 확정</p>
+<hr />
+<p>SELECT @IsCancel = CASE WHEN B.IsCancel = '1' THEN '2' ELSE '1' END</p>
+<p>FROM #TCOMConfirm AS A</p>
+<p>JOIN _TXPRWkVactionAppCancel AS B ON B.CompanySeq = @CompanySeq AND A.CfmSeq = B.VacAppSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(A.CfmCode, '') \&lt;&gt; '1'</p>
+<p>AND (B.IsCancel = '1' OR B.IsCancelApp = '1')</p>
+<p>IF @IsCancel = '2'</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1173 , -- @1된 자료는 @2@3할 수 없습니다.(SELECT * FROM _TCAMessageLanguage WHERE Message LIKE '%없습니다.%')</p>
+<p>@LanguageSeq ,</p>
+<p>76240, '휴가취소' , -- SELECT * FROM _TCADictionary WHERE Word like '%휴가취소%'</p>
+<p>607 , '확정' , -- SELECT * FROM _TCADictionary WHERE Word like '%확정%'</p>
+<p>18311, '취소' -- SELECT * FROM _TCADictionary WHERE Word like '취소%'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF @IsCancel = '1'</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1173 , -- @1된 자료는 @2@3할 수 없습니다.(SELECT * FROM _TCAMessageLanguage WHERE Message LIKE '%없습니다.%')</p>
+<p>@LanguageSeq ,</p>
+<p>72736, '취소신청' , -- SELECT * FROM _TCADictionary WHERE Word like '%취소신청%'</p>
+<p>607 , '확정' , -- SELECT * FROM _TCADictionary WHERE Word like '%확정%'</p>
+<p>18311, '취소' -- SELECT * FROM _TCADictionary WHERE Word like '취소%'</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 체크에 걸리지 않은 경우</p>
+<hr />
+<p>-- 결근내역 생성&amp;삭제 ##02</p>
+<p>IF EXISTS (SELECT 1 FROM #TCOMConfirm WHERE Status = 0 AND CfmCode = '1' AND @ConfirmSeq = 22000007) -- 휴가신청내역</p>
+<p>BEGIN</p>
+<p>UPDATE _TXPRWkVactionApp</p>
+<p>SET IsCfm = ISNULL(A.CfmCode, '0'),</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionApp AS B ON B.VacAppSeq = A.CfmSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>-- 신청코드로 등록된 데이터가 있으면 우선 삭제</p>
+<p>DELETE A</p>
+<p>FROM _TXPRWkAbsence AS A JOIN _TXPRWkVactionAppDtl AS B ON A.CompanySeq = B.CompanySeq -- (2020.09.15)</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>AND A.AppSeq = B.VacAppSeq</p>
+<p>JOIN #TCOMConfirm AS C ON B.VacAppSeq = C.CfmSeq -- ##02</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>--AND A.EmpSeq = @EmpSeq -- (2020.09.15)</p>
+<p>--AND A.AppSeq = @VacAppSeq</p>
+<p>AND A.SMInputType = 5047002</p>
+<p>-- 원래 해당 일자에 결근내역이 없었다면 새로 결근내역 생성</p>
+<p>INSERT INTO _TXPRWkAbsence(CompanySeq ,</p>
+<p>AbsDate ,</p>
+<p>EmpSeq ,</p>
+<p>Seq ,</p>
+<p>WkItemSeq ,</p>
+<p>IsNextDate ,</p>
+<p>AbsBegDate ,</p>
+<p>BegTime ,</p>
+<p>AbsEndDate ,</p>
+<p>EndTime ,</p>
+<p>WkTypeSeq ,</p>
+<p>WkTeamSeq ,</p>
+<p>WkFormSeq ,</p>
+<p>DayTypeSeq ,</p>
+<p>SMDTCType ,</p>
+<p>DTCnt ,</p>
+<p>MinCnt ,</p>
+<p>Remark ,</p>
+<p>SMInputType ,</p>
+<p>AppSeq ,</p>
+<p>SMYyOccurType,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq,</p>
+<p>A.VacDate ,</p>
+<p>A.EmpSeq ,</p>
+<p>ISNULL((SELECT MAX(Seq) FROM _TXPRWkAbsence WHERE CompanySeq = @CompanySeq AND EmpSeq = A.EmpSeq AND AbsDate = A.VacDate), 0) +</p>
+<p>ROW_NUMBER() OVER (PARTITION BY A.CompanySeq, A.EmpSeq, A.VacDate ORDER BY A.CompanySeq, A.EmpSeq, A.VacDate),</p>
+<p>A.WkItemSeq ,</p>
+<p>A.IsNextDate,</p>
+<p>A.WkBegDate ,</p>
+<p>A.BegTime ,</p>
+<p>A.WkEndDate ,</p>
+<p>A.EndTime ,</p>
+<p>A.WkTypeSeq ,</p>
+<p>A.WkTeamSeq ,</p>
+<p>A.WkFormSeq ,</p>
+<p>A.DayTypeSeq,</p>
+<p>B.SMDTCType ,</p>
+<p>CASE WHEN B.SMDTCType = 3068001 THEN A.DTCnt / CASE WHEN ISNULL(A.LimitWkCnt, 0) = 0 THEN 1 ELSE A.LimitWkCnt END -- 일</p>
+<p>WHEN B.SMDTCType = 3068002 THEN A.DTCnt -- 시간</p>
+<p>WHEN B.SMDTCType = 3068003 THEN 1 -- 회수</p>
+<p>END,</p>
+<p>A.MinCnt,</p>
+<p>N'휴가신청확정',</p>
+<p>5047002, -- 휴가신청</p>
+<p>A.VacAppSeq,</p>
+<p>A.SMYyOccurType,</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM _TXPRWkVactionAppDtl AS A JOIN _TPRWkItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>JOIN #TCOMConfirm AS C ON A.VacAppSeq = C.CfmSeq -- ##02</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>--AND A.EmpSeq = @EmpSeq -- (2020.09.15)</p>
+<p>--AND A.VacAppSeq = @VacAppSeq</p>
+<p>IF @WkEnvVal = '1'</p>
+<p>BEGIN</p>
+<p>-- 사원별 근태항목별 합계</p>
+<p>CREATE TABLE #EmpWkItemSum</p>
+<p>(</p>
+<p>EmpSeq INT,</p>
+<p>WkItemSeq INT,</p>
+<p>IsHalf NCHAR(1),</p>
+<p>AbsDate NCHAR(8),</p>
+<p>DTCnt DECIMAL(19, 5),</p>
+<p>MinCnt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>-- 해당 근태일자에 결근내역을 사원별로 합계</p>
+<p>INSERT INTO #EmpWkItemSum(EmpSeq, WkItemSeq, IsHalf, AbsDate, DTCnt, MinCnt)</p>
+<p>SELECT A.EmpSeq, A.WkItemSeq, B.IsHalf, A.AbsDate, SUM(A.DTCnt), SUM(A.MinCnt)</p>
+<p>FROM _TXPRWkAbsence AS A JOIN _TPRWkItem AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>JOIN _TXPRWkVactionAppDtl AS C ON A.CompanySeq = C.CompanySeq -- (2020.09.15)</p>
+<p>AND A.EmpSeq = C.EmpSeq</p>
+<p>AND A.AppSeq = C.VacAppSeq</p>
+<p>AND A.AbsDate = C.VacDate -- (2021.01.06)</p>
+<p>JOIN #TCOMConfirm AS D ON C.VacAppSeq = D.CfmSeq -- ##02</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>--AND A.EmpSeq = @EmpSeq -- (2020.09.15)</p>
+<p>--AND A.AppSeq = @VacAppSeq</p>
+<p>AND A.SMInputType = 5047002</p>
+<p>AND B.SMWkItemSort = 5012002 -- 결근내역</p>
+<p>GROUP BY A.EmpSeq, A.WkItemSeq, B.IsHalf, A.AbsDate</p>
+<p>---- 기존내역삭제(2020.07.06)</p>
+<p>--DELETE _TPRWkAbsEmp</p>
+<p>-- FROM _TPRWkAbsEmp AS A JOIN _TXPRWkAbsence AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>-- AND A.WkItemSeq = B.WkItemSeq</p>
+<p>-- AND A.AbsDate = B.AbsDate</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND B.SMInputType = 5047002</p>
+<p>-- AND A.EmpSeq = @EmpSeq</p>
+<p>-- AND B.AppSeq = @VacAppSeq</p>
+<p>-- 결근내역생성(2020.07.06)</p>
+<p>INSERT INTO _TPRWkAbsEmp(CompanySeq ,</p>
+<p>AbsDate ,</p>
+<p>EmpSeq ,</p>
+<p>WkItemSeq ,</p>
+<p>IsHalf ,</p>
+<p>Remark ,</p>
+<p>CCSeq ,</p>
+<p>SMInputType ,</p>
+<p>UMGrpSeq ,</p>
+<p>UMWkGrpSeq ,</p>
+<p>Seq ,</p>
+<p>DTCnt ,</p>
+<p>DTime ,</p>
+<p>MinCnt ,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,</p>
+<p>AbsDate ,</p>
+<p>EmpSeq ,</p>
+<p>WkItemSeq ,</p>
+<p>IsHalf ,</p>
+<p>'휴가신청에서 생성',</p>
+<p>0 ,</p>
+<p>0 ,</p>
+<p>0 ,</p>
+<p>0 ,</p>
+<p>0 ,</p>
+<p>DTCnt ,</p>
+<p>'' ,</p>
+<p>MinCnt ,</p>
+<p>@UserSeq ,</p>
+<p>GETDATE()</p>
+<p>FROM #EmpWkItemSum AS A</p>
+<p>WHERE NOT EXISTS (SELECT 1</p>
+<p>FROM _TPRWkAbsEmp</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND AbsDate = A.AbsDate</p>
+<p>AND EmpSeq = A.EmpSeq</p>
+<p>AND WkItemSeq = A.WkItemSeq</p>
+<p>)</p>
+<p>END</p>
+<p>-- 초과신청확정시에 -적치 등록(2020.09.21)</p>
+<p>IF @WkEnvVal2 = '1'</p>
+<p>BEGIN</p>
+<p>IF (SELECT SMAbsWkSort FROM _TPRWkItem WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq) = 3069002 -- 연차일 경우만 적치일수로</p>
+<p>BEGIN</p>
+<p>-- 확정시에는 초과일수 반영</p>
+<p>UPDATE _TXPRWkYyOccurDays</p>
+<p>SET OverDays = ISNULL(S.OverDays , 0) + T.OverDays , -- 초과일수</p>
+<p>OverDTCnt = ISNULL(S.OverDTCnt, 0) + T.OverDTCnt, -- 초과값</p>
+<p>LastUserSeq = @UserSeq ,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM _TXPRWkYyOccurDays AS S JOIN (SELECT B.YY, B.EmpSeq,</p>
+<p>CASE WHEN ISNULL(SUM(ISNULL(B.OverDaysApp , 0)), 0) &gt; 0 THEN 0 ELSE ISNULL(SUM(ISNULL(B.OverDaysApp , 0)), 0) END AS OverDays,</p>
+<p>CASE WHEN ISNULL(SUM(ISNULL(B.OverDTCntApp, 0)), 0) &gt; 0 THEN 0 ELSE ISNULL(SUM(ISNULL(B.OverDTCntApp, 0)), 0) END AS OverDTCnt</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionAppOver AS B ON A.CfmSeq = B.VacAppSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>GROUP BY B.YY, B.EmpSeq</p>
+<p>) AS T ON S.Yy = T.YY</p>
+<p>AND S.EmpSeq = T.EmpSeq</p>
+<p>WHERE S.CompanySeq = @CompanySeq</p>
+<p>--AND S.Yy = @YY -- ##02</p>
+<p>--AND S.EmpSeq = @EmpSeq</p>
+<p>AND S.SMYyType = 5043001 -- 기본연차</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE IF EXISTS (SELECT 1 FROM #TCOMConfirm WHERE Status = 0 AND CfmCode = '0' AND @ConfirmSeq = 22000007) -- 결근 삭제</p>
+<p>BEGIN</p>
+<p>UPDATE _TXPRWkVactionApp</p>
+<p>SET IsCfm = ISNULL(A.CfmCode, '0'),</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionApp AS B ON B.VacAppSeq = A.CfmSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>--</p>
+<p>IF @WkEnvVal = '1'</p>
+<p>BEGIN</p>
+<p>-- 기존내역삭제</p>
+<p>DELETE _TPRWkAbsEmp</p>
+<p>FROM _TPRWkAbsEmp AS A JOIN _TXPRWkAbsence AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>AND A.AbsDate = B.AbsDate</p>
+<p>JOIN _TXPRWkVactionAppDtl AS C ON B.CompanySeq = C.CompanySeq -- (2020.09.15)</p>
+<p>AND B.EmpSeq = C.EmpSeq</p>
+<p>AND B.AppSeq = C.VacAppSeq</p>
+<p>JOIN #TCOMConfirm AS D ON C.VacAppSeq = D.CfmSeq -- ##02</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SMInputType = 5047002</p>
+<p>--AND A.EmpSeq = @EmpSeq -- (2020.09.15)</p>
+<p>--AND B.AppSeq = @VacAppSeq</p>
+<p>END</p>
+<p>-- 신청코드로 등록된 데이터가 있으면 우선 삭제</p>
+<p>DELETE A</p>
+<p>FROM _TXPRWkAbsence AS A JOIN _TXPRWkVactionAppDtl AS B ON A.CompanySeq = B.CompanySeq -- (2020.09.15)</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>AND A.AppSeq = B.VacAppSeq</p>
+<p>JOIN #TCOMConfirm AS C ON B.VacAppSeq = C.CfmSeq -- ##02</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>--AND A.EmpSeq = @EmpSeq -- (2020.09.15)</p>
+<p>--AND A.AppSeq = @VacAppSeq</p>
+<p>AND A.SMInputType = 5047002</p>
+<p>-- 초과신청확정시에 -적치 등록(2020.09.21)</p>
+<p>IF @WkEnvVal2 = '1'</p>
+<p>BEGIN</p>
+<p>IF (SELECT SMAbsWkSort FROM _TPRWkItem WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq) = 3069002 -- 연차일 경우만 적치일수로</p>
+<p>BEGIN</p>
+<p>-- 확정 해제시에는 차감</p>
+<p>UPDATE _TXPRWkYyOccurDays</p>
+<p>SET OverDays = S.OverDays - ISNULL(T.OverDays, 0),</p>
+<p>OverDTCnt = S.OverDTCnt - ISNULL(T.OverDTCnt, 0),</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM _TXPRWkYyOccurDays AS S JOIN (SELECT B.YY, B.EmpSeq,</p>
+<p>CASE WHEN ISNULL(SUM(ISNULL(B.OverDaysApp , 0)), 0) &gt; 0 THEN 0 ELSE ISNULL(SUM(ISNULL(B.OverDaysApp , 0)), 0) END AS OverDays,</p>
+<p>CASE WHEN ISNULL(SUM(ISNULL(B.OverDTCntApp, 0)), 0) &gt; 0 THEN 0 ELSE ISNULL(SUM(ISNULL(B.OverDTCntApp, 0)), 0) END AS OverDTCnt</p>
+<p>FROM #TCOMConfirm AS A JOIN _TXPRWkVactionAppOver AS B ON A.CfmSeq = B.VacAppSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND @ConfirmSeq = 22000007 -- 휴가신청내역</p>
+<p>GROUP BY B.YY, B.EmpSeq</p>
+<p>) AS T ON S.Yy = T.YY</p>
+<p>AND S.EmpSeq = T.EmpSeq</p>
+<p>WHERE S.CompanySeq = @CompanySeq</p>
+<p>--AND S.Yy = @YY -- ##02</p>
+<p>--AND S.EmpSeq = @EmpSeq</p>
+<p>AND S.SMYyType = 5043001 -- 기본연차</p>
+<p>--확정해제시 _TXPRWkVactionAppOver 삭제 --##06</p>
+<p>IF 0 = (SELECT CfmCode FROM #TCOMConfirm)</p>
+<p>BEGIN</p>
+<p>--지금 확정 해제하는 휴가의 초과 일수 찾아서 삭제</p>
+<p>DELETE B</p>
+<p>FROM #TCOMConfirm AS A</p>
+<p>JOIN _TXPRWkVactionAppOver AS B ON B.CompanySeq = @CompanySeq --초과일수를 담는 테이블</p>
+<p>AND B.VacAppSeq = A.CfmSeq --바로 같은건이면 삭제</p>
+<p>WHERE A.CfmCode = 0 --확정 취소</p>
+<p>END --확정해제시 _TXPRWkVactionAppOver 삭제 --##06</p>
+<p>END -- 연차</p>
+<p>END -- 초과신청</p>
+<p>END -- 결근삭제</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>exec _SWCOMGroupWareStatus @pWorkingTag=N'E',</p>
+<p>@CompanySeq=N'1',</p>
+<p>@LanguageSeq=N'1',</p>
+<p>@UserSeq=N'1',</p>
+<p>@WorkKind=N'EmpVac',</p>
+<p>@TblKey=N'635',</p>
+<p>@TopUserName=N'',</p>
+<p>@TopUserPosition=N'',</p>
+<p>@RevUserName=N'',</p>
+<p>@RevUserPosition=N'',</p>
+<p>@DocID=N'128567'</p>
+<p>ROLLBACK TRAN</p>
+<p>--SELECT * FROM _TCOMGROUPWARE WHERE WORKKIND = 'EmpVac' AND TBLKEY = 635</p>
+<p>--SELECT * FROM _TXPRWkVactionApp WHERE VACREASON LIKE '2025-09-0%'</p>
+  </article>
+</div>
+</body>
+</html>

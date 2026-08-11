@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수입 진행 테이블 및 흐름</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>수입 진행 테이블 및 흐름</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">수입 진행 테이블 및 흐름</h1>
+<p>SELECT DISTINCT FromTableSeq</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.ToTableSeq = 49 -- 구매발주</p>
+<p>-- 수입입고 : 49</p>
+<p>--SELECT * FROM _TCOMProgTable WHERE ProgTableName = '_TUIImpDelvItem'</p>
+<p>SELECT DISTINCT FromTableSeq,A.*</p>
+<p>FROM _TCOMSourceDaily AS Z WITH(NOLOCK)</p>
+<p>JOIN _TCOMProgTable AS A ON A.ProgTableSeq = FromTableSeq</p>
+<p>WHERE Z.ToTableSeq = 49 -- 구매발주</p>
+<p>SELECT EmpSeq AS ReqEmpSeq</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOReq AS D WITH(NOLOCK) ON Z.FromSeq = D.POReqSeq</p>
+<p>WHERE Z.FromTableSeq = 12 -- 구매요청</p>
+<p>AND Z.ToTableSeq = 48 -- 구매발주</p>
+<p>/*</p>
+<p>13 구매발주(수입Order)</p>
+<p>41 수입Payment</p>
+<p>42 수입Invoice</p>
+<p>43 수입BL</p>
+<p>48 수입신고필증</p>
+<p>49 수입입고</p>
+<p>-- 수입입고 : 49</p>
+<p>42 수입Invoice</p>
+<p>13 구매발주(수입Order)</p>
+<p>41 수입Payment</p>
+<p>43 수입BL</p>
+<p>13        구매발주(수입Order)</p>
+<p>41        수입Payment</p>
+<p>42        수입Invoice</p>
+<p>48 수입신고필증</p>
+<p>43 수입BL</p>
+<p>49 수입입고</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

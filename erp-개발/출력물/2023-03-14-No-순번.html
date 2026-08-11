@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>No 순번</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>No 순번</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="no">No 순번</h1>
+<p><span class="mark">// 페이지마다 채번</span></p>
+<p>This.SetText(This.GetDataSetRowIndex());</p>
+<p>var index = 1;</p>
+<p>if (GetGlobal("row_index")!= null) index = GetGlobal("row_index");</p>
+<p>This.SetText(index);</p>
+<p>SetGlobal("row_index", (index + 1));</p>
+<p>오즈스크립트</p>
+<p>int i;</p>
+<p>i=i+1;</p>
+<p>setattr("caption",(string)i);</p>
+<p>var idx = GetGlobal("idx");</p>
+<p>var GroupIndex = GetGlobal("GroupIndex");</p>
+<p>idx = idx + 1</p>
+<p>This.SetText(idx+(GroupIndex*8));</p>
+<p>SetGlobal("idx", idx);</p>
+<p><span class="mark">// 페이지 넘어가도 행번호 이어가기</span></p>
+<p>var index = 1;</p>
+<p>if (GetGlobal("row_index")!= null) index = GetGlobal("row_index");</p>
+<p>This.SetText(index);</p>
+<p>if (This.GetDataSetValue("DataBlock1.ItemName") !=null){</p>
+<blockquote>
+<p>SetGlobal("row_index", (index + 1));</p>
+</blockquote>
+<p>}</p>
+<p>else{</p>
+<blockquote>
+<p>This.SetText(" ");</p>
+</blockquote>
+<p>}</p>
+  </article>
+</div>
+</body>
+</html>

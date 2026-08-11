@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.10.15 단암 납품 데이터 미검사로 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.10.15 단암 납품 데이터 미검사로 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241015">24.10.15 단암 납품 데이터 미검사로 조회</h1>
+<p>-- BAK241015_TPUDelvItem</p>
+<p>--SELECT * FROM _TDASMinor WHERE MajorSeq = 6035</p>
+<p>BEGIN TRAN</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = C.SMQcType ,</p>
+<p>QcEmpSeq = C.QcEmpSeq,</p>
+<p>QcDate = C.QcDate,</p>
+<p>QcQty = C.QcQty,</p>
+<p>BadQty = C.BadQty,</p>
+<p>QcCurAmt = C.QcCurAmt</p>
+<p>FROM _TPUDElvItem AS A</p>
+<p>--JOIN _TPDQCTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>-- --AND A.DelvSerl = B.SourceSerl</p>
+<p>-- AND B.SOURCETYPE = 1</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = 1</p>
+<p>AND A.DelvSeq = C.DelvSeq</p>
+<p>--AND B.SourceSeq = C.DelvSeq</p>
+<p>--AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>JOIN _TPUDelvInItem AS D ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.ProgFromSeq = A.DelvSeq</p>
+<p>AND D.ProgFromSerl = A.DelvSerl</p>
+<p>AND D.ProgFromTableSeq = 10</p>
+<p>JOIN _TPUDelv AS Z ON Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.DelvSeq = A.DelvSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.StdUnitQty = D.StdUnitQty AND A.SMQcType = 6035002</p>
+<p>AND LEFT(Z.DelvDate,4) = 2024</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT A.*</p>
+<p>FROM _TPUDelvItem AS A</p>
+<p>JOIN _TPUDelv AS Z ON Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.DelvSeq = A.DelvSeq</p>
+<p>JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MinorSeq = A.SMQcType</p>
+<p>LEFT OUTER JOIN _TPUDelvInItem AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ProgFromSeq = A.DelvSeq</p>
+<p>AND C.ProgFromSerl = A.DelvSerl</p>
+<p>AND C.ProgFromTableSeq = 10</p>
+<p>--WHERE DelvSeq = 40922</p>
+<p>WHERE</p>
+<p>A.StdUnitQty = C.StdUnitQty AND SMQcType = 6035002</p>
+<p>AND LEFT(DelvDate,4) = 2024</p>
+<p>--A.DelvSeq = 41533</p>
+<p>ORDER BY A.DelvSeq, A.DelvSerl</p>
+<p>/*</p>
+<p>select * from _TPDQCTestReport WHERE SOURCETYPE = 1 AND SourceSeq = 41533</p>
+<p>SELECT * FROM danam_TPUDElvItem WHERE DelvSeq = 41533</p>
+<p>SELECT * FROM _TPUDElvItem WHERE DelvSeq = 41533</p>
+<p>SELECT * FROM _TPUDElvINItem WHERE DelvINSeq IN(213192,213194,213195)</p>
+<p>SELECT C.PgmSeq,A.QcDate,C.DelvInSeq,Z.DelvDate,Z.DelvNo,A.QTY,C.Qty,B.MinorName,*</p>
+<p>FROM _TPUDelvItem AS A</p>
+<p>JOIN _TPUDelv AS Z ON Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.DelvSeq = A.DelvSeq</p>
+<p>JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MinorSeq = A.SMQcType</p>
+<p>JOIN _TPUDelvInItem AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ProgFromSeq = A.DelvSeq</p>
+<p>AND C.ProgFromSerl = A.DelvSerl</p>
+<p>AND C.ProgFromTableSeq = 10</p>
+<p>--WHERE DelvSeq = 40922</p>
+<p>WHERE A.Qty = C.Qty</p>
+<p>AND SMQcType = 6035002</p>
+<p>AND A.DelvSeq = 41691</p>
+<p>ORDER BY 4 DESC</p>
+<p>SELECT * FROM _TCAPgm WHERE PgmSeq = 1030319</p>
+<p>SELECT TOP 100 LastDateTime,PgmSeq,* FROM _TPUDelvINItem ORDER BY 1 DESC</p>
+<p>-- SELECT * FROM _TDASMinor WHERE CompanySeq = 1 AND MajorSeq = 6035</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

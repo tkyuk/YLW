@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.08 BOM업로드_gnst 검증용</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.08 BOM업로드_gnst 검증용</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250908-bom_gnst">25.09.08 BOM업로드_gnst 검증용</h1>
+<p>SELECT ItemSeq,*</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>ORDER BY 1,LastDateTime, ItemNo DESC</p>
+<p>SELECT * FROM _TDAItemUserDefine</p>
+<p>WHERE LastUserSeq= 27292</p>
+<p>AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>ORDER BY ItemSeq,LastDateTime DESC</p>
+<p>DELETE FROM _TDAItem WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemClass WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemDefUnit WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemFile WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemProduct WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemPurchase WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemRemark WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemSales WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemStdWh WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemStock WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemUnit WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemUnitModule WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>DELETE FROM _TDAItemUserDefine WHERE ITEMSEQ IN(SELECT ItemSeq</p>
+<p>FROM _TDAItem</p>
+<p>WHERE RegUserSeq = 27292</p>
+<p>AND CONVERT(NCHAR(8),RegDateTime,112) = '20250908'</p>
+<p>AND ItemSeq NOT IN (1007791,1007790,1007789)</p>
+<p>)</p>
+<p>SELECT * FROM _TPDBOMRemarks WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>SELECT * FROM _TPDBOM WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>SELECT * FROM _TPDBOMManagement                WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>SELECT * FROM _TPDBOMProc                        WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>SELECT * FROM _TPDROUItemProc                 WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>SELECT * FROM _TPDROUItemProcManagement        WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>delete FROM _TPDBOMRemarks WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>delete FROM _TPDBOM WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>delete FROM _TPDBOMManagement                WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>delete FROM _TPDBOMProc                        WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>delete FROM _TPDROUItemProc                 WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>delete FROM _TPDROUItemProcManagement        WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>SELECT *</p>
+<p>FROM _TPDROUItemProcManagement AS M WITH(NOLOCK)</p>
+<p>JOIN _TPDROUItemProc AS P WITH(NOLOCK) ON M.ItemSeq = P.ItemSeq</p>
+<p>AND M.ProcRev = P.ProcRev</p>
+<p>AND M.BizUnit = P.BizUnit</p>
+<p>AND M.CompanySeq = P.CompanySeq</p>
+<p>WHERE M.ItemSeq IN(</p>
+<p>SELECT ItemSeq FROM _TPDBOM WHERE LastUserSeq= 27292 AND CONVERT(NCHAR(8),LastDateTime,112) = '20250908'</p>
+<p>)</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매 요청,품의,발주</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매 요청,품의,발주</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">구매 요청,품의,발주</h1>
+<p>SELECT * FROM _TPUORDPOReq ORDER BY LastDateTime DESC -- 구매요청 167 3         585</p>
+<p>SELECT * FROM _TPUORDApprovalReq ORDER BY LastDateTime DESC -- 구매품의 108 14 459</p>
+<p>SELECT * FROM _TPUORDPO ORDER BY LastDateTime DESC -- 구매발주 376 17 490</p>
+<p>SELECT * FROM _TCOMSourceDailyTrace ORDER BY LastDateTime DESC</p>
+<p>-- 구매요청 -&gt; 구매품의 -&gt; 구매발주</p>
+<p>-- 구매발주에서 구매요청 볼 때</p>
+<p>SELECT c.*</p>
+<p>FROM _TPUORDPO AS A</p>
+<p>JOIN _TPUORDPOItem AS B ON A.POSeq = B.POSeq</p>
+<p>OUTER APPLY (SELECT POReqNo AS ReqNo ,</p>
+<p>ReqDate AS ReqDate ,</p>
+<p>EmpSeq AS ReqEmpSeq ,</p>
+<p>DeptSeq AS ReqDeptSeq</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOReq AS D WITH(NOLOCK) ON Z.FromSeq = D.POReqSeq</p>
+<p>WHERE Z.CompanySeq = B.CompanySeq</p>
+<p>AND Z.ToSeq = B.POSeq</p>
+<p>AND Z.ToSerl = B.POSerl</p>
+<p>AND Z.FromTableSeq = 12 -- 구매요청</p>
+<p>AND Z.ToTableSeq = 13 -- 구매발주</p>
+<p>) AS c</p>
+<p>ORDER BY A.LastDateTime DESC</p>
+<p>--WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- and a.BizUnit = @BizUnit</p>
+<p>-- AND A.OrderDate BETWEEN @StdDate/*6개월전*/ AND @StdDate</p>
+  </article>
+</div>
+</body>
+</html>

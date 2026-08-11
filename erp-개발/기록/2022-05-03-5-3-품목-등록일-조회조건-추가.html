@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/3 품목 등록일 조회조건 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>5/3 품목 등록일 조회조건 추가</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="53">5/3 품목 등록일 조회조건 추가</h1>
+<p>MCO-BOM생성_mcnk        FrmWMCOBomReg_mcnk</p>
+<p>조회조건 추가</p>
+<p>품목번호 옆에 품목등록일 From ~ To 조회조건을 추가해주세요. </p>
+<p>Default로 로그인일자 - 10일 ~ 로그인일자로 설정해주세요. </p>
+<p>조회조건에 따라 조회되는 제품/반제품의 품목 등록일로 걸어서 조회해주세요. ( BOM 등록일 아님, MCO 품목 등록일 아님. 현법인 품목 등록일 임 )</p>
+<p>=&gt; 현법인 품목 등록 ==&gt; mcnv의 _TDAItem</p>
+<p>표준 품목조회 화면 참고</p>
+<p>SELECT @SQL = @SQL + ' AND (''' + @RegDateFr + ''' = '''' OR ''' + @RegDateFr + ''' \&lt;= CONVERT(NVARCHAR(8),Q.RegDateTime, 112)) '</p>
+<p>SELECT @SQL = @SQL + ' AND (''' + @RegDateTo + ''' = '''' OR ''' + @RegDateTo + ''' &gt;= CONVERT(NVARCHAR(8),Q.RegDateTime, 112)) '</p>
+  </article>
+</div>
+</body>
+</html>

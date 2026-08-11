@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래처연동</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래처연동</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래처연동</h1>
+<p>DROP PROC dbo.GCOS_CUSTTEST</p>
+<p>GO</p>
+<p>CREATE PROC dbo.GCOS_CUSTTEST</p>
+<p>@CustName NVARCHAR(100), -- 기업명</p>
+<p>@BizNo NVARCHAR(20), -- 사업자번호</p>
+<p>@Status INT OUTPUT,</p>
+<p>@Results NVARCHAR(250) OUTPUT</p>
+<p>AS</p>
+<p>DECLARE @Result NVARCHAR(10) = ''</p>
+<p>,@MessageType INT</p>
+<p>,@PgmSeq INT = 9999</p>
+<p>,@CompanySeq INT = 1</p>
+<p>,@LanguageSeq INT = 1</p>
+<p>,@UserSeq INT = 0</p>
+<p>,@CustSeq INT = 0</p>
+<p>,@CondSeq INT = 0</p>
+<p>,@Message NVARCHAR(200)</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>--=================================</p>
+<p>-- 환경설정</p>
+<p>--=================================</p>
+<p>DECLARE @Env8063 INT,</p>
+<p>@Env8064 INT,</p>
+<p>@Env8054 INT</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq,8063 ,0,@@PROCID,@Env8063 OUTPUT -- [매출기준] 매출회수조건기준</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq,8064 ,0,@@PROCID,@Env8064 OUTPUT -- [매출기준] 매출청구방법</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq,8054 ,0,@@PROCID,@Env8054 OUTPUT -- [매출기준] 청구처매출시점</p>
+<p>IF ISNULL(@Env8063, 0) = 0 SELECT @Env8063 = ISNULL(@Env8063, 0)</p>
+<p>IF ISNULL(@Env8064, 0) = 0 SELECT @Env8064 = ISNULL(@Env8064, 0)</p>
+<p>IF ISNULL(@Env8054, 0) = 0 SELECT @Env8054 = ISNULL(@Env8054, 0)</p>
+<p>-- 거래처</p>
+<p>CREATE TABLE #Temp_Cust</p>
+<p>(</p>
+<p>DataSeq INT IDENTITY(1,1),</p>
+<p>CompanySeq INT,</p>
+<p>CustSeq INT,</p>
+<p>CondSeq INT,</p>
+<p>CustNo NVARCHAR(100),</p>
+<p>CustName NVARCHAR(100),</p>
+<p>TrunName NVARCHAR(100),</p>
+<p>BizNo NVARCHAR(40) ,</p>
+<p>Status INT ,</p>
+<p>Result NVARCHAR(500)</p>
+<p>)</p>
+<p>INSERT INTO #Temp_Cust</p>
+<p>(</p>
+<p>CompanySeq , CustSeq , CondSeq , CustNo , CustName ,</p>
+<p>TrunName , BizNo , Status , Result</p>
+<p>)</p>
+<p>SELECT @CompanySeq , 0 , 0 , @BizNo , @CustName,</p>
+<p>@CustName, @BizNo , 0 , ''</p>
+<p>--=================================</p>
+<p>-- 사업자번호(BizNo) 공백여부 체크</p>
+<p>--=================================</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1 , -- 필수입력 데이타를 입력하세요.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1)</p>
+<p>@LanguageSeq ,</p>
+<p>640,'' -- SELECT * FROM _TCADictionary WHERE Word like '%사업자번호%'</p>
+<p>UPDATE #Temp_Cust</p>
+<p>SET Result = @Results,</p>
+<p>Status = @Status</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE BizNo = ''</p>
+<p>--=================================</p>
+<p>-- 사업자번호 기준 거래처 등록여부 체크</p>
+<p>--=================================</p>
+<p>-- 사업자번호 중복체크</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2이(가) 입력되었습니다.</p>
+<p>@LanguageSeq ,</p>
+<p>6 , N'거래처'</p>
+<p>UPDATE #Temp_Cust</p>
+<p>SET Result = REPLACE(@Results,'@2',A.CustName),</p>
+<p>Status = @Status</p>
+<p>FROM #Temp_Cust AS A JOIN _TDACust AS B WITH(NOLOCK)</p>
+<p>ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.BizNo = A.BizNo</p>
+<p>WHERE B.BizNo \&lt;&gt; ''</p>
+<hr />
+<p>-- 시스템제공코드</p>
+<hr />
+<p>-- (INPUT) 시스템제공코드 대분류</p>
+<p>CREATE TABLE #TDASMajorValue(</p>
+<p>MajorSeq INT</p>
+<p>)</p>
+<p>-- (OUTPUT) 시스템제공코드 소분류</p>
+<p>CREATE TABLE #TDASMinorValue(</p>
+<p>CompanySeq INT</p>
+<p>, MajorSeq INT</p>
+<p>, MinorSeq INT</p>
+<p>, MinorName NVARCHAR(200)</p>
+<p>, MinorValue NVARCHAR(50)</p>
+<p>, MinorSort INT</p>
+<p>, IsUse NCHAR(1)</p>
+<p>)</p>
+<p>INSERT INTO #TDASMajorValue(MajorSeq)</p>
+<p>SELECT 100151 -- 결제대행사</p>
+<p>-- 시스템제공코드 가져오기</p>
+<p>EXEC dbo._SWUTGetSMinorValue @CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>--===========================</p>
+<p>-- SM 100151 결제대행사</p>
+<p>--===========================</p>
+<p>CREATE TABLE #TDAPaymentAgency(</p>
+<p>CompanySeq INT</p>
+<p>, PaymentAgencyBizNo NVARCHAR(50)</p>
+<p>, PaymentAgency NVARCHAR(200)</p>
+<p>, IsPaymentAgency NCHAR(1)</p>
+<p>)</p>
+<p>INSERT INTO #TDAPaymentAgency(CompanySeq, PaymentAgencyBizNo, PaymentAgency, IsPaymentAgency)</p>
+<p>SELECT A.CompanySeq, A.MinorValue, A.MinorName, N'1'</p>
+<p>FROM #TDASMinorValue AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 100151</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1281 , -- @1로(으로) 등록된 @2입니다. @3을(를) 입력하세요.</p>
+<p>@LanguageSeq ,</p>
+<p>80645 , N'결제대행사',</p>
+<p>6 , N'거래처',</p>
+<p>91860 , N'실거래처'</p>
+<p>UPDATE #Temp_Cust</p>
+<p>SET Result = @Results,</p>
+<p>Status = @Status</p>
+<p>FROM #Temp_Cust AS A</p>
+<p>LEFT OUTER JOIN #TDAPaymentAgency AS PA ON PA.CompanySeq = A.CompanySeq</p>
+<p>AND PA.PaymentAgencyBizNo = A.BizNo -- 결제대행사</p>
+<p>WHERE PA.CompanySeq IS NOT NULL</p>
+<p>-- 에러가 발생하면 전부다 에러</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #Temp_Cust WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>SELECT @Status, @Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--=================================</p>
+<p>-- CustName, TrunName 값 변환처리 -- 거래처명 생략어 제거</p>
+<p>--=================================</p>
+<p>DECLARE @MaxDataSeq INT,</p>
+<p>@DataSeq INT,</p>
+<p>@CutName NVARCHAR(50)</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1 FROM #Temp_Cust WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT @CutName = ''</p>
+<p>SELECT @CutName = LTRIM(RTRIM(CutName)) FROM _TDACustCutName WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND CutSeq = @DataSeq</p>
+<p>IF ISNULL(@CutName,'') \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>UPDATE #Temp_Cust</p>
+<p>SET CustName = LTRIM(REPLACE(CustName, @CutName, '')),</p>
+<p>TrunName = LTRIM(REPLACE(TrunName, @CutName, ''))</p>
+<p>FROM #Temp_Cust</p>
+<p>END</p>
+<p>-- 공백제거</p>
+<p>UPDATE #Temp_Cust</p>
+<p>SET TrunName = REPLACE(TrunName, ' ', '')</p>
+<p>FROM #Temp_Cust</p>
+<p>--=================================</p>
+<p>-- 채번</p>
+<p>--=================================</p>
+<p>EXEC @CustSeq = _SWCOMCreateSeq @CompanySeq, '_TDACust', 'CustSeq', 1</p>
+<p>EXEC @CondSeq = _SWCOMCreateSeq @CompanySeq, '_TDACustSalesReceiptCond', 'CondSeq', 1</p>
+<p>UPDATE #Temp_Cust</p>
+<p>SET CustSeq = @CustSeq + 1,</p>
+<p>CondSeq = @CondSeq + 1</p>
+<p>FROM #Temp_Cust</p>
+<p>END</p>
+<p>--=================================</p>
+<p>-- TRY - CATCH 시작</p>
+<p>--=================================</p>
+<p>BEGIN TRY</p>
+<p>--=================================</p>
+<p>-- 트랜잭션 시작</p>
+<p>--- CATCH에서 ROLLBACK 처리하기 때문에 TRY 시작에 TRAN 시작</p>
+<p>--=================================</p>
+<p>BEGIN TRAN</p>
+<p>-- 오류가 발생하지 않은 경우</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1 FROM #Temp_Cust WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>--=================================</p>
+<p>-- INSERT</p>
+<p>--=================================</p>
+<p>INSERT INTO _TDACust (</p>
+<p>CompanySeq, CustSeq, CustName, TrunName, CustNo</p>
+<p>, UMCredLevel, SMDomFor, SMCustStatus, FullName, LastUserSeq</p>
+<p>, LastDateTime, UMCountrySeq, FrDate, DeptSeq, EmpSeq</p>
+<p>, RegUserSeq, RegDateTime, BizNo, Owner, LawRegNo</p>
+<p>, BizAddrSeq, BizKind, BizType, TelNo, MinorBizNo, SMBizPers</p>
+<p>, IsFwbBill, IsRevBill, SMCustRelation, PassportNo, IsSumBill</p>
+<p>)</p>
+<p>SELECT @CompanySeq, CustSeq, CustName, TrunName, N'',</p>
+<p>0, 1013001, 2004004, CustName, @UserSeq ,</p>
+<p>GETDATE(), 0, CONVERT(NCHAR(8),GETDATE(),112), 0, 0,</p>
+<p>@UserSeq, GETDATE(), BizNo, '', N'',</p>
+<p>0, '', '', '', N'', 4019001,</p>
+<p>N'0', N'0', 8194001, N'', N'0'</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status = 0</p>
+<p>-- 8014001 대표거래처</p>
+<p>INSERT INTO _TDACustGroup ( CompanySeq , CustSeq , UMCustGroup , UpperCustSeq , LastUserSeq , LastDateTime)</p>
+<p>SELECT @CompanySeq , CustSeq , 8014001 , CustSeq , @UserSeq , GETDATE()</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status = 0</p>
+<p>-- 8014002 청구처</p>
+<p>INSERT INTO _TDACustGroup ( CompanySeq , CustSeq , UMCustGroup , UpperCustSeq , LastUserSeq , LastDateTime)</p>
+<p>SELECT @CompanySeq , CustSeq , 8014002 , CustSeq , @UserSeq , GETDATE()</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status = 0</p>
+<p>-- 8004 유통구조</p>
+<p>INSERT INTO _TDACustClass (CompanySeq , CustSeq , UMajorCustClass , UMCustClass , LastUserSeq , LastDateTime)</p>
+<p>SELECT @CompanySeq , CustSeq , 8004 , 0 , @UserSeq , GETDATE()</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status = 0</p>
+<p>-- 거래처종류 (기타거래처)</p>
+<p>INSERT INTO _TDACustKind (CompanySeq , CustSeq , UMCustKind , LastUserSeq , LastDateTime)</p>
+<p>SELECT @CompanySeq , CustSeq , 1004023 , @UserSeq , GETDATE()</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status = 0</p>
+<p>-- 청구처매출회수조건</p>
+<p>INSERT INTO _TDACustSalesReceiptCond (CompanySeq, CondSeq, CustSeq, SMCondStd, SMReceiptMethod,</p>
+<p>SMSalesPoint, IsCust, LastUserSeq, LastDateTime, ReceiptCustSeq,</p>
+<p>DueDays, SMReceiveMethod, CurrSeq, SMReceiptDateMethod</p>
+<p>)</p>
+<p>SELECT @CompanySeq, CondSeq, CustSeq, @Env8063, @Env8064,</p>
+<p>@Env8054, N'', @UserSeq, GETDATE(), 0,</p>
+<p>0, 0, 0, 0</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status = 0</p>
+<p>IF @Env8063 = 8018002 -- 청구처회수조건</p>
+<p>BEGIN</p>
+<p>-- 매출회수기준</p>
+<p>INSERT INTO _TDACustSalesReceiptStd (CompanySeq, CondSeq, CondSerl, SalesCloseDate, BillMonth,</p>
+<p>BillDate, ReceiptMonth, ReceiptDate, SMReceiptKind, NotExpDays,</p>
+<p>Remark, LastUserSeq, LastDateTime, CashTerms</p>
+<p>)</p>
+<p>SELECT @CompanySeq, CondSeq, 1, 31, 0,</p>
+<p>0, 0, 0, 0, 0,</p>
+<p>N'', @UserSeq, GETDATE(), 0</p>
+<p>FROM #Temp_Cust</p>
+<p>WHERE Status = 0</p>
+<p>END</p>
+<p>END</p>
+<p>--=================================</p>
+<p>-- 최종조회</p>
+<p>--@Status INT = 0 OUTPUT, -- 처리상태</p>
+<p>--@Results NVARCHAR(500) = '' OUTPUT, -- 처리결과</p>
+<p>--=================================</p>
+<p>COMMIT TRAN</p>
+<p>--==============================================================</p>
+<p>-- 결과출력 (DataBlock1 : 결과)</p>
+<p>--==============================================================</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>ROLLBACK TRAN</p>
+<p>--오류 날 경우</p>
+<p>SELECT @Result = 'ERROR', @Status = 999999</p>
+<p>SELECT @Status AS Status ,</p>
+<p>@Result AS Results</p>
+<p>END CATCH</p>
+<hr />
+<p>----------------------- OPEN API Log 데이터 생성 ---------------------</p>
+<hr />
+<p>IF @Result = '' SELECT @Result = 'OK'</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @Status INT ,@Results NVARCHAR(250)</p>
+<p>EXEC GCOS_CUSTTEST '거래처test312312','312312',@Status ,@Results</p>
+  </article>
+</div>
+</body>
+</html>

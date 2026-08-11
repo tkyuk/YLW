@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(DB) 작업실적 Serial재고 테이블 UPDATE (130 -\> 140)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(DB) 작업실적 Serial재고 테이블 UPDATE (130 -\> 140)</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-30</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="db-serial-update-130-140">(DB) 작업실적 Serial재고 테이블 UPDATE (130 -&gt; 140)</h1>
+<p>BEGIN TRAN</p>
+<p>SELECT C.CompanySeq</p>
+<p>,C.InOutType</p>
+<p>,B.GoodInSeq</p>
+<p>,C.InOutSerl</p>
+<p>,C.DataKind</p>
+<p>,C.InOutDataSerl</p>
+<p>,C.InOutSubSerl</p>
+<p>,C.InOutSerialSerl</p>
+<p>,C.InOut</p>
+<p>,C.InOutDate</p>
+<p>,C.SerialNo</p>
+<p>,C.WHSeq</p>
+<p>,C.FunctionWHSeq</p>
+<p>,C.ItemSeq</p>
+<p>,C.InOutKind</p>
+<p>,C.InOutDataKind</p>
+<p>,C.PgmSeq</p>
+<p>,C.LastUserSeq</p>
+<p>,C.LastDateTime</p>
+<p>INTO #Tmp</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>JOIN _TPDSFCGoodIn AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WorkReportSeq = A.WorkReportSeq</p>
+<p>JOIN _TLGInOutSerialStock AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.InOutSeq = A.WorkReportSeq</p>
+<p>AND C.InOutType = 140</p>
+<p>DELETE A</p>
+<p>FROM _TLGInOutSerialStock AS A</p>
+<p>WHERE InOutType = 140</p>
+<p>/*</p>
+<p>UPDATE C</p>
+<p>SET InOutSeq = B.GoodInSeq</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>JOIN _TPDSFCGoodIn AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WorkReportSeq = A.WorkReportSeq</p>
+<p>JOIN _TLGInOutSerialStock AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.InOutSeq = A.WorkReportSeq</p>
+<p>AND C.InOutType = 140</p>
+<p>*/</p>
+<p>INSERT INTO _TLGInOutSerialStock</p>
+<p>SELECT *</p>
+<p>FROM #Tmp</p>
+<p>COMMIT TRAN</p>
+<p>BEGIN TRAN</p>
+<p>SELECT C.CompanySeq</p>
+<p>,C.InOutType</p>
+<p>,B.GoodInSeq</p>
+<p>,C.InOutSerl</p>
+<p>,C.DataKind</p>
+<p>,C.InOutDataSerl</p>
+<p>,C.InOutSerialSerl</p>
+<p>,C.SerialNo</p>
+<p>,C.ItemSeq</p>
+<p>,C.IsSerialProc</p>
+<p>,C.ProcEmpSeq</p>
+<p>,C.ProcDateTime</p>
+<p>,C.IsErr</p>
+<p>,C.ErrNote</p>
+<p>,C.LastUserSeq</p>
+<p>,C.LastDateTime</p>
+<p>,C.IsDiv</p>
+<p>,C.PgmSeq</p>
+<p>INTO #Tmp</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>JOIN _TPDSFCGoodIn AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WorkReportSeq = A.WorkReportSeq</p>
+<p>JOIN _TLGInOutSerialSub AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.InOutSeq = A.WorkReportSeq</p>
+<p>AND C.InOutType = 140</p>
+<p>DELETE A</p>
+<p>FROM _TLGInOutSerialSub AS A</p>
+<p>WHERE InOutType = 140</p>
+<p>/*</p>
+<p>UPDATE C</p>
+<p>SET InOutSeq = B.GoodInSeq</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>JOIN _TPDSFCGoodIn AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WorkReportSeq = A.WorkReportSeq</p>
+<p>JOIN _TLGInOutSerialSub AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.InOutSeq = A.WorkReportSeq</p>
+<p>AND C.InOutType = 140</p>
+<p>*/</p>
+<p>INSERT INTO _TLGInOutSerialSub</p>
+<p>SELECT *</p>
+<p>FROM #Tmp</p>
+<p>commit TRAN</p>
+  </article>
+</div>
+</body>
+</html>

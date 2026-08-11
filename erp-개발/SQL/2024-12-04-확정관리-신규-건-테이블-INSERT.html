@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정관리 신규 건 테이블 INSERT</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정관리 신규 건 테이블 INSERT</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="insert">확정관리 신규 건 테이블 INSERT</h1>
+<p>--SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 15000125</p>
+<p>BEGIN TRAN</p>
+<p>INSERT INTO _TCOMConfirm(</p>
+<p>CompanySeq</p>
+<p>,ConfirmSeq</p>
+<p>,CfmSeq</p>
+<p>,CfmSerl</p>
+<p>,CfmSubSerl</p>
+<p>,IsAuto</p>
+<p>,CfmCode</p>
+<p>,CfmDate</p>
+<p>,CfmEmpSeq</p>
+<p>,UMCfmReason</p>
+<p>,CfmReason</p>
+<p>,LastDateTime</p>
+<p>)</p>
+<p>SELECT 1 AS CompanySeq</p>
+<p>,15000125 AS ConfirmSeq</p>
+<p>,A.CustBankAccSerl AS CfmSeq</p>
+<p>,0 AS CfmSerl</p>
+<p>,0 AS CfmSubSerl</p>
+<p>,0 AS IsAuto</p>
+<p>,'1' AS CfmCode</p>
+<p>,'' AS CfmDate</p>
+<p>,0 AS CfmEmpSeq</p>
+<p>,0 AS UMCfmReason</p>
+<p>,0 AS CfmReason</p>
+<p>,GETDATE() AS LastDateTime</p>
+<p>FROM _TDACustBankAcc AS A</p>
+<p>LEFT OUTER JOIN _TCOMConfirm AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CfmSeq = A.CustBankAccSerl</p>
+<p>AND B.ConfirmSeq = 15000125</p>
+<p>WHERE B.CompanySeq IS NULL</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

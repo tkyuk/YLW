@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.11.18 기간별거래처입고현황\*</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.11.18 기간별거래처입고현황\*</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241118">24.11.18 기간별거래처입고현황*</h1>
+<p>DROP PROCEDURE SCTQry_ylwa06037_jsb_TTEST</p>
+<p>GO</p>
+<p>CREATE PROCEDURE SCTQry_ylwa06037_jsb_TTEST</p>
+<p>@iWorkType VARCHAR( 10) = null,</p>
+<p>@iBizUnit VARCHAR( 02) = NULL,</p>
+<p>@iDate1 VARCHAR( 08) = NULL,</p>
+<p>@iDate2 VARCHAR( 08) = NULL,</p>
+<p>@iDate3 VARCHAR( 08) = NULL,</p>
+<p>@iDate4 VARCHAR( 08) = NULL,</p>
+<p>/*</p>
+<p>-- ********** 주의 사항 ****************</p>
+<p>-- 1) 아래 SQL문을 실행시키면 해당 조회모음의 테스트 조회조건(Cond)에 대한 변수형을 알수있습니다.</p>
+<p>-- 결과에 따라 아래와 같이 데이터형을 다르게 해주세요.</p>
+<p>-- X : CHAR(100) 사용안함</p>
+<p>-- CHAR : CHAR(100) 보통..</p>
+<p>-- NVARCHAR : NVARCHAR(100) 텍스트성..</p>
+<p>SELECT Pgm_ID,</p>
+<p>CASE dd1_name WHEN '' THEN 'X' ELSE (CASE dd1_CodeHelpType WHEN '' THEN 'NVARCHAR' ELSE 'CHAR' END) END AS StCond1,</p>
+<p>CASE dd2_name WHEN '' THEN 'X' ELSE (CASE dd2_CodeHelpType WHEN '' THEN 'NVARCHAR' ELSE 'CHAR' END) END AS StCond2,</p>
+<p>CASE dd3_name WHEN '' THEN 'X' ELSE (CASE dd3_CodeHelpType WHEN '' THEN 'NVARCHAR' ELSE 'CHAR' END) END AS StCond3,</p>
+<p>CASE dd4_name WHEN '' THEN 'X' ELSE (CASE dd4_CodeHelpType WHEN '' THEN 'NVARCHAR' ELSE 'CHAR' END) END AS StCond4,</p>
+<p>CASE dd5_name WHEN '' THEN 'X' ELSE (CASE dd5_CodeHelpType WHEN '' THEN 'NVARCHAR' ELSE 'CHAR' END) END AS StCond5,</p>
+<p>dd1_name,dd1_CodeHelpType,</p>
+<p>dd2_name,dd2_CodeHelpType,</p>
+<p>dd3_name,dd3_CodeHelpType,</p>
+<p>dd4_name,dd4_CodeHelpType,</p>
+<p>dd5_name,dd5_CodeHelpType</p>
+<p>FROM TCTQryMstWeb</p>
+<p>WHERE Pgm_ID = 'ylwa06037'</p>
+<p>-- 2) CHAR형식 변수가 조건에서 &gt;= @iDate1 +'01' 또는 Like @iDate1 + '%' 이런식으로 사용된 경우는</p>
+<p>-- &gt;= RTrim(@iDate1) +'01' 또는 Like RTrim(@iDate1) + '%' 이렇게 수정해주세요.</p>
+<p>*/</p>
+<p>@i1stCond VARCHAR(100) = NULL,</p>
+<p>@i2stCond NVARCHAR(100) = NULL,</p>
+<p>@i3stCond NVARCHAR(100) = NULL,</p>
+<p>@i4thCond VARCHAR(100) = NULL,</p>
+<p>@i5thCond NVARCHAR(100) = NULL,</p>
+<p>@i1stCombCond VARCHAR(100) = NULL,</p>
+<p>@i2stCombCond VARCHAR(100) = NULL,</p>
+<p>@i3stCombCond VARCHAR(100) = NULL,</p>
+<p>@i4thCombCond VARCHAR(100) = NULL,</p>
+<p>@i5thCombCond VARCHAR(100) = NULL,</p>
+<p>@iMajorCd VARCHAR(8000) = NULL,</p>
+<p>@iCode VARCHAR(100) = NULL,</p>
+<p>@iLanGuage VARCHAR( 01) = NULL,</p>
+<p>@iEmpId VARCHAR( 08) = NULL,</p>
+<p>@iDeptCd VARCHAR( 05) = NULL,</p>
+<p>@iWkDeptCd VARCHAR( 05) = NULL,</p>
+<p>@iLoginID VARCHAR( 08) = NULL</p>
+<p>AS</p>
+<p>--세션옵션</p>
+<p>SET NOCOUNT ON</p>
+<p>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</p>
+<p>DECLARE</p>
+<p>@연두1 CHAR(12), @연두2 CHAR(12), @연두3 CHAR(12), @연두4 CHAR(12), @연두5 CHAR(12), @청록1 CHAR(12),</p>
+<p>@청록2 CHAR(12), @청록3 CHAR(12), @청록4 CHAR(12), @노랑1 CHAR(12), @노랑2 CHAR(12), @갈색1 CHAR(12),</p>
+<p>@갈색2 CHAR(12), @갈색3 CHAR(12), @갈색4 CHAR(12), @하양 CHAR(12), @검정 CHAR(12), @쥐색1 CHAR(12),</p>
+<p>@쥐색2 CHAR(12), @파랑1 CHAR(12), @파랑2 CHAR(12), @파랑3 CHAR(12), @파랑4 CHAR(12), @파랑5 CHAR(12),</p>
+<p>@파랑6 CHAR(12), @파랑7 CHAR(12), @파랑8 CHAR(12), @파랑9 CHAR(12), @고동1 CHAR(12), @고동2 CHAR(12),</p>
+<p>@고동3 CHAR(12), @고동4 CHAR(12), @보라1 CHAR(12), @보라2 CHAR(12), @보라3 CHAR(12), @보라4 CHAR(12),</p>
+<p>@보라5 CHAR(12), @꽃분홍1 CHAR(12), @꽃분홍2 CHAR(12), @꽃분홍3 CHAR(12), @빨강1 CHAR(12), @빨강2 CHAR(12),</p>
+<p>@빨강3 CHAR(12), @주황1 CHAR(12), @주황2 CHAR(12), @하늘1 CHAR(12), @하늘2 CHAR(12), @iBOMQty int , --BOM구성 자재 소수점 자릿수</p>
+<p>@iItemQty int, -- 자재 소수점 자릿수</p>
+<p>-- @iGoodsQty NUMERIC(19,5), -- 제품 소수점 자릿수</p>
+<p>-- @iWonAmt NUMERIC(19,5), -- 원화금액 소수점 자릿수</p>
+<p>-- @iForAmt NUMERIC(19,5), -- 외화금액 소수점 자릿수</p>
+<p>@iItemWonAmt int, -- 자재 원화금액 소수점 자릿수</p>
+<p>@iItemWonPrice int,</p>
+<p>@iItemForPrice int,</p>
+<p>@iItemForAmt int, -- 자재 외화금액 소수점 자릿수,</p>
+<p>-- @iForPrice NUMERIC(19,5),</p>
+<p>-- @iKorPrice NUMERIC(19,5),</p>
+<p>@wPgmCaption NVARCHAR(50),</p>
+<p>-- @wPriceType CHAR(1),</p>
+<p>-- @wCurr CHAR(8),</p>
+<p>-- @pFrYm CHAR(8),</p>
+<p>-- @pToYm CHAR(8),</p>
+<p>@iExRate int,@wUserCust CHAR(6),</p>
+<p>@vcDicNm1 NVARCHAR(100),</p>
+<p>@vcDicNm2 NVARCHAR(100),</p>
+<p>@nTmp1 Int,</p>
+<p>@wDelvNo CHAR(19)</p>
+<p>---===============================================================================================</p>
+<p>----- Color뒤의 숫자가 클수록 진한 색을 나타남.--------------------------------------------------------</p>
+<p>SELECT @연두1 = '128,255,128',@연두2 = '000,255,128',@연두3 = '128,255,000',@연두4 = '000,255,064', @연두5 = '000,255,000',</p>
+<p>@청록1 = '000,128,000',@청록2 = '000,128,064',@청록3 = '000,128,128',@청록4 = '064,128,128',</p>
+<p>@노랑1 = '255,255,128',@노랑2 = '255,255,000',</p>
+<p>@갈색1 = '128,128,000',@갈색2 = '128,128,064',@갈색3 = '000,064,000',@갈색4 = '000,064,064',</p>
+<p>@하양 = '255,255,255',</p>
+<p>@검정 = '000,000,000',</p>
+<p>@쥐색1 = '192,192,192',@쥐색2 = '128,128,128',</p>
+<p>@파랑1 = '128,128,255',@파랑2 = '128,128,192',@파랑3 = '000,128,255',@파랑4 = '000,128,192',@파랑5 = '000,064,128',@파랑6 = '000,000,255',@파랑7 = '000,000,160',@파랑8 = '000,000,128',@파랑9 = '000,000,064',</p>
+<p>@고동1 = '128,128,064',@고동2 = '128,064,000',@고동3 = '128,000,000',@고동4 = '064,000,000',</p>
+<p>@보라1 = '128,000,255',@보라2 = '064,000,128',@보라3 = '128,000,064',@보라4 = '128,000,128',@보라5 = '064,000,064',</p>
+<p>@꽃분홍1= '255,128,255',@꽃분홍2= '255,000,255',@꽃분홍3 = '255,000,128',</p>
+<p>@빨강1 = '255,128,192',@빨강2 = '255,128,128',@빨강3 = '255,000,000',</p>
+<p>@주황1 = '255,128,064',@주황2 = '255,128,000',</p>
+<p>@하늘1 = '128,255,255',@하늘2 = '000,255,255'</p>
+<p>----- Color뒤의 숫자가 클수록 진한 색을 나타남.--------------------------------------------------------</p>
+<p>---===============================================================================================</p>
+<p>-- EXEC SDABOMControlQty @iBOMQty OUTPUT</p>
+<p>EXEC SDAItemControlQty @iItemQty OUTPUT , /* 수량 */</p>
+<p>@iItemWonAmt OUTPUT , /* 원화 */</p>
+<p>@iItemForAmt OUTPUT , /* 외화 */</p>
+<p>@iItemWonPrice OUTPUT , /* 원화 단가*/</p>
+<p>@iItemForPrice OUTPUT , /* 외화 단가*/</p>
+<p>@iExRate OUTPUT /* 환율*/</p>
+<p>-- EXEC SDAGoodsControlQty @iGoodsQty OUTPUT , /* 수량 */</p>
+<p>-- @iWonAmt OUTPUT, /*제품 원화 */</p>
+<p>-- @iForAmt OUTPUT, /*제품 외화 */</p>
+<p>-- @iKorPrice OUTPUT,</p>
+<p>-- @iForPrice OUTPUT,</p>
+<p>-- @iExRate OUTPUT</p>
+<p>SELECT @iMajorCd =ISNULL(LTRIM(RTRIM(@iMajorCd)),''),</p>
+<p>@iCode =ISNULL(LTRIM(RTRIM(@iCode)),''),</p>
+<p>@iDate1 =ISNULL(LTRIM(RTRIM(@iDate1)),''),</p>
+<p>@iDate2 =ISNULL(LTRIM(RTRIM(@iDate2)),''),</p>
+<p>@iDate3 =ISNULL(LTRIM(RTRIM(@iDate3)),''),</p>
+<p>@iDate4 =ISNULL(LTRIM(RTRIM(@iDate4)),''),</p>
+<p>@i1stCond =ISNULL(LTRIM(RTRIM(@i1stCond)),''),</p>
+<p>@i2stCond =ISNULL(LTRIM(RTRIM(@i2stCond)),''),</p>
+<p>@i3stCond =ISNULL(LTRIM(RTRIM(@i3stCond)),''),</p>
+<p>@i4thCond =ISNULL(LTRIM(RTRIM(@i4thCond)),''),</p>
+<p>@i5thCond =ISNULL(LTRIM(RTRIM(@i5thCond)),''),</p>
+<p>@i1stCombCond =ISNULL(LTRIM(RTRIM(@i1stCombCond)),''),</p>
+<p>@i2stCombCond =ISNULL(LTRIM(RTRIM(@i2stCombCond)),''),</p>
+<p>@i3stCombCond =ISNULL(LTRIM(RTRIM(@i3stCombCond)),''),</p>
+<p>@i4thCombCond =ISNULL(LTRIM(RTRIM(@i4thCombCond)),''),</p>
+<p>@i5thCombCond =ISNULL(LTRIM(RTRIM(@i5thCombCond)),'')</p>
+<p>-- 다국어</p>
+<p>IF @iLanGuage = 0 -- 한국어일 경우 바로 가져온다</p>
+<p>BEGIN</p>
+<p>SELECT @vcDicNm1 = N'입고', @vcDicNm2 = N'미입고'</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT top 1 @vcDicNm1 = DicName FROM TCTDictionary WHERE LanguageID = @iLanGuage AND REPLACE(DicNameKor,' ','') = N'SP_입고'</p>
+<p>IF @@ROWCOUNT = 0 SELECT @vcDicNm1 = N'입고'</p>
+<p>SELECT top 1 @vcDicNm2 = DicName FROM TCTDictionary WHERE LanguageID = @iLanGuage AND REPLACE(DicNameKor,' ','') = N'SP_미입고'</p>
+<p>IF @@ROWCOUNT = 0 SELECT @vcDicNm2 = N'미입고'</p>
+<p>END</p>
+<p>IF @iBizUnit = 'X' OR RTRIM(@iBizUnit) is null OR RTRIM(@iBizUnit) = '' SELECT @iBizUnit = ''</p>
+<p>IF RTRIM(@iWorkType) is null SELECT @iWorkType = 'TITLE'</p>
+<p>IF @iWorkType = 'TITLE' GOTO Title_Proc</p>
+<p>ELSE IF @iWorkType = 'MAJOR' GOTO Major_Proc</p>
+<p>ELSE IF @iWorkType = 'MINOR' GOTO Minor_Proc</p>
+<p>ELSE IF @iWorkType = 'DETAIL' GOTO Detail_Proc</p>
+<p>ELSE IF @iWorkType = 'PRINT' GOTO Print_Proc</p>
+<p>RETURN</p>
+<p>/****************************************************************************************************/</p>
+<p>Title_Proc:</p>
+<p>-- sheet define</p>
+<p>-- sheet no, column no, field name, type - (C:CHAR F:float, I:integer ,K:check box),</p>
+<p>-- 자릿수 , float시 소숫점아래 수 , column width, total MAX column</p>
+<p>-- total MAX column은 color빼고</p>
+<p>-- column width 는 font에 따라 틀려짐 .((default: 한글 한 자는 1.2 , 영문 대문자 한 자는 1, 영문 소문자 1자는 0.9 ))</p>
+<p>-- sheet no는 0부터 시작한다.</p>
+<p>-- Total을 보일 row는 마지막 column에 'TOTALROW' SELECT</p>
+<p>CREATE TABLE #Tmp_Qry</p>
+<p>(sheetid int null,</p>
+<p>columnid int null,</p>
+<p>DicCode NVARCHAR(50) null,</p>
+<p>columnname NVARCHAR(30) null,</p>
+<p>columntype CHAR(1) null,</p>
+<p>colLEFTlength int null,</p>
+<p>colRIGHTlength int null,</p>
+<p>colwidth int null,</p>
+<p>MAXcolumn int null,</p>
+<p>backcolor CHAR(12) null,</p>
+<p>forecolor CHAR(12) null,</p>
+<p>sec int null</p>
+<p>)</p>
+<p>INSERT #Tmp_Qry SELECT 0, 1, 'Sel' , N' 선택' ,'K', 5,0,4, 57, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 2, 'ntcmbDelvType_0677', N' 납품구분' ,'C', 10,0,10, 24, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 3, 'DelvNo' , N' 납품번호 ','C', 12,0,12,23, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 4, 'ItemNo' , N' 품목번호 ','C', 40,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 5, 'ASItem' , N' 품목명 ' ,'C', 100,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 6, 'Spec' , N' 품목규격 ','C', 60,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 7, 'PurUnit' , N' 구매단위 ','C', 10,0,4,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 8, 'PoQty' , N' 발주수량 ','F', 19,@iItemQty,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0, 9, 'DeliveryPrice', N' 납품단가 ','F', 19,@iItemWonPrice,10,20, null,null,null --@iItemForAmt</p>
+<p>INSERT #Tmp_Qry SELECT 0,10, 'DelvQty' , N' 납품수량 ','F', 19,@iItemQty,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,11, 'NoDelvQty' , N' 미납수량 ','F', 19,@iItemQty,10,20, null,null,null INSERT #Tmp_Qry SELECT 0,12, 'DelvAmt' , N' 납품금액 ','F', 19,@iItemForAmt,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,13, 'DeliveryAmt_WonAmt', N' 납품금액_원화 ','F', 19,@iItemWonAmt,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,14, 'OkQty' , N' 합격수량 ','F', 19,@iItemQty,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,15, 'PassAmt_WonAmt', N' 합격금액_원화 ','F', 19,@iItemWonAmt,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,16, 'ReceiptYN' , N' 입고유무 ','C', 10,0,6,20,@하양,@파랑3, null</p>
+<p>INSERT #Tmp_Qry SELECT 0,17, 'InQty' , N' 입고수량 ','F', 19,@iItemQty,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,18, 'InAmt' , N' 입고금액 ','F', 19,@iItemForAmt,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,19, 'ReceiptAmt_WonAmt', N' 입고금액_원화 ','F', 19,@iItemWonAmt,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,20, 'DelvFrDate' , N' 납품일자 ','D', 10,0,10,10, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,21, 'CustPlace' , N' 거래처 ' ,'C', 40,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,22, 'ImpType' , N' 내/외자구분 ','C', 20,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,23, 'QcType' , N' 검사구분 ','C', 8,0,6,10, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,24, 'PONoD' , N' 발주번호 ','C', 12,0,12,24, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,25, 'PurSource' , N' 구매원천 ','C', 20,0,12,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,26, 'SrcNo' , N' 원천번호 ','C', 50,0,12,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,27, 'FGoodsItemNo', N' 제품 품번 ','C', 40,0,12,1, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,28, 'GoodNm' , N' 제품명 ' ,'C', 100,0,6,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,29, 'FGoodsStan' , N' 제품 규격 ' ,'C', 60,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,30, 'InDate' , N' 입고일 ' ,'D', 10,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,31, 'BuyYN_01' , N' 의제매입여부 ' ,'K', 1,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,32, 'Proof' , N' 증빙 ' ,'C', 40,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,33, 'SlipSetId' , N' 전표번호 ' ,'C', 30,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,34, 'MapNo_1' , N' 최종결재자 ','C', 40,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,35, 'OutQcSerl' , N' 납품순번 ','C', 4,0,0,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,36, 'Remark' , N' 비고 ','C', 100,0,20,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,37, 'Remark2' , N' 납품비고 ','C', 200,0,20,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,38, 'WareHouse' , N' 창고 ','C', 100,0,20,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,39, 'CustCode', N' 거래처코드','C', 6,0,6,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,40, 'AccUnit', N'AccUnit' ,'C', 2,0,0,0, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,41, 'LotNo', N'LotNo' ,'C', 20,0,20,0, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,42, 'Serl', N'납품순번' ,'C', 20,0,20,0, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,43, 'ToSerial', N'ToSerial' ,'C', 20,0,20,0, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,44, 'FromSerial', N'FromSerial' ,'C', 20,0,20,0, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,45, 'ItemCls1', N'품목분류1' ,'C', 10,0,20,0, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,46, 'ItemCls2', N'품목분류2' ,'C', 10,0,20,0, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,47, 'DelvCustCd', N'납품처' ,'C', 40,0,10,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,48, 'CurrNm', N'화폐' ,'C', 10,0,20,0, null,null,null</p>
+<p>---------HIde Column ----------------------------</p>
+<p>INSERT #Tmp_Qry SELECT 0,49, 'PlanCd', N'프로젝트코드','C', 15,0,0,20, null,null,null --2009.02.17 snheo 프로젝트정보 추가</p>
+<p>INSERT #Tmp_Qry SELECT 0,50, 'PlanNo', N'프로젝트번호','C', 15,0,0,20, null,null,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,51, 'sp_ylwa21012_01', N'프로젝트명','C' , 40,0,0,20, null,null,null --PlanNm</p>
+<p>INSERT #Tmp_Qry SELECT 0,52, 'disdata', N'DisData' ,'C', 250,0,0,19, @노랑1,@청록1,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,53, 'CheckData', N'CheckData','C', 250,0,0,19, @노랑1,@청록1,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,54, 'dummy', N'Dummy','C', 30,0,0,19, @노랑1,@청록1,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,55, 'dummy', N'Dummy','C', 30,0,0,19, @노랑1,@청록1,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,56, 'JumpProgramName', N'JumpProgramName','C', 30,0,0,19, @노랑1,@청록1,null</p>
+<p>INSERT #Tmp_Qry SELECT 0,57, 'JumpProgramData', N'JumpProgramData','C', 250,0,0,19, @노랑1,@청록1,null</p>
+<p>-- 1. first results -- sheet define</p>
+<p>SELECT a.sheetid, a.columnid, a.columnname, a.columntype, a.colLEFTlength, a.colRIGHTlength,</p>
+<p>a.colwidth, a.MAXcolumn, a.backcolor, a.forecolor, a.sec, a.DicCode</p>
+<p>FROM #Tmp_Qry a</p>
+<p>ORDER BY sheetid, columnid</p>
+<p>RETURN</p>
+<p>/************************************************************************************************/</p>
+<p>Major_Proc:</p>
+<p>-- 2. data results,</p>
+<p>-- 마지막 SELECT column은 Fore Color</p>
+<p>-- 마지막 SELECT column - 1은 Back Color</p>
+<p>-- 마지막 SELECT column - 2은 다른 프로그램으로 jump하기 위한 form id</p>
+<p>-- 마지막 SELECT column - 3은 다른 sheet로 jump하기 위한 key column 이므로 key 값 SELECT</p>
+<p>-- 마지막 SELECT column - 4은 다른 sheet로 jump할 때 다른 sheet위에다 뿌리는 내용 SELECT</p>
+<p>-- 마지막 SELECT column - 5은 다른 program jump시 sheet data</p>
+<p>-- total을 보여주고 싶은 column에다 'T'를 SELECT하면 sheet에서 sum해준다.</p>
+<p>-- 합계가 있으면 '합계','TOTALROW' 는 반드시 그대로 입력.</p>
+<p>-- 합계가 없으면 한줄 모두 ''로 SELECT</p>
+<p>--</p>
+<p>-- 확정 표시 column : C--unlock</p>
+<p>-- 선 표시 column : S--unlock</p>
+<p>-- 중단 표시 column : D--</p>
+<p>IF @iDate2 = '' SELECT @iDate2 = '99991231'</p>
+<p>SELECT @wUserCust = ''</p>
+<p>--SELECT @wUserCust = ISNULL(CustCd,'') FROM TSBUserCust WHERE UserId = @iLoginid</p>
+<p>SELECT @wUserCust = ISNULL(CustCd,'') FROM TCTUserGrp WHERE UserId = @iLoginid</p>
+<p>IF @wUserCust is null</p>
+<p>SELECT @wUserCust = ''</p>
+<p>IF @i3stCombCond ='001'</p>
+<p>SELECT @i3stCombCond = '1' -- 입고</p>
+<p>ELSE IF @i3stCombCond ='002'</p>
+<p>SELECT @i3stCombCond = '0' -- 미입고</p>
+<p>ELSE</p>
+<p>SELECT @i3stCombCond = '' -- 전체</p>
+<p>CREATE TABLE #ylwa06037_001</p>
+<p>( AccUnit CHAR(2) null,</p>
+<p>DelvNo CHAR(12) null,</p>
+<p>ImpType CHAR(1) null,</p>
+<p>ItemCd CHAR(6) null,</p>
+<p>UnitCd CHAR(3) null,</p>
+<p>Price NUMERIC(19,5) null,</p>
+<p>Qty NUMERIC(19,5) null,</p>
+<p>Amt NUMERIC(19,5) null,</p>
+<p>KorAmt NUMERIC(19,5) null,</p>
+<p>QCQty NUMERIC(19,5) null,</p>
+<p>QCAmt NUMERIC(19,5) null,</p>
+<p>OKQty NUMERIC(19,5) null,</p>
+<p>OKAmt NUMERIC(19,5) null,</p>
+<p>OKKorAmt NUMERIC(19,5) null,</p>
+<p>DelvDate CHAR(8) null,</p>
+<p>CustCd CHAR(6) null,</p>
+<p>Whcd CHAR(6) null,</p>
+<p>QCType CHAR(1) null,</p>
+<p>PONo CHAR(12) null,</p>
+<p>POSerl CHAR(4) null,</p>
+<p>DelvSerl CHAR(4) null,</p>
+<p>WarehouseYN CHAR(1) null,</p>
+<p>SourceType CHAR(1) null,</p>
+<p>ControlNo CHAR(20) null,</p>
+<p>InDate CHAR(8) null, SlipId CHAR(21) null,</p>
+<p>FictionYn CHAR(1) null,</p>
+<p>EvidCd CHAR(8) null,</p>
+<p>tSalesType CHAR(1) null ,</p>
+<p>LOTNo CHAR(20) Null ,</p>
+<p>DelvRemark NVARCHAR(200) null ,</p>
+<p>ToSerial NVARCHAR(40),</p>
+<p>FromSerial NVARCHAR(40),</p>
+<p>PlanCd CHAR(12) null,</p>
+<p>DelvCustCd CHAR(9) null,</p>
+<p>CurrNm NVARCHAR(40) NULL -- 화폐추가 20230210 DHKIM</p>
+<p>)</p>
+<p>CREATE INDEX IDX_#ylwa06037_001 ON #ylwa06037_001(PONo, POSerl)</p>
+<p>CREATE TABLE #ylwa06037_002</p>
+<p>( PONo CHAR(12) null,</p>
+<p>POSerl CHAR(4) null,</p>
+<p>Qty NUMERIC(19,5) null,</p>
+<p>Remark NVARCHAR(500) null</p>
+<p>)</p>
+<p>CREATE INDEX IDX_#ylwa06037_002 ON #ylwa06037_002(PONo, POSerl)</p>
+<p>CREATE TABLE #ylwa06037_004</p>
+<p>( PONo CHAR(12) null,</p>
+<p>POSerl CHAR(4) null,</p>
+<p>Qty NUMERIC(19,5) null</p>
+<p>)</p>
+<p>CREATE INDEX IDX_#ylwa06037_004 ON #ylwa06037_004(PONo, POSerl)</p>
+<p>CREATE TABLE #ylwa06037_003</p>
+<p>( PONo CHAR(12) null,</p>
+<p>POSerl CHAR(4) null,</p>
+<p>GoodNo NVARCHAR(40) null,</p>
+<p>GoodNm NVARCHAR(100) null,</p>
+<p>GoodSpec NVARCHAR(60) null</p>
+<p>)</p>
+<p>CREATE INDEX IDX_#ylwa06037_003 ON #ylwa06037_003(PONo, POSerl)</p>
+<p>CREATE TABLE #SourceType</p>
+<p>( SourceType CHAR(1), SourceTypeNm NVARCHAR(100) )</p>
+<p>IF @i2stCombCond = '001' -- 프레임집계 안함</p>
+<p>BEGIN</p>
+<p>INSERT INTO #ylwa06037_001</p>
+<p>(AccUnit, DelvNo, ImpType, ItemCd, UnitCd, Price, Qty, Amt,KorAmt,QCQty, QCAmt, OKQty, OKAmt,OKKorAmt, DelvDate,</p>
+<p>CustCd, WhCd, QcType, PONo, POSerl, DelvSerl, WarehouseYN, SourceType , ControlNo, InDate, SlipId, FictionYn, EvidCd,</p>
+<p>tSalesType, LOTNo, DelvRemark , ToSerial,FromSerial, PlanCd, DelvCustCd, CurrNm)</p>
+<p>SELECT I.AccUnit, I.DelvNo, I.ImpType, I.ItemCd, I.UnitCd, I.Price, I.Qty, I.Amt, I.KorAmt,I.QCQty,I.QCAmt, I.OKStdUnitQty, I.OKAmt, I.OKKorAmt, M.DelvDate,</p>
+<p>M.CustCd, I.WhCd, I.QcType, I.PONo, I.POSerl, I.DelvSerl, I.WarehouseYN, I.SourceType , I.ControlNo,</p>
+<p>I.OkDate, M.SlipId, ISNULL(I.FictionYn, ''), ISNULL(I.EvidCd, ''), ISNULL(M.SalesType, '1') , I.LOTNo ,I.Remark,</p>
+<p>I.ToSerial, I.FromSerial, I.PlanCd, I.DelvCustCd, C.CurrNm</p>
+<p>FROM TUGDelvM M</p>
+<p>JOIN TUGDelvItem I</p>
+<p>ON M.DelvNo = I.DelvNo</p>
+<p>JOIN TDAItemMaster T</p>
+<p>ON I.ItemCd = T.ItemCd</p>
+<p>LEFT OUTER JOIN TDACurr AS C WITH(NOLOCK) ON C.CurrCd = M.CurrCd</p>
+<p>WHERE 1=1</p>
+<p>--AND I.ImpType \&lt;&gt; '4'</p>
+<p>AND (M.DelvDate BETWEEN @iDate1 AND @iDate2)</p>
+<p>AND (@i1stCond ='' OR M.CustCd = @i1stCond)</p>
+<p>AND (@i4thCombCond='' OR T.ItemClss2 = RTRIM(@i4thCombCond))</p>
+<p>AND (@iBizUnit ='' OR I.AccUnit = @iBizUnit )</p>
+<p>AND (@i3stCombCond ='' OR I.WarehouseYN = @i3stCombCond)</p>
+<p>AND (@i2stCond = '' OR (I.DelvNo LIKE @i2stCond + '%'))</p>
+<p>AND (@i3stCond ='' OR (T.ItemNo LIKE @i3stCond+ '%'))</p>
+<p>AND (@i4thCond ='' OR I.Whcd = @i4thCond)</p>
+<p>AND (@i5thCond ='' OR (T.ItemNm LIKE @i5thCond+ '%'))</p>
+<p>--AND (@i2stCombCond ='' OR QCType = @i2stCombCond)</p>
+<p>AND (@i5thCombCond = '' OR T.AssetType = @i5thCombCond )</p>
+<p>AND (ISNULL(@wUserCust,'') = '' OR M.CustCd = @wUserCust)</p>
+<p>AND (@i1stCombCond = '' OR M.SalesType = @i1stCombCond)</p>
+<p>AND M.IsPjt \&lt;&gt; 'P'</p>
+<p>INSERT INTO #ylwa06037_001</p>
+<p>(AccUnit, DelvNo, ImpType, ItemCd, UnitCd, Price, Qty, Amt,KorAmt,QCQty, QCAmt, OKQty, OKAmt,OKKorAmt, DelvDate,</p>
+<p>CustCd, WhCd, QcType, PONo, POSerl, DelvSerl, WarehouseYN, SourceType , ControlNo, InDate, SlipId, FictionYn, EvidCd,</p>
+<p>tSalesType, LOTNo, DelvRemark , ToSerial,FromSerial, PlanCd, DelvCustCd, CurrNm)</p>
+<p>SELECT I.AccUnit</p>
+<p>, I.OutDelvNo</p>
+<p>, '5' --I.ImpType</p>
+<p>, I.AssyCd</p>
+<p>, T.PuUnitCd</p>
+<p>, I.Price</p>
+<p>, I.Qty</p>
+<p>, I.ForAmt</p>
+<p>, I.Amt</p>
+<p>, 0 --I.QCQty</p>
+<p>, 0 --I.QCAmt</p>
+<p>, 0 --I.OKStdUnitQty</p>
+<p>, 0 --I.OKAmt</p>
+<p>, 0 --I.OKKorAmt</p>
+<p>, M.OutDelvDate</p>
+<p>, M.CustCd</p>
+<p>, M.WhCd</p>
+<p>, I.QcType</p>
+<p>, '' --I.PONo</p>
+<p>, '' --I.POSerl</p>
+<p>, I.OutDelvSerl</p>
+<p>, '' --I.WarehouseYN</p>
+<p>, '' --I.SourceType</p>
+<p>, '' --I.ControlNo</p>
+<p>, '' --I.OkDate</p>
+<p>, '' --M.SlipId</p>
+<p>, '' --ISNULL(I.FictionYn, '')</p>
+<p>, '' --ISNULL(I.EvidCd, '')</p>
+<p>, '' --ISNULL(M.SalesType, '1')</p>
+<p>, '' --I.LOTNo</p>
+<p>, '' --I.Remark</p>
+<p>, '' --I.ToSerial</p>
+<p>, '' --I.FromSerial</p>
+<p>, '' --I.PlanCd</p>
+<p>, I.DelvCustCd</p>
+<p>, ''</p>
+<p>FROM TMIOutDelvM m JOIN TMIOutDelvD i ON m.AccUnit = i.AccUnit</p>
+<p>AND m.OutDelvNo = i.OutDelvNo</p>
+<p>JOIN TDAItemMaster T</p>
+<p>ON I.AssyCd = T.ItemCd</p>
+<p>WHERE 1=1</p>
+<p>AND (M.OutDelvDate BETWEEN @iDate1 AND @iDate2) -- 외주납품일자</p>
+<p>AND (@i1stCond ='' OR M.CustCd = @i1stCond) -- 거래처</p>
+<p>-- AND (@i4thCombCond='' OR I.ImpType = RIGHT(RTRIM(@i4thCombCond),1)) -- 수입구분X</p>
+<p>AND (@iBizUnit ='' OR I.AccUnit = @iBizUnit ) -- 사업장</p>
+<p>-- AND (@i3stCombCond ='' OR I.WarehouseYN = @i3stCombCond) -- 입고유무X</p>
+<p>AND (@i2stCond = '' OR (M.OutDelvNo LIKE @i2stCond + '%')) -- 외주납품번호</p>
+<p>AND (@i3stCond ='' OR (T.ItemNo LIKE @i3stCond+ '%')) -- 품번</p>
+<p>AND (@i4thCond ='' OR m.Whcd = @i4thCond) -- 창고</p>
+<p>AND (@i5thCond ='' OR (T.ItemNm LIKE @i5thCond+ '%')) -- 품명</p>
+<p>-- AND (@i2stCombCond ='' OR QCType = @i2stCombCond) -- 검사구분x</p>
+<p>AND (@i5thCombCond = '' OR T.AssetType = @i5thCombCond ) -- 자산분류</p>
+<p>AND (ISNULL(@wUserCust,'') = '' OR M.CustCd = @wUserCust) -- 거래처? 뭐지이건?</p>
+<p>-- AND (@i1stCombCond = '' OR M.SalesType = @i1stCombCond) -- 납품구분</p>
+<p>AND M.IsPjt \&lt;&gt; 'P'</p>
+<p>END</p>
+<p>ELSE IF @i2stCombCond = '002' -- 집계</p>
+<p>BEGIN</p>
+<p>SELECT M.DelvNo, I.DelvSerl, I.ImpType, I.ItemCd, I.Qty, I.QCQty, I.OKQty</p>
+<p>INTO #TUGDelv</p>
+<p>FROM TUGDelvM M</p>
+<p>JOIN TUGDelvItem I</p>
+<p>ON M.DelvNo = I.DelvNo</p>
+<p>JOIN TDAItemMaster T</p>
+<p>ON I.ItemCd = T.ItemCd</p>
+<p>WHERE 1=1</p>
+<p>AND (M.DelvDate BETWEEN @iDate1 AND @iDate2)</p>
+<p>AND (@i1stCond ='' OR M.CustCd = @i1stCond)</p>
+<p>AND (@i4thCombCond='' OR T.ItemClss2 = RTRIM(@i4thCombCond))</p>
+<p>AND (@iBizUnit ='' OR I.AccUnit = @iBizUnit )</p>
+<p>AND (@i3stCombCond ='' OR I.WarehouseYN = @i3stCombCond)</p>
+<p>AND (@i2stCond = '' OR (I.DelvNo LIKE @i2stCond + '%'))</p>
+<p>AND (@i4thCond ='' OR I.Whcd = @i4thCond)</p>
+<p>AND (ISNULL(@wUserCust,'') = '' OR M.CustCd = @wUserCust)</p>
+<p>AND (@i1stCombCond = '' OR M.SalesType = @i1stCombCond)</p>
+<p>AND M.IsPjt \&lt;&gt; 'P'</p>
+<p>UNION</p>
+<p>SELECT I.OutDelvNo AS DelvNo, I.OutDelvSerl AS DelvSerl, '5' AS ImpType, I.AssyCd AS ItemCd, I.Qty, 0 AS QCQty, 0 AS OKQty</p>
+<p>FROM TMIOutDelvM m JOIN TMIOutDelvD i ON m.AccUnit = i.AccUnit</p>
+<p>AND m.OutDelvNo = i.OutDelvNo</p>
+<p>WHERE 1=1</p>
+<p>AND (M.OutDelvDate BETWEEN @iDate1 AND @iDate2) -- 외주납품일자</p>
+<p>AND (@i1stCond ='' OR M.CustCd = @i1stCond) -- 거래처</p>
+<p>AND (@iBizUnit ='' OR I.AccUnit = @iBizUnit ) -- 사업장</p>
+<p>AND (@i2stCond = '' OR (M.OutDelvNo LIKE @i2stCond + '%')) -- 외주납품번호</p>
+<p>AND (@i4thCond ='' OR m.Whcd = @i4thCond) -- 창고</p>
+<p>AND (ISNULL(@wUserCust,'') = '' OR M.CustCd = @wUserCust) -- 거래처? 뭐지이건?</p>
+<p>AND M.IsPjt \&lt;&gt; 'P'</p>
+<p>-- 해당 품목의 프레임자재여부확인</p>
+<p>SELECT DISTINCT A.DelvNo, A.ImpType, D.GoodCd, A.Qty, A.QCQty, A.OKQty</p>
+<p>INTO #FrameGood</p>
+<p>FROM #TUGDelv AS A JOIN TDAItemMaster AS B ON A.ItemCd = B.ItemCd</p>
+<p>AND B.AssetType = '6' -- 원자재</p>
+<p>JOIN TDAMinor AS C ON B.ItemClss2 = C.MinorCd AND C.Item8 = '1' -- 프레임</p>
+<p>JOIN (SELECT A.DelvNo, A.DelvSerl, A.ImpType, B.GoodCd, B.ItemCd, MAX(BomVer) AS BomVer</p>
+<p>FROM #TUGDelv AS A JOIN jsb.dbo.TPDBOM AS B ON A.ItemCd = B.ItemCd</p>
+<p>JOIN TDAItemMaster AS C ON B.GoodCd = C.ItemCD</p>
+<p>JOIN TDAItemAsset AS D ON C.AssetType = D.AssetCd</p>
+<p>AND D.AssetCd = 'B'</p>
+<p>GROUP BY A.DelvNo, A.DelvSerl, A.ImpType, B.GoodCd, B.ItemCd) AS D ON A.ItemCd = D.ItemCd</p>
+<p>AND A.DelvNo = D.DelvNo</p>
+<p>AND A.DelvSerl = D.DelvSerl</p>
+<p>AND A.ImpType = D.ImpType</p>
+<p>-- 수량이 다른건은 삭제한다(Groupby 안되므로)</p>
+<p>DELETE A</p>
+<p>FROM #FrameGood AS A JOIN (SELECT DelvNo, ImpType, GoodCd, COUNT(DelvNo+ImpType+GoodCd) Cnt</p>
+<p>FROM #FrameGood</p>
+<p>GROUP BY DelvNo, ImpType, GoodCd</p>
+<p>HAVING COUNT(DelvNo+ImpType+GoodCd) &gt; 1) AS B ON A.DelvNo = B.DelvNo</p>
+<p>AND A.ImpType = B.ImpType</p>
+<p>AND A.GoodCd = B.GoodCd</p>
+<p>INSERT INTO #ylwa06037_001</p>
+<p>(AccUnit, DelvNo, ImpType, ItemCd, UnitCd, Price, Qty, Amt,KorAmt,QCQty, QCAmt, OKQty, OKAmt,OKKorAmt, DelvDate,</p>
+<p>CustCd, WhCd, QcType, PONo, POSerl, DelvSerl, WarehouseYN, SourceType , ControlNo, InDate, SlipId, FictionYn, EvidCd,</p>
+<p>tSalesType, LOTNo, DelvRemark , ToSerial,FromSerial, PlanCd, DelvCustCd, CurrNm)</p>
+<p>SELECT I.AccUnit, I.DelvNo, I.ImpType, ISNULL(KA.GoodCd, I.ItemCd), MAX(I.UnitCd), MAX(CASE WHEN ISNULL(KA.GoodCd,'') = '' THEN I.Price ELSE 0 END), MAX(I.Qty), SUM(I.Amt), SUM(I.KorAmt), MAX(I.QCQty), SUM(I.QCAmt), MAX(I.OKStdUnitQty), SUM(I.OKAmt), SUM(I.OKKorAmt), M.DelvDate,</p>
+<p>M.CustCd, MAX(I.WhCd), MAX(I.QcType), MAX(I.PONo), MAX(I.POSerl), MAX(CASE WHEN ISNULL(KA.GoodCd,'') = '' THEN I.DelvSerl ELSE '' END), MAX(I.WarehouseYN), MAX(I.SourceType) , MAX(I.ControlNo),</p>
+<p>MAX(I.OkDate), M.SlipId, MAX(ISNULL(I.FictionYn, '')), MAX(ISNULL(I.EvidCd, '')), ISNULL(M.SalesType, '1') , MAX(I.LOTNo) ,MAX(I.Remark),</p>
+<p>MAX(I.ToSerial), MAX(I.FromSerial), MAX(I.PlanCd), MAX(I.DelvCustCd), C.CurrNm</p>
+<p>FROM #TUGDelv AS A JOIN TUGDelvM M</p>
+<p>ON A.DelvNo = M.DelvNo</p>
+<p>AND A.ImpType = M.ImpType</p>
+<p>JOIN TUGDelvItem I</p>
+<p>ON M.DelvNo = I.DelvNo</p>
+<p>AND A.DelvSerl = I.DelvSerl</p>
+<p>JOIN TDAItemMaster T</p>
+<p>ON I.ItemCd = T.ItemCd</p>
+<p>LEFT OUTER JOIN TDAItemAsset AS KC ON T.AssetType = KC.AssetCd</p>
+<p>AND KC.AssetCd = '6' -- 원자재</p>
+<p>LEFT OUTER JOIN TDAMinor AS KD ON T.ItemClss2 = KD.MinorCd AND KD.Item8 = '1' -- 프레임</p>
+<p>LEFT OUTER JOIN (SELECT A.DelvNo, A.DelvSerl, A.ImpType, B.GoodCd, B.ItemCd, MAX(BomVer) AS BomVer</p>
+<p>FROM #TUGDelv AS A JOIN jsb.dbo.TPDBOM AS B ON A.ItemCd = B.ItemCd</p>
+<p>JOIN TDAItemMaster AS C ON B.GoodCd = C.ItemCD</p>
+<p>JOIN TDAItemAsset AS D ON C.AssetType = D.AssetCd</p>
+<p>AND D.AssetCd = 'B'</p>
+<p>WHERE A.ImpType \&lt;&gt; '5'</p>
+<p>GROUP BY A.DelvNo, A.DelvSerl, A.ImpType, B.GoodCd, B.ItemCd) AS KE ON A.ItemCd = KE.ItemCd</p>
+<p>AND A.DelvNo = KE.DelvNo</p>
+<p>AND A.DelvSerl = KE.DelvSerl</p>
+<p>AND A.ImpType = KE.ImpType</p>
+<p>LEFT OUTER JOIN #FrameGood AS KA ON M.DelvNo = KA.DelvNo</p>
+<p>AND M.ImpType = KA.ImpType</p>
+<p>AND KE.GoodCd = KA.GoodCd</p>
+<p>LEFT OUTER JOIN TDAItemMaster AS KB ON KA.GoodCd = KB.ItemCd</p>
+<p>AND (@i3stCond ='' OR KB.ItemNo LIKE @i3stCond+ '%')</p>
+<p>AND (@i5thCond ='' OR KB.ItemNm LIKE @i5thCond+ '%')</p>
+<p>AND (@i5thCombCond = '' OR KB.AssetType = @i5thCombCond )</p>
+<p>LEFT OUTER JOIN TDACurr AS C WITH(NOLOCK) ON C.CurrCd = M.CurrCd</p>
+<p>WHERE 1=1</p>
+<p>AND (@i3stCond ='' OR T.ItemNo LIKE @i3stCond+ '%')</p>
+<p>AND (@i5thCond ='' OR T.ItemNm LIKE @i5thCond+ '%')</p>
+<p>AND (@i5thCombCond = '' OR T.AssetType = @i5thCombCond )</p>
+<p>GROUP BY I.AccUnit, I.DelvNo, I.ImpType, ISNULL(KA.GoodCd, I.ItemCd), M.DelvDate, M.CustCd, M.SlipId, ISNULL(M.SalesType, '1'), C.CurrNm</p>
+<p>INSERT INTO #ylwa06037_001</p>
+<p>(AccUnit, DelvNo, ImpType, ItemCd, UnitCd, Price, Qty, Amt,KorAmt,QCQty, QCAmt, OKQty, OKAmt,OKKorAmt, DelvDate,</p>
+<p>CustCd, WhCd, QcType, PONo, POSerl, DelvSerl, WarehouseYN, SourceType , ControlNo, InDate, SlipId, FictionYn, EvidCd,</p>
+<p>tSalesType, LOTNo, DelvRemark , ToSerial,FromSerial, PlanCd, DelvCustCd, CurrNm)</p>
+<p>SELECT I.AccUnit</p>
+<p>, I.OutDelvNo</p>
+<p>, '5' --I.ImpType</p>
+<p>, ISNULL(KA.GoodCd, I.AssyCd)</p>
+<p>, MAX(T.PuUnitCd)</p>
+<p>, MAX(CASE WHEN ISNULL(KA.GoodCd, '') = '' THEN I.Price ELSE 0 END)</p>
+<p>, MAX(I.Qty)</p>
+<p>, SUM(I.ForAmt)</p>
+<p>, SUM(I.Amt )</p>
+<p>, 0 --I.QCQty</p>
+<p>, 0 --I.QCAmt</p>
+<p>, 0 --I.OKStdUnitQty</p>
+<p>, 0 --I.OKAmt</p>
+<p>, 0 --I.OKKorAmt</p>
+<p>, M.OutDelvDate</p>
+<p>, M.CustCd</p>
+<p>, M.WhCd</p>
+<p>, MAX(I.QcType )</p>
+<p>, '' --I.PONo</p>
+<p>, '' --I.POSerl</p>
+<p>, MAX(CASE WHEN ISNULL(KA.GoodCd, '') = '' THEN I.OutDelvSerl ELSE '' END)</p>
+<p>, '' --I.WarehouseYN</p>
+<p>, '' --I.SourceType</p>
+<p>, '' --I.ControlNo</p>
+<p>, '' --I.OkDate</p>
+<p>, '' --M.SlipId</p>
+<p>, '' --ISNULL(I.FictionYn, '')</p>
+<p>, '' --ISNULL(I.EvidCd, '')</p>
+<p>, '' --ISNULL(M.SalesType, '1')</p>
+<p>, '' --I.LOTNo</p>
+<p>, '' --I.Remark</p>
+<p>, '' --I.ToSerial</p>
+<p>, '' --I.FromSerial</p>
+<p>, '' --I.PlanCd</p>
+<p>, MAX(I.DelvCustCd)</p>
+<p>, ''</p>
+<p>FROM #TUGDelv AS A JOIN TMIOutDelvM m ON A.DelvNo = m.OutDelvNo AND A.ImpType = '5'</p>
+<p>JOIN TMIOutDelvD i ON m.AccUnit = i.AccUnit</p>
+<p>AND m.OutDelvNo = i.OutDelvNo</p>
+<p>AND A.DelvSerl = i.OutDelvSerl</p>
+<p>JOIN TDAItemMaster T</p>
+<p>ON I.AssyCd = T.ItemCd</p>
+<p>LEFT OUTER JOIN TDAItemAsset AS KC ON T.AssetType = KC.AssetCd</p>
+<p>AND KC.AssetCd = '6' -- 원자재</p>
+<p>LEFT OUTER JOIN TDAMinor AS KD ON T.ItemClss2 = KD.MinorCd AND KD.Item8 = '1' -- 프레임</p>
+<p>LEFT OUTER JOIN (SELECT A.DelvNo, A.DelvSerl, A.ImpType, B.GoodCd, B.ItemCd, MAX(BomVer) AS BomVer</p>
+<p>FROM #TUGDelv AS A JOIN jsb.dbo.TPDBOM AS B ON A.ItemCd = B.ItemCd</p>
+<p>JOIN TDAItemMaster AS C ON B.GoodCd = C.ItemCD</p>
+<p>JOIN TDAItemAsset AS D ON C.AssetType = D.AssetCd</p>
+<p>AND D.AssetCd = 'B'</p>
+<p>WHERE A.ImpType = '5'</p>
+<p>GROUP BY A.DelvNo, A.DelvSerl, A.ImpType, B.GoodCd, B.ItemCd) AS KE ON A.ItemCd = KE.ItemCd</p>
+<p>AND A.DelvNo = KE.DelvNo</p>
+<p>AND A.DelvSerl = KE.DelvSerl</p>
+<p>AND A.ImpType = KE.ImpType</p>
+<p>LEFT OUTER JOIN #FrameGood AS KA ON M.OutDelvNo = KA.DelvNo</p>
+<p>AND KA.ImpType = '5'</p>
+<p>AND KA.GoodCd = KE.GoodCd</p>
+<p>LEFT OUTER JOIN TDAItemMaster AS KB ON KA.GoodCd = KB.ItemCd</p>
+<p>AND (@i3stCond ='' OR KB.ItemNo LIKE @i3stCond+ '%')</p>
+<p>AND (@i5thCond ='' OR KB.ItemNm LIKE @i5thCond+ '%')</p>
+<p>AND (@i5thCombCond = '' OR KB.AssetType = @i5thCombCond )</p>
+<p>WHERE 1=1</p>
+<p>AND (@i3stCond ='' OR T.ItemNo LIKE @i3stCond+ '%') -- 품번</p>
+<p>AND (@i5thCond ='' OR T.ItemNm LIKE @i5thCond+ '%') -- 품명</p>
+<p>AND (@i5thCombCond = '' OR T.AssetType = @i5thCombCond ) -- 자산분류</p>
+<p>GROUP BY I.AccUnit, I.OutDelvNo, ISNULL(KA.GoodCd, I.AssyCd), M.OutDelvDate, M.CustCd, M.WhCd</p>
+<p>END</p>
+<p>INSERT INTO #ylwa06037_002</p>
+<p>(PONo, POSerl, Qty , Remark)</p>
+<p>SELECT DISTINCT I.PONo, I.POserl, I.Qty , I.Remark</p>
+<p>FROM TUGPOItem I</p>
+<p>JOIN #ylwa06037_001 T</p>
+<p>ON I.PONo = T.PONo AND I.POserl = T.POserl</p>
+<p>INSERT INTO #ylwa06037_004</p>
+<p>(PONo, POSerl, Qty)</p>
+<p>SELECT I.PONo,</p>
+<p>I.POserl,</p>
+<p>SUM(CASE WHEN I.WarehouseYN = '1' AND QcType in ('3','4')</p>
+<p>THEN ISNULL(I.QCQty,0)</p>
+<p>ELSE ISNULL(I.Qty,0) END) -- 입고된 경우는 발주수량에서 합격수량을 빼야함</p>
+<p>FROM #ylwa06037_001 I</p>
+<p>WHERE I.PONo \&lt;&gt; ''</p>
+<p>GROUP BY I.PONo, I.POserl</p>
+<p>INSERT INTO #ylwa06037_003 (PONo, POSerl, GoodNo, GoodNm, GoodSpec)</p>
+<p>SELECT DISTINCT I.PONo, I.POserl, II.ItemNo, II.ItemNm, II.Spec</p>
+<p>FROM #ylwa06037_001 I</p>
+<p>JOIN TPPMps MP</p>
+<p>ON I.ControlNo = MP.PlanLotNo</p>
+<p>JOIN TDAItemMaster II</p>
+<p>ON MP.GoodCd = II.ItemCd</p>
+<p>WHERE 1=1</p>
+<p>AND I.SourceType = '3'</p>
+<p>AND I.PONo \&lt;&gt; ''</p>
+<hr />
+<p>--조회결과1</p>
+<hr />
+<p>SELECT 'S',N'합계','','', '','','', 'T','','T', --10</p>
+<p>'T','T','T','T','T','','T','T','T','', --20</p>
+<p>'', '','','','','','','','','',</p>
+<p>'','','','','','','','','','','',</p>
+<p>'','','', '','','','','','','',</p>
+<p>'','','','','','',</p>
+<p>@빨강1,@하양 ,null --</p>
+<hr />
+<p>--조회결과2</p>
+<hr />
+<p>SELECT '',</p>
+<p>CASE WHEN ImpType = '5' THEN '외주'</p>
+<p>ELSE '구매-' + ISNULL(DIC.dicname, ISNULL(M1.MinorNm,'')) END ,</p>
+<p>ISNULL(T1.DelvNo,'') AS DelvNo,</p>
+<p>I.ItemNo,</p>
+<p>I.Itemnm,</p>
+<p>I.spec,</p>
+<p>U.UnitNm,</p>
+<p>T2.Qty, -- 발주수량</p>
+<p>T1.Price, -- 납품단가</p>
+<p>T1.Qty, -- 납품수량</p>
+<p>--CASE ISNULL(LTRIM(RTRIM(T1.PONo)),'') WHEN '' THEN 0</p>
+<p>CASE WHEN ImpType = 4 THEN 0</p>
+<p>ELSE ISNULL(T2.Qty,0) - ISNULL(T4.Qty,0) END, -- 미납수량(발주수량이 없으면 0개 20230220 DHKIM)</p>
+<p>T1.Amt,</p>
+<p>T1.KorAmt,</p>
+<p>T1.QCQty,</p>
+<p>T1.QCAmt,</p>
+<p>CASE WHEN T1.WarehouseYN = '1' THEN @vcDicNm1 ELSE @vcDicNm2 END,</p>
+<p>T1.OKQty,</p>
+<p>T1.OKAmt,</p>
+<p>T1.OKKorAmt,</p>
+<p>T1.DelvDate,</p>
+<p>C.Custnm,</p>
+<p>ISNULL(DIC1.Dicname,ISNULL(M.MinorNm,'')) ,</p>
+<p>ISNULL(DIC2.Dicname,ISNULL(TM.MinorNm, '')),</p>
+<p>T1.PONo,</p>
+<p>ISNULL(DIC3.Dicname,ISNULL(MM.MinorNM, '')) AS SourceType,</p>
+<p>T1.ControlNo,</p>
+<p>ISNULL(T3.GoodNo, '') AS GoodNo,</p>
+<p>ISNULL(T3.GoodNm, '') AS GoodNm,</p>
+<p>ISNULL(T3.GoodSpec, '') AS GoodSpec,</p>
+<p>CASE WHEN T1.WarehouseYN = '1' THEN T1.InDate ELSE '' END ,</p>
+<p>T1.FictionYn,</p>
+<p>ISNULL(DIC4.Dicname,ISNULL(TE.MinorNm,'')),</p>
+<p>T1.SlipId,</p>
+<p>ISNULL(GW.LastManager, ''),</p>
+<p>ISNULL(T1.DelvSerl,'') AS DelvSerl,</p>
+<p>ISNULL(T2.Remark,'') AS Remark, --구매발주의 비고</p>
+<p>ISNULL(T1.DelvRemark,'') AS Remark2, -- 납품비고</p>
+<p>ISNULL(w.WHNm,'') AS WHNm,</p>
+<p>ISNULL(T1.CustCd, '') AS CustCd,</p>
+<p>T1.AccUnit AS AccUnit,</p>
+<p>T1.LOTNo,</p>
+<p>T1.DelvSerl,</p>
+<p>T1.ToSerial,</p>
+<p>T1.FromSerial,</p>
+<p>ISNULL(DIC5.Dicname,ISNULL(C1.MinorNm,'')) ,</p>
+<p>ISNULL(DIC6.Dicname,ISNULL(C2.MinorNm,'')) ,</p>
+<p>ISNull(DC.DeliveryPlace,'') AS DelvCustCd,</p>
+<p>ISNULL(T1.CurrNm,'') AS CurrNm,</p>
+<p>-- 프로젝트정보 추가 프로젝트코드, 프로젝트번호, 프로젝트명 20090217 snheo</p>
+<p>T1.PlanCd,</p>
+<p>ISNULL(TP.PlanNo, ''),</p>
+<p>ISNULL(TP.PlanNm, ''),</p>
+<p>T1.DelvNo+'/_'+T1.DelvSerl, -- Dis data</p>
+<p>T1.DelvNo+T1.DelvSerl+T1.ImpType+'_/'+T1.WarehouseYN,</p>
+<p>T1.AccUnit+T1.DelvNo+T1.DelvSerl+T1.ImpType, -- check data</p>
+<p>T1.AccUnit+T1.DelvNo+T1.DelvSerl+T1.ImpType,</p>
+<p>--'','',</p>
+<p>-- CASE WHEN T1.Qty \&lt; 0 THEN 'frmUGPurRETURN'</p>
+<p>-- ELSE CASE WHEN T2.PONo is null THEN 'frmUGDelivery_03'</p>
+<p>-- ELSE 'frmUGDelivery'</p>
+<p>-- END</p>
+<p>-- END, --2001.03.29 by 손경섭: 납품수량이 (-)이면 구매반품으로 가도록</p>
+<p>-- CASE WHEN T1.Qty \&lt; 0 THEN 'frmUGPurRETURN'</p>
+<p>-- ELSE CASE WHEN T2.PONo is null THEN 'frmUGDelivery_03'</p>
+<p>-- ELSE 'frmUGDelivery_03'</p>
+<p>-- END</p>
+<p>-- END, --2001.03.29 by 손경섭: 납품수량이 (-)이면 구매반품으로 가도록</p>
+<p>CASE WHEN ImpType = '5' THEN 'frmMIOutDelv_01' -- 외주생산</p>
+<p>ELSE CASE WHEN T1.tSalesType = '2' THEN 'frmUGPurRETURN_jsb' -- 구매반품</p>
+<p>ELSE 'frmUGDelivery_03_jsb' END -- 구매납품</p>
+<p>END,</p>
+<p>--T1.AccUnit+T1.DelvNo+T1.DelvSerl,</p>
+<p>--T1.AccUnit + '_/' + T1.DelvNo + '_/' + T1.DelvSerl + '_/' AS JumpData , -- sheet data</p>
+<p>T1.DelvNo AS JUMPData,</p>
+<p>null,</p>
+<p>null</p>
+<p>FROM #ylwa06037_001 T1</p>
+<p>LEFT OUTER JOIN #ylwa06037_002 AS T2 ON T1.PONo = T2.PONo AND T1.POSerl = T2.POserl</p>
+<p>JOIN TDAItemMaster AS I ON T1.ItemCd = I.ItemCd</p>
+<p>JOIN TDACustMaster AS C ON T1.CustCd = C.CustCd</p>
+<p>JOIN TDAUnit AS U ON T1.UnitCd = U.UnitCd</p>
+<p>JOIN TDAWH AS W ON T1.WHcd = W.Whcd</p>
+<p>LEFT OUTER JOIN TDAMinor AS M ON T1.ImpType = M.Item1 AND M.MinorCd LIKE '025%'</p>
+<p>LEFT OUTER JOIN TCTdictionary AS DIC1 ON M.Diccode =DIC1.Diccode AND DIC1.LanguageId=@iLanguage ----add</p>
+<p>LEFT OUTER JOIN #ylwa06037_004 AS T4 ON T1.PONo = T4.PONo AND T1.POSerl = T4.POSerl</p>
+<p>LEFT OUTER JOIN #ylwa06037_003 AS T3 ON T1.PONo = T3.PONo AND T1.POSerl = T3.POserl</p>
+<p>LEFT OUTER JOIN TDAMinor AS MM ON T1.SourceType = MM.Item1 and MM.MinorCd LIKE '012%'</p>
+<p>LEFT OUTER JOIN TCTdictionary AS DIC3 ON MM.Diccode =DIC3.Diccode AND DIC3.LanguageId=@iLanguage ----add</p>
+<p>LEFT OUTER JOIN TDAMinor AS TM ON T1.QcType = TM.Item1 AND TM.MinorCd LIKE '003%'</p>
+<p>LEFT OUTER JOIN TCTdictionary AS DIC2 ON TM.Diccode =DIC2.Diccode AND DIC2.LanguageId=@iLanguage ----add</p>
+<p>LEFT OUTER JOIN TDAMinor AS TE ON T1.EvidCd = TE.MinorCd AND TE.MinorCd LIKE '406%'</p>
+<p>LEFT OUTER JOIN TCTdictionary AS DIC4 ON TE.Diccode =DIC4.Diccode AND DIC4.LanguageId=@iLanguage ----add</p>
+<p>LEFT OUTER JOIN TDAGroupWare AS GW ON GW.WorkKind= 'frmUGDelivery' AND T1.PONo = GW.TblKey</p>
+<p>LEFT OUTER JOIN TDAMinor AS M1 ON M1.MinorCd LIKE 'S21%' AND T1.tSalesType = M1.Item1</p>
+<p>LEFT OUTER JOIN TCTdictionary AS DIC ON M1.Diccode =DIC.Diccode AND DIC.LanguageId=@iLanguage ----add</p>
+<p>LEFT OUTER JOIN TEAPlan AS TP ON T1.PlanCd = TP.PlanCd</p>
+<p>LEFT OUTER JOIN TDAMinor AS C1 ON I.ItemClss1 = C1.MinorCd AND C1.MinorCd &gt;= '04000000' AND C1.MinorCd \&lt;= '040ZZZZZ'</p>
+<p>LEFT OUTER JOIN TCTdictionary AS DIC5 ON C1.DicCode =DIC5.Diccode AND DIC5.LanguageId=@iLanguage ----add</p>
+<p>LEFT OUTER JOIN TDAMinor AS C2 ON I.ItemClss2 = C2.MinorCd AND C2.MinorCd &gt;= '04100000' AND C2.MinorCd \&lt;= '041ZZZZZ'</p>
+<p>LEFT OUTER JOIN TCTdictionary AS DIC6 ON C2.Diccode =DIC6.Diccode AND DIC6.LanguageId=@iLanguage ----add</p>
+<p>LEFT OUTER JOIN TSBDeliveryCust AS DC ON DC.Seq = T1.DelvCustCd</p>
+<p>-- jssong 추가 (과거구매이력 조회되도록 수정함.)</p>
+<p>UNION ALL</p>
+<p>SELECT '',</p>
+<p>'구매-과거자료',</p>
+<p>ISNULL(A.DelvNo,'') AS DelvNo,</p>
+<p>C.ItemNo,</p>
+<p>A.Itemnm,</p>
+<p>isnull(C.spec,''),</p>
+<p>isnull(d.UnitNm,''),</p>
+<p>A.Qty,</p>
+<p>A.Price,</p>
+<p>A.Qty,</p>
+<p>0 ,</p>
+<p>A.Amt,</p>
+<p>A.Amt,</p>
+<p>A.Amt,</p>
+<p>A.Amt,</p>
+<p>'',</p>
+<p>A.Qty,</p>
+<p>A.Amt,</p>
+<p>A.Amt,</p>
+<p>A.DelvDate,</p>
+<p>B.Custnm,</p>
+<p>'' ,</p>
+<p>'',</p>
+<p>'',</p>
+<p>'' AS SourceType,</p>
+<p>'',</p>
+<p>'' AS GoodNo,</p>
+<p>'' AS GoodNm,</p>
+<p>'' AS GoodSpec,</p>
+<p>'' ,</p>
+<p>'',</p>
+<p>'',</p>
+<p>'',</p>
+<p>'',</p>
+<p>ISNULL(A.DelvSerl,'') AS DelvSerl,</p>
+<p>ISNULL(A.Remark,'') AS Remark, --구매발주의 비고</p>
+<p>ISNULL(A.Remark,'') AS Remark2, -- 납품비고</p>
+<p>'' AS WHNm,</p>
+<p>ISNULL(A.CustCd, '') AS CustCd,</p>
+<p>'' AS AccUnit,</p>
+<p>'',</p>
+<p>A.DelvSerl,</p>
+<p>'',</p>
+<p>'',</p>
+<p>'' ,</p>
+<p>'' ,</p>
+<p>'' AS DelvCustCd,</p>
+<p>'' AS CurrNm,</p>
+<p>-- 프로젝트정보 추가 프로젝트코드, 프로젝트번호, 프로젝트명 20090217 snheo</p>
+<p>'',</p>
+<p>'',</p>
+<p>'',</p>
+<p>'', -- Dis data</p>
+<p>'',</p>
+<p>'', -- check data</p>
+<p>--'','',</p>
+<p>-- CASE WHEN T1.Qty \&lt; 0 THEN 'frmUGPurRETURN'</p>
+<p>-- ELSE CASE WHEN T2.PONo is null THEN 'frmUGDelivery_03'</p>
+<p>-- ELSE 'frmUGDelivery'</p>
+<p>-- END</p>
+<p>-- END, --2001.03.29 by 손경섭: 납품수량이 (-)이면 구매반품으로 가도록</p>
+<p>-- CASE WHEN T1.Qty \&lt; 0 THEN 'frmUGPurRETURN'</p>
+<p>-- ELSE CASE WHEN T2.PONo is null THEN 'frmUGDelivery_03'</p>
+<p>-- ELSE 'frmUGDelivery_03'</p>
+<p>-- END</p>
+<p>-- END, --2001.03.29 by 손경섭: 납품수량이 (-)이면 구매반품으로 가도록</p>
+<p>'99'+A.DelvNo+A.DelvSerl,</p>
+<p>'' ,</p>
+<p>--T1.AccUnit + '_/' + T1.DelvNo + '_/' + T1.DelvSerl + '_/' AS JumpData , -- sheet data</p>
+<p>A.DelvNo AS JUMPData,</p>
+<p>null,</p>
+<p>null</p>
+<p>FROM TUGInitDelvItem_jsb a JOIN TDACustMaster b WITH(NOLOCK) on a.custcd = b.custcd</p>
+<p>LEFT OUTER JOIN TDAItemMAster c WITH(NOLOCK) on a.ITemCd = c.ITemCd</p>
+<p>LEFT OUTEr JOIN TDAUnit d WITH(NOLOCK) on a.UnitCd = d.UnitCd</p>
+<p>WHERE 1=1</p>
+<p>AND 1=1</p>
+<p>AND (a.DelvDate BETWEEN @iDate1 AND @iDate2)</p>
+<p>AND (@i1stCond ='' OR a.CustCd = @i1stCond)</p>
+<p>-- AND (@i4thCombCond='' OR I.ImpType = RIGHT(RTRIM(@i4thCombCond),1))</p>
+<p>-- AND (@iBizUnit ='' OR I.AccUnit = @iBizUnit )</p>
+<p>-- AND (@i3stCombCond ='' OR I.WarehouseYN = @i3stCombCond)</p>
+<p>AND (@i2stCond = '' OR (a.DelvNo LIKE @i2stCond + '%'))</p>
+<p>AND (@i3stCond ='' OR (c.ItemNo LIKE @i3stCond+ '%'))</p>
+<p>-- AND (@i4thCond ='' OR I.Whcd = @i4thCond)</p>
+<p>AND (@i5thCond ='' OR (A.ItemNm LIKE @i5thCond+ '%'))</p>
+<p>-- AND (@i2stCombCond ='' OR QCType = @i2stCombCond)</p>
+<p>-- AND (@i5thCombCond = '' OR T.AssetType = @i5thCombCond )</p>
+<p>-- AND (ISNULL(@wUserCust,'') = '' OR M.CustCd = @wUserCust)</p>
+<p>-- AND (@i1stCombCond = '' OR M.SalesType = @i1stCombCond)</p>
+<p>-- AND M.IsPjt \&lt;&gt; 'P'</p>
+<p>ORDER BY DelvNo, DelvSerl</p>
+<p>RETURN</p>
+<p>Minor_Proc:</p>
+<p>Detail_Proc:</p>
+<p>/**********************************************************************************************************************/</p>
+<p>Print_Proc:</p>
+<p>CREATE TABLE #DelvItemTmp</p>
+<p>( AccUnit CHAR(2) ,</p>
+<p>DelvNo CHAR(12) ,</p>
+<p>DelvSerl CHAR(4) ,</p>
+<p>ImpType CHAR(1))</p>
+<p>CREATE TABLE #DelvItem</p>
+<p>( AccUnit CHAR(2) ,</p>
+<p>DelvNo CHAR(12) ,</p>
+<p>DelvSerl CHAR(4) ,</p>
+<p>ImpType CHAR(1))</p>
+<p>WHILE 1 &gt; 0</p>
+<p>BEGIN</p>
+<p>EXEC @nTmp1 = SDAOBGetCols @iMajorCd OUTPUT, @wDelvNo OUTPUT</p>
+<p>IF ISNULL(LTRIM(RTRIM(@wDelvNo)), '') = '' break</p>
+<p>IF SUBSTRING(@wDelvNo,19,1) = '5'</p>
+<p>INSERT #DelvItemTmp</p>
+<p>SELECT AccUnit, OutDelvNo, OutDelvSerl, '5'</p>
+<p>FROM TMIOutDelvD</p>
+<p>WHERE AccUnit = SUBSTRING(@wDelvNo,1,2) AND OutDelvNo = SUBSTRING(@wDelvNo,3,12)</p>
+<p>AND OutDelvSerl = SUBSTRING(@wDelvNo,15,4)</p>
+<p>-- jssong 추가 함.</p>
+<p>IF SUBSTRING(@wDelvNo,1,2) = '99'</p>
+<p>INSERT #DelvItemTmp</p>
+<p>SELECT '', DelvNo, DelvSerl, ''</p>
+<p>FROM TUGInitDelvItem_jsb</p>
+<p>WHERE DelvNo = SUBSTRING(@wDelvNo,3,11) AND DelvSerl = SUBSTRING(@wDelvNo,14,4)</p>
+<p>ELSE</p>
+<p>INSERT #DelvItemTmp</p>
+<p>SELECT AccUnit, DelvNo, DelvSerl, ImpType</p>
+<p>FROM TUGDelvItem</p>
+<p>WHERE AccUnit = SUBSTRING(@wDelvNo,1,2) AND DelvNo = SUBSTRING(@wDelvNo,3,12) AND DelvSerl = SUBSTRING(@wDelvNo,15,4)</p>
+<p>END</p>
+<p>INSERT #DelvItem</p>
+<p>SELECT DISTINCT</p>
+<p>AccUnit ,</p>
+<p>DelvNo ,</p>
+<p>DelvSerl,</p>
+<p>ImpType</p>
+<p>FROM #DelvItemTmp</p>
+<p>DECLARE @wCurrDate CHAR(8), @wSumAmt NUMERIC(19,5), @wTotAmt NUMERIC(19,5)</p>
+<p>IF @iDate2 = '' SELECT @iDate2 = '99991231'</p>
+<p>SELECT @wUserCust = ''</p>
+<p>SELECT @wUserCust = ISNULL(CustCd,'') FROM TSBUserCust WHERE UserId = @iLoginid</p>
+<p>IF @wUserCust is null</p>
+<p>SELECT @wUserCust = ''</p>
+<p>IF @i3stCombCond ='001'</p>
+<p>SELECT @i3stCombCond = '1' -- 입고</p>
+<p>ELSE IF @i3stCombCond ='002'</p>
+<p>SELECT @i3stCombCond = '0' -- 미입고</p>
+<p>ELSE</p>
+<p>SELECT @i3stCombCond = '' -- 전체</p>
+<p>SELECT @wCurrDate = CONVERT(CHAR(8), getDate(),112)</p>
+<p>CREATE TABLE #ylwa06037_010</p>
+<p>(</p>
+<p>SrtDate CHAR(8) null,</p>
+<p>ENDDate CHAR(8) null,</p>
+<p>AccUnitNm NVARCHAR(200) null,</p>
+<p>CurrDate CHAR(10) null,</p>
+<p>InvDate CHAR(10) null,</p>
+<p>OKDate CHAR(10) null,</p>
+<p>CustNm NVARCHAR(200) null,</p>
+<p>ItemNm NVARCHAR(200) null,</p>
+<p>UnitNm NVARCHAR(400) null,</p>
+<p>Qty NUMERIC(19,5) null,</p>
+<p>KorPrice NUMERIC(19,5) null,</p>
+<p>CurrCd CHAR(03) null,</p>
+<p>Price NUMERIC(19,5) null,</p>
+<p>Amt NUMERIC(19,5) null,</p>
+<p>Vat NUMERIC(19,5) null,</p>
+<p>TotAmt NUMERIC(19,5) null,</p>
+<p>Remark NVARCHAR(200) null,</p>
+<p>ItemNo NVARCHAR(200) null,</p>
+<p>RegDate CHAR(12) null</p>
+<p>)</p>
+<p>INSERT INTO #ylwa06037_010</p>
+<p>SELECT @iDate1 AS SrtDate, -- 조회시작일</p>
+<p>@iDate2 AS ENDDate, -- 조회마지막일</p>
+<p>CASE WHEN RTRIM(LTRIM(@iBizUnit)) = '' THEN '전체' ELSE (SELECT AccunitNm FROM TDAAccUnit WHERE AccUnit = @iBizUnit) END AS AccUnitNm, -- 사업장</p>
+<p>@wCurrDate AS CurrDate, -- 작성일</p>
+<p>SUBSTRING(M.DelvDate,1,4)+'-'+SUBSTRING(M.DelvDate,5,2)+'-'+SUBSTRING(M.DelvDate,7,2) AS InvDate, -- 납품일자</p>
+<p>SUBSTRING(I.OKDate,1,4)+'-'+SUBSTRING(I.OKDate,5,2)+'-'+SUBSTRING(I.OKDate,7,2) AS OKDate, -- 입고일자 추가 2009.10.07</p>
+<p>a.CustNm AS CustNm, -- 거래처</p>
+<p>T.ItemNm AS ItemNm, -- 품명</p>
+<p>b.UnitNm AS UnitNm, -- 단위</p>
+<p>I.Qty AS Qty, -- 수량</p>
+<p>M.CurrRate * I.Price AS KorPrice,</p>
+<p>CASE WHEN M.CurrCd \&lt;&gt; 'KRW' THEN M.CurrCd ELSE NULL END AS CurrCd,</p>
+<p>CASE WHEN M.CurrCd \&lt;&gt; 'KRW' THEN I.Price ELSE NULL END AS Price, -- 단가</p>
+<p>I.KorAmt AS Amt, -- 금액</p>
+<p>I.AddedTax AS Vat, -- 부가세</p>
+<p>I.KorAmt + I.AddedTax AS TotAmt, -- 합계</p>
+<p>--I.LotNo AS Remark, -- 비고</p>
+<p>I.Remark AS Remark, -- 비고</p>
+<p>T.ItemNo AS ItemNo, -- 품번 추가 2007.10.10</p>
+<p>I.RegDate AS RegDate</p>
+<p>FROM #DelvItem k JOIN TUGDelvM M ON k.DelvNo = M.DelvNo</p>
+<p>JOIN TUGDelvItem I ON M.DelvNo = I.DelvNo AND k.DelvSerl = I.DelvSerl</p>
+<p>JOIN TDACustMaster a ON M.CustCd = a.CustCd</p>
+<p>JOIN TDAItemMaster T ON I.ItemCd = T.ItemCd</p>
+<p>JOIN TDAUnit b ON I.UnitCd = b.UnitCd</p>
+<p>WHERE 1=1</p>
+<p>--AND ISNULL(k.ImpType, '') \&lt;&gt; '5'</p>
+<p>--AND ISNULL(I.FrameSetYN_jsb, '0') = '0' -- 프레임세트가 아닌건.</p>
+<p>AND (M.DelvDate BETWEEN @iDate1 AND @iDate2)</p>
+<p>--AND (@i1stCond ='' OR M.CustCd = @i1stCond)</p>
+<p>ORDER BY M.DelvDate, a.CustNm, T.ItemNm</p>
+<p>INSERT INTO #ylwa06037_010</p>
+<p>SELECT @iDate1 AS SrtDate, -- 조회시작일</p>
+<p>@iDate2 AS ENDDate, -- 조회마지막일</p>
+<p>CASE WHEN RTRIM(LTRIM(@iBizUnit)) = '' THEN '전체' ELSE (SELECT AccunitNm FROM TDAAccUnit WHERE AccUnit = @iBizUnit) END AS AccUnitNm, -- 사업장</p>
+<p>@wCurrDate AS CurrDate, -- 작성일</p>
+<p>SUBSTRING(M.DelvDate,1,4)+'-'+SUBSTRING(M.DelvDate,5,2)+'-'+SUBSTRING(M.DelvDate,7,2) AS InvDate, -- 납품일자</p>
+<p>SUBSTRING(I.OKDate,1,4)+'-'+SUBSTRING(I.OKDate,5,2)+'-'+SUBSTRING(I.OKDate,7,2) AS OKDate, -- 입고일자 추가 2009.10.07</p>
+<p>a.CustNm AS CustNm, -- 거래처</p>
+<p>T.ItemNm AS ItemNm, -- 품명</p>
+<p>b.UnitNm AS UnitNm, -- 단위</p>
+<p>MAX(I.Qty) AS Qty, -- 수량</p>
+<p>-- M.CurrRate * AVG(I.Price) AS KorPrice,</p>
+<p>M.CurrRate * SUM(I.Price) AS KorPrice, -- 2023/01/18 장수 구매팀 이종현 님 요청으로 합계단가가 나오도록 수정 yhjung</p>
+<p>CASE WHEN M.CurrCd \&lt;&gt; 'KRW' THEN M.CurrCd ELSE NULL END AS CurrCd,</p>
+<p>--AVG(CASE WHEN M.CurrCd \&lt;&gt; 'KRW' THEN I.Price ELSE NULL END) AS Price, -- 단가</p>
+<p>SUM(CASE WHEN M.CurrCd \&lt;&gt; 'KRW' THEN I.Price ELSE NULL END) AS Price, -- 단가 -- 2023/01/20 장수 구매팀 선상호 님 요청으로 합계금액이 나오도록 수정 yhjung</p>
+<p>SUM(ISNULL(I.KorAmt, 0)) AS Amt, -- 금액</p>
+<p>Sum(isnull(I.AddedTax,0)) AS Vat, -- 부가세</p>
+<p>SUM(ISNULL(I.KorAmt, 0)) + Sum(isnull(I.AddedTax,0)) AS TotAmt, -- 합계</p>
+<p>--I.LotNo AS Remark, -- 비고</p>
+<p>MAX(I.Remark) AS Remark, -- 비고</p>
+<p>T.ItemNo AS ItemNo, -- 품번 추가 2007.10.10</p>
+<p>MAX(I.RegDate) AS RegDate</p>
+<p>FROM #DelvItem k JOIN TUGDelvM M ON k.DelvNo = M.DelvNo</p>
+<p>JOIN TUGDelvItem I ON M.DelvNo = I.DelvNo AND k.DelvSerl = I.DelvSerl</p>
+<p>JOIN TDACustMaster a ON M.CustCd = a.CustCd</p>
+<p>--JOIN TDAItemMaster T ON I.ItemCd = T.ItemCd</p>
+<p>JOIN jsb.dbo.TPDBOM J ON I.ItemCd = J.ItemCd</p>
+<p>JOIN TDAItemMaster T ON J.GoodCd = T.ItemCd</p>
+<p>JOIN TDAUnit b ON I.UnitCd = b.UnitCd</p>
+<p>WHERE 1=1</p>
+<p>--AND ISNULL(k.ImpType, '') \&lt;&gt; '5'</p>
+<p>--AND ISNULL(I.FrameSetYN_jsb, '0') = '1' -- 프레임세트 인 건.</p>
+<p>--AND T.AssetType = 'B' -- 프레임세트인 자산분류값으로 가져오기.</p>
+<p>AND (M.DelvDate BETWEEN @iDate1 AND @iDate2)</p>
+<p>--AND (@i1stCond ='' OR M.CustCd = @i1stCond)</p>
+<p>GROUP BY M.DelvDate, I.OKDate, a.CustNm, T.ItemNm, B.UnitNm, M.CurrRate, m.CurrCd, T.ItemNo, M.SalesType,M.DelvNo</p>
+<p>ORDER BY M.DelvDate, a.CustNm, T.ItemNm</p>
+<p>INSERT INTO #ylwa06037_010</p>
+<p>SELECT @iDate1 AS SrtDate, -- 조회시작일</p>
+<p>@iDate2 AS ENDDate, -- 조회마지막일</p>
+<p>CASE WHEN RTRIM(LTRIM(@iBizUnit)) = '' THEN '전체' ELSE (SELECT AccunitNm FROM TDAAccUnit WHERE AccUnit = @iBizUnit) END AS AccUnitNm, -- 사업장</p>
+<p>@wCurrDate AS CurrDate, -- 작성일</p>
+<p>SUBSTRING(M.OutDelvDate,1,4)+'-'+SUBSTRING(M.OutDelvDate,5,2)+'-'+SUBSTRING(M.OutDelvDate,7,2) AS InvDate, -- 납품일자</p>
+<p>'', --SUBSTRING(I.OKDate,1,4)+'-'+SUBSTRING(I.OKDate,5,2)+'-'+SUBSTRING(I.OKDate,7,2) AS OKDate, -- 입고일자 추가 2009.10.07</p>
+<p>a.CustNm AS CustNm, -- 거래처</p>
+<p>T.ItemNm AS ItemNm, -- 품명</p>
+<p>b.UnitNm AS UnitNm, -- 단위</p>
+<p>I.Qty AS Qty, -- 수량</p>
+<p>M.CurrRate * I.Price AS KorPrice,</p>
+<p>CASE WHEN M.CurrCd \&lt;&gt; 'KRW' THEN M.CurrCd ELSE NULL END AS CurrCd,</p>
+<p>CASE WHEN M.CurrCd \&lt;&gt; 'KRW' THEN I.Price ELSE NULL END AS Price, -- 단가</p>
+<p>I.Amt AS Amt, -- 금액</p>
+<p>I.Vat AS Vat, -- 부가세</p>
+<p>I.Amt + I.Vat AS TotAmt, -- 합계</p>
+<p>--I.LotNo AS Remark, -- 비고</p>
+<p>I.Remark AS Remark, -- 비고</p>
+<p>T.ItemNo AS ItemNo, -- 품번 추가 2007.10.10</p>
+<p>I.RegDate AS RegDate</p>
+<p>FROM #DelvItem k JOIN TMIOutDelvM M ON k.DelvNo = M.OutDelvNo</p>
+<p>JOIN TMIOutDelvD I ON M.OutDelvNo = I.OutDelvNo AND k.DelvSerl = I.OutDelvSerl</p>
+<p>JOIN TDACustMaster a ON M.CustCd = a.CustCd</p>
+<p>JOIN TDAItemMaster T ON I.AssyCd = T.ItemCd</p>
+<p>JOIN TDAUnit b ON t.PuUnitCd = b.UnitCd</p>
+<p>WHERE 1=1</p>
+<p>--AND ISNULL(k.ImpType, '') = '5'</p>
+<p>AND (M.OutDelvDate BETWEEN @iDate1 AND @iDate2)</p>
+<p>--AND (@i1stCond ='' OR M.CustCd = @i1stCond)</p>
+<p>ORDER BY M.OutDelvDate, a.CustNm, T.ItemNm</p>
+<p>-- jssong 과거자료출력 (20160827)</p>
+<p>INSERT INTO #ylwa06037_010</p>
+<p>SELECT @iDate1 AS SrtDate, -- 조회시작일</p>
+<p>@iDate2 AS ENDDate, -- 조회마지막일</p>
+<p>CASE WHEN RTRIM(LTRIM(@iBizUnit)) = '' THEN '전체' ELSE (SELECT AccunitNm FROM TDAAccUnit WHERE AccUnit = @iBizUnit) END AS AccUnitNm, -- 사업장</p>
+<p>@wCurrDate AS CurrDate, -- 작성일</p>
+<p>SUBSTRING(M.DelvDate,1,4)+'-'+SUBSTRING(M.DelvDate,5,2)+'-'+SUBSTRING(M.DelvDate,7,2) AS InvDate, -- 납품일자</p>
+<p>'', --SUBSTRING(I.OKDate,1,4)+'-'+SUBSTRING(I.OKDate,5,2)+'-'+SUBSTRING(I.OKDate,7,2) AS OKDate, -- 입고일자 추가 2009.10.07</p>
+<p>A.CustNm AS CustNm, -- 거래처</p>
+<p>M.ItemNm AS ItemNm, -- 품명</p>
+<p>B.UnitNm AS UnitNm, -- 단위</p>
+<p>M.Qty AS Qty, -- 수량</p>
+<p>M.Price AS KorPrice,</p>
+<p>'KRW' AS CurrCd,</p>
+<p>M.Price AS Price, -- 단가</p>
+<p>M.Amt AS Amt, -- 금액</p>
+<p>M.Vat AS Vat, -- 금액</p>
+<p>M.Amt + M.Vat AS TotAmt,</p>
+<p>--I.LotNo AS Remark, -- 비고</p>
+<p>M.Remark AS Remark, -- 비고</p>
+<p>T.ItemNo AS ItemNo, -- 품번 추가 2007.10.10</p>
+<p>'' AS RegDate</p>
+<p>FROM #DelvItem k JOIN TUGInitDelvItem_jsb M WITH(NOLOCK) ON k.DelvNo = M.DelvNo and k.DelvSerl = M.DelvSerl</p>
+<p>JOIN TDACustMaster a WITH(NOLOCK) ON M.CustCd = a.CustCd</p>
+<p>LEFT OUTER JOIN TDAItemMaster T WITH(NOLOCK) ON M.ItemCd = T.ItemCd</p>
+<p>LEFT OUTER JOIN TDAUnit b WITH(NOLOCK) ON M.UnitCd = b.UnitCd</p>
+<p>WHERE 1=1</p>
+<p>AND (M.DelvDate BETWEEN @iDate1 AND @iDate2)</p>
+<p>--AND (@i1stCond ='' OR M.CustCd = @i1stCond)</p>
+<p>ORDER BY M.DelvDate, a.CustNm, A.ItemNm</p>
+<p>SELECT SrtDate,</p>
+<p>ENDDate,</p>
+<p>AccUnitNm,</p>
+<p>CurrDate,</p>
+<p>InvDate,</p>
+<p>OKDate,</p>
+<p>CustNm,</p>
+<p>ItemNm,</p>
+<p>UnitNm,</p>
+<p>Qty,</p>
+<p>KorPrice,</p>
+<p>CurrCd,</p>
+<p>CASE WHEN ISNULL(Price , 0) = 0 THEN (KorPrice / 10) ELSE Price END AS Price, -- 원화의경우 부가세단가로 나오도록 수정 23.11.13 JHMOON</p>
+<p>Amt,</p>
+<p>Vat,</p>
+<p>TotAmt,</p>
+<p>Remark,</p>
+<p>ItemNo,</p>
+<p>RegDate,</p>
+<p>-- 원화의경우 부가세포함단가 , 외화의경우 원화단가로 수정 23.11.13 JHMOON 수정</p>
+<p>CASE WHEN Vat = 0 THEN KorPrice ELSE KorPrice + (KorPrice / 10) END AS PriceVat -- 단가부가세추가 20220701 DHKIM</p>
+<p>FROM #ylwa06037_010</p>
+<p>ORDER BY InvDate, CustNm, RegDate</p>
+<p>RETURN</p>
+<p>--GO</p>
+<p>--exec SCTQry_ylwa06037_jsb_TTEST @iWorkType='MAJOR',@iBizUnit='01',@iDate1='20241114',@iDate2='20241114',@iDate3='',@iDate4='',@i1stCond='',@i2stCond=N'',@i3stCond=N'',@i4thCond='',@i5thCond=N'',@i1stCombCond='',@i2stCombCond='001',@i3stCombCond='',@i4thCombCond='',@i5thCombCond='',@iMajorCd=' ',@iCode=' ',@iLanGuage='0',@iEmpId='19890021',@iDeptCd='00000',@iWkDeptCd='00000',@iLoginID='super '</p>
+<p>GO</p>
+<p>exec SCTQry_ylwa06037_jsb_TTEST @iWorkType='PRINT',@iBizUnit='01',@iDate1='20241114',@iDate2='20241114',@iDate3='',@iDate4='',@i1stCond='',@i2stCond=N'',@i3stCond=N'',@i4thCond='',@i5thCond=N'',@i1stCombCond='',@i2stCombCond='001',@i3stCombCond='',@i4thCombCond='',@i5thCombCond='',@iMajorCd='0120241114000100011_/0120241114000100015_/0120241114000100021_/0120241114000100031_/0120241114000100041_/0120241114000100051_/0120241114000100061_/0120241114000100071_/0120241114000100081_/0120241114000100091_/0120241114000100101_/0120241114000100111_/0120241114000200011_/0120241114000500011_/0120241114000500021_/0120241114000600011_/0120241114000600021_/0120241114000600031_/0120241114000700011_/0120241114000700021_/0120241114000700031_/0120241114000700041_/0120241114000700051_/0120241114000700061_/0120241114000700071_/0120241114000700081_/0120241114000700091_/0120241114000700101_/0120241114000800011_/0120241114000900011_/0120241114000900021_/0120241114000900031',@iCode=' ',@iLanGuage='0',@iEmpId='19890021',@iDeptCd='00000',@iWkDeptCd='00000',@iLoginID='super '</p>
+  </article>
+</div>
+</body>
+</html>

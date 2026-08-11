@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROW_NUMBER() OVER 일부 컬럼을 통한 번호 채번</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>ROW_NUMBER() OVER 일부 컬럼을 통한 번호 채번</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="row_number-over">ROW_NUMBER() OVER 일부 컬럼을 통한 번호 채번</h1>
+<p>JOIN (SELECT ROW_NUMBER() OVER(PARTITION BY A.CustSeq ORDER BY A.ResultClassNo,A.CustSeq) AS Serl,</p>
+<p>A.ResultClassNo,A.CustSeq</p>
+<p>FROM (SELECT DISTINCT</p>
+<p>ResultClassNo,CustSeq</p>
+<p>FROM #TMP_Result) AS A ) AS D ON A.ResultClassNo = D.ResultClassNo AND A.CustSeq = D.CustSeq</p>
+  </article>
+</div>
+</body>
+</html>

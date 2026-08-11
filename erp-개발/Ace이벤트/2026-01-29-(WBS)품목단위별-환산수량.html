@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(WBS)품목단위별 환산수량</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(WBS)품목단위별 환산수량</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="wbs">(WBS)품목단위별 환산수량</h1>
+<p>Lua - (WBS)품목단위별 환산수량</p>
+<p>--fnSLGetItemUnitQty 함수를 호출하여 전체 행 환산 작업을 수행합니다.</p>
+<p>for row = 0, SS2.DataRowCnt - 1 do</p>
+<p>SS2.ActiveRow = row</p>
+<p>fnSLGetItemUnitQty(SS2, -- 스프레드시트 객체</p>
+<p>"ItemSeq", -- 품목 코드 컬럼명</p>
+<p>"InputUnitSeq", -- 현재 단위 코드 컬럼명</p>
+<p>"PurUnitSeq", -- 환산할 단위 코드 컬럼명</p>
+<p>"InputUnitTotQty", -- 수량 컬럼명</p>
+<p>"PurQty", -- 환산된 수량이 설정될 컬럼명</p>
+<p>"StdUnitName", -- 기준 단위명이 설정될 컬럼명</p>
+<p>"StdUnitSeq", -- 기준 단위 코드가 설정될 컬럼명</p>
+<p>"StdUnitQty", -- 기준 수량이 설정될 컬럼명</p>
+<p>"" -- 수량 변경 가능 여부가 설정될 컬럼명</p>
+<p>)</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

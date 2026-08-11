@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다이나믹 가변부 색상 넣기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>다이나믹 가변부 색상 넣기</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">다이나믹 가변부 색상 넣기</h1>
+<p><span class="mark">-- 25.08.06 옆에 컬럼과 비교</span></p>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<p>for row=0, SS1.DataRowCnt-1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+</blockquote>
+<p>for Col1 = SS1.SheetFixCols - SS1.SheetFixCols, SS1.MaxCols - SS1.SheetFixCols - 1 do</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'Qty'..Col1</p>
+<p>Title = SS1.ColumnTitle</p>
+<p>if CellText(SS1, row, 'Qty'..Col1) ~= CellText(SS1, row, 'CompareQty'..Col1) then</p>
+<p>SS1.ActiveCol = Col1</p>
+<p>SS1.ActiveColumnName = 'Qty'..Col1</p>
+<p>SS1.ActiveCellBackColor = GetBrush("#FEC6CA")</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<blockquote></blockquote>
+<p>end</p>
+<p><span class="mark">-- 25.08.11 맨 첫 행과 비교</span></p>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<p>for row=0, SS1.DataRowCnt-1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+</blockquote>
+<p>for Col1 = SS1.SheetFixCols - SS1.SheetFixCols, SS1.MaxCols - SS1.SheetFixCols - 1 do</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'Qty'..Col1</p>
+<p>Title = SS1.ColumnTitle</p>
+<p>if CellText(SS1, row, 'Qty'..Col1) ~= CellText(SS1, 0, 'Qty'..Col1) then</p>
+<p>SS1.ActiveCol = Col1</p>
+<p>SS1.ActiveColumnName = 'Qty'..Col1</p>
+<p>SS1.ActiveCellBackColor = GetBrush("#FEC6CA")</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<blockquote></blockquote>
+<p>end</p>
+<p><span class="mark">-- 23.03.03</span></p>
+<p>for col = 12, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveRow = -1</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ColumnHeaderRowIndex = 0</p>
+<p>if SS1.ColumnHeaderText == '1Q' or SS1.ColumnHeaderText == '2Q' or SS1.ColumnHeaderText == '3Q' or SS1.ColumnHeaderText == '4Q' then</p>
+<p>SS1.ActiveCellBackColor = tonumber(-2031936)</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

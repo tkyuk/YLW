@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.06.20 연박일수 계산</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.06.20 연박일수 계산</h1>
+    <div class="meta">
+      <span class="note-date">2025-06-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250620">25.06.20 연박일수 계산</h1>
+<p>IF OBJECT_ID ('tempdb..#Tmp_Date') IS NOT NULL DROP TABLE #Tmp_Date</p>
+<p>CREATE TABLE #Tmp_Date (</p>
+<p>RegDate NCHAR(8),</p>
+<p>IsStayed NCHAR(1) -- 1이면 숙박함, 0이면 안 함</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_Date (RegDate, IsStayed)</p>
+<p>VALUES</p>
+<p>('20250512', 1),</p>
+<p>('20250513', 1),</p>
+<p>('20250514', 0),</p>
+<p>('20250515', 1),</p>
+<p>('20250516', 1),</p>
+<p>('20250517', 1),</p>
+<p>('20250518', 0),</p>
+<p>('20250519', 1),</p>
+<p>('20250520', 1)</p>
+<p>SELECT A.RegDate, ISNULL(B.MaxConsecutiveStays,0)</p>
+<p>FROM #Tmp_Date AS A</p>
+<p>LEFT OUTER JOIN (SELECT S1.RegDate,</p>
+<p>CASE WHEN S1.IsStayed = 0 THEN 0</p>
+<p>ELSE (</p>
+<p>SELECT COUNT(*)</p>
+<p>FROM #Tmp_Date S2</p>
+<p>WHERE S2.RegDate \&lt;= S1.RegDate</p>
+<p>AND S2.IsStayed = 1</p>
+<p>AND NOT EXISTS (</p>
+<p>SELECT 1</p>
+<p>FROM #Tmp_Date B</p>
+<p>WHERE B.RegDate &gt; S2.RegDate</p>
+<p>AND B.RegDate \&lt;= S1.RegDate</p>
+<p>AND B.IsStayed = 0</p>
+<p>)</p>
+<p>)</p>
+<p>END AS MaxConsecutiveStays</p>
+<p>FROM #Tmp_Date S1</p>
+<p>) AS B ON DATEADD(DAY,1,B.RegDate) = A.RegDate</p>
+<p>ORDER BY A.RegDate</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOM</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>BOM</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="bom">BOM</h1>
+<p>ALTER VIEW gnst_VPDBOMView</p>
+<p>AS</p>
+<p>SELECT A.CompanySeq,</p>
+<p>A.BizUnit,</p>
+<p>A.ProcRev,</p>
+<p>A.ItemSeq,</p>
+<p>B.ItemName,</p>
+<p>B.ItemNo,</p>
+<p>B.Spec,</p>
+<p>A.ProcSeq,</p>
+<p>C.ProcName,</p>
+<p>C.ProcSName AS ProcCode,</p>
+<p>E.WorkCenterSeq,</p>
+<p>E.WorkCenterName,</p>
+<p>G.UnitSeq,</p>
+<p>G.UnitName,</p>
+<p>A.MatItemSeq AS SubItemSeq,</p>
+<p>H.ItemName AS SubItemName,</p>
+<p>H.ItemNo AS SubItemNo,</p>
+<p>H.Spec AS SubItemSpec,</p>
+<p>I.UnitSeq AS SubUnitSeq,</p>
+<p>I.UnitName AS SubUnitName,</p>
+<p>A.NeedQtyNumerator,</p>
+<p>A.NeedQtyDenominator,</p>
+<p>'' AS KeyMaterialYN,</p>
+<p>A.InLossRate,</p>
+<p>A.OutLossRate,</p>
+<p>A.Remark,</p>
+<p>ISNULL(J1.Empid, '') AS LastEmpID,</p>
+<p>A.LastDateTime,</p>
+<p>--(SELECT UserName FROM _TCAUser WITH(NOLOCK) WHERE CompanySeq = A.CompanySeq AND UserSeq = A.LastUserSeq) AS LastUserName</p>
+<p>A.ItemSerl</p>
+<p>FROM _TPDROUItemProcMat AS A WITH(NOLOCK) JOIN _TDAItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseProcess AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ProcSeq = C.ProcSeq</p>
+<p>LEFT OUTER JOIN _TPDROUItemProcWC AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.ItemSeq = D.ItemSeq</p>
+<p>AND A.ProcRev = D.ProcRev</p>
+<p>AND A.ProcSeq = D.ProcSeq</p>
+<p>AND A.Serl = D.Serl</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.WorkcenterSeq = E.WorkCenterSeq</p>
+<p>JOIN _TDAItemDefUnit AS F WITH(NOLOCK) ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.ItemSeq = F.ItemSeq</p>
+<p>AND F.UMModuleSeq = 1116005 -- 생산 SELECT * FROM _TDASMinor where MajorSeq = 1116</p>
+<p>JOIN _TDAUnit AS G WITH(NOLOCK) ON F.CompanySeq = G.CompanySeq</p>
+<p>AND F.STDUnitSeq = G.UnitSeq</p>
+<p>JOIN _TDAItem AS H WITH(NOLOCK) ON A.CompanySeq = H.CompanySeq</p>
+<p>AND A.MatItemSeq = H.ItemSeq</p>
+<p>JOIN _TDAUnit AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.UnitSeq = I.UnitSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS J WITH(NOLOCK) ON A.CompanySeq = J.CompanySeq</p>
+<p>AND A.LastUserSeq = J.UserSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS J1 WITH(NOLOCK) ON J.CompanySeq = J1.CompanySeq</p>
+<p>AND J.EmpSeq = J1.EmpSeq</p>
+  </article>
+</div>
+</body>
+</html>

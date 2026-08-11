@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP - PAGE 페이지</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SP - PAGE 페이지</h1>
+    <div class="meta">
+      <span class="note-date">2022-09-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp-page">SP - PAGE 페이지</h1>
+<p>'Page : ' + CONVERT(NVARCHAR(40), (ROW_NUMBER()OVER(ORDER BY B.InvoiceSerl)-1)/17+1) + ' / ' + CONVERT(NVARCHAR(40), COUNT(*)OVER()/17+1)</p>
+  </article>
+</div>
+</body>
+</html>

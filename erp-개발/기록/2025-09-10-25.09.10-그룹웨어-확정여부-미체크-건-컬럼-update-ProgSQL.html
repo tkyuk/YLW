@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.10 그룹웨어 확정여부 미체크 건 컬럼 update ProgSQL</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.10 그룹웨어 확정여부 미체크 건 컬럼 update ProgSQL</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250910-update-progsql">25.09.10 그룹웨어 확정여부 미체크 건 컬럼 update ProgSQL</h1>
+<p>BEGIN TRAN</p>
+<p>UPDATE B</p>
+<p>SET B.CfmCode = '1'</p>
+<p>FROM _TCOMConfirm AS B WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCOMGroupWare AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.TblKey = B.CfmSeq</p>
+<p>WHERE B.ConfirmSeq = 15000169</p>
+<p>AND C.WorkKind = 'ExpendReq'</p>
+<p>AND C.IsEnd = '1'</p>
+<p>AND B.CfmCode \&lt;&gt; '1'</p>
+<p>ROLLBACK TRAN</p>
+<p>/*</p>
+<p>SELECT * FROM _TCOMConfirmDef</p>
+<p>15000169        ExpendReq-- das_구매요구서(소모품)</p>
+<p>15000173        PJTSvc -- das_서비스프로젝트</p>
+<p>15000168 ARTestReport -- das_출장교육외근보고</p>
+<p>ARTestReport</p>
+<p>ExpendReq</p>
+<p>PJTSvc</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 15000169</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 15000173</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 15000168</p>
+<p>SELECT * FROM _TCOMGroupWare WHERE WorkKind = 'ExpendReq'</p>
+<p>SELECT * FROM _TCOMGroupWare WHERE WorkKind = 'PJTSvc'</p>
+<p>SELECT * FROM _TCOMGroupWare WHERE WorkKind = 'ARTestReport'</p>
+<p>*/</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 15000169</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 15000169</p>
+<p>UPDATE _TCOMConfirm SET CfmCode = 5, CfmDate = '', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000169 AND CfmSeq = 6 AND CfmSerl = 0 AND CfmSubSerl = 0        UPDATE _TCOMConfirm SET CfmCode = 1, CfmDate = CONVERT(NCHAR(8), GETDATE(), 112), CfmEmpSeq = @CfmEmpSeq, LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000169 AND CfmSeq = 6 AND CfmSerl = 0 AND CfmSubSerl = 0        UPDATE _TCOMConfirm SET CfmCode = 0, CfmDate = '', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000169 AND CfmSeq = 6 AND CfmSerl = 0 AND CfmSubSerl = 0</p>
+<p>begin tran</p>
+<p>-- 15000169        ExpendReq-- das_구매요구서(소모품)</p>
+<p>UPDATE _TCOMGroupWare</p>
+<p>SET ProgSQL =</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 5, CfmDate = '''', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000169 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>,EndSQL=</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 1, CfmDate = CONVERT(NCHAR(8), GETDATE(), 112), CfmEmpSeq = @CfmEmpSeq, LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000169 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>,CancelSQL=</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 0, CfmDate = '''', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000169 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>FROM _TCOMGroupWare WHERE WorkKind = 'ExpendReq'</p>
+<p>AND ProgSQL = ''</p>
+<p>-- 15000173        PJTSvc -- das_서비스프로젝트</p>
+<p>UPDATE _TCOMGroupWare</p>
+<p>SET ProgSQL =</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 5, CfmDate = '''', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000173 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>,EndSQL=</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 1, CfmDate = CONVERT(NCHAR(8), GETDATE(), 112), CfmEmpSeq = @CfmEmpSeq, LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000173 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>,CancelSQL=</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 0, CfmDate = '''', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000173 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>FROM _TCOMGroupWare WHERE WorkKind = 'PJTSvc'</p>
+<p>AND ProgSQL = ''</p>
+<p>-- 15000168 ARTestReport -- das_출장교육외근보고</p>
+<p>UPDATE _TCOMGroupWare</p>
+<p>SET ProgSQL =</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 5, CfmDate = '''', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000168 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>,EndSQL=</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 1, CfmDate = CONVERT(NCHAR(8), GETDATE(), 112), CfmEmpSeq = @CfmEmpSeq, LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000168 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>,CancelSQL=</p>
+<p>'UPDATE _TCOMConfirm SET CfmCode = 0, CfmDate = '''', LastDateTime = GETDATE() WHERE CompanySeq = 1 AND ConfirmSeq = 15000168 AND CfmSeq = '+TblKey+' AND CfmSerl = 0 AND CfmSubSerl = 0'</p>
+<p>FROM _TCOMGroupWare WHERE WorkKind = 'ARTestReport'</p>
+<p>AND ProgSQL = ''</p>
+<blockquote>
+<p>select* from _TCOMGroupWare WHERE WorkKind = 'ExpendReq'</p>
+<p>select* from _TCOMGroupWare WHERE WorkKind = 'PJTSvc'</p>
+<p>select* from _TCOMGroupWare WHERE WorkKind = 'ARTestReport'</p>
+</blockquote>
+<p>rollback tran</p>
+  </article>
+</div>
+</body>
+</html>

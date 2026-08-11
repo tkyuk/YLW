@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>링크드 화면인 경우 툴바 숨기기 (행삭제)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>링크드 화면인 경우 툴바 숨기기 (행삭제)</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">링크드 화면인 경우 툴바 숨기기 (행삭제)</h1>
+<p>LinkPgm = _base.LinkCreateID</p>
+<blockquote></blockquote>
+<p>if LinkPgm ~= '' then</p>
+<blockquote>
+<p>GetToolbar('Cut').EventArgs.Disable = true</p>
+<p>GetToolbar('Cut').EventArgs.Visible = false        </p>
+<p>SS1.IsmenuRowInsertVisible = false</p>
+</blockquote>
+<p>SS1.AddRowsCount = 0                                        </p>
+<blockquote>
+<p>ClearForm('SS1', '')</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매단위로 환산한 수량</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매단위로 환산한 수량</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">구매단위로 환산한 수량</h1>
+<p>DECLARE @CompanySeq INT</p>
+<p>DECLARE @UserSeq INT</p>
+<p>SELECT @CompanySeq = 1</p>
+<p>SELECT @UserSeq = 27292</p>
+<p>DECLARE @GoodQtyDecLength INT</p>
+<p>EXEC @GoodQtyDecLength = dbo._SWCOMEnvR @CompanySeq, 5, @UserSeq, @@PROCID</p>
+<p>SELECT A.ItemName,A.UnitSeq AS 기준단위, B.STDUnitSeq AS 구매단위,A.ItemSeq,</p>
+<p>ROUND((CASE WHEN ISNULL(C.ConvDen,0) = 0 THEN 0 ELSE ISNULL(200,0) * ISNULL(C.ConvNum,0) / ISNULL(C.ConvDen,0) END), @GoodQtyDecLength)</p>
+<p>FROM _TDAItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAItemDefUnit AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItemUnit AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>AND C.UnitSeq = B.STDUnitSeq</p>
+<p>WHERE UMModuleSeq = 1116001 -- 구매</p>
+<p>AND A.AssetSeq NOT IN (2,4)</p>
+<p>AND A.ItemSeq = 9</p>
+<blockquote>
+<p>--AND ISNULL(A.Qty,0) \&lt;&gt; 0</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>아이콘 숨김 / 알림 숨김 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>아이콘 숨김 / 알림 숨김 처리</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">아이콘 숨김 / 알림 숨김 처리</h1>
+<blockquote>
+<p>공지사항 가이드</p>
+<p>공지사항공지</p>
+<p>[참고] 공통 6.1.7.1005 버전 이후부터 지원합니다.</p>
+<p>[아이콘 숨김처리 방법]</p>
+<p>1) 운영DB에서 OTCAServerConfig 테이블의 FwOption 컬럼 12번째 값을 1로 UPDATE</p>
+<p>2) [코드관리(개발자)] -&gt; 웹서버설정화면에서 Apply Web Server 버튼 클릭</p>
+</blockquote>
+<ul>
+<li>[웹서버설정화면] 화면이 없어 'Apply Web Server 클릭'이 불가능한 경우 ERP가 설치된 App서버 접속 후 풀 재생을 해주셔야 합니다.</li>
+</ul>
+<blockquote>
+<p><a href="https://kdc.ksystem.co.kr/?p=-q9UJURZ1P9b4y6M3syiPgHMMnPauha460RY6iS-OP5uffr70pPXKdGsPqgGo4TTJux7KVloaXW4fcOTWrAzLzLjnAbugilFInXvNId8Wz0=">IIS 풀 재생 방법</a></p>
+<p>[공지사항등록(관리자)]</p>
+</blockquote>
+<ul>
+<li>
+<p>관리자가 공지사항등록(관리자) 화면을 통해 공지사항을 배포, 관리하는 화면입니다.</p>
+</li>
+<li>
+<p>프로세스 구성: 원하는 프로세스 위치에 구성하여 사용하시면 됩니다.</p>
+</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image172.jpeg" /></p>
+</blockquote>
+<ul>
+<li>공지사항이 등록된 순서로 정렬되는 것이 디폴트이며, 행 선택 후 화살표를 클릭하여 행순서를 변경할 수 있습니다.</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image173.png" /></p>
+<p>[공지사항 화면 정보]</p>
+<p>-&gt; 우측 공지사항 정보 영역에 공지사항을 등록할 수 있습니다.</p>
+</blockquote>
+<ul>
+<li>
+<p>제목: 좌측 공지사항 리스트에서 관리하기 위한 제목으로, 에디터에 제목까지 별도로 포함해서 작성 필요</p>
+</li>
+<li>
+<p>게시일, 종료일: 작성일보다 이전인 날짜를 지정할 수 없음</p>
+</li>
+<li>
+<p>넓이, 길이: 직접 지정하여 팝업 크기를 설정 가능</p>
+</li>
+<li>
+<p>문서종류: 이미지타입은 팝업크기에 딱맞게 지정되고, 글타입은 일정부분 띄어서 지정됨</p>
+</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image174.png" /></p>
+</blockquote>
+<ul>
+<li>
+<p>확정: 확정버튼을 클릭해야 배포가 됨</p>
+</li>
+<li>
+<p>공지그룹명: 공지그룹 설정 가능. ([공지그룹등록] 화면에 등록된 사용자에게만 공지사항을 띄울수 있게 제공된 기능으로 6.1.7.1008 버전부터 지원합니다.)</p>
+</li>
+</ul>
+<blockquote>
+<p>[첨부파일 등록방법]</p>
+</blockquote>
+<ul>
+<li>
+<p>[참고] IE와 Edge는 6.1.7.1006.01 버전부터 지원합니다.</p>
+</li>
+<li>
+<p>'공지사항 정보' 하단의 첨부파일 컨트롤에 첨부파일을 추가한 후 우측 링크삽입 아이콘을 클릭하여 에디터 영역에 직접 추가</p>
+</li>
+<li>
+<p>[주의] 컨트롤에만 등록하면 파일이 첨부되지 않는 점 참고부탁드립니다.</p>
+</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image175.png" /></p>
+<p>[공지사항리스트]</p>
+<p>-&gt; 좌측 공지사항리스트 영역에서 등록, 배포한 공지사항을 관리할 수 있습니다.</p>
+</blockquote>
+<ul>
+<li>
+<p>미리보기를 더블클릭하여 팝업창 미리 확인 가능</p>
+</li>
+<li>
+<p>우측 상단 공지사항 아이콘: 배포가 되었던 이전 공지사항 확인 가능</p>
+</li>
+<li>
+<p>6.1.7.1008 이전 공지사항 리스트</p>
+</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image176.png" /></p>
+</blockquote>
+<ul>
+<li>6.1.7.1008 이후 공지사항 리스트</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image177.png" /></p>
+<p>[공지사항 팝업]</p>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image178.png" /></p>
+</blockquote>
+<ul>
+<li>
+<p>지정한 기간내에 확정된 최신 공지사항이 있는 경우 가장 마지막에 확정된 공지사항을 기준으로 팝업이 뜹니다.</p>
+</li>
+<li>
+<p>일주일간 이창을 열지 않음, 다시보지 않기 체크박스로 숨김처리 가능합니다.</p>
+</li>
+</ul>
+<blockquote>
+<p>[표 에디터 사용방법]</p>
+</blockquote>
+<ul>
+<li>표 에디터 사용방법은 아래 링크를 참고바랍니다.</li>
+</ul>
+<blockquote>
+<p><a href="https://kdc.ksystem.co.kr/?p=iVMCcLwIe-Q7ufUWne3G9VxfLfOJwXpMcAP8Q0mAXk5KLn48QBZpOL0WpL4tov1qIoW_OoYkJ5rEU4TKr0LKliTIwzRahktlf_3oBp-fwUs4xVOnoH2IBhgzAdsgoyu1">표 에디터 사용방법</a></p>
+<p>출처: \&lt;<a href="https://kdc.ksystem.co.kr/WebDev">https://kdc.ksystem.co.kr/WebDev</a>&gt;</p>
+</blockquote>
+<p>--아이콘 숨김 처리 방법]</p>
+<p>--1) 운영DB에서 OTCAServerConfig의 FwOption에 따라 12번째 값을 1로 업데이트</p>
+<p>SELECT FwOption FROM OTCAServerConfig</p>
+<p>-- 아이콘 숨김</p>
+<p>UPDATE OTCAServerConfig</p>
+<p>SET FwOption = '000000101001000'</p>
+<p>FROM OTCAServerConfig</p>
+<p>-- 아이콘 오픈</p>
+<p>UPDATE OTCAServerConfig</p>
+<p>SET FwOption = '000000101000000'</p>
+<p>FROM OTCAServerConfig</p>
+<p>--2) [코드관리(개발자)] -&gt; 웹서버 설정화면에서 웹서버 적용 버튼클릭</p>
+<p>--[웹 서버 설정 화면] 화면이 없어 '웹 서버 적용'을 클릭한 경우 ERP가 있는 경우 AppServer 접속 후 풀 플레이를 할 수 있습니다.</p>
+<p>--IIS 재생 방법</p>
+<p>--[공지사항등록(관리자)]</p>
+<p>--관리자가 공지사항등록(관리자) 화면을 통해 공지사항을 배포, 관리하는 화면입니다.</p>
+<p>--프로세스 구성: 원하는 프로세스 위치에 사용하도록 구성합니다.</p>
+<p><img alt="" src="assets/아이콘-숨김-알림-숨김-처리/image179.png" /></p>
+  </article>
+</div>
+</body>
+</html>

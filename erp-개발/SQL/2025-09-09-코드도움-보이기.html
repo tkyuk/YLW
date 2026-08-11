@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드도움 보이기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드도움 보이기</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">코드도움 보이기</h1>
+<p>BEGIN TRAN</p>
+<p>UPDATE _TCOMUserDefine</p>
+<p>SET IsCodeHelpTitle =1</p>
+<p>FROM _TCOMUserDefine WHERE DefineUnitSeq = 1110369 AND TitleSerl =15000002</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

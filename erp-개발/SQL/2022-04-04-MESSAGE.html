@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MESSAGE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>MESSAGE</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="message">MESSAGE</h1>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1213 , -- @1일경우 @2, @3은 필수입력 항목입니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1213)</p>
+<p>@LanguageSeq ,</p>
+<p>15000064, N'단가소급적용', 15000065, N'시작일', 15000066, N'종료일' -- SELECT * FROM _TCADictionary WHERE WordSeq = 15000064</p>
+<p>-- '단가소급 적용시 시작일, 종료일은 필수 입니다.'</p>
+<p>-- 소급적용시작일 : 15000065</p>
+<p>-- 소급적용종료일 : 15000066</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>WHERE WorkingTag IN ('A','U')</p>
+<p>AND ISNULL(IsRetroac,'') = '1'</p>
+<p>AND (ISNULL(RetroacSDate,'') = '' OR ISNULL(RetroacEDate,'') = '')</p>
+<p>END</p>
+<p>==================================================================================</p>
+<ul>
+<li>하드코딩</li>
+</ul>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Status = 9999,</p>
+<p>Result = '단가소급 적용시 시작일, 종료일은 필수 입니다.'</p>
+<p>WHERE Status = 0</p>
+<p>AND WorkingTag IN ('A','U')</p>
+<p>AND ISNULL(IsRetroac,'') = '1'</p>
+<p>AND (ISNULL(RetroacSDate,'') = '' OR ISNULL(RetroacEDate,'') = '')</p>
+<p>==================================================================================</p>
+<p>==================================================================================</p>
+<ul>
+<li>
+<p>메시지 등록 후 사용할 경우</p>
+</li>
+<li>
+<p>이 경우 테이블에 추가하는 작업이 필요 (하단 참조)</p>
+</li>
+</ul>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p><span class="mark">15000001</span> , -- MCO품목은 최대 2개만 등록가능합니다. (SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 15000001)</p>
+<p><span class="mark">@LanguageSeq ,</span></p>
+<p><span class="mark">0, ''</span></p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>INNER JOIN ( SELECT S.MCOItemSeq</p>
+<p>FROM (</p>
+<p>SELECT A1.MCOItemSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A1</p>
+<p>WHERE A1.WorkingTag IN ('A','U')</p>
+<p>AND A1.Status = 0</p>
+<p>UNION ALL</p>
+<p>SELECT A1.MCOItemSeq</p>
+<p>FROM mco_TDAItem AS A1</p>
+<p>WHERE A1.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS(SELECT 1</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>WHERE WorkingTag IN('D','U')</p>
+<p>AND MCOCompanySeq = A1.MCOCompanySeq</p>
+<p>AND ItemSeq = A1.ItemSeq</p>
+<p>AND MCOItemSeq = A1.MCOItemSeq</p>
+<p>AND Status = 0</p>
+<p>)</p>
+<p>) AS S</p>
+<p>GROUP BY S.MCOItemSeq</p>
+<p>HAVING COUNT(1) &gt; 2</p>
+<p>) AS B</p>
+<p>ON A.MCOItemSeq = B.MCOItemSeq</p>
+<p>END</p>
+<ul>
+<li>
+<p>메세지 테이블에 직접 스크립트 추가</p>
+</li>
+<li>
+<p>공백 =&gt; '', / NULL은 '' 제거</p>
+</li>
+</ul>
+<blockquote>
+<p>select * from _TCAMessageLanguage</p>
+<p>where MessageSeq &gt; 15000000</p>
+<p>INSERT INTO _TCAMessageLanguage</p>
+<p>select '15000001','1','MCO품목은 최대 2개만 등록가능합니다.','MCO품목은 최대 2개만 등록가능합니다.','NULL','27193','2022-04-01 08:16:20.307',NULL,'17009',NULL</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

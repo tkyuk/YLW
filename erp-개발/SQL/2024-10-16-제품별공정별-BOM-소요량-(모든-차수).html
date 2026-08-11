@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제품별공정별 BOM 소요량 (모든 차수)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제품별공정별 BOM 소요량 (모든 차수)</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="bom">제품별공정별 BOM 소요량 (모든 차수)</h1>
+<p>CREATE PROCEDURE dbo.shilla_SWPDSFCMatInputDiffListQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE --@WorkReportSeq INT,</p>
+<p>@BizUnit INT,</p>
+<p>--@InputDate NCHAR(8),</p>
+<p>--@InputDateTo NCHAR(8),</p>
+<p>--@WorkOrderNo NVARCHAR(50),</p>
+<p>@StdMonth NCHAR(6),</p>
+<p>@DeptSeq INT,</p>
+<p>@GoodItemName NVARCHAR(200),</p>
+<p>@GoodItemNo NVARCHAR(100),</p>
+<p>@MatItemName NVARCHAR(200),</p>
+<p>@MatItemNo NVARCHAR(100),</p>
+<p>@WorkCenterName NVARCHAR(100) ,</p>
+<p>--@ProcName NVARCHAR(100),</p>
+<p>--@ProdPlanNo NVARCHAR(50),</p>
+<p>--@WorkType INT,</p>
+<p>@Cnt INT,</p>
+<p>@Seq INT,</p>
+<p>--@CustName NVARCHAR(100),</p>
+<p>--@IsOSP INT,</p>
+<p>@CostEnv INT, -- 사용원가 환경설정</p>
+<p>@IFRSEnv INT, -- IFRS 사용 여부 환경설정</p>
+<p>@SMCostMng INT,</p>
+<p>--@RealLotNo NVARCHAR(50),</p>
+<p>--@RRealLotNo NVRCHAR(50)</p>
+<p>@STDDate NCHAR(8),</p>
+<p>@DomCurrSeq INT</p>
+<p>CREATE TABLE #Input</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>BizUnit INT,</p>
+<p>WorkOrderNo NVARCHAR(50),</p>
+<p>InputDate NCHAR(8),</p>
+<p>DeptName NVARCHAR(100),</p>
+<p>DeptSeq INT,</p>
+<p>WorkCenterName NVARCHAR(100),</p>
+<p>WorkCenterSeq INT,</p>
+<p>GoodItemName NVARCHAR(200),</p>
+<p>GoodItemNo NVARCHAR(100),</p>
+<p>GoodItemSpec NVARCHAR(200),</p>
+<p>GoodItemSeq INT,</p>
+<p>ProcName NVARCHAR(100),</p>
+<p>ProdPlanNo NVARCHAR(50),</p>
+<p>MatItemName NVARCHAR(200),</p>
+<p>MatItemNo NVARCHAR(100),</p>
+<p>MatItemSpec NVARCHAR(200),</p>
+<p>MatUnitName NVARCHAR(50),</p>
+<p>MatUnitSeq INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>StdUnitQty DECIMAL(19,5),</p>
+<p>RealLotNo NVARCHAR(50),</p>
+<p>RRealLotNo NVARCHAR(50),</p>
+<p>SerialNoFrom NVARCHAR(50),</p>
+<p>InputType INT,</p>
+<p>IsPaid NCHAR(1),</p>
+<p>WorkReportSeq INT,</p>
+<p>ItemSerl INT,</p>
+<p>MatItemSeq INT,</p>
+<p>CustName NVARCHAR(100),</p>
+<p>OSPDelvInSeq INT,</p>
+<p>OSPDelvInSerl INT,</p>
+<p>IsOSP INT,</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>Price DECIMAL(19,5),</p>
+<p>WorkType INT,</p>
+<p>WorkTypeName NVARCHAR(50),</p>
+<p>ProdQty DECIMAL(19,5),</p>
+<p>ProcRev NCHAR(2),</p>
+<p>AssetSeq INT,</p>
+<p>AssetName NVARCHAR(50),</p>
+<p>MatProcSeq INT,</p>
+<p>CCtrSeq INT,</p>
+<p>CCtrName NVARCHAR(100),</p>
+<p>Remark NVARCHAR(200),</p>
+<p>OrderCustName NVARCHAR(100),</p>
+<p>WorkDate NCHAR(8),</p>
+<p>ItemClassLName NVARCHAR(200),</p>
+<p>ItemClassMName NVARCHAR(200),</p>
+<p>ItemClassSName NVARCHAR(200),</p>
+<p>ItemClassLSeq INT,</p>
+<p>ItemClassMSeq INT,</p>
+<p>ItemClassSSeq INT</p>
+<p>)</p>
+<p>SELECT @BizUnit = ISNULL(BizUnit, 0),</p>
+<p>--@InputDate = ISNULL(InputDate, ''),</p>
+<p>--@InputDateTo = ISNULL(InputDateTo, ''),</p>
+<p>--@WorkOrderNo = ISNULL(WorkOrderNo, ''),</p>
+<p>@DeptSeq = ISNULL(DeptSeq, 0),</p>
+<p>@GoodItemName = ISNULL(GoodItemName, ''),</p>
+<p>@GoodItemNo = ISNULL(GoodItemNo, ''),</p>
+<p>@MatItemName = ISNULL(MatItemName, ''),</p>
+<p>@MatItemNo = ISNULL(MatItemNo, ''),</p>
+<p>@WorkCenterName = ISNULL(WorkCenterName, ''),</p>
+<p>@StdMonth = ISNULL(StdMonth,'')</p>
+<p>--@ProcName = ISNULL(ProcName, ''),</p>
+<p>--@ProdPlanNo = ISNULL(ProdPlanNo, ''),</p>
+<p>--@WorkType = ISNULL(WorkType,0),</p>
+<p>--@CustName = ISNULL(CustName, ''),</p>
+<p>--@IsOSP = ISNULL(IsOSP, 0),</p>
+<p>--@RRealLotNo = ISNULL(RRealLotNo , ''),</p>
+<p>--@RealLotNo = ISNULL(RealLotNo , '')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>SELECT @STDDate = CONVERT(NCHAR(8), DATEADD(DD, -1, DATEADD(MM, 1, @STDMonth + '01')), 112)</p>
+<p>SELECT @DomCurrSeq = CONVERT(INT, EnvValue)</p>
+<p>FROM _TCOMEnv WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EnvSeq = 13</p>
+<p>-- 해당 화면은 제품기준으로 하위 투입된 모든 자재의 소요량과 실재 투입량을 비교하는 화면임.</p>
+<p>-- 먼저 조회조건에 해당하는 품목을 뽑는다.</p>
+<p>SELECT DISTINCT A.GoodItemSeq, A.ProcRev</p>
+<p>INTO #GoodProc</p>
+<p>FROM _TPDSFCWorkReport AS A WITH(NOLOCK) JOIN _TDAItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.GoodItemSeq = B.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.AssetSeq = C.AssetSeq</p>
+<p>AND C.SMAssetGrp = 6008002</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.WorkCenterSeq = D.WorkCenterSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@DeptSeq = 0 OR A.DeptSeq = @DeptSeq)</p>
+<p>AND (@BizUnit = 0 OR A.BizUnit = @BizUnit)</p>
+<p>AND (A.WorkDate LIKE @StdMonth + '%')</p>
+<p>--AND (@GoodItemName = '' OR B.ItemName LIKE @GoodItemName + '%')</p>
+<p>--AND (@GoodItemNo = '' OR B.ItemNo LIKE @GoodItemNo +'%')</p>
+<p>AND (@WorkCenterName = '' OR ISNULL(D.WorkCenterName,'') LIKE @WorkCenterName + '%')</p>
+<p>-- 완제품별 하위 모든 자재 풀기.</p>
+<p>-- 자재 소요량 뽑기.</p>
+<p>;WITH CTE_MatItem2 (GoodSeq, ItemSeq, ProcRev, MatItemSeq, SubItemProcRev, Lev, NeedQty, MatUnitSeq) AS</p>
+<p>(</p>
+<p>SELECT A.ItemSeq, B.ItemSeq, B.ProcRev, B.MatItemSeq, B.SubItemProcRev, 1,</p>
+<p>CONVERT(DECIMAL(19,5), (CASE WHEN ISNULL(B.NeedQtyDenominator, 0) = 0 THEN 0 ELSE B.NeedQtyNumerator / B.NeedQtyDenominator END)), B.UnitSeq</p>
+<p>FROM (SELECT DISTINCT A.GoodItemSeq AS ItemSeq, A.ProcRev</p>
+<p>FROM #GoodProc AS A JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.GoodItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.AssetSeq = C.AssetSeq</p>
+<p>AND C.SMAssetGrp = 6008002) AS A</p>
+<p>JOIN _TPDROUItemProcMat AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq AND A.ProcRev = B.ProcRev AND B.BizUnit = @BizUnit -- AND B.SubItemProcRev = ''</p>
+<p>UNION ALL</p>
+<p>SELECT A.GoodSeq, B.ItemSeq, B.ProcRev, B.MatItemSeq, B.SubItemProcRev, Lev+1,</p>
+<p>CONVERT(DECIMAL(19,5), A.NeedQty * (CASE WHEN ISNULL(B.NeedQtyDenominator, 0) = 0 THEN 0 ELSE B.NeedQtyNumerator / B.NeedQtyDenominator END)), B.UnitSeq</p>
+<p>FROM CTE_MatItem2 AS A</p>
+<p>JOIN _TPDROUItemProcMat AS B ON B.CompanySeq = @CompanySeq AND A.MatItemSeq = B.ItemSeq AND A.SubItemProcRev = B.ProcRev AND B.BizUnit = @BizUnit -- AND B.SubItemProcRev = ''</p>
+<p>)</p>
+<p>--SELECT DISTINCT A.ItemSeq</p>
+<p>-- INTO #GoodItem</p>
+<p>-- FROM CTE_MatItem2 AS A JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.GoodSeq = B.ItemSeq</p>
+<p>--WHERE (@GoodItemName = '' OR B.ItemName LIKE @GoodItemName + '%')</p>
+<p>-- AND (@GoodItemNo = '' OR B.ItemNo LIKE @GoodItemNo +'%')</p>
+<p>--select @MatItemName</p>
+<p>-- 2021.12.07 UPDATE BY 오주헌 :: Insert~Select문 수정</p>
+<p>INSERT INTO #Input (</p>
+<blockquote>
+<p>BizUnit</p>
+<p>,WorkOrderNo</p>
+<p>,InputDate</p>
+<p>,DeptName</p>
+</blockquote>
+<p>,DeptSeq</p>
+<blockquote>
+<p>,WorkCenterName</p>
+</blockquote>
+<p>,WorkCenterSeq</p>
+<blockquote>
+<p>,GoodItemName</p>
+<p>,GoodItemNo</p>
+<p>,GoodItemSpec</p>
+</blockquote>
+<p>,GoodItemSeq</p>
+<blockquote>
+<p>,ProcName</p>
+<p>,ProdPlanNo</p>
+<p>,MatItemName</p>
+<p>,MatItemNo</p>
+<p>,MatItemSpec</p>
+<p>,MatUnitName</p>
+</blockquote>
+<p>,MatUnitSeq</p>
+<blockquote>
+<p>,Qty</p>
+<p>,StdUnitQty</p>
+<p>,RealLotNo</p>
+<p>,RRealLotNo</p>
+<p>,SerialNoFrom</p>
+<p>,InputType</p>
+<p>,IsPaid</p>
+<p>,WorkReportSeq</p>
+<p>,ItemSerl</p>
+<p>,MatItemSeq</p>
+<p>,CustName</p>
+<p>,OSPDelvInSeq</p>
+<p>,OSPDelvInSerl</p>
+<p>,IsOSP</p>
+<p>,Amt</p>
+<p>,Price</p>
+<p>,WorkType</p>
+<p>,WorkTypeName</p>
+<p>,ProdQty</p>
+<p>,ProcRev</p>
+<p>,AssetSeq</p>
+<p>,AssetName</p>
+<p>,MatProcSeq</p>
+<p>,CCtrSeq</p>
+<p>,CCtrName</p>
+<p>,Remark</p>
+<p>,OrderCustName</p>
+<p>,WorkDate</p>
+</blockquote>
+<p>,ItemClassLName</p>
+<p>,ItemClassMName</p>
+<p>,ItemClassSName</p>
+<p>,ItemClassLSeq</p>
+<p>,ItemClassMSeq</p>
+<p>,ItemClassSSeq</p>
+<blockquote>
+<p>)</p>
+</blockquote>
+<p>SELECT R.BizUnit ,</p>
+<p>W.WorkOrderNo ,</p>
+<p>I.InputDate ,</p>
+<p>D.DeptName AS DeptName , -- 입고부서</p>
+<p>D.DeptSeq,</p>
+<p>C.WorkCenterName AS WorkCenterName ,</p>
+<p>C.WorkCenterSeq,</p>
+<p>G.ItemName AS GoodItemName ,</p>
+<p>G.ItemNo AS GoodItemNo ,</p>
+<p>G.Spec AS GoodItemSpec ,</p>
+<p>G.ItemSeq,</p>
+<p>P.ProcName AS ProcName ,</p>
+<p>V.ProdPlanNo AS ProdPlanNo ,</p>
+<p>M.ItemName AS MatItemName ,</p>
+<p>M.ItemNo AS MatItemNo ,</p>
+<p>M.Spec AS MatItemSpec ,</p>
+<p>U.UnitName AS MatUnitName , -- 입고단위</p>
+<p>U.UnitSeq,</p>
+<p>ISNULL(I.Qty, 0) AS Qty ,</p>
+<p>ISNULL(I.StdUnitQty, 0)AS StdUnitQty ,</p>
+<p>I.RealLotNo AS RealLotNo , -- 투입자재 RealLotNo</p>
+<p>R.RealLotNo AS RRealLotNo , -- (생산실적 RealLotNo)</p>
+<p>I.SerialNoFrom ,</p>
+<p>I.InputType ,</p>
+<p>I.IsPaid ,</p>
+<p>I.WorkReportSeq ,</p>
+<p>I.ItemSerl ,</p>
+<p>I.MatItemSeq ,</p>
+<p>'' ,</p>
+<p>0 ,</p>
+<p>0 ,</p>
+<p>6064001 ,</p>
+<p>0, --(SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl) AS Amt,</p>
+<p>0, --CASE WHEN I.Qty = 0 THEN 0 ELSE ISNULL((SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl), 0) / I.Qty END AS Price,</p>
+<p>R.WorkType ,</p>
+<p>B.MinorName AS WorkTypeName ,</p>
+<p>ISNULL(R.ProdQty, 0) AS ProdQty ,</p>
+<p>--ISNULL(R.OKQty,0) AS ProdQty,</p>
+<p>R.ProcRev AS ProcRev ,</p>
+<p>M.AssetSeq AS AssetSeq , -- 재고자산분류코드</p>
+<p>M1.AssetName AS AssetName , -- 재고자산분류</p>
+<p>I.ProcSeq AS MatProcSeq ,</p>
+<p>C.CCtrSeq ,</p>
+<p>E.CCtrName ,</p>
+<p>I.Remark AS Remark ,</p>
+<p>Z.CustName AS OrderCustName ,</p>
+<p>R.WorkDate AS WorkDate ,</p>
+<p>VC.ItemClassLName AS ItemClassLName ,</p>
+<p>VC.ItemClassMName AS ItemClassMName ,</p>
+<p>VC.ItemClassSName AS ItemClassSName ,</p>
+<p>VC.ItemClassLSeq AS ItemClassLSeq ,</p>
+<p>VC.ItemClassMSeq AS ItemClassMSeq ,</p>
+<p>VC.ItemClassSSeq AS ItemClassSSeq</p>
+<p>FROM _TPDSFCMatinput AS I WITH(NOLOCK) -- 자재투입 테이블</p>
+<p>JOIN _TPDSFCWorkReport AS R WITH(NOLOCK) ON I.WorkReportSeq = R.WorkReportSeq -- 생산실적 테이블</p>
+<p>AND I.CompanySeq = R.CompanySeq</p>
+<p>--JOIN #GoodItem AS KA ON R.GoodItemSeq = KA.ItemSeq</p>
+<p>JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON R.WorkCenterSeq = C.WorkCenterSeq</p>
+<p>AND I.CompanySeq = C.CompanySeq</p>
+<p>JOIN _TDADept AS D WITH(NOLOCK) ON R.DeptSeq = D.DeptSeq</p>
+<p>AND I.CompanySeq = D.CompanySeq</p>
+<p>JOIN _TDAItem AS G WITH(NOLOCK) ON R.GoodItemSeq = G.ItemSeq</p>
+<p>AND I.CompanySeq = G.CompanySeq</p>
+<p>JOIN _TDAItem AS M WITH(NOLOCK) ON I.MatItemSeq = M.ItemSeq</p>
+<p>AND I.CompanySeq = M.CompanySeq</p>
+<p>JOIN _TDAItemAsset AS M1 WITH(NOLOCK) ON M.AssetSeq = M1.AssetSeq</p>
+<p>AND I.CompanySeq = M1.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON I.MatUnitSeq = U.UnitSeq</p>
+<p>AND I.CompanySeq = U.CompanySeq</p>
+<p>JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON R.ProcSeq = P.ProcSeq</p>
+<p>AND I.CompanySeq = P.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = W.WorkOrderSerl</p>
+<p>AND I.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS V WITH(NOLOCK) ON V.ProdPlanSeq = W.ProdPlanSeq</p>
+<p>AND I.CompanySeq = V.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.MinorSeq = R.WorkType</p>
+<p>AND I.CompanySeq = B.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACCtr AS E WITH(NOLOCK) ON C.CCtrSeq = E.CCtrSeq</p>
+<p>AND I.CompanySeq = E.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACust AS Z WITH(NOLOCK) ON R.CustSeq = Z.CustSeq</p>
+<p>AND R.CompanySeq = Z.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS TC WITH(NOLOCK) ON TC.CompanySeq = M.CompanySeq --2022.08.30 우승현 추가</p>
+<p>AND TC.ItemSeq = M.ItemSeq</p>
+<p>AND UMajorItemClass IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS VC WITH(NOLOCK) ON VC.CompanySeq = TC.CompanySeq --2022.08.30 우승현 추가</p>
+<p>AND VC.ItemClassSSeq = TC.UMItemClass</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@BizUnit = 0 OR R.BizUnit = @BizUnit)</p>
+<p>AND (I.InputDate LIKE @StdMonth + '%')</p>
+<p>--AND (@InputDate = '' OR I.InputDate &gt;= @InputDate)</p>
+<p>--AND (@InputDateTo = '' OR I.InputDate \&lt;= @InputDateTo)</p>
+<p>--AND (@WorkOrderNo = '' OR W.WorkOrderNo LIKE RTRIM(@WorkOrderNo) + N'%')</p>
+<p>--AND (@DeptSeq = 0 OR R.DeptSeq = @DeptSeq)</p>
+<p>--AND (@GoodItemName = '' OR G.ItemName LIKE @GoodItemName + N'%')</p>
+<p>--AND (@GoodItemNo = '' OR G.ItemNo LIKE @GoodItemNo + N'%')</p>
+<p>--AND (@MatItemName = '' OR M.ItemName LIKE @MatItemName + N'%')</p>
+<p>--AND (@MatItemNo = '' OR M.ItemNo LIKE @MatItemNo + N'%')</p>
+<p>--AND (@WorkCenterName = '' OR C.WorkCenterName LIKE @WorkCenterName + N'%')</p>
+<p>--AND (@ProdPlanNo = '' OR V.ProdPlanNo LIKE @ProdPlanNo + N'%')</p>
+<p>--AND (@ProcName = '' OR P.ProcName LIKE @ProcName + N'%')</p>
+<p>--AND (@CustName = '')</p>
+<p>--AND (@IsOSP IN (0,6064001))</p>
+<p>--AND (@RRealLotNo = '' OR R.RealLotNo LIKE @RRealLotNo + N'%')</p>
+<p>--AND (@RealLotNo = '' OR I.RealLotNo LIKE @RealLotNo + N'%')</p>
+<hr />
+<p>-- 소요자재 수량 대비 투입수량을 보여주기 위해서 로직 추가</p>
+<p>-- 소요자재 가져오기</p>
+<hr />
+<p>CREATE TABLE #MatNeed_GoodItem</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>BizUnit INT,</p>
+<p>ItemSeq INT, -- 제품코드</p>
+<p>ProcRev NCHAR(2), -- 공정흐름차수</p>
+<p>ProcSeq INT, -- 공정코드</p>
+<p>AssyItemSeq INT, -- 공정품코드</p>
+<p>UnitSeq INT, -- 단위코드 (공정품코드가 있으면 공정품단위코드, 없으면 제품단위코드)</p>
+<p>Qty DECIMAL(19,5), -- 제품수량 (공정품코드가 있으면 공정품수량)</p>
+<p>ProdPlanSeq INT, -- 생산계획내부번호 (생산의뢰에서 추가된 옵션자재를 가져오기위해)</p>
+<p>WorkOrderSeq INT, -- 작업지시내부번호 (작업지시에서 추가자재로 등록된 자재를 가져오기위해)</p>
+<p>WorkOrderSerl INT, -- 작업지시내부순번(작업지시에서추가자재로등록된자재를가져오기위해)</p>
+<p>IsOut NCHAR(1) -- 로스율 적용에 사용 '1'이면 OutLossRate 적용</p>
+<p>, WorkReportSeq INT</p>
+<p>, OSPDelvInSeq INT</p>
+<p>, OSPDelvInSerl INT</p>
+<p>)</p>
+<p>CREATE TABLE #MatNeed_MatItem_Result</p>
+<p>(</p>
+<p>IDX_NO INT, -- IDX</p>
+<p>MatItemSeq INT, -- 자재코드</p>
+<p>UnitSeq INT, -- 자재단위</p>
+<p>NeedQty DECIMAL(19,5), -- 소요량</p>
+<p>STDUnitSeq INT, -- 기준단위내부코드</p>
+<p>STDNeedQty DECIMAL(19,5), -- 기준단위소요량</p>
+<p>InputType INT, -- 자재투입구분 6042</p>
+<p>SMDelvType INT, -- 조달구분 6032</p>
+<p>SMAddType INT, -- 가감구분 6048</p>
+<p>)</p>
+<p>-- 생산건 담기</p>
+<p>INSERT INTO #MatNeed_GoodItem</p>
+<p>( BizUnit,ItemSeq,ProcRev,ProcSeq,AssyItemSeq</p>
+<p>, UnitSeq</p>
+<p>, Qty,ProdPlanSeq,WorkOrderSeq,WorkOrderSerl</p>
+<p>, IsOut, WorkReportSeq, OSPDelvInSeq, OSPDelvInSerl</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>A.BizUnit, B.GoodItemSeq, ISNULL(B.ProcRev, N'00'), B.ProcSeq, B.AssyItemSeq</p>
+<p>, CASE ISNULL(B.ProdUnitSeq, 0) WHEN 0 THEN D.UnitSeq ELSE B.ProdUnitSeq END --2023.03.14 김남익 추가</p>
+<p>, B.ProdQty, 0, B.WorkOrderSeq, B.WorkOrderSerl</p>
+<p>, 0, A.WorkReportSeq, A.OSPDelvInSeq, A.OSPDelvInSerl</p>
+<p>FROM #Input AS A</p>
+<p>JOIN _TPDSFCWorkReport AS B WITH(NOLOCK) ON A.WorkReportSeq = B.WorkReportSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>JOIN _TDAItem AS D WITH(NOLOCK) ON B.GoodItemSeq = D.ItemSeq</p>
+<p>AND D.CompanySeq = @CompanySeq</p>
+<p>WHERE A.WorkReportSeq \&lt;&gt; 0</p>
+<p>-- 소요자재 가져오기</p>
+<p>EXEC dbo._SWPDMMGetItemNeedQty</p>
+<p>@CompanySeq = @CompanySeq ,</p>
+<p>@SMDelvType = '0' ,</p>
+<p>@IsMRP = '0' , -- MRP여부</p>
+<p>@IsOutsourcing = '1' , -- 외주여부</p>
+<p>@IsMatAdd = '0' -- 추가자재만조회</p>
+<p>CREATE INDEX IDX_Input ON #Input(IDX_No, MatItemSeq)</p>
+<p>CREATE INDEX IDX_MatNeed_MatItem_Result ON #MatNeed_MatItem_Result(IDX_No, MatItemSeq)</p>
+<hr />
+<p>-- 소요자재 가져오기 끝</p>
+<hr />
+<p>-- 품목판매단가 구하기.</p>
+<p>SELECT B.ItemSeq, B.UnitSeq, MAX(B.StdPrice) Price</p>
+<p>INTO #GoodItemPrice</p>
+<p>FROM (SELECT DISTINCT GoodItemSeq AS ItemSeq</p>
+<p>FROM #Input) AS A JOIN _TSLItemUnitPrice AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND @STDDate BETWEEN B.SDate AND B.EDate</p>
+<p>AND B.CurrSeq = @DomCurrSeq</p>
+<p>GROUP BY B.ItemSeq, B.UnitSeq</p>
+<p>-- 자재구매단가 구하기.</p>
+<p>SELECT A.ItemSeq AS MatItemSeq, MAX(B.Price) AS MatPrice</p>
+<p>INTO #MatItemPrice</p>
+<p>FROM (SELECT DISTINCT MatItemSeq AS ItemSeq, MatUnitSeq AS UnitSeq</p>
+<p>FROM #Input) AS A JOIN _TDAItemDefUnit AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND C.UMModuleSeq = 1116001 -- 구매단위 select * from _TDASMinor where MajorSeq = 1116</p>
+<p>JOIN _TPUBASEBuyPriceItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.UnitSeq = C.STDUnitSeq -- 구매단위로 변경</p>
+<p>AND B.CurrSeq = @DomCurrSeq</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>-- 생산수량 구하기</p>
+<p>SELECT A.GoodItemSeq, A.ProcRev, SUM(A.ProdQty) AS ProdQty</p>
+<p>INTO #GoodProdQty</p>
+<p>FROM (SELECT DISTINCT GoodItemSeq, ProcRev, WorkReportSeq, ProdQty FROM #Input) AS A</p>
+<p>GROUP BY A.GoodItemSeq, A.ProcRev</p>
+<p>-- 생산금액 구하기(외주는 없어서 스킵..)</p>
+<p>SELECT A.ItemSeq AS GoodItemSeq, A.ProcRev, SUM(C.Amt) AS ProdAmt</p>
+<p>INTO #GoodProdAmt</p>
+<p>FROM (SELECT DISTINCT GoodItemSeq AS ItemSeq, ProcRev</p>
+<p>FROM #Input) AS A</p>
+<p>JOIN (SELECT Y.CompanySeq, Y.ItemSeq, SUM(Y.Amt) AS Amt -- left outer join 에서 join으로 변경</p>
+<p>FROM _TESMGInoutstock AS Y WITH(NOLOCK)</p>
+<p>JOIN _TESMDCostKey AS Z WITH(NOLOCK) ON Z.CompanySeq = Y.CompanySeq</p>
+<p>AND Z.CostKeySeq = Y.CostKeySeq</p>
+<p>AND Z.SMCostMng = 5512001</p>
+<p>AND Z.RptUnit = 0</p>
+<p>AND Z.CostMngAmdSeq = 0</p>
+<p>AND Z.PlanYear = ''</p>
+<p>WHERE Y.InOutKind IN (8023016)</p>
+<p>AND Y.CompanySeq = @CompanySeq -- 법인코드와 일자 추가</p>
+<p>AND Y.InOutDate LIKE @StdMonth + '%'</p>
+<p>GROUP BY Y.CompanySeq, Y.ItemSeq) AS C ON A.ItemSeq = C.ItemSeq</p>
+<p>GROUP BY A.ItemSeq, A.ProcRev</p>
+<p>-- 투입수량 구하기</p>
+<p>SELECT A.MatItemSeq, A.MatUnitSeq, SUM(A.Qty) AS Qty</p>
+<p>INTO #MatInputQty</p>
+<p>FROM #Input AS A</p>
+<p>GROUP BY A.MatItemSeq, A.MatUnitSeq</p>
+<p>--SELECT Qty FROM #MatInputQty where MatItemSeq = 3</p>
+<p>-- 완제품별 하위 모든 자재 풀기.</p>
+<p>-- 자재 소요량 뽑기.</p>
+<p>;WITH CTE_MatItem (GoodSeq, ItemSeq, ProcRev, MatItemSeq, SubItemProcRev, Lev, SUMNeedQty, NeedQty, MatUnitSeq) AS</p>
+<p>(</p>
+<p>SELECT A.ItemSeq, B.ItemSeq, B.ProcRev, B.MatItemSeq, B.SubItemProcRev, 1,</p>
+<p>CONVERT(DECIMAL(19,5), A.Qty * (CASE WHEN ISNULL(B.NeedQtyDenominator, 0) = 0 THEN 0 ELSE B.NeedQtyNumerator / B.NeedQtyDenominator END)),</p>
+<p>CONVERT(DECIMAL(19,5), (CASE WHEN ISNULL(B.NeedQtyDenominator, 0) = 0 THEN 0 ELSE B.NeedQtyNumerator / B.NeedQtyDenominator END)), B.UnitSeq</p>
+<p>FROM (SELECT DISTINCT A.GoodItemSeq AS ItemSeq, A.ProcRev, A.ProdQty AS Qty</p>
+<p>FROM #GoodProdQty AS A JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.GoodItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.AssetSeq = C.AssetSeq</p>
+<p>AND C.SMAssetGrp = 6008002) AS A</p>
+<p>JOIN _TPDROUItemProcMat AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq AND A.ProcRev = B.ProcRev AND B.BizUnit = @BizUnit -- AND B.SubItemProcRev = ''</p>
+<p>UNION ALL</p>
+<p>SELECT A.GoodSeq, B.ItemSeq, B.ProcRev, B.MatItemSeq, B.SubItemProcRev, Lev+1,</p>
+<p>CONVERT(DECIMAL(19,5), A.SUMNeedQty * (CASE WHEN ISNULL(B.NeedQtyDenominator, 0) = 0 THEN 0 ELSE B.NeedQtyNumerator / B.NeedQtyDenominator END)),</p>
+<p>CONVERT(DECIMAL(19,5), A.NeedQty * (CASE WHEN ISNULL(B.NeedQtyDenominator, 0) = 0 THEN 0 ELSE B.NeedQtyNumerator / B.NeedQtyDenominator END)), B.UnitSeq</p>
+<p>FROM CTE_MatItem AS A</p>
+<p>JOIN _TPDROUItemProcMat AS B ON B.CompanySeq = @CompanySeq AND A.MatItemSeq = B.ItemSeq AND A.SubItemProcRev = B.ProcRev AND B.BizUnit = @BizUnit -- AND B.SubItemProcRev = ''</p>
+<p>)</p>
+<p>SELECT A.GoodSeq AS GoodItemSeq,</p>
+<p>A.ProcRev,</p>
+<p>--A.ItemSeq,</p>
+<p>A.SubItemProcRev,</p>
+<p>A.MatItemSeq,</p>
+<p>A.MatUnitSeq,</p>
+<p>SUM(A.SUMNeedQty) AS SumNeedQty,</p>
+<p>SUM(A.NeedQty) AS NeedQty</p>
+<p>INTO #GoodAllMat</p>
+<p>FROM CTE_MatItem AS A JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.MatItemSeq = B.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.AssetSeq = C.AssetSeq</p>
+<p>JOIN _TDASMinor AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq -- SELECT * FROM _TDASMinor where MajorSEq= 6008 SELECT * FROM _TDAItemAsset</p>
+<p>AND C.SMAssetGrp = D.MinorSEq</p>
+<p>AND (D.MinorSeq = 6008003 OR D.MinorValue = '1') -- 원부재자만</p>
+<p>--WHERE A.SubItemProcRev = ''</p>
+<p>GROUP BY A.GoodSeq,</p>
+<p>A.ProcRev,</p>
+<p>--A.ItemSeq,</p>
+<p>A.SubItemProcRev,</p>
+<p>A.MatItemSeq,</p>
+<p>A.MatUnitSeq</p>
+<p>--select * from #GoodAllMat WHERE GoodItemSeq = 24127</p>
+<p>--select * from _TESMGInoutstock WHERE InOutKind IN (8023016) AND ItemSeq = 2954 AND InOutDate LIKE '202408%'</p>
+<p>---- 제품 1레벨자재</p>
+<p>--SELECT A.DeptName,</p>
+<p>-- A.DeptSeq,</p>
+<p>-- C.MinorName AS UMWCLineName,</p>
+<p>-- C.MinorSeq AS UMWCLine,</p>
+<p>-- A.GoodItemSeq,</p>
+<p>-- A.GoodItemName,</p>
+<p>-- A.GoodItemNo,</p>
+<p>-- A.GoodItemSpec,</p>
+<p>-- F.UnitName AS GoodUnitName,</p>
+<p>-- F.UnitSeq AS GoodUnitSeq,</p>
+<p>-- A.ProcRev,</p>
+<p>-- ISNULL(J.ProdQty,0) AS ProdQty,</p>
+<p>-- ISNULL(G.Price,0) AS Price,</p>
+<p>-- ISNULL(H.ProdAmt,0) AS ProdAmt,</p>
+<p>-- A.MatItemSeq,</p>
+<p>-- A.MatItemName,</p>
+<p>-- A.MatItemNo,</p>
+<p>-- A.MatItemSpec,</p>
+<p>-- A.MatUnitName,</p>
+<p>-- A.MatUnitSeq,</p>
+<p>-- ISNULL(I.MatPrice,0) AS MatPrice,</p>
+<p>-- SUM(ISNULL(X.NeedQty,0)) AS MatNeedQty,</p>
+<p>-- SUM(A.Qty) AS Qty,</p>
+<p>-- SUM(A.Qty) - SUM(ISNULL(X.NeedQty,0)) AS MatNeedBalance,</p>
+<p>-- ISNULL(I.MatPrice,0) * SUM(ISNULL(X.NeedQty,0)) AS MatNeedAmt,</p>
+<p>-- ISNULL(I.MatPrice,0) * SUM(A.Qty) AS MatAmt,</p>
+<p>-- CONVERT(DECIMAL(19,5),0) AS LossAmt,</p>
+<p>-- CONVERT(DECIMAL(19,5),0) AS LossRate</p>
+<p>-- INTO #Result</p>
+<p>-- FROM #Input AS A</p>
+<p>-- JOIN (SELECT DISTINCT GoodItemSeq, MatItemSeq FROM #GoodAllMat) AS AA ON A.GoodItemSeq = AA.GoodItemSeq AND A.MatItemSeq = AA.MatItemSeq</p>
+<p>-- LEFT OUTER JOIN (SELECT C.WorkReportSeq, C.OSPDelvInSeq, C.OSPDelvInSerl, B.MatItemSeq, SUM(B.NeedQty) AS NeedQty</p>
+<p>-- FROM #MatNeed_GoodItem AS C</p>
+<p>-- JOIN #MatNeed_MatItem_Result AS B ON C.IDX_No = B.IDX_No</p>
+<p>-- GROUP BY C.WorkReportSeq, C.OSPDelvInSeq, C.OSPDelvInSerl, B.MatItemSeq</p>
+<p>-- ) AS X ON A.WorkReportSeq = X.WorkReportSeq</p>
+<p>-- AND A.OSPDelvInSeq = X.OSPDelvInSeq</p>
+<p>-- AND A.OSPDelvInSerl = X.OSPDelvInSerl</p>
+<p>-- AND A.MatItemSeq = X.MatItemSeq</p>
+<p>-- LEFT OUTER JOIN _TPDBaseWorkCenter AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.WorkCenterSeq = A.WorkCenterSeq</p>
+<p>-- LEFT OUTER JOIN _TDAUMInor AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>-- AND CONVERT(INT,B.Dummy6) = C.MinorSeq</p>
+<p>-- JOIN _TDAItem AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>-- AND A.GoodItemSeq = D.ItemSeq</p>
+<p>-- LEFT OUTER JOIN _TDAItemDefUnit AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>-- AND D.ItemSeq = E.ItemSeq</p>
+<p>-- AND E.UMModuleSeq = 1116005 -- 생산 SELECT * FROM _TDASMinor where MajorSeq = 1116</p>
+<p>-- LEFT OUTER JOIN _TDAUnit AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq</p>
+<p>-- AND E.STDUnitSeq = F.UnitSeq</p>
+<p>-- LEFT OUTER JOIN #GoodItemPrice AS G ON A.GoodItemSeq = G.ItemSeq</p>
+<p>-- AND F.UnitSeq = G.UnitSeq</p>
+<p>-- LEFT OUTER JOIN #GoodProdQty AS J ON A.GoodItemSeq = J.GoodItemSeq AND A.ProcRev = J.ProcRev</p>
+<p>-- LEFT OUTER JOIN #GoodProdAmt AS H ON A.GoodItemSeq = H.GoodItemSeq AND A.ProcRev = H.ProcRev</p>
+<p>-- LEFT OUTER JOIN #MatItemPrice AS I ON A.MatItemSeq = I.MatItemSeq</p>
+<p>-- --AND A.MatUnitSeq = I.MatUnitSeq</p>
+<p>----WHERE (@GoodItemName = '' OR A.GoodItemName LIKE @GoodItemName + N'%')</p>
+<p>---- AND (@GoodItemNo = '' OR A.GoodItemNo LIKE @GoodItemNo + N'%')</p>
+<p>---- AND (@WorkCenterName = '' OR A.WorkCenterName LIKE @WorkCenterName + N'%')</p>
+<p>---- AND (@MatItemName = '' OR A.MatItemName LIKE @MatItemName + N'%')</p>
+<p>---- AND (@MatItemNo = '' OR A.MatItemNo LIKE @MatItemNo + N'%')</p>
+<p>--GROUP BY A.DeptName,</p>
+<p>-- A.DeptSeq,</p>
+<p>-- C.MinorName,</p>
+<p>-- C.MinorSeq,</p>
+<p>-- A.GoodItemSeq,</p>
+<p>-- A.GoodItemName,</p>
+<p>-- A.GoodItemNo,</p>
+<p>-- A.GoodItemSpec,</p>
+<p>-- F.UnitName,</p>
+<p>-- F.UnitSeq,</p>
+<p>-- A.ProcRev,</p>
+<p>-- ISNULL(J.ProdQty,0),</p>
+<p>-- ISNULL(G.Price,0),</p>
+<p>-- ISNULL(H.ProdAmt,0),</p>
+<p>-- A.MatItemSeq,</p>
+<p>-- A.MatItemName,</p>
+<p>-- A.MatItemNo,</p>
+<p>-- A.MatItemSpec,</p>
+<p>-- A.MatUnitName,</p>
+<p>-- A.MatUnitSeq,</p>
+<p>-- ISNULL(I.MatPrice,0)</p>
+<p>--UNION</p>
+<p>-- 제품 1레벨 제외 전체 하위자재</p>
+<p>SELECT T.DeptName,</p>
+<p>T.DeptSeq,</p>
+<p>C.MinorName AS UMWCLineName,</p>
+<p>C.MinorSeq AS UMWCLine,</p>
+<p>T.GoodItemSeq,</p>
+<p>T.GoodItemName,</p>
+<p>T.GoodItemNo,</p>
+<p>T.GoodItemSpec,</p>
+<p>F.UnitName AS GoodUnitName,</p>
+<p>F.UnitSeq AS GoodUnitSeq,</p>
+<p>T.ProcRev,</p>
+<p>ISNULL(J.ProdQty,0) AS ProdQty,</p>
+<p>ISNULL(G.Price,0) AS Price,</p>
+<p>ISNULL(H.ProdAmt,0) AS ProdAmt,</p>
+<p>AA.MatItemSeq,</p>
+<p>BB.ItemName AS MatItemName,</p>
+<p>BB.ItemNo AS MatItemNo,</p>
+<p>BB.Spec AS MatItemSpec,</p>
+<p>CC.UnitName AS MatUnitName,</p>
+<p>AA.MatUnitSeq,</p>
+<p>ISNULL(I.MatPrice,0) AS MatPrice,</p>
+<p>AA.SumNeedQty AS MatNeedQty,</p>
+<p>CASE WHEN ISNULL(K.ConvDen,0) = 0 THEN 0 ELSE ISNULL(AA.SumNeedQty,0) * ISNULL(K.ConvNum,0) / ISNULL(K.ConvDen,0) END AS MatNeedStdQty,</p>
+<p>DD.Qty AS Qty,</p>
+<p>CASE WHEN ISNULL(K.ConvDen,0) = 0 THEN 0 ELSE ISNULL(DD.Qty,0) * ISNULL(K.ConvNum,0) / ISNULL(K.ConvDen,0) END AS StdQty,</p>
+<p>DD.Qty - AA.SumNeedQty AS MatNeedBalance,</p>
+<p>ISNULL(I.MatPrice,0) * (CASE WHEN ISNULL(K.ConvDen,0) = 0 THEN 0 ELSE ISNULL(AA.SumNeedQty,0) * ISNULL(K.ConvNum,0) / ISNULL(K.ConvDen,0) END) AS MatNeedAmt,</p>
+<p>ISNULL(I.MatPrice,0) * (CASE WHEN ISNULL(K.ConvDen,0) = 0 THEN 0 ELSE ISNULL(DD.Qty,0) * ISNULL(K.ConvNum,0) / ISNULL(K.ConvDen,0) END) AS MatAmt,</p>
+<p>CONVERT(DECIMAL(19,5),0) AS LossAmt,</p>
+<p>CONVERT(DECIMAL(19,5),0) AS LossRate</p>
+<p>INTO #Result</p>
+<p>FROM (SELECT DISTINCT A.DeptName,</p>
+<p>A.DeptSeq,</p>
+<p>A.WorkCenterSeq,</p>
+<p>A.GoodItemSeq,</p>
+<p>A.GoodItemName,</p>
+<p>A.GoodItemNo,</p>
+<p>A.GoodItemSpec,</p>
+<p>A.ProcRev,</p>
+<p>A.WorkCenterName</p>
+<p>FROM #Input AS A JOIN (SELECT DISTINCT GoodItemSeq FROM #GoodAllMat) AS AA ON A.GoodItemSeq = AA.GoodItemSeq) AS T</p>
+<p>JOIN #GoodAllMat AS AA ON T.GoodItemSeq = AA.GoodItemSeq -- 반제</p>
+<p>--AND AA.ITemSeq \&lt;&gt; T.GoodItemSeq</p>
+<p>JOIN _TDAItem AS BB WITH(NOLOCK) ON BB.CompanySeq = @CompanySeq</p>
+<p>AND AA.MatItemSeq = BB.ItemSeq</p>
+<p>JOIN _TDAUnit AS CC WITH(NOLOCK) ON CC.CompanySeq = @CompanySeq</p>
+<p>AND AA.MatUnitSeq = CC.UnitSeq</p>
+<p>JOIN #MatInputQty AS DD ON AA.MatItemSeq = DD.MatItemSeq</p>
+<p>AND AA.MatUnitSeq = DD.MatUnitSeq</p>
+<p>--LEFT OUTER JOIN (SELECT C.WorkReportSeq, C.OSPDelvInSeq, C.OSPDelvInSerl, B.MatItemSeq, SUM(B.NeedQty) AS NeedQty</p>
+<p>-- FROM #MatNeed_GoodItem AS C</p>
+<p>-- JOIN #MatNeed_MatItem_Result AS B ON C.IDX_No = B.IDX_No</p>
+<p>-- GROUP BY C.WorkReportSeq, C.OSPDelvInSeq, C.OSPDelvInSerl, B.MatItemSeq</p>
+<p>-- ) AS X ON A.WorkReportSeq = X.WorkReportSeq</p>
+<p>-- AND A.OSPDelvInSeq = X.OSPDelvInSeq</p>
+<p>-- AND A.OSPDelvInSerl = X.OSPDelvInSerl</p>
+<p>-- AND A.MatItemSeq = X.MatItemSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.WorkCenterSeq = T.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN _TDAUMInor AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND CONVERT(INT,B.Dummy6) = C.MinorSeq</p>
+<p>JOIN _TDAItem AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND T.GoodItemSeq = D.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemDefUnit AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.ItemSeq = E.ItemSeq</p>
+<p>AND E.UMModuleSeq = 1116005 -- 생산 SELECT * FROM _TDASMinor where MajorSeq = 1116</p>
+<p>LEFT OUTER JOIN _TDAUnit AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq</p>
+<p>AND E.STDUnitSeq = F.UnitSeq</p>
+<p>LEFT OUTER JOIN #GoodItemPrice AS G ON T.GoodItemSeq = G.ItemSeq</p>
+<p>AND F.UnitSeq = G.UnitSeq</p>
+<p>LEFT OUTER JOIN #GoodProdQty AS J ON T.GoodItemSeq = J.GoodItemSeq AND T.ProcRev = J.ProcRev</p>
+<p>LEFT OUTER JOIN #GoodProdAmt AS H ON T.GoodItemSeq = H.GoodItemSeq AND T.ProcRev = H.ProcRev</p>
+<p>LEFT OUTER JOIN #MatItemPrice AS I ON AA.MatItemSeq = I.MatItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemUnit AS K WITH(NOLOCK) ON K.CompanySeq = @CompanySeq</p>
+<p>AND K.ItemSeq = BB.ItemSeq</p>
+<p>AND K.UnitSeq = AA.MatUnitSeq -- 재고단위수량으로 실투입량과, BOM 소요수량 계산</p>
+<p>--AND AA.MatUnitSeq = I.MatUnitSeq</p>
+<p>--WHERE (@MatItemName = '' OR BB.ItemName LIKE @MatItemName + N'%')</p>
+<p>-- AND (@MatItemNo = '' OR BB.ItemNo LIKE @MatItemNo + N'%')</p>
+<p>-- 공용자재가 존재하여, 제품의 생산수량 비율로 실투입량을 쪼갠다..</p>
+<p>-- 일단 해당자재가 제품 N개 인 자재만. ( (제품생산수량/전체생산수량) * 실자재투입수량(전체)</p>
+<p>SELECT A.GoodItemSeq,</p>
+<p>A.ProcRev,</p>
+<p>C.TotProdQty AS TotProdQty,</p>
+<p>A.ProdQty, A.MatItemSeq,</p>
+<p>CONVERT(DECIMAL(19,5),ROUND(( ISNULL(D.NeedQty,1) * A.ProdQty / C.TotProdQty) * A.Qty,5)) AS RealQty,</p>
+<p>CONVERT(DECIMAL(19,5),ROUND(( ISNULL(D.NeedQty,1) * A.ProdQty / C.TotProdQty) * A.StdQty,5)) AS RealStdQty,</p>
+<p>A.Qty AS TotQty,</p>
+<p>A.StdQty AS TotStdQty</p>
+<p>INTO #MatItemRealQty</p>
+<p>FROM (SELECT DISTINCT GoodItemSeq, ProcRev, ProdQty, MatItemSeq, Qty, StdQty FROM #Result) AS A JOIN (SELECT DISTINCT MatItemSeq</p>
+<p>FROM #Result</p>
+<p>GROUP BY MatItemSeq, Qty</p>
+<p>HAVING COUNT(DISTINCT GoodItemSeq) &gt; 1) AS B ON A.MatItemSeq = B.MatItemSeq</p>
+<p>JOIN (SELECT A.MatItemSeq, SUM(A.ProdQty * ISNULL(D.NeedQty,1)) AS TotProdQty</p>
+<p>FROM (SELECT DISTINCT GoodItemSeq, ProcRev, ProdQty, MatItemSeq, Qty FROM #Result</p>
+<p>WHERE MatItemSeq IN (SELECT DISTINCT MatItemSeq</p>
+<p>FROM #Result</p>
+<p>GROUP BY MatItemSeq, Qty</p>
+<p>HAVING COUNT(DISTINCT GoodItemSeq) &gt; 1)) AS A</p>
+<p>-- 개당소요량도 감안해서 계산</p>
+<p>LEFT OUTER JOIN #GoodAllMat AS D ON A.GoodItemSeq = D.GoodItemSeq</p>
+<p>AND A.ProcRev = D.ProcRev</p>
+<p>AND A.MatItemSeq = D.MatItemSeq</p>
+<p>GROUP BY A.MatItemSeq) AS C ON A.MatItemSeq = C.MatItemSeq</p>
+<p>-- 개당소요량도 감안해서 계산</p>
+<p>LEFT OUTER JOIN #GoodAllMat AS D ON A.GoodItemSeq = D.GoodItemSeq</p>
+<p>AND A.ProcRev = D.ProcRev</p>
+<p>AND A.MatItemSeq = D.MatItemSeq</p>
+<p>--select b.ItemName, A.* from #MatItemRealQty as a join _TDAItem as b on a.GoodItemSeq = b.ItemSeq WHERE MatItemSeq = 6 order by b.ItemNo</p>
+<p>--select b.ItemName, A.* from #GoodAllMat as a join _TDAItem as b on a.GoodItemSeq = b.ItemSeq WHERE MatItemSeq = 6 ORDER BY b.ItemNo</p>
+<p>-- 보정</p>
+<p>CREATE TABLE #DiffQty(GoodItemSeq INT, DiffQty DECIMAL(19,5), DiffStdQty DECIMAL(19,5))</p>
+<p>DECLARE @MatItemSeq INT,</p>
+<p>@TotQty DECIMAL(19,5),</p>
+<p>@TotStdQty DECIMAL(19,5)</p>
+<p>SELECT @MatItemSeq = 0,</p>
+<p>@TotQty = 0,</p>
+<p>@TotStdQty = 0</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@MatItemSeq = MatItemSeq,</p>
+<p>@TotQty = TotQty,</p>
+<p>@TotStdQty = TotStdQty</p>
+<p>FROM #MatItemRealQty</p>
+<p>WHERE MatItemSeq &gt; @MatItemSeq</p>
+<p>ORDER BY MatItemSeq</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>TRUNCATE TABLE #DiffQty</p>
+<p>INSERT INTO #DiffQty(GoodItemSeq, DiffQty, DiffStdQty)</p>
+<p>SELECT TOP 1 GoodItemSeq, (SELECT @TotQty - SUM(RealQty) FROM #MatItemRealQty AS A WHERE MatItemSeq = @MatItemSeq HAVING SUM(RealQty) \&lt;&gt; @TotQty),</p>
+<p>(SELECT @TotStdQty - SUM(RealStdQty) FROM #MatItemRealQty AS A WHERE MatItemSeq = @MatItemSeq HAVING SUM(RealStdQty) \&lt;&gt; @TotStdQty)</p>
+<p>FROM #MatItemRealQty</p>
+<p>WHERE RealQty = (SELECT MAX(RealQty) FROM #MatItemRealQty WHERE MatItemSeq = @MatItemSeq)</p>
+<p>AND MatItemSeq = @MatItemSeq</p>
+<p>IF @@ROWCOUNT \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET RealQty = A.RealQty + ISNULL(B.DiffQty , 0) ,</p>
+<p>RealStdQty = A.RealStdQty + ISNULL(B.DiffStdQty , 0)</p>
+<p>FROM #MatItemRealQty AS A</p>
+<p>LEFT OUTER JOIN #DiffQty AS B ON B.GoodItemSeq = A.GoodItemSeq</p>
+<p>WHERE A.MatItemSeq = @MatItemSeq</p>
+<p>END</p>
+<p>END</p>
+<p>-- 보정된 수량Update</p>
+<p>UPDATE #Result</p>
+<p>SET Qty = B.RealQty,</p>
+<p>StdQty = B.RealStdQty,</p>
+<p>MatNeedBalance = B.RealQty - A.MatNeedQty,</p>
+<p>MatAmt = A.MatPrice * B.RealStdQty</p>
+<p>FROM #Result AS A JOIN #MatItemRealQty AS B ON A.GoodItemSeq = B.GoodItemSeq</p>
+<p>AND A.ProcRev = B.ProcRev</p>
+<p>AND A.MatItemSeq = B.MatItemSeq</p>
+<p>UPDATE #Result</p>
+<p>SET LossAmt = MatAmt - MatNeedAmt</p>
+<p>UPDATE #Result</p>
+<p>SET LossRate = CASE WHEN ISNULL(MatNeedAmt,0) = 0 THEN 0 ELSE (LossAmt / MatNeedAmt) * 100 END</p>
+<p>SELECT *</p>
+<p>INTO #Result_final</p>
+<p>FROM #Result</p>
+<p>WHERE (@GoodItemName = '' OR GoodItemName LIKE @GoodItemName + '%')</p>
+<p>AND (@GoodItemNo = '' OR GoodItemNo LIKE @GoodItemNo + '%')</p>
+<p>AND (@MatItemName = '' OR MatItemName LIKE @MatItemName + '%')</p>
+<p>AND (@MatItemNo = '' OR MatItemNo LIKE @MatItemNo + '%')</p>
+<p>ORDER BY DeptName, UMWCLineName, GoodItemNo, ProcRev DESC, MatItemNo</p>
+<p>DECLARE @SumProdQty DECIMAL(19,5),</p>
+<p>@SumProdAmt DECIMAL(19,5)</p>
+<p>SELECT @SumProdQty = SUM(A.ProdQty),</p>
+<p>@SumProdAmt = SUM(A.ProdAmt)</p>
+<p>FROM (SELECT DISTINCT GoodItemSeq, ProcRev, ProdQty, ProdAmt FROM #Result_final) AS A</p>
+<p>SELECT *,</p>
+<p>@SumProdQty AS SumProdQty,</p>
+<p>@SumProdAmt AS SumProdAmt</p>
+<p>FROM #Result_final</p>
+<p>ORDER BY DeptName, UMWCLineName, GoodItemNo, ProcRev DESC, MatItemNo</p>
+<p>--SELECT A.IDX_NO,</p>
+<p>-- A.BizUnit,</p>
+<p>-- A.WorkOrderNo,</p>
+<p>-- A.InputDate,</p>
+<p>-- A.DeptName,</p>
+<p>-- A.WorkCenterName,</p>
+<p>-- A.GoodItemName,</p>
+<p>-- A.GoodItemNo,</p>
+<p>-- A.GoodItemSpec,</p>
+<p>-- A.ProcName,</p>
+<p>-- A.ProdPlanNo,</p>
+<p>-- A.MatItemName,</p>
+<p>-- A.MatItemNo,</p>
+<p>-- A.MatItemSpec,</p>
+<p>-- A.MatUnitName,</p>
+<p>-- A.Qty,</p>
+<p>-- A.StdUnitQty,</p>
+<p>-- A.RealLotNo, -- 투입자재 RealLotNo</p>
+<p>-- A.RRealLotNo, -- (생산실적 RealLotNo)</p>
+<p>-- A.SerialNoFrom,</p>
+<p>-- A.InputType,</p>
+<p>-- A.IsPaid,</p>
+<p>-- A.WorkReportSeq,</p>
+<p>-- A.ItemSerl,</p>
+<p>-- A.MatItemSeq,</p>
+<p>-- A.CustName,</p>
+<p>-- A.OSPDelvInSeq,</p>
+<p>-- A.OSPDelvInSerl,</p>
+<p>-- A.IsOSP,</p>
+<p>-- A.Amt,</p>
+<p>-- A.Price,</p>
+<p>-- A.WorkType,</p>
+<p>-- A.WorkTypeName,</p>
+<p>-- A.ProdQty,</p>
+<p>-- A.ProcRev,</p>
+<p>-- A.AssetSeq,</p>
+<p>-- A.AssetName,</p>
+<p>-- (SELECT MinorName FROM _TDASMinor WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND MinorSeq = A.IsOSP) AS IsOSPName,</p>
+<p>-- A.ProdQty - A.Qty AS Balance,</p>
+<p>-- X.NeedQty AS MatNeedQty,</p>
+<p>-- X.NeedQty - A.Qty AS MatNeedBalance,</p>
+<p>-- A.CCtrSeq,</p>
+<p>-- A.CCtrName,</p>
+<p>-- A.Remark,</p>
+<p>-- A.OrderCustName,</p>
+<p>-- A.WorkDate,</p>
+<p>-- A.ItemClassLName AS ItemClassLName,</p>
+<p>-- A.ItemClassMName AS ItemClassMName,</p>
+<p>-- A.ItemClassSName AS ItemClassSName,</p>
+<p>-- A.ItemClassLSeq AS ItemClassLSeq ,</p>
+<p>-- A.ItemClassMSeq AS ItemClassMSeq ,</p>
+<p>-- A.ItemClassSSeq AS ItemClassSSeq</p>
+<p>-- FROM #Input AS A</p>
+<p>-- LEFT OUTER JOIN (SELECT C.WorkReportSeq, C.OSPDelvInSeq, C.OSPDelvInSerl, B.MatItemSeq, SUM(B.NeedQty) AS NeedQty</p>
+<p>-- FROM #MatNeed_GoodItem AS C</p>
+<p>-- JOIN #MatNeed_MatItem_Result AS B ON C.IDX_No = B.IDX_No</p>
+<p>-- GROUP BY C.WorkReportSeq, C.OSPDelvInSeq, C.OSPDelvInSerl, B.MatItemSeq</p>
+<p>-- ) AS X ON A.WorkReportSeq = X.WorkReportSeq</p>
+<p>-- AND A.OSPDelvInSeq = X.OSPDelvInSeq</p>
+<p>-- AND A.OSPDelvInSerl = X.OSPDelvInSerl</p>
+<p>-- AND A.MatItemSeq = X.MatItemSeq</p>
+<p>-- --WHERE (@WorkType = 0 OR A.WorkType = @WorkType)</p>
+<p>-- ORDER BY A.InputDate, A.WorkOrderNo, A.GoodItemName, A.GoodItemNo, A.MatItemName, A.MatItemNo</p>
+<p>RETURN</p>
+<p>/**********************************************************************************************************/</p>
+  </article>
+</div>
+</body>
+</html>

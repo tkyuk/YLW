@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조회모음 컬럼 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>조회모음 컬럼 추가</h1>
+    <div class="meta">
+      <span class="note-date">2023-07-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">조회모음 컬럼 추가</h1>
+<ol>
+<li>
+<p>#Tmp_Qry d INSERT 추가</p>
+<ol>
+<li>맨 처음 컬럼 (ex.17) 이 전체 컬럼 갯수이기 때문에 추가한 갯수 만큼 늘려줘야함 (맨 위에만 해도 된다)</li>
+</ol>
+</li>
+</ol>
+<p><img alt="" src="assets/조회모음-컬럼-추가/image5.png" /></p>
+<p>-- 컬럼 추가한 위치에 추가해야함</p>
+<p><img alt="" src="assets/조회모음-컬럼-추가/image6.png" /></p>
+<ol start="2">
+<li>
+<p>TCTQrySheet 에 조회모음에 해당하는 값 삭제</p>
+<ol>
+<li>
+<p>ex. DELETE from TCTQrySheet WHERE pgm_id = 'ylwa05102_juct'</p>
+</li>
+<li>
+<p>삭제 후 sp 실행하면 자동으로 다시 insert 된다</p>
+</li>
+</ol>
+</li>
+<li>
+<p>erp 에서 실행 시 DB에서는 정상적으로 작동하는데</p>
+</li>
+</ol>
+<blockquote>
+<p>exec SCTQry_ylwa05102_juct ~ 이런 식으로 에러가 난다면 sp 카탈 후 다시 실행하면 된다</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(ACE) 자재반품요청 -\> 자재반품입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(ACE) 자재반품요청 -\> 자재반품입력</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ace-">(ACE) 자재반품요청 -&gt; 자재반품입력</h1>
+<p>DROP PROC mcm_SMESPDMMOutProcSave</p>
+<p>GO</p>
+<p>CREATE PROC mcm_SMESPDMMOutProcSave</p>
+<p>@WorkingTag         NCHAR(1) ,</p>
+<p>@OutReqSeq         INT ,</p>
+<p>@OutReqItemSerl        INT ,</p>
+<p>@MatOutDate         NCHAR(8) ,</p>
+<p>@UserSeq         INT ,</p>
+<p>@Qty         DECIMAL(19,5),</p>
+<p>@MESSeq         INT ,</p>
+<p>@MESSerl         NVARCHAR(100),</p>
+<p>@Status INT = 0 OUTPUT,</p>
+<p>@Results NVARCHAR(255) = '' OUTPUT</p>
+<p>AS</p>
+<p>DECLARE @CompanySeq INT,</p>
+<p>@InOutSeq INT,</p>
+<p>@InOutNo NVARCHAR(50),</p>
+<p>@LanguageSeq INT,</p>
+<p>@PgmSeq INT,</p>
+<p>@MaxNo NVARCHAR(50),</p>
+<p>@InOutType INT,</p>
+<p>@InOutKind INT,</p>
+<p>@InOutDetailKind INT,</p>
+<p>@DeptSeq INT,</p>
+<p>@EmpSeq INT,</p>
+<p>@Seq INT,</p>
+<p>@CurrDateTime DATETIME,</p>
+<p>@BizUnit INT,</p>
+<p>@Date NCHAR(8)</p>
+<p>--@InWHSeq INT,</p>
+<p>--@OutWHSeq INT,</p>
+<p>--@BizUnit INT,</p>
+<p>--@ItemSeq INT,</p>
+<p>--@ItemLotNo NVARCHAR(100)</p>
+<p>-- 변수 초기화</p>
+<p>SELECT @Status = 0, -- 0: OK, 그외 오류</p>
+<p>@Results = CASE WHEN @WorkingTag = 'A' THEN '자재 반품 생성 되었습니다.' ELSE '자재 반품 삭제되었습니다.' END,</p>
+<p>@CompanySeq = 1,</p>
+<p>@LanguageSeq = 1,</p>
+<p>@InOutType = 180,</p>
+<p>@PgmSeq = 501493,</p>
+<p>@CurrDateTime = GETDATE()</p>
+<p>SELECT @DeptSeq = A.DeptSeq</p>
+<p>,@EmpSeq = A.EmpSeq</p>
+<p>FROM _TCAUser AS A</p>
+<p>LEFT OUTER JOIN _fnAdmEmpOrd(@CompanySeq, '') AS B ON A.CompanySeq = @CompanySeq</p>
+<p>AND B.EmpSeq = A.EmpSeq</p>
+<p>WHERE (1=1)</p>
+<p>AND A.UserSeq = @UserSeq</p>
+<p>-- 호출 Log 남기기</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects where Name = 'mcm_TMESPDMMOutProcSavelog' AND xtype = 'U' )</p>
+<p>BEGIN</p>
+<p>CREATE TABLE mcm_TMESPDMMOutProcSavelog</p>
+<p>(</p>
+<p>LogSeq INT IDENTITY(1,1) NOT NULL,</p>
+<p>WorkingTag NVARCHAR(2) ,</p>
+<p>OutReqSeq INT, -- 작업지시코드</p>
+<p>OutReqItemSerl INT, -- 작업지시순번</p>
+<p>MatOutDate NVARCHAR(20), -- 작업일</p>
+<p>Qty DECIMAL(19,5), -- 생산수량</p>
+<p>UserSeq INT, -- 등록자</p>
+<p>MESSeq         INT ,</p>
+<p>MESSerl         NVARCHAR(100),</p>
+<p>Status NVARCHAR(10) NULL,</p>
+<p>Results NVARCHAR(250) NULL,</p>
+<p>LogDateTime DATETIME NOT NULL</p>
+<p>)</p>
+<p>END</p>
+<p>INSERT mcm_TMESPDMMOutProcSavelog</p>
+<p>(</p>
+<p>WorkingTag , OutReqSeq , OutReqItemSerl, MatOutDate , Qty,</p>
+<p>UserSeq , MESSeq , MESSerl ,</p>
+<p>Status , Results , LogDateTime</p>
+<p>)</p>
+<p>SELECT @WorkingTag , @OutReqSeq , @OutReqItemSerl, @MatOutDate , @Qty,</p>
+<p>@UserSeq , @MESSeq , @MESSerl ,</p>
+<p>@Status , @Results , @CurrDateTime</p>
+<p>IF @WorkingTag NOT IN ('A', 'D')</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1', @Results = '잘못된 작업코드 입니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>IF @OutReqSeq = 0 AND @WorkingTag = 'A'</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1', @Results = '자재반품요청 내부코드가 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>IF @OutReqItemSerl = 0 AND @WorkingTag = 'A'</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1', @Results = '자재반품요청 순번 코드가 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>IF @MESSeq = 0 AND @WorkingTag = 'D'</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1', @Results = '삭제 건에 대한 MES 내부코드가 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>IF @MESSerl = '' AND @WorkingTag = 'D'</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1', @Results = '삭제 건에 대한 MES 순번 코드가 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>-- 처리일자 체크</p>
+<p>IF (IsDate(@MatOutDate) \&lt;&gt; 1 )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1',</p>
+<p>@Results = '반품일자가 잘못된 형식입니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>-- 처리자 체크</p>
+<p>IF NOT EXISTS (SELECT 1 FROM _TDAEmp WHERE CompanySeq = 1 AND EmpSeq = @EmpSeq)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1',</p>
+<p>@Results = '처리자가 잘못 되었습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>CREATE TABLE #TPDMMOutItem</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1, 1),</p>
+<p>WorkingTag NVARCHAR(1),</p>
+<p>Status INT,</p>
+<p>MessageType INT,</p>
+<p>Result NVARCHAR(255),</p>
+<p>InOutType INT,</p>
+<p>OutReqSeq INT,</p>
+<p>OutReqItemSerl INT,</p>
+<p>MatOutSeq INT,</p>
+<p>OutItemSerl INT,</p>
+<p>MatOutNo NVARCHAR(20),</p>
+<p>MatOutDate NCHAR(8),</p>
+<p>BizUnit INT,</p>
+<p>DeptSeq INT,</p>
+<p>EmpSeq INT,</p>
+<p>PJTSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>STDUnitSeq INT,</p>
+<p>STDQty DECIMAL(19,5),</p>
+<p>Remark NVARCHAR(500)</p>
+<p>,InWHSeq INT</p>
+<p>,OutWHSeq INT</p>
+<p>,ItemLotNo NVARCHAR(100)</p>
+<p>,UseType INT</p>
+<p>,MatOutType INT</p>
+<p>,IsOutSide INT</p>
+<p>,SerialNoFrom NVARCHAR(20)</p>
+<p>,WorkOrderSeq INT</p>
+<p>,WorkOrderSerl INT</p>
+<p>,AlterRate DECIMAL(19,5)</p>
+<p>,Memo1 NVARCHAR(300)</p>
+<p>,Memo2 NVARCHAR(300)</p>
+<p>,Memo3 NVARCHAR(300)</p>
+<p>,Memo4 DECIMAL(19,5)</p>
+<p>,Memo5 DECIMAL(19,5)</p>
+<p>,Memo6 DECIMAL(19,5)</p>
+<p>,Memo7 NVARCHAR(300)</p>
+<p>,Memo8 NVARCHAR(300)</p>
+<p>,Memo9 DECIMAL(19,5)</p>
+<p>,Memo10 DECIMAL(19,5)</p>
+<p>,CustSeq INT</p>
+<p>,ProdPlanSeq INT</p>
+<p>,MESSeq         INT</p>
+<p>,MESSerl NVARCHAR(100)</p>
+<p>)</p>
+<p>IF @WorkingTag = 'A'</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TPDMMOutItem</p>
+<p>(</p>
+<p>WorkingTag, Status, MessageType, Result,</p>
+<p>InOutType, OutReqSeq, OutReqItemSerl, MatOutSeq, OutItemSerl, MatOutNo,</p>
+<p>MatOutDate, BizUnit, DeptSeq, EmpSeq,</p>
+<p>PJTSeq, ItemSeq, UnitSeq, Qty, STDUnitSeq, STDQty, Remark,</p>
+<p>InWHSeq</p>
+<p>,OutWHSeq</p>
+<p>,ItemLotNo</p>
+<p>,UseType</p>
+<p>,MatOutType</p>
+<p>,IsOutSide</p>
+<p>,SerialNoFrom</p>
+<p>,WorkOrderSeq</p>
+<p>,WorkOrderSerl</p>
+<p>,AlterRate</p>
+<p>,Memo1</p>
+<p>,Memo2</p>
+<p>,Memo3</p>
+<p>,Memo4</p>
+<p>,Memo5</p>
+<p>,Memo6</p>
+<p>,Memo7</p>
+<p>,Memo8</p>
+<p>,Memo9</p>
+<p>,Memo10</p>
+<p>,CustSeq</p>
+<p>,ProdPlanSeq</p>
+<p>,MESSeq        </p>
+<p>,MESSerl</p>
+<p>)</p>
+<p>SELECT @WorkingTag, 0 AS Status, 0 AS MessageType, '' AS Result,</p>
+<p>180 AS InOutType, A.OutReqSeq, B.OutReqItemSerl, 0 AS MatOutSeq, 1 AS OutItemSerl, '' AS MatOutNo,</p>
+<p>@MatOutDate AS MatOutDate, A.BizUnit, @DeptSeq, @EmpSeq,</p>
+<p>B.PJTSeq, B.ItemSeq, B.UnitSeq, @Qty, B.UnitSeq AS STDUnitSeq, @Qty, B.Remark,</p>
+<p>CASE WHEN IA.SMAssetGrp = 6008005 THEN W.FieldWhSeq -- 공정품</p>
+<p>WHEN SM.MinorValue = N'1' THEN W.MatOutWhSeq -- 자재</p>
+<p>ELSE W.GoodOutWHSeq -- 제상품</p>
+<p>END AS InWHSeq</p>
+<p>,W.FieldWhSeq AS OutWHSeq</p>
+<p>,B.RealLotNo AS ItemLotNo</p>
+<p>,6044007 AS UseType</p>
+<p>,B.MatOutType</p>
+<p>,A.IsOutSide</p>
+<p>,'' AS SerialNoFrom</p>
+<p>,B.WorkOrderSeq</p>
+<p>,B.WorkOrderSerl</p>
+<p>,0 AS AlterRate</p>
+<p>,B.Memo1</p>
+<p>,B.Memo2</p>
+<p>,B.Memo3</p>
+<p>,B.Memo4</p>
+<p>,B.Memo5</p>
+<p>,B.Memo6</p>
+<p>,'' AS Memo7</p>
+<p>,@MESSerl AS Memo8</p>
+<p>,@MESSeq AS Memo9</p>
+<p>,0 AS Memo10</p>
+<p>,B.CustSeq</p>
+<p>,O.ProdPlanSeq</p>
+<p>,@MESSeq</p>
+<p>,@MESSerl</p>
+<p>FROM _TPDMMOutReqM AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutReqItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OutReqSeq = A.OutReqSeq</p>
+<p>JOIN _TDAWH AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.BizUnit = A.BizUnit</p>
+<p>AND C.SMWHKind = 8002026 -- _TDASMinor WHERE MajorSeq = 8002</p>
+<p>LEFT OUTER JOIN _TDAItem AS I WITH(NOLOCK) ON B.ItemSeq = I.ItemSeq</p>
+<p>AND I.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS IA WITH(NOLOCK) ON I.AssetSeq = IA.AssetSeq</p>
+<p>AND I.CompanySeq = IA.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS SM WITH(NOLOCK) ON IA.SMAssetGrp = SM.MinorSeq</p>
+<p>AND SM.MajorSeq = 6008</p>
+<p>AND IA.CompanySeq = SM.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS W WITH(NOLOCK) ON B.WorkCenterSeq = W.WorkCenterSeq</p>
+<p>AND B.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS O WITH(NOLOCK) ON B.WorkOrderSeq = O.WorkOrderSeq</p>
+<p>AND B.WorkOrderSerl = O.WorkOrderSerl</p>
+<p>AND B.CompanySeq = O.CompanySeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OutReqSeq = @OutReqSeq</p>
+<p>AND B.OutReqItemSerl = @OutReqItemSerl</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1',</p>
+<p>@Results = '자재반품요청건이 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>IF @WorkingTag = 'D'</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TPDMMOutItem</p>
+<p>(</p>
+<p>WorkingTag, Status, MessageType, Result,</p>
+<p>InOutType, OutReqSeq, OutReqItemSerl, MatOutSeq, OutItemSerl, MatOutNo,</p>
+<p>MatOutDate, BizUnit, DeptSeq, EmpSeq,</p>
+<p>PJTSeq, ItemSeq, UnitSeq, Qty, STDUnitSeq, STDQty, Remark,</p>
+<p>InWHSeq</p>
+<p>,OutWHSeq</p>
+<p>,ItemLotNo</p>
+<p>,UseType</p>
+<p>,MatOutType</p>
+<p>,IsOutSide</p>
+<p>,SerialNoFrom</p>
+<p>,WorkOrderSeq</p>
+<p>,WorkOrderSerl</p>
+<p>,AlterRate</p>
+<p>,Memo1</p>
+<p>,Memo2</p>
+<p>,Memo3</p>
+<p>,Memo4</p>
+<p>,Memo5</p>
+<p>,Memo6</p>
+<p>,Memo7</p>
+<p>,Memo8</p>
+<p>,Memo9</p>
+<p>,Memo10</p>
+<p>,CustSeq</p>
+<p>,ProdPlanSeq</p>
+<p>,MESSeq        </p>
+<p>,MESSerl</p>
+<p>)</p>
+<p>SELECT @WorkingTag, 0 AS Status, 0 AS MessageType, '' AS Result,</p>
+<p>180 AS InOutType, A.OutReqSeq, B.OutReqItemSerl, Z.MatOutSeq, Z.OutItemSerl, '' AS MatOutNo,</p>
+<p>@MatOutDate AS MatOutDate, A.BizUnit, @DeptSeq, @EmpSeq,</p>
+<p>B.PJTSeq, B.ItemSeq, B.UnitSeq, @Qty, B.UnitSeq AS STDUnitSeq, @Qty, B.Remark,</p>
+<p>CASE WHEN IA.SMAssetGrp = 6008005 THEN W.FieldWhSeq -- 공정품</p>
+<p>WHEN SM.MinorValue = N'1' THEN W.MatOutWhSeq -- 자재</p>
+<p>ELSE W.GoodOutWHSeq -- 제상품</p>
+<p>END AS InWHSeq</p>
+<p>,W.FieldWhSeq AS OutWHSeq</p>
+<p>,B.RealLotNo AS ItemLotNo</p>
+<p>,6044007 AS UseType</p>
+<p>,B.MatOutType</p>
+<p>,A.IsOutSide</p>
+<p>,'' AS SerialNoFrom</p>
+<p>,B.WorkOrderSeq</p>
+<p>,B.WorkOrderSerl</p>
+<p>,0 AS AlterRate</p>
+<p>,B.Memo1</p>
+<p>,B.Memo2</p>
+<p>,B.Memo3</p>
+<p>,B.Memo4</p>
+<p>,B.Memo5</p>
+<p>,B.Memo6</p>
+<p>,'' AS Memo7</p>
+<p>,@MESSerl AS Memo8</p>
+<p>,@MESSeq AS Memo9</p>
+<p>,0 AS Memo10</p>
+<p>,B.CustSeq</p>
+<p>,O.ProdPlanSeq</p>
+<p>,@MESSeq</p>
+<p>,@MESSerl</p>
+<p>FROM _TPDMMOutItem AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutReqItem AS B WITH(NOLOCK) ON B.CompanySeq = Z.CompanySeq</p>
+<p>AND B.OutReqSeq = Z.ProgFromSeq</p>
+<p>AND B.OutReqItemSerl = Z.ProgFromSerl</p>
+<p>AND Z.ProgFromTableSeq = 24</p>
+<p>JOIN _TPDMMOutReqM AS A WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OutReqSeq = A.OutReqSeq</p>
+<p>JOIN _TDAWH AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.BizUnit = A.BizUnit</p>
+<p>AND C.SMWHKind = 8002026 -- _TDASMinor WHERE MajorSeq = 8002</p>
+<p>LEFT OUTER JOIN _TDAItem AS I WITH(NOLOCK) ON B.ItemSeq = I.ItemSeq</p>
+<p>AND I.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS IA WITH(NOLOCK) ON I.AssetSeq = IA.AssetSeq</p>
+<p>AND I.CompanySeq = IA.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS SM WITH(NOLOCK) ON IA.SMAssetGrp = SM.MinorSeq</p>
+<p>AND SM.MajorSeq = 6008</p>
+<p>AND IA.CompanySeq = SM.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS W WITH(NOLOCK) ON B.WorkCenterSeq = W.WorkCenterSeq</p>
+<p>AND B.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS O WITH(NOLOCK) ON B.WorkOrderSeq = O.WorkOrderSeq</p>
+<p>AND B.WorkOrderSerl = O.WorkOrderSerl</p>
+<p>AND B.CompanySeq = O.CompanySeq</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.Memo9 = @MESSeq</p>
+<p>AND Z.Memo8 = @MESSerl</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1',</p>
+<p>@Results = '자재반품삭제건이 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>--SELECT * FROM #TPDMMOutItem</p>
+<p>-- 재고반영</p>
+<p>CREATE TABLE #TLGInOutMonth</p>
+<p>(</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TLGInOutMonthLot</p>
+<p>(</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>WorkingTag NVARCHAR(10),</p>
+<p>InOutType INT,</p>
+<p>InOutSeq INT,</p>
+<p>InOutSerl INT,</p>
+<p>InOutSubSerl INT,</p>
+<p>DataKind INT,</p>
+<p>MessageType INT,</p>
+<p>Result NVARCHAR(250),</p>
+<p>Status INT</p>
+<p>)</p>
+<p>-- 진행</p>
+<p>CREATE TABLE #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName NVARCHAR(100),</p>
+<p>ToSeq INT,</p>
+<p>ToSerl INT,</p>
+<p>ToSubSerl INT,</p>
+<p>FromTableName NVARCHAR(100),</p>
+<p>FromSeq INT,</p>
+<p>FromSerl INT,</p>
+<p>FromSubSerl INT,</p>
+<p>ToQty DECIMAL(19,5),</p>
+<p>ToStdQty DECIMAL(19,5),</p>
+<p>ToAmt DECIMAL(19,5),</p>
+<p>ToVAT DECIMAL(19,5),</p>
+<p>ToDOMAmt DECIMAL(19,5),</p>
+<p>ToDOMVAT DECIMAL(19,5),</p>
+<p>FromQty DECIMAL(19,5),</p>
+<p>FromSTDQty DECIMAL(19,5),</p>
+<p>FromAmt DECIMAL(19,5),</p>
+<p>FromVAT DECIMAL(19,5),</p>
+<p>FromDOMAmt DECIMAL(19,5),</p>
+<p>FromDOMVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #TLGClosingCheck</p>
+<p>(</p>
+<p>IDX_NO INT ,</p>
+<p>InOutYM NCHAR(6) ,</p>
+<p>ItemSeq INT ,</p>
+<p>WHSeq INT ,</p>
+<p>MessageType INT ,</p>
+<p>Status INT ,</p>
+<p>Result NVARCHAR(255)</p>
+<p>)</p>
+<p>-- 진행체크할 테이블값 테이블</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 진행된 내역 테이블 : _SCOMProgressTracking 에서 사용</p>
+<p>CREATE TABLE #TCOMProgressTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDInOut INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>StdQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5),</p>
+<p>DOMAmt DECIMAL(19,5),</p>
+<p>DOMVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>IF @WorkingTag = 'A'</p>
+<p>GOTO ADD_PROC</p>
+<p>ELSE IF @WorkingTag = 'D'</p>
+<p>GOTO DEL_PROC</p>
+<p>RETURN</p>
+<p>/*******************************************************************************/</p>
+<p>ADD_PROC:</p>
+<p>IF EXISTS (SELECT TOP 1 1</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>JOIN _TDAWH AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND (B.WHSeq = A.InWHSeq OR B.WHSeq = A.OutWHSeq)</p>
+<p>WHERE B.BizUnit \&lt;&gt; A.BizUnit</p>
+<p>AND B.IsIncludeBizUnit        = N'1'</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '2',</p>
+<p>@Results = '해당 사업단위의 창고이(가) 아닙니다. 창고의 사업단위종속여부을(를) 확인하세요.'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF EXISTS (SELECT TOP 1 1</p>
+<p>FROM #TPDMMOutItem</p>
+<p>WHERE InWHSeq = OutWHSeq</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '3',</p>
+<p>@Results = '반품창고와(과) 입고창고은(는) 같은 값을 등록할 수 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF EXISTS (SELECT TOP 1 1</p>
+<p>FROM #TPDMMOutItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON I.CompanySeq = @CompanySeq</p>
+<p>AND I.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItemStock AS C WITH(NOLOCK) ON C.ItemSeq = I.ItemSeq</p>
+<p>AND C.IsLotMng = N'1'</p>
+<p>AND C.CompanySeq = @CompanySeq</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemLotNo = N''</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '4',</p>
+<p>@Results = '해당품목은 Lot번호 관리 품목입니다. Lot번호를 필수로 입력하십시오.'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 수불마감체크(ERP SP보면 물류는 일마감체크를 타는거처럼 보임...)</p>
+<p>TRUNCATE TABLE #TLGClosingCheck</p>
+<p>INSERT INTO #TLGClosingCheck</p>
+<p>SELECT A.IDX_NO AS IDX_NO, LEFT(@MatOutDate,6), A.ItemSeq,</p>
+<p>A.OutWHSeq,</p>
+<p>0, 0, ''</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC _SWLGClosingCheck @CompanySeq, @LanguageSeq</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TLGClosingCheck WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '2',</p>
+<p>@Results = Result</p>
+<p>FROM #TLGClosingCheck</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>--3. 중단/미확정/진행 체크</p>
+<hr />
+<p>CREATE TABLE #Temp_TPDMMOutItemProg</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>OutReqSeq INT,</p>
+<p>OutReqItemSerl INT,</p>
+<p>CompleteCHECK INT,</p>
+<p>ReqQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>SMProgressType INT NULL,</p>
+<p>Confirm INT,</p>
+<p>ConfirmEmp NVARCHAR(100),</p>
+<p>ConfirmDate NCHAR(8),</p>
+<p>ConfirmReason NVARCHAR(500),</p>
+<p>IsStop NCHAR(1),</p>
+<p>StopEmp NVARCHAR(100),</p>
+<p>StopDate NCHAR(8),</p>
+<p>StopReason NVARCHAR(500)</p>
+<p>)</p>
+<p>INSERT INTO #Temp_TPDMMOutItemProg(OutReqSeq, OutReqItemSerl, ReqQty, InQty, CompleteCHECK, Confirm)</p>
+<p>SELECT A.OutReqSeq, B.OutReqItemSerl, B.Qty, A.Qty, -1 , 1</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>JOIN _TPDMMOutReqItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.OutReqSeq = B.OutReqSeq</p>
+<p>AND A.OutReqItemSerl = B.OutReqItemSerl</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>--GROUP BY A.OutReqSeq, B.OutReqItemSerl, B.Qty, A.Qty</p>
+<p>ORDER BY A.OutReqSeq, B.OutReqItemSerl</p>
+<p>EXEC _SWCOMConfirmStopUpdate @CompanySeq, '#Temp_TPDMMOutItemProg', 'OutReqSeq','OutReqItemSerl','',501490</p>
+<p>--진행상태</p>
+<p>EXEC _SWCOMProgStatus @CompanySeq, '_TPDMMOutReqItem', 1036003, '#Temp_TPDMMOutItemProg', 'OutReqSeq', 'OutReqItemSerl', '', '', '', '', '', '', 'CompleteCHECK', 1, 'Qty', 'Qty', '', '', 'OutReqSeq', 'OutReqItemSerl', '', '_TPDMMOutReqM', 501490</p>
+<p>IF EXISTS(SELECT 1 FROM #Temp_TPDMMOutItemProg WHERE (ISNULL(IsStop, '') = '1' OR ISNULL(Confirm, '1') = '0' OR ISNULL(CompleteCHECK, '') = 40))</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '5',</p>
+<p>@Results = CASE WHEN ISNULL(B.IsStop, '') = '1' THEN '중단된 건이 선택되었습니다.'</p>
+<p>WHEN ISNULL(B.Confirm, '') = '0' THEN '미확정된 건이 선택되었습니다.'</p>
+<p>WHEN ISNULL(B.CompleteCHECK, '') = 40 THEN '자재반품 진행 완료된 건이 선택되었습니다.' END</p>
+<p>FROM #Temp_TPDMMOutItemProg AS B</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>--===========================================================</p>
+<p>-- 진행체크</p>
+<p>--===========================================================</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>DECLARE @SMProgCheckKind INT,</p>
+<p>@IsOverFlow NCHAR(1)</p>
+<p>SELECT @IsOverFlow = '0'</p>
+<p>SELECT @IsOverFlow = ISNULL(IsOverFlow,'0'),</p>
+<p>@SMProgCheckKind = SMProgCheckKind</p>
+<p>FROM _TCOMProgRelativeTables WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND FromTableSeq = 24 -- 자재출고요청</p>
+<p>AND ToTableSeq = 25 -- 자재출고처리</p>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 1, '_TPDMMOutItem' -- 자재출고처리</p>
+<p>CREATE TABLE #Temp_SourceItem</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY ,</p>
+<p>OutReqSeq INT ,</p>
+<p>OutReqItemSerl INT ,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>ProgQty DECIMAL(19, 5),</p>
+<p>ProgSTDQty DECIMAL(19, 5),</p>
+<p>ProgAmt DECIMAL(19, 5),</p>
+<p>)</p>
+<p>INSERT INTO #Temp_SourceItem(OutReqSeq, OutReqItemSerl,Qty, STDQty, Amt, ProgQty, ProgSTDQty, ProgAmt)</p>
+<p>SELECT A.OutReqSeq, A.OutReqItemSerl, B.Qty, B.Qty, 0, A.Qty, A.Qty, 0</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>JOIN _TPDMMOutReqItem AS B WITH(NOLOCK) ON A.OutReqSeq = B.OutReqSeq</p>
+<p>AND A.OutReqItemSerl = B.OutReqItemSerl</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>EXEC _SWCOMProgressTracking @CompanySeq, '_TPDMMOutReqItem', '#Temp_SourceItem', 'OutReqSeq', 'OutReqItemSerl', ''</p>
+<p>CREATE TABLE #Temp_Prog</p>
+<p>(</p>
+<p>IDX_NO INT ,</p>
+<p>OutQty DECIMAL(19, 5),</p>
+<p>OutSTDQty DECIMAL(19, 5),</p>
+<p>OutAmt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>INSERT INTO #Temp_Prog(IDX_NO, OutQty, OutSTDQty, OutAmt)</p>
+<p>SELECT A.IDX_NO, SUM(CASE IDInOut WHEN 1 THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE IDInOut WHEN 1 THEN A.STDQty ELSE 0 END),</p>
+<p>SUM(CASE IDInOut WHEN 1 THEN A.Amt ELSE 0 END)</p>
+<p>FROM #TCOMProgressTracking AS A</p>
+<p>GROUP BY A.IDX_NO</p>
+<p>SELECT A.OutReqSeq ,</p>
+<p>A.OutReqItemSerl ,</p>
+<p>A.Qty ,</p>
+<p>A.STDQty,</p>
+<p>A.Amt ,</p>
+<p>A.ProgQty ,</p>
+<p>A.ProgSTDQty ,</p>
+<p>A.ProgAmt ,</p>
+<p>ISNULL(B.OutQty , 0) AS OutQty ,</p>
+<p>ISNULL(B.OutSTDQty, 0) AS OutSTDQty,</p>
+<p>ISNULL(B.OutAmt , 0) AS OutAmt ,</p>
+<p>CASE WHEN B.IDX_NO IS NULL THEN '0'</p>
+<p>ELSE '1' END AS IsExists</p>
+<p>INTO #TempProgCheck</p>
+<p>FROM #Temp_SourceItem AS A</p>
+<p>LEFT OUTER JOIN #Temp_Prog AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>IF EXISTS ( SELECT TOP 1 1</p>
+<p>FROM #TempProgCheck AS C</p>
+<p>WHERE ((@SMProgCheckKind = 1045001 AND @IsOverFlow \&lt;&gt; '1' AND C.Qty \&lt; C.ProgQty + C.OutQty ) OR -- 수량</p>
+<p>(@SMProgCheckKind = 1045002 AND @IsOverFlow \&lt;&gt; '1' AND C.STDQty \&lt; C.ProgSTDQty + C.OutSTDQty) OR -- 기준단위수량</p>
+<p>(@SMProgCheckKind = 1045003 AND @IsOverFlow \&lt;&gt; '1' AND C.Amt \&lt; C.ProgAmt + C.OutAmt ) OR -- 금액</p>
+<p>(@SMProgCheckKind = 1045004 AND C.IsExists = '1'))</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '6',</p>
+<p>@Results = '해당 건 진행정보가 초과되었습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--===========================================================</p>
+<p>--===========================================================</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq</p>
+<p>, N'_TPDMMOutM'</p>
+<p>, N'MatOutSeq'</p>
+<p>, 1</p>
+<p>SELECT @BizUnit = BizUnit</p>
+<p>, @Date = MatOutDate</p>
+<p>FROM #TPDMMOutItem</p>
+<p>EXEC dbo._SWCOMCreateNo N'PD' -- 생산(HR/AC/SL/PD/ESM/PMS/SI/SITE)</p>
+<p>, N'_TPDMMOutM' -- 테이블</p>
+<p>, @CompanySeq -- 법인코드</p>
+<p>, @BizUnit -- 부문코드</p>
+<p>, @Date -- 기준일</p>
+<p>, @MaxNo OUTPUT</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TPDMMOutItem</p>
+<p>SET MatOutSeq = @Seq + IDX_NO</p>
+<p>, MatOutNo = @MaxNo</p>
+<p>WHERE WorkingTag = N'A'</p>
+<p>AND Status = 0</p>
+<p>BEGIN TRAN</p>
+<p>INSERT INTO _TPDMMOutM</p>
+<p>(</p>
+<p>CompanySeq , MatOutSeq , BizUnit , MatOutNo , MatOutDate ,</p>
+<p>UseType , MatOutType, IsOutSide , OutWHSeq , InWHSeq ,</p>
+<p>EmpSeq , Remark , WorkReportSeq , LastUserSeq , LastDateTime ,</p>
+<p>FactUnit , Consignee , SupplyContCustSeq, PgmSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq</p>
+<p>, A.MatOutSeq</p>
+<p>, A.BizUnit</p>
+<p>, A.MatOutNo</p>
+<p>, A.MatOutDate</p>
+<p>, A.UseType</p>
+<p>, A.MatOutType</p>
+<p>, A.IsOutSide</p>
+<p>, A.OutWHSeq</p>
+<p>, CASE UseType WHEN 6044007 THEN 0 ELSE A.InWHSeq END --2023.01.31 김남익 : 반품일경우 마스터 입고창고 저장 X</p>
+<p>, A.EmpSeq</p>
+<p>, A.Remark</p>
+<p>, 0</p>
+<p>, @UserSeq</p>
+<p>, GETDATE()</p>
+<p>, 0</p>
+<p>, ''</p>
+<p>, 0</p>
+<p>, @PgmSeq</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>WHERE A.WorkingTag = N'A'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '7',</p>
+<p>@Results = '(자재반품 등록) 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO _TPDMMOutItem</p>
+<p>(</p>
+<p>CompanySeq , MatOutSeq , OutItemSerl , ItemSeq , OutWHSeq ,</p>
+<p>InWHSeq , UnitSeq , Qty , StdUnitQty , Price ,</p>
+<p>Amt , ItemLotNo , SerialNoFrom , WorkOrderSeq , WorkOrderSerl ,</p>
+<p>Remark , OutReqSeq , OutReqItemSerl, PJTSeq , WBSSeq ,</p>
+<p>AlterRate , Memo1 , Memo2 , Memo3 , Memo4 ,</p>
+<p>Memo5 , Memo6 , Memo7 , Memo8 , Memo9 ,</p>
+<p>Memo10 , MatOutType , CustSeq , ProdPlanSeq , LastUserSeq ,</p>
+<p>LastDateTime , ConsgnmtCustSeq, PgmSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq</p>
+<p>, A.MatOutSeq</p>
+<p>, A.OutItemSerl</p>
+<p>, A.ItemSeq</p>
+<p>, A.OutWHSeq</p>
+<p>, A.InWHSeq</p>
+<p>, A.UnitSeq</p>
+<p>, A.Qty</p>
+<p>, A.STDQty</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, A.ItemLotNo</p>
+<p>, A.SerialNoFrom</p>
+<p>, A.WorkOrderSeq</p>
+<p>, A.WorkOrderSerl</p>
+<p>, A.Remark</p>
+<p>, A.OutReqSeq</p>
+<p>, A.OutReqItemSerl</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, A.AlterRate</p>
+<p>, A.Memo1</p>
+<p>, A.Memo2</p>
+<p>, A.Memo3</p>
+<p>, A.Memo4</p>
+<p>, A.Memo5</p>
+<p>, A.Memo6</p>
+<p>, A.Memo7</p>
+<p>, A.Memo8</p>
+<p>, A.Memo9</p>
+<p>, A.Memo10</p>
+<p>, A.MatOutType</p>
+<p>, A.CustSeq</p>
+<p>, A.ProdPlanSeq</p>
+<p>, @UserSeq</p>
+<p>, GETDATE()</p>
+<p>, 0</p>
+<p>, @PgmSeq</p>
+<p>--, A.ConsgnmtCustSeq</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>WHERE A.WorkingTag = N'A'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '8',</p>
+<p>@Results = '(자재반품 등록) 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 재고반영 (입출고)</p>
+<hr />
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<p>INSERT INTO #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>WorkingTag , InOutType , InOutSeq , InOutSerl , InOutSubSerl ,</p>
+<p>DataKind , MessageType , Result , Status</p>
+<p>)</p>
+<p>SELECT A.WorkingTag, A.InOutType, A.MatOutSeq AS InOutSeq, A.OutItemSerl AS InOutSerl, 0 AS InOutSubSerl,</p>
+<p>0 AS DataKind, A.MessageType, A.Result , A.Status</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC _SWLGInOutDailyINSERT @CompanySeq = @CompanySeq</p>
+<p>, @Level = 2</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '9',</p>
+<p>@Results = '(수불) 반영시 오류가 발생 하였습니다.(' + ISNULL(Result,'') + ')'</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 창고재고 집계</p>
+<p>EXEC dbo._SWLGWHStockUPDATE @CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '10',</p>
+<p>@Results = '(창고재집계) 처리시 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 재고 마이너스 체크</p>
+<p>EXEC _SWLGInOutMinusCheck @CompanySeq, '#TLGInOutDailyBatch'</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '11',</p>
+<p>@Results = '재고 마이너스 체크시 오류가 발생 하였습니다.(' + ISNULL(Result,'') + ')'</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 진행연결(입출고요청 =&gt; 입출고)</p>
+<hr />
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>INSERT INTO #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName, ToSeq, ToSerl, ToSubSerl,</p>
+<p>FromTableName, FromSeq, FromSerl, FromSubSerl,</p>
+<p>ToQty, ToStdQty, ToAmt, ToVAT, ToDOMAmt, ToDOMVAT,</p>
+<p>FromQty, FromSTDQty, FromAmt, FromVAT, FromDOMAmt, FromDOMVAT</p>
+<p>)</p>
+<p>SELECT '_TPDMMOutItem' ToTableName, B.MatOutSeq ToSeq, B.OutItemSerl ToSerl, 0 ToSubSerl,</p>
+<p>'_TPDMMOutReqItem' FromTableName, C.OutReqSeq FromSeq, C.OutReqItemSerl FromSerl, 0 FromSubSerl,</p>
+<p>B.Qty ToQty, B.StdUnitQty ToStdQty, 0 ToAmt, 0 ToVAT, 0 ToDOMAmt, 0 ToDOMVAT,</p>
+<p>C.Qty FromQty, C.Qty FromSTDQty, 0 FromAmt, 0 FromVAT, 0 FromDOMAmt, 0 FromDOMVAT</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>JOIN _TPDMMOutItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.MatOutSeq = A.MatOutSeq</p>
+<p>AND B.OutItemSerl = A.OutItemSerl</p>
+<p>JOIN _TPDMMOutReqItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.OutReqSeq = A.OutReqSeq</p>
+<p>AND C.OutReqItemSerl = A.OutReqItemSerl</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>-- 진행연결</p>
+<p>EXEC _SWComSourceDailyBatch 'A', @CompanySeq, @UserSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '12',</p>
+<p>@Results = '진행연결시 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--SELECT @Status = '0',</p>
+<p>-- @Results = '입출고 처리 되었습니다.'</p>
+<p>-- Log Insert</p>
+<p>UPDATE A</p>
+<p>SET Status = @Status,</p>
+<p>Results = @Results,</p>
+<p>OutReqSeq = @OutReqSeq</p>
+<p>FROM mcm_TMESPDMMOutProcSavelog AS A</p>
+<p>WHERE (1=1)</p>
+<p>AND A.LogDateTime = @CurrDateTime</p>
+<p>COMMIT TRAN</p>
+<p>RETURN</p>
+<p>/*******************************************************************************/</p>
+<p>DEL_PROC:</p>
+<p>--==================================================</p>
+<p>-- 자동출고건은 화면에서 삭제금지</p>
+<p>--==================================================</p>
+<p>IF EXISTS ( SELECT 1</p>
+<p>FROM #TPDMMOutItem AS Z</p>
+<p>JOIN _TPDMMOutM AS A ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.MatOutSeq = Z.MatOutSeq</p>
+<p>WHERE @WorkingTag = N'D'</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.MatOutSeq = @OutReqSeq</p>
+<p>AND A.UseType = 6044006 )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '1',</p>
+<p>@Results = '자동출고건은 삭제할 수 없습니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 수불마감체크</p>
+<p>TRUNCATE TABLE #TLGClosingCheck</p>
+<p>INSERT INTO #TLGClosingCheck</p>
+<p>SELECT A.IDX_NO AS IDX_NO, LEFT(@MatOutDate,6), A.ItemSeq,</p>
+<p>A.OutWHSeq,</p>
+<p>0, 0, ''</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC _SWLGClosingCheck @CompanySeq, @LanguageSeq</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TLGClosingCheck WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '2',</p>
+<p>@Results = Result</p>
+<p>FROM #TLGClosingCheck</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>BEGIN TRAN</p>
+<hr />
+<p>-- 진행연결(자재출고요청 =&gt; 자재출고)</p>
+<hr />
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<hr />
+<p>-- 진행연결(입출고요청 =&gt; 입출고)</p>
+<hr />
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>INSERT INTO #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName, ToSeq, ToSerl, ToSubSerl,</p>
+<p>FromTableName, FromSeq, FromSerl, FromSubSerl,</p>
+<p>ToQty, ToStdQty, ToAmt, ToVAT, ToDOMAmt, ToDOMVAT,</p>
+<p>FromQty, FromSTDQty, FromAmt, FromVAT, FromDOMAmt, FromDOMVAT</p>
+<p>)</p>
+<p>SELECT '_TPDMMOutItem' ToTableName, B.MatOutSeq ToSeq, B.OutItemSerl ToSerl, 0 ToSubSerl,</p>
+<p>'_TPDMMOutReqItem' FromTableName, C.OutReqSeq FromSeq, C.OutReqItemSerl FromSerl, 0 FromSubSerl,</p>
+<p>B.Qty ToQty, B.StdUnitQty ToStdQty, 0 ToAmt, 0 ToVAT, 0 ToDOMAmt, 0 ToDOMVAT,</p>
+<p>C.Qty FromQty, C.Qty FromSTDQty, 0 FromAmt, 0 FromVAT, 0 FromDOMAmt, 0 FromDOMVAT</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>JOIN _TPDMMOutItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.MatOutSeq = A.MatOutSeq</p>
+<p>AND B.OutItemSerl = A.OutItemSerl</p>
+<p>JOIN _TPDMMOutReqItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.OutReqSeq = A.OutReqSeq</p>
+<p>AND C.OutReqItemSerl = A.OutReqItemSerl</p>
+<p>WHERE A.WorkingTag IN ('D')</p>
+<p>AND A.Status = 0</p>
+<p>EXEC dbo._SWComSourceDailyBatch N'D', @CompanySeq, @UserSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '3',</p>
+<p>@Results = '(진행연결) 삭제 시 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 수불</p>
+<hr />
+<p>-- 수불삭제 (자재출고)</p>
+<hr />
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<p>INSERT INTO #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>WorkingTag , InOutType , InOutSeq , InOutSerl , InOutSubSerl ,</p>
+<p>DataKind , MessageType , Result , Status</p>
+<p>)</p>
+<p>SELECT A.WorkingTag, A.InOutType, A.MatOutSeq AS InOutSeq, A.OutItemSerl AS InOutSerl, 0 AS InOutSubSerl,</p>
+<p>0 AS DataKind, A.MessageType, A.Result , A.Status</p>
+<p>FROM #TPDMMOutItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC _SWLGInOutDailyDELETE @CompanySeq = @CompanySeq</p>
+<p>, @Level = 2</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>, @UserSeq = @UserSeq</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '4',</p>
+<p>@Results = '(수불) 반영시 오류가 발생 하였습니다.(' + ISNULL(Result,'') + ')'</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 창고재고 집계</p>
+<p>EXEC dbo._SWLGWHStockUPDATE @CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '5',</p>
+<p>@Results = '(창고재집계) 처리시 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 재고 마이너스 체크</p>
+<p>EXEC dbo._SWLGInOutMinusCheck @CompanySeq = @CompanySeq</p>
+<p>, @TableName = N'#TLGInOutDailyBatch'</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '6',</p>
+<p>@Results = '재고 마이너스 체크시 오류가 발생 하였습니다.(' + ISNULL(Result,'') + ')'</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>EXEC _SWLGInOutLotMinusCheck @CompanySeq = @CompanySeq</p>
+<p>, @TableName = N'#TLGInOutDailyBatch'</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '6',</p>
+<p>@Results = '재고 마이너스 체크시 오류가 발생 하였습니다.(' + ISNULL(Result,'') + ')'</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 자재출고 데이터 삭제</p>
+<hr />
+<p>-- 마스터 삭제</p>
+<p>DELETE _TPDMMOutM</p>
+<p>FROM _TPDMMOutM AS A</p>
+<p>JOIN #TPDMMOutItem AS B ON B.MatOutSeq = A.MatOutSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND @WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '7',</p>
+<p>@Results = '(자재반품 마스터) 삭제 시 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 아이템 삭제</p>
+<p>DELETE _TPDMMOutItem</p>
+<p>FROM _TPDMMOutItem AS A</p>
+<p>JOIN #TPDMMOutItem AS B ON B.MatOutSeq = A.MatOutSeq</p>
+<p>AND B.OutItemSerl = A.OutItemSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND @WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = '8',</p>
+<p>@Results = '(자재반품 품목) 삭제 시 오류가 발생 하였습니다. (' + ERROR_MESSAGE() + ')'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--SELECT @Status = '0',</p>
+<p>-- @Results = '입출고 삭제처리 되었습니다.'</p>
+<p>-- Log Insert</p>
+<p>UPDATE A</p>
+<p>SET Status = @Status,</p>
+<p>Results = @Results,</p>
+<p>OutReqSeq = @OutReqSeq</p>
+<p>FROM mcm_TMESPDMMOutProcSavelog AS A</p>
+<p>WHERE (1=1)</p>
+<p>AND A.LogDateTime = @CurrDateTime</p>
+<p>COMMIT TRAN</p>
+<p>RETURN</p>
+<p>ERR_PROC:</p>
+<p>-- Log Insert</p>
+<p>UPDATE mcm_TMESPDMMOutProcSavelog</p>
+<p>SET Status = @Status,</p>
+<p>Results = @Results,</p>
+<p>OutReqSeq = CASE WHEN @WorkingTag = 'A' THEN 0 ELSE @OutReqSeq END -- 신규시 채번 후 삭제되면 키값 초기화해야할듯.</p>
+<p>WHERE LogDateTime = @CurrDateTime</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @Status INT = 0</p>
+<p>,@Results NVARCHAR(255) = ''</p>
+<p>EXEC mcm_SMESPDMMOutProcSave @WorkingTag         = 'D'</p>
+<p>,@OutReqSeq         = 116</p>
+<p>,@OutReqItemSerl = 1</p>
+<p>,@MatOutDate         = '20261221'</p>
+<p>,@UserSeq         = 27292</p>
+<p>,@Qty         = 333</p>
+<p>,@MESSeq = 1        </p>
+<p>,@MESSerl = 'ABC'</p>
+<p>,@Status = @Status OUTPUT</p>
+<p>,@Results = @Results OUTPUT</p>
+<p>SELECT @Status,@Results</p>
+<p>/*</p>
+<p>SELECT * FROM _TPDMMOutReqM AS M WITH(NOLOCK) WHERE OutReqSeq = 116</p>
+<p>SELECT * FROM _TPDMMOutReqItem AS M WITH(NOLOCK) WHERE OutReqSeq = 116</p>
+<p>SELECT LastDateTime ,* FROM _TPDMMOutItem AS M WITH(NOLOCK) ORDER BY 1 DESC</p>
+<p>SELECT LastDateTime ,* FROM _TPDMMOutM AS M WITH(NOLOCK) ORDER BY 1 DESC</p>
+<p>SELECT * FROM _TCOMSourceDaily AS A WHERE A.FromTableSeq = 24 AND ToTableSeq =25 AND A.FromSeq = 116 AND LastUserSeq = 27292</p>
+<p>SELECT TOP 10 StkYM , * FROM _TLGWHStock ORDER BY 1 DESC</p>
+<p>SELECT TOP 10 InOutDate, * FROM _TLGInOutStock ORDER BY 1 DESC</p>
+<p>SELECT TOP 10 InOutDate, * FROM _TLGStockMaster ORDER BY 1 DESC</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

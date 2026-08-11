@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창고가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>창고가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">창고가져오기</h1>
+<p>-- 창고우선순위 변경</p>
+<p>-- 담당자창고 &gt; 판매부서별창고 &gt; 품목분류별기본창고(예외품목) &gt; 품목분류별기본창고(소분류) &gt; 창고별품목(동일사업단위) &gt; 창고별품목(타사업단위) &gt; 사업단위창고</p>
+<p>-- 담당자창고</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET WHSeq = B.WHSeq,</p>
+<p>WHName = ISNULL(B.WHName, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAWH AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>WHERE ISNULL(A.EmpSeq,0) \&lt;&gt; 0</p>
+<p>AND B.IsNotUse \&lt;&gt; '1'</p>
+<p>-- 부서별창고</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET UMItemClass = ISNULL(A.UMItemClass,0)</p>
+<p>FROM _TDAItemClass AS A WITH (NOLOCK)</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE A.UMajorItemClass IN (2001, 2004)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET WHSeq = B.WHSeq,</p>
+<p>WHName = ISNULL(C.WHName, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TSLExceptionDeptWH AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.DeptSeq = B.DeptSeq</p>
+<p>AND A.UMItemClass = B.UMItemClass</p>
+<p>JOIN _TDAWH AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.WHSeq = C.WHSeq</p>
+<p>WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>AND C.IsNotUse \&lt;&gt; '1'</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET WHSeq = B.WHSeq,</p>
+<p>WHName = ISNULL(C.WHName, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TSLSalesDeptWH AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.DeptSeq = B.DeptSeq</p>
+<p>JOIN _TDAWH AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.WHSeq = C.WHSeq</p>
+<p>WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>AND C.IsNotUse \&lt;&gt; '1'</p>
+<blockquote>
+<p>-- 품목분류별기본창고(품목)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+</blockquote>
+<p>SET WHSeq = B.WHSeq,</p>
+<p>WHName = ISNULL(C.WHName, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemClassStdWH        AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>JOIN _TDAWH                                AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<blockquote>
+<p>AND B.WHSeq = C.WHSeq</p>
+</blockquote>
+<p>WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>AND C.IsNotUse \&lt;&gt; '1'</p>
+<blockquote>
+<p>AND ISNULL(B.ItemSeq,0) \&lt;&gt; 0</p>
+<p>-- 품목분류별기본창고(소분류)</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+</blockquote>
+<p>SET WHSeq = B.WHSeq,</p>
+<p>WHName = ISNULL(C.WHName, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemClassStdWH        AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.UMItemClass = B.ItemClassSSeq</p>
+<p>JOIN _TDAWH                                AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<blockquote>
+<p>AND B.WHSeq = C.WHSeq</p>
+</blockquote>
+<p>WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>AND C.IsNotUse \&lt;&gt; '1'</p>
+<blockquote>
+<p>AND ISNULL(B.ItemSeq,0) = 0</p>
+</blockquote>
+<p>--UPDATE #BIZ_OUT_DataBlock1</p>
+<p>-- SET WHSeq = CASE WHEN ISNULL(A.InOrOut,0) = -1 THEN B.OutWHSeq ELSE B.InWHSeq END,</p>
+<p>-- WHName = (SELECT WHName FROM _TDAWH WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND WHSeq = (CASE WHEN ISNULL(A.InOrOut,0) = -1 THEN B.OutWHSeq ELSE B.InWHSeq END))</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- JOIN _TDAItemStdWH AS B ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq AND (A.BizUnit = B.BizUnit) AND (A.FactUnit = B.FactUnit)</p>
+<p>-- WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>--UPDATE #BIZ_OUT_DataBlock1</p>
+<p>-- SET WHSeq = CASE WHEN ISNULL(A.InOrOut,0) = -1 THEN B.OutWHSeq ELSE B.InWHSeq END,</p>
+<p>-- WHName = (SELECT WHName FROM _TDAWH WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND WHSeq = (CASE WHEN ISNULL(A.InOrOut,0) = -1 THEN B.OutWHSeq ELSE B.InWHSeq END))</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- JOIN (SELECT Y.ItemSeq, MAX(Y.OutWHSeq) AS OutWHSeq, MAX(Y.InWHSeq) AS InWHSeq</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS X</p>
+<p>-- JOIN _TDAItemStdWH AS Y ON Y.CompanySeq = @CompanySeq AND X.ItemSeq = Y.ItemSeq AND (X.BizUnit = 0 OR X.BizUnit = Y.BizUnit) AND (X.FactUnit = 0 OR X.FactUnit = Y.FactUnit)</p>
+<p>-- WHERE ISNULL(X.WHSeq,0) = 0</p>
+<p>-- GROUP BY Y.ItemSeq) AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>-- WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>--UPDATE #BIZ_OUT_DataBlock1</p>
+<p>-- SET WHSeq = CASE WHEN ISNULL(A.InOrOut,0) = -1 THEN B.OutWHSeq ELSE B.InWHSeq END,</p>
+<p>-- WHName = (SELECT WHName FROM _TDAWH WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND WHSeq = (CASE WHEN ISNULL(A.InOrOut,0) = -1 THEN B.OutWHSeq ELSE B.InWHSeq END))</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- JOIN _TDAItemStdWH AS B ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq AND B.BizUnit = 0 AND B.FactUnit = 0</p>
+<p>-- WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>-- 동일사업단위 내 창고별품목</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET WHSeq = ISNULL(B.WHSeq, 0),</p>
+<p>WHName = (SELECT WHName FROM _TDAWH WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND WHSeq = B.WHSeq)</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN (SELECT X.ItemSeq, MIN(ISNULL(Y.WHSeq,0)) AS WHSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS X</p>
+<p>JOIN _TDAWHItem AS Y WITH(NOLOCK) ON Y.CompanySeq = @CompanySeq</p>
+<p>AND X.ItemSeq = Y.ItemSeq</p>
+<p>JOIN _TDAWH AS Z WITH(NOLOCK) ON Z.CompanySeq = @CompanySeq</p>
+<p>AND Y.WHSeq = Z.WHSeq</p>
+<p>AND X.BizUnit = Z.BizUnit</p>
+<p>GROUP BY X.ItemSeq) AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>-- 타사업단위 창고별품목</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET WHSeq = ISNULL(B.WHSeq, 0),</p>
+<p>WHName = (SELECT WHName FROM _TDAWH WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND WHSeq = B.WHSeq)</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN (SELECT X.ItemSeq, MIN(ISNULL(Y.WHSeq,0)) AS WHSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS X</p>
+<p>JOIN _TDAWHItem AS Y WITH(NOLOCK) ON Y.CompanySeq = @CompanySeq</p>
+<p>AND X.ItemSeq = Y.ItemSeq</p>
+<p>GROUP BY X.ItemSeq) AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>-- 사업단위창고</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET WHSeq = ISNULL(B.WHSeq, 0),</p>
+<p>WHName = ISNULL(B.WHName,'')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAWH AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = B.BizUnit</p>
+<p>AND B.SMWHKind = 8002026 -- 사업단위창고</p>
+<p>WHERE ISNULL(A.WHSeq,0) = 0</p>
+<p>AND B.IsNotUse \&lt;&gt; '1'</p>
+  </article>
+</div>
+</body>
+</html>

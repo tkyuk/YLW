@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAX 값 UPDATE 로직 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>MAX 값 UPDATE 로직 추가</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="max-update">MAX 값 UPDATE 로직 추가</h1>
+<p>--=================================================</p>
+<p>-- MAX UPDATE 로직 추가 24.02.07 SJPARK</p>
+<p>DECLARE @MAXOrderSeq INT</p>
+<p>SELECT @MAXOrderSeq = MAX(OrderSeq)</p>
+<p>FROM _TSLOrder</p>
+<p>-- 실제 MAX값으로 업데이트</p>
+<p>UPDATE _TCOMCreateSeqMax</p>
+<p>SET MaxSeq = @MAXOrderSeq</p>
+<p>WHERE TableName = '_TSLOrder'</p>
+<p>--=================================================</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TSLOrder', 'OrderSeq', @Count</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TSLOrder</p>
+<p>SET OrderSeq = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>UPDATE #TSLOrderItem</p>
+<p>SET OrderSeq = B.OrderSeq</p>
+<p>FROM #TSLOrderItem A JOIN #TSLOrder B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+  </article>
+</div>
+</body>
+</html>

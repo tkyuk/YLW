@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI 4.테이블명세서(물류)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI 4.테이블명세서(물류)</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni-4">GNI 4.테이블명세서(물류)</h1>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 조성민</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시 스 템 : 물류관리</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2010.05.27.</td>
+</tr>
+<tr>
+<td>버 전 : 산출물 버전을 기재</td>
+<td>페이지 : 1/1</td>
+<td>승 인 : (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">번호</th>
+<th style="text-align: center;">테이블명</th>
+<th>설 명</th>
+<th style="text-align: center;">발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">TTBStkCenter</td>
+<td>재고 물류센터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">74</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">TTBStkCenterDept</td>
+<td>부서별 재고 물류센터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">473</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">TTBStkCenterWH</td>
+<td>창고별재고뮬류센터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">2063</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">TTBTriggerMng</td>
+<td>재고 트리거</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">480</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">TTMCarItem</td>
+<td>차량별 운송품목</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">3846</td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">TTMCarMaster</td>
+<td>차량등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">457</td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">TTMCarReg</td>
+<td>배차등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">407</td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">TTMCarRegFreight</td>
+<td>배차 운송비</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">343</td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">TTMCarRegItem</td>
+<td>배차 품목</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">181</td>
+</tr>
+<tr>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">TTMDateCls</td>
+<td>일자별 수불 마감</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">252</td>
+</tr>
+<tr>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">TTMEtcInItem</td>
+<td>기타입고 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">277</td>
+</tr>
+<tr>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">TTMEtcInM</td>
+<td>기타입고 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">287</td>
+</tr>
+<tr>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">TTMEtcInReqItem</td>
+<td>기타입고요청 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">126</td>
+</tr>
+<tr>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">TTMEtcInReqM</td>
+<td>기타입고요청 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">32</td>
+</tr>
+<tr>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">TTMEtcOutItem</td>
+<td>기타출고 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">158</td>
+</tr>
+<tr>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">TTMEtcOutM</td>
+<td>기타출고 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">103</td>
+</tr>
+<tr>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">TTMEtcOutReqItem</td>
+<td>기타출고요청 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">74</td>
+</tr>
+<tr>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">TTMEtcOutReqM</td>
+<td>기타출고요청 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">473</td>
+</tr>
+<tr>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">TTMFreight</td>
+<td>운송요율표</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">2063</td>
+</tr>
+<tr>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">TTMMVReqItem</td>
+<td>이동요청 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">480</td>
+</tr>
+<tr>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">TTMMVReqM</td>
+<td>이동요청 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">3846</td>
+</tr>
+<tr>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">TTMPlaceDist</td>
+<td>지역별 거리등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">457</td>
+</tr>
+<tr>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">TTMTMItem</td>
+<td>대체 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">407</td>
+</tr>
+<tr>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">TTMTMM</td>
+<td>대체 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">343</td>
+</tr>
+<tr>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">TTMTransItem</td>
+<td>적송 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">181</td>
+</tr>
+<tr>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">TTMTransM</td>
+<td>적송 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">252</td>
+</tr>
+<tr>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">TTMTransReqItem</td>
+<td>적송요청 디테일</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">277</td>
+</tr>
+<tr>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">TTMTransReqM</td>
+<td>적송요청 마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">287</td>
+</tr>
+<tr>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">TTMTransSlip</td>
+<td>적송 전표</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">126</td>
+</tr>
+<tr>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">TTSCustStk</td>
+<td>거래처재고</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">32</td>
+</tr>
+<tr>
+<td style="text-align: center;">31</td>
+<td style="text-align: center;">TTSInOutID</td>
+<td>입출고ID</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">158</td>
+</tr>
+<tr>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">TTSInOutJGMng</td>
+<td>재고입출고</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">103</td>
+</tr>
+<tr>
+<td style="text-align: center;">33</td>
+<td style="text-align: center;">TTSInOutMng</td>
+<td>사업장재고-신규</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">473</td>
+</tr>
+<tr>
+<td style="text-align: center;">34</td>
+<td style="text-align: center;">TTSInOutMngDt201005</td>
+<td>일자재별재고</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">2063</td>
+</tr>
+<tr>
+<td style="text-align: center;">35</td>
+<td style="text-align: center;">TTSInOutMngUnit</td>
+<td>저장장소별재고-신규</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">480</td>
+</tr>
+<tr>
+<td style="text-align: center;">36</td>
+<td style="text-align: center;">TTSInOutNoMng</td>
+<td>입출고번호</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">2067</td>
+</tr>
+<tr>
+<td style="text-align: center;">37</td>
+<td style="text-align: center;">TTSLot</td>
+<td>Lot관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">474</td>
+</tr>
+<tr>
+<td style="text-align: center;">38</td>
+<td style="text-align: center;">TTSLotMng</td>
+<td>Lot 재고관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">426</td>
+</tr>
+<tr>
+<td style="text-align: center;">39</td>
+<td style="text-align: center;">TTSLotMngDt</td>
+<td>Lot 재고상세</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">3846</td>
+</tr>
+<tr>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">TTSLotMngUnit</td>
+<td>Lot 재고단위</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">457</td>
+</tr>
+<tr>
+<td style="text-align: center;">41</td>
+<td style="text-align: center;">TTSLotSerialSub</td>
+<td>Serial 상세정보</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">407</td>
+</tr>
+<tr>
+<td style="text-align: center;">42</td>
+<td style="text-align: center;">TTSLotStk</td>
+<td>Lot재고</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">343</td>
+</tr>
+<tr>
+<td style="text-align: center;">43</td>
+<td style="text-align: center;">TTSStdStkPrice</td>
+<td>표준재고단가</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">44</td>
+<td style="text-align: center;">TTSSTK</td>
+<td>사업장재고</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">32</td>
+</tr>
+<tr>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">TTSStkAnalD</td>
+<td>재고집계D</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">103</td>
+</tr>
+<tr>
+<td style="text-align: center;">46</td>
+<td style="text-align: center;">TTSStkAnalM</td>
+<td>재고집계M</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">407</td>
+</tr>
+<tr>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">TTSStkClosing</td>
+<td>수불마감및단가계산여부</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">343</td>
+</tr>
+<tr>
+<td style="text-align: center;">48</td>
+<td style="text-align: center;">TTSStkPrice</td>
+<td>재고단가</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">32</td>
+</tr>
+<tr>
+<td style="text-align: center;">49</td>
+<td style="text-align: center;">TTSWHSTK</td>
+<td>창고별재고</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">103</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Version 1.0 EISDMTD22</p>
+<p>※ 작성 방법 :</p>
+<p>테이블별로 관련 정보 사항을 기술함</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

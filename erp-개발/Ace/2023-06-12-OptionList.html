@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptionList</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>OptionList</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="optionlist">OptionList</h1>
+<p><img alt="" src="assets/OptionList/image123.png" /></p>
+<p>참고화면 : FrmWACAsstDepreList_mcnk</p>
+<p><img alt="" src="assets/OptionList/image124.png" /></p>
+<p>optUMGroupKindName        OptionList        계열사        DataBlock1        UMGroupKindName        UMGroupKind                QRY;EO_CHECK;</p>
+<p>--비즈니스 (-1 : max)</p>
+<p>00DataBlock1                        UMGroupKind                121001,-1,0        10</p>
+<p><img alt="" src="assets/OptionList/image125.png" /></p>
+<p>DECLARE @AccYM NCHAR(6), -- 회계년월</p>
+<p>@MR6Rev NCHAR(2), -- 차수</p>
+<p>@IsQryWon NCHAR(1), -- 원단위조회</p>
+<p>@QryType INT, -- 조회구분 1: MONTH, 2: QTD, 3: YTD</p>
+<p>@UMGroupKind NVARCHAR(MAX) -- 계열사</p>
+<p>SELECT @AccYM = ISNULL(A.AccYM , ''),</p>
+<p>@MR6Rev = ISNULL(A.MR6Rev , ''),</p>
+<p>@IsQryWon = ISNULL(A.IsQryWon , ''),</p>
+<p>@QryType = ISNULL(QryType , 0),</p>
+<p>@UMGroupKind = ISNULL(UMGroupKind, '')</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>SELECT @UMGroupKind = REPLACE(@UMGroupKind + '_/', '_/_/', '_/')</p>
+<p>SELECT Code AS UMGroupKind</p>
+<p>INTO #UMGroupKind</p>
+<p>FROM dbo._FCOMSplit(@UMGroupKind, '_/')</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.UMGroupKind IN (SELECT UMGroupKind FROM #UMGroupKind )</p>
+<p><img alt="" src="assets/OptionList/image126.png" /></p>
+  </article>
+</div>
+</body>
+</html>

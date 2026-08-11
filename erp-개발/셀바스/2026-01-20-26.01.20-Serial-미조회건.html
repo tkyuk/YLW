@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26.01.20 Serial 미조회건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>26.01.20 Serial 미조회건</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="260120-serial">26.01.20 Serial 미조회건</h1>
+<p>SELECT *</p>
+<p>FROM _TLGInOutSerialSub as a</p>
+<p>left outer join _TLGSerialMaster as b on b.serialno = a.serialno</p>
+<p>where b.companyseq is null</p>
+<p>order by 2,3,4,5,8</p>
+<p>SELECT LogType,LogDateTime,LogUserSeq,LogPgmSeq,Xmldata.value('(/A/@CompanySeq)[1]','INT')AS CompanySeq,Xmldata.value('(/A/@WorkReportSeq)[1]','INT')AS WorkReportSeq,Xmldata.value('(/A/@FactUnit)[1]','INT')AS FactUnit,Xmldata.value('(/A/@WorkDate)[1]','NCHAR(8)')AS WorkDate,Xmldata.value('(/A/@DeptSeq)[1]','INT')AS DeptSeq,Xmldata.value('(/A/@WorkOrderSeq)[1]','INT')AS WorkOrderSeq,Xmldata.value('(/A/@WorkOrderSerl)[1]','INT')AS WorkOrderSerl,Xmldata.value('(/A/@WorkCenterSeq)[1]','INT')AS WorkCenterSeq,Xmldata.value('(/A/@GoodItemSeq)[1]','INT')AS GoodItemSeq,Xmldata.value('(/A/@ProcRev)[1]','NCHAR(2)')AS ProcRev,Xmldata.value('(/A/@AssyItemSeq)[1]','INT')AS AssyItemSeq,Xmldata.value('(/A/@ProcSeq)[1]','INT')AS ProcSeq,Xmldata.value('(/A/@ProdUnitSeq)[1]','INT')AS ProdUnitSeq,Xmldata.value('(/A/@ProdQty)[1]','DECIMAL(19,5)')AS ProdQty,Xmldata.value('(/A/@OKQty)[1]','DECIMAL(19,5)')AS OKQty,Xmldata.value('(/A/@BadQty)[1]','DECIMAL(19,5)')AS BadQty,Xmldata.value('(/A/@StdUnitProdQty)[1]','DECIMAL(19,5)')AS StdUnitProdQty,Xmldata.value('(/A/@StdUnitOKQty)[1]','DECIMAL(19,5)')AS StdUnitOKQty,Xmldata.value('(/A/@StdUnitBadQty)[1]','DECIMAL(19,5)')AS StdUnitBadQty,Xmldata.value('(/A/@WorkStartTime)[1]','NCHAR(4)')AS WorkStartTime,Xmldata.value('(/A/@WorkEndTime)[1]','NCHAR(4)')AS WorkEndTime,Xmldata.value('(/A/@WorkHour)[1]','DECIMAL(19,5)')AS WorkHour,Xmldata.value('(/A/@ProcHour)[1]','DECIMAL(19,5)')AS ProcHour,Xmldata.value('(/A/@WorkerQty)[1]','DECIMAL(19,5)')AS WorkerQty,Xmldata.value('(/A/@WorkType)[1]','INT')AS WorkType,Xmldata.value('(/A/@ChainGoodsSeq)[1]','INT')AS ChainGoodsSeq,Xmldata.value('(/A/@RealLotNo)[1]','NVARCHAR(30)')AS RealLotNo,Xmldata.value('(/A/@SerialNoFrom)[1]','NVARCHAR(20)')AS SerialNoFrom,Xmldata.value('(/A/@CCtrSeq)[1]','INT')AS CCtrSeq,Xmldata.value('(/A/@EmpSeq)[1]','INT')AS EmpSeq,Xmldata.value('(/A/@WorkCondition1)[1]','NVARCHAR(500)')AS WorkCondition1,Xmldata.value('(/A/@WorkCondition2)[1]','NVARCHAR(500)')AS WorkCondition2,Xmldata.value('(/A/@WorkCondition3)[1]','NVARCHAR(500)')AS WorkCondition3,Xmldata.value('(/A/@WorkCondition4)[1]','DECIMAL(19,5)')AS WorkCondition4,Xmldata.value('(/A/@WorkCondition5)[1]','DECIMAL(19,5)')AS WorkCondition5,Xmldata.value('(/A/@WorkCondition6)[1]','DECIMAL(19,5)')AS WorkCondition6,Xmldata.value('(/A/@Remark)[1]','NVARCHAR(500)')AS Remark,Xmldata.value('(/A/@IsProcQC)[1]','NCHAR(1)')AS IsProcQC,Xmldata.value('(/A/@IsLastProc)[1]','NCHAR(1)')AS IsLastProc,Xmldata.value('(/A/@IsPjt)[1]','NCHAR(1)')AS IsPjt,Xmldata.value('(/A/@PJTSeq)[1]','INT')AS PJTSeq,Xmldata.value('(/A/@WBSSeq)[1]','INT')AS WBSSeq,Xmldata.value('(/A/@ItemBomRev)[1]','NCHAR(2)')AS ItemBomRev,Xmldata.value('(/A/@SubEtcInSeq)[1]','INT')AS SubEtcInSeq,Xmldata.value('(/A/@FieldWhSeq)[1]','INT')AS FieldWhSeq,Xmldata.value('(/A/@WorkTimeGroup)[1]','INT')AS WorkTimeGroup,Xmldata.value('(/A/@LastUserSeq)[1]','INT')AS LastUserSeq,Xmldata.value('(/A/@LastDateTime)[1]','DATETIME')AS LastDateTime,Xmldata.value('(/A/@SerialNoTo)[1]','NVARCHAR(30)')AS SerialNoTo,Xmldata.value('(/A/@CustSeq)[1]','INT')AS CustSeq,Xmldata.value('(/A/@ProgFromSeq)[1]','INT')AS ProgFromSeq,Xmldata.value('(/A/@ProgFromSerl)[1]','INT')AS ProgFromSerl,Xmldata.value('(/A/@ProgFromSubSerl)[1]','INT')AS ProgFromSubSerl,Xmldata.value('(/A/@ProgFromTableSeq)[1]','INT')AS ProgFromTableSeq,Xmldata.value('(/A/@IsLastQc)[1]','NCHAR(1)')AS IsLastQc,Xmldata.value('(/A/@ReOrderQty)[1]','DECIMAL(19,5)')AS ReOrderQty,Xmldata.value('(/A/@LossCostQty)[1]','DECIMAL(19,5)')AS LossCostQty,Xmldata.value('(/A/@DisuseQty)[1]','DECIMAL(19,5)')AS DisuseQty,Xmldata.value('(/A/@StdUnitReOrderQty)[1]','DECIMAL(19,5)')AS StdUnitReOrderQty,1 AS IsLog</p>
+<p>FROM _TCOMTableLog WITH(NOLOCK)</p>
+<p>WHERE TableName='_TPDSFCWorkReport'</p>
+<p>AND XmlData.value('(/A/@CompanySeq)[1]','INT')=1</p>
+<p>ORDER BY LogDateTime</p>
+<p>SELECT * FROM _TCAPGM WHERE PGMSEQ = 149710048</p>
+<p>SELECT * FROM _TCAPGM WHERE PGMSEQ = 149710020</p>
+<p>SELECT * FROM _TLGSerialMaster WHERE SerialNo = 'B240H-001979'</p>
+<p>SELECT * FROM _TLGSerialMaster WHERE SerialNo = 'B240H-001980'</p>
+<p>SELECT * FROM _TLGSerialMaster WHERE SerialNo = 'B240H-001981'</p>
+<p>SELECT * FROM _TLGSerialMaster WHERE SerialNo = 'B240H-001982'</p>
+<p>SELECT * FROM _TLGInOutSerialStock WHERE SerialNo = 'B240H-001979'</p>
+<p>SELECT * FROM _TLGInOutSerialStock WHERE SerialNo = 'B240H-001980'</p>
+<p>SELECT * FROM _TLGInOutSerialStock WHERE SerialNo = 'B240H-001981'</p>
+<p>SELECT * FROM _TLGInOutSerialStock WHERE SerialNo = 'B240H-001982'</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE SerialNo = 'B240H-001979'</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE SerialNo = 'B240H-001980'</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE SerialNo = 'B240H-001981'</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE SerialNo = 'B240H-001982'</p>
+<p>EXEC _SWCOMGetTableLog '_TPDSFCWorkReport', 1, 'ItemSeq', 6447</p>
+<p>EXEC _SWCOMGetTableLog '_TLGInOutSerialStock', 1, 'ItemSeq', 998</p>
+<p>-- _TLGInOutSerialStock</p>
+<p>SELECT LogType,LogDateTime,LogUserSeq,LogPgmSeq,Xmldata.value('(/A/@CompanySeq)[1]','INT')AS CompanySeq,Xmldata.value('(/A/@InOutType)[1]','INT')AS InOutType,Xmldata.value('(/A/@InOutSeq)[1]','INT')AS InOutSeq,Xmldata.value('(/A/@InOutSerl)[1]','INT')AS InOutSerl,Xmldata.value('(/A/@DataKind)[1]','INT')AS DataKind,Xmldata.value('(/A/@InOutDataSerl)[1]','INT')AS InOutDataSerl,Xmldata.value('(/A/@InOutSubSerl)[1]','INT')AS InOutSubSerl,Xmldata.value('(/A/@InOutSerialSerl)[1]','INT')AS InOutSerialSerl,Xmldata.value('(/A/@InOut)[1]','INT')AS InOut,Xmldata.value('(/A/@InOutDate)[1]','NCHAR(8)')AS InOutDate,Xmldata.value('(/A/@SerialNo)[1]','NVARCHAR(50)')AS SerialNo,Xmldata.value('(/A/@WHSeq)[1]','INT')AS WHSeq,Xmldata.value('(/A/@FunctionWHSeq)[1]','INT')AS FunctionWHSeq,Xmldata.value('(/A/@ItemSeq)[1]','INT')AS ItemSeq,Xmldata.value('(/A/@InOutKind)[1]','INT')AS InOutKind,Xmldata.value('(/A/@InOutDataKind)[1]','INT')AS InOutDataKind,Xmldata.value('(/A/@PgmSeq)[1]','INT')AS PgmSeq,Xmldata.value('(/A/@LastUserSeq)[1]','INT')AS LastUserSeq,Xmldata.value('(/A/@LastDateTime)[1]','DATETIME')AS LastDateTime,1 AS IsLog</p>
+<p>FROM _TCOMTableLog WITH(NOLOCK)</p>
+<p>WHERE TableName='_TLGInOutSerialStock'</p>
+<p>AND XmlData.value('(/A/@CompanySeq)[1]','INT')=1</p>
+<p>ORDER BY LogDateTime</p>
+<p>SELECT LogType,LogDateTime,LogUserSeq,LogPgmSeq,Xmldata.value('(/A/@CompanySeq)[1]','INT')AS CompanySeq,Xmldata.value('(/A/@InOutType)[1]','INT')AS InOutType,Xmldata.value('(/A/@InOutSeq)[1]','INT')AS InOutSeq,Xmldata.value('(/A/@InOutSerl)[1]','INT')AS InOutSerl,Xmldata.value('(/A/@DataKind)[1]','INT')AS DataKind,Xmldata.value('(/A/@InOutDataSerl)[1]','INT')AS InOutDataSerl,Xmldata.value('(/A/@InOutSerialSerl)[1]','INT')AS InOutSerialSerl,Xmldata.value('(/A/@SerialNo)[1]','NVARCHAR(50)')AS SerialNo,Xmldata.value('(/A/@ItemSeq)[1]','INT')AS ItemSeq,Xmldata.value('(/A/@IsSerialProc)[1]','NCHAR(1)')AS IsSerialProc,Xmldata.value('(/A/@ProcEmpSeq)[1]','INT')AS ProcEmpSeq,Xmldata.value('(/A/@ProcDateTime)[1]','DATETIME')AS ProcDateTime,Xmldata.value('(/A/@IsErr)[1]','NCHAR(1)')AS IsErr,Xmldata.value('(/A/@ErrNote)[1]','NVARCHAR(100)')AS ErrNote,Xmldata.value('(/A/@LastUserSeq)[1]','INT')AS LastUserSeq,Xmldata.value('(/A/@LastDateTime)[1]','DATETIME')AS LastDateTime,Xmldata.value('(/A/@IsDiv)[1]','NCHAR(1)')AS IsDiv,Xmldata.value('(/A/@PgmSeq)[1]','INT')AS PgmSeq,1 AS IsLog</p>
+<p>FROM _TCOMTableLog WITH(NOLOCK)</p>
+<p>WHERE TableName='_TLGInOutSerialSub'</p>
+<p>AND XmlData.value('(/A/@CompanySeq)[1]','INT')=1</p>
+<p>ORDER BY LogDateTime</p>
+<p>SELECT * FROM _TLGSerialMaster WHERE SerialNo IN('B240H-001979','B240H-001980','B240H-001981','B240H-001982')</p>
+<p>-- 81,82 삭제</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE SerialNo IN('B240H-001979','B240H-001980','B240H-001981','B240H-001982')</p>
+<p>SELECT * FROM _TPDSFCWorkReport WHERE WorkReportSeq = 229</p>
+<p>SELECT * FROM _TPDSFCWorkReport WHERE WorkReportSeq = 773</p>
+<p>SELECT * FROM _TPDSFCGoodIn WHERE GoodInSeq = 229</p>
+<p>SELECT * FROM _TPDSFCGoodIn WHERE GoodInSeq = 843</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE ItemSeq = 6447 AND InOutSeq = 115</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE ItemSeq = 6447 AND InOutSeq = 115</p>
+<p>SELECT LogType,LogDateTime,LogUserSeq,LogPgmSeq,Xmldata.value('(/A/@CompanySeq)[1]','INT')AS CompanySeq,Xmldata.value('(/A/@InOutType)[1]','INT')AS InOutType,Xmldata.value('(/A/@InOutSeq)[1]','INT')AS InOutSeq,Xmldata.value('(/A/@InOutSerl)[1]','INT')AS InOutSerl,Xmldata.value('(/A/@DataKind)[1]','INT')AS DataKind,Xmldata.value('(/A/@InOutDataSerl)[1]','INT')AS InOutDataSerl,Xmldata.value('(/A/@InOutSerialSerl)[1]','INT')AS InOutSerialSerl,Xmldata.value('(/A/@SerialNo)[1]','NVARCHAR(50)')AS SerialNo,Xmldata.value('(/A/@ItemSeq)[1]','INT')AS ItemSeq,Xmldata.value('(/A/@IsSerialProc)[1]','NCHAR(1)')AS IsSerialProc,Xmldata.value('(/A/@ProcEmpSeq)[1]','INT')AS ProcEmpSeq,Xmldata.value('(/A/@ProcDateTime)[1]','DATETIME')AS ProcDateTime,Xmldata.value('(/A/@IsErr)[1]','NCHAR(1)')AS IsErr,Xmldata.value('(/A/@ErrNote)[1]','NVARCHAR(100)')AS ErrNote,Xmldata.value('(/A/@LastUserSeq)[1]','INT')AS LastUserSeq,Xmldata.value('(/A/@LastDateTime)[1]','DATETIME')AS LastDateTime,Xmldata.value('(/A/@IsDiv)[1]','NCHAR(1)')AS IsDiv,Xmldata.value('(/A/@PgmSeq)[1]','INT')AS PgmSeq,1 AS IsLog</p>
+<p>FROM _TCOMTableLog WITH(NOLOCK)</p>
+<p>WHERE TableName='_TLGInOutSerialSub'</p>
+<p>AND XmlData.value('(/A/@CompanySeq)[1]','INT')=1</p>
+<p>AND XmlData.value('(/A/@InOutType)[1]','INT')=140</p>
+<p>AND LogType ='D'</p>
+<p>ORDER BY LogDateTime</p>
+<p>SELECT * FROM _TCAPGM WHERE PGMSEQ = 149710065</p>
+<p>SELECT * FROM _TCAPGM WHERE PGMSEQ = 149710046</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE ItemSeq = 6447 AND InOutSeq = 115</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE ItemSeq = 6447 AND InOutSeq = 115</p>
+<p>SELECT LogType,LogDateTime,LogUserSeq,LogPgmSeq,Xmldata.value('(/A/@CompanySeq)[1]','INT') AS CompanySeq</p>
+<p>,Xmldata.value('(/A/@SerialNo)[1]','NVARCHAR(50)') AS SerialNo</p>
+<p>,Xmldata.value('(/A/@BizUnit)[1]','INT')AS BizUnit</p>
+<p>,Xmldata.value('(/A/@ItemSeq)[1]','INT')AS ItemSeq</p>
+<p>,Xmldata.value('(/A/@CustSeq)[1]','INT')AS CustSeq</p>
+<p>,Xmldata.value('(/A/@CreateDate)[1]','NCHAR(8)')AS CreateDate</p>
+<p>,Xmldata.value('(/A/@ValiDate)[1]','NCHAR(8)')AS ValiDate</p>
+<p>,Xmldata.value('(/A/@RegDate)[1]','DATETIME')AS RegDate,Xmldata.value('(/A/@RegUserSeq)[1]','INT')AS RegUserSeq</p>
+<p>,Xmldata.value('(/A/@Remark)[1]','NVARCHAR(200)')AS Remark,Xmldata.value('(/A/@LastUserSeq)[1]','INT')AS LastUserSeq</p>
+<p>,Xmldata.value('(/A/@LastDateTime)[1]','DATETIME')AS LastDateTime,Xmldata.value('(/A/@IsExist)[1]','NCHAR(1)')AS IsExist</p>
+<p>,Xmldata.value('(/A/@WHSeq)[1]','INT')AS WHSeq,Xmldata.value('(/A/@PgmSeq)[1]','INT')AS PgmSeq,Xmldata.value('(/A/@IsInit)[1]','NCHAR(1)')AS IsInit,1 AS IsLog</p>
+<p>FROM _TCOMTableLog WITH(NOLOCK)</p>
+<p>WHERE TableName='_TLGSerialMaster'</p>
+<p>AND XmlData.value('(/A/@CompanySeq)[1]','INT')=1</p>
+<p>AND Xmldata.value('(/A/@SerialNo)[1]','NVARCHAR(50)') in(</p>
+<p>'B240H-001979'</p>
+<p>,'B240H-001980'</p>
+<p>,'B240H-001981'</p>
+<p>,'B240H-001982'</p>
+<p>)</p>
+<p>ORDER BY LogDateTime DESC</p>
+  </article>
+</div>
+</body>
+</html>

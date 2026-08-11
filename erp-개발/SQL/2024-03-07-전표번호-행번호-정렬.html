@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전표번호 행번호 정렬</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>전표번호 행번호 정렬</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">전표번호 행번호 정렬</h1>
+<p>select a.SlipMstID,count(b.SlipMstSeq)</p>
+<p>from _TACSlip as a</p>
+<p>join _TACSlipRow as b on b.SlipMstSeq = a.SlipMstSeq</p>
+<p>where b.AccDate between '20240201' and '20240301'</p>
+<p>group by b.SlipMstSeq,a.SlipMstID</p>
+<p>order by 2 desc</p>
+  </article>
+</div>
+</body>
+</html>

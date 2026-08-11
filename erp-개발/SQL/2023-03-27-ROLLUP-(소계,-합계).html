@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROLLUP (소계, 합계)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>ROLLUP (소계, 합계)</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="rollup">ROLLUP (소계, 합계)</h1>
+<p>DROP TABLE IF EXISTS #TMP</p>
+<p>DROP TABLE IF EXISTS #Result</p>
+<p>CREATE TABLE #TMP</p>
+<p>(</p>
+<p>LoanBankName NVARCHAR(100),</p>
+<p>BankSeq INT,</p>
+<p>LoanName NVARCHAR(100),</p>
+<p>Amt DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #TMP</p>
+<p>VALUES</p>
+<p>('기업오류동' ,1,'11111' ,276376700)</p>
+<p>,('기업은행-TEST' ,2,'차입테스트1' ,10000 )</p>
+<p>,('기업은행-TEST' ,2,'차입TEST' ,1 )</p>
+<p>,('기업은행-TEST' ,2,'차입TEST' ,1 )</p>
+<p>,('기업은행-TEST' ,2,'테스트대출' , 5000000 )</p>
+<p>,('산업은행(외화)',3,'외화차입테스트1',100000000)</p>
+<p>SELECT LoanBankName, BankSeq, LoanName, SUM(Amt)</p>
+<p>FROM #TMP</p>
+<p>GROUP BY ROLLUP (BankSeq, LoanBankName, LoanName)</p>
+<p>SELECT CASE WHEN LoanBankName IS NULL</p>
+<p>THEN '합계' ELSE CASE WHEN LoanName IS NULL</p>
+<p>THEN '소계' ELSE LoanBankName END END AS LoanBankName,</p>
+<p>CASE WHEN BankSeq IS NULL THEN '9999' ELSE CAST(BankSeq AS NVARCHAR(10)) END AS BankSeq,</p>
+<p>CASE WHEN LoanName IS NULL THEN '소계' ELSE LoanName END AS LoanName,</p>
+<p>SUM(Amt) AS Amt</p>
+<p>FROM #TMP</p>
+<p>GROUP BY ROLLUP (BankSeq, LoanBankName, LoanName)</p>
+<p>ORDER BY BankSeq, CASE WHEN LoanName IS NULL THEN 1 ELSE 0 END, LoanName</p>
+<p>컬럼에 NULL 값이 포함될 경우 GROUPING 사용</p>
+<p>컬럼에 NULL 값이 포함 안될 경우 그냥 ISNULL(컬럼,'합계') 로 하면 좋다</p>
+<p>SELECT CASE WHEN GROUPING(job) = 1 AND GROUPING(deptno) = 1 THEN '합계'</p>
+<p>ELSE job END,</p>
+<p>CASE WHEN GROUPING(job) = 0 AND GROUPING(deptno) = 1 THEN '소계'</p>
+<p>ELSE ISNULL(CONVERT(NVARCHAR(10),deptno),'') END,</p>
+<p>SUM(total_sal),</p>
+<p>GROUPING(job),</p>
+<p>GROUPING(deptno)</p>
+<p>FROM #EMP</p>
+<p>GROUP BY job, deptno</p>
+<p>WITH ROLLUP</p>
+<p>DROP TABLE #TMP</p>
+<p>CREATE TABLE #TMP</p>
+<p>(</p>
+<p>COL1 NCHAR(2),</p>
+<p>COL2 INT,</p>
+<p>COL3 DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #TMP VALUES</p>
+<p>('A',1,500),</p>
+<p>('A',2,600),</p>
+<p>('B',1,300),</p>
+<p>('B',2,200)</p>
+<p>SELECT COL1, COL2, SUM(COL3)</p>
+<p>FROM #TMP</p>
+<p>GROUP BY COL1, COL2</p>
+<p>ORDER BY 1,2</p>
+<p>SELECT CASE WHEN COL1 IS NULL THEN '합계' ELSE</p>
+<p>CASE WHEN ISNULL(COL2,9999) = 9999 THEN '소계' ELSE ISNULL(COL1,'합계') END END,</p>
+<p>ISNULL(COL2,9999),</p>
+<p>SUM(COL3)</p>
+<p>FROM #TMP</p>
+<p>GROUP BY ROLLUP(COL1, COL2)</p>
+<p>SELECT COL1, COL2, SUM(COL3), GROUPING_ID(COL1,COL2)</p>
+<p>FROM #TMP</p>
+<p>GROUP BY ROLLUP(COL1, COL2)</p>
+  </article>
+</div>
+</body>
+</html>

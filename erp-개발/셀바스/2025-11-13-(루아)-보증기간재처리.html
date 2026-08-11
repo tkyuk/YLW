@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(루아) 보증기간재처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(루아) 보증기간재처리</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">(루아) 보증기간재처리</h1>
+<p>-- 보증만료일 = 보증개시일 + 보증기간(개월)</p>
+<p>local WarrantySD, WarrantyPeriod, WarrantyED</p>
+<p>-- 보증개시일</p>
+<p>WarrantySD = CellText(SS3, SS3.ActiveRow, 'WarrantySD')</p>
+<p>-- 보증기간</p>
+<p>WarrantyPeriod = tonumber(CellText(SS3, SS3.ActiveRow, 'WarrantyPeriod'))</p>
+<p>if WarrantyPeriod == nil or WarrantyPeriod == 0 then</p>
+<p>WarrantyPeriod = 0</p>
+<p>end</p>
+<p>if WarrantySD == '' or WarrantySD == nil then</p>
+<blockquote>
+<p>WarrantyED = ''</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>WarrantyED = DateAdd('Month', WarrantyPeriod, WarrantySD)</p>
+</blockquote>
+<p>end</p>
+<p>-- 계산된 보증 만료일을 'WarrantyED' 컬럼에 설정합니다.</p>
+<p>SetText(SS3, SS3.ActiveRow, 'WarrantyED', WarrantyED)</p>
+  </article>
+</div>
+</body>
+</html>

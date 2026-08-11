@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\(G\) 구매발주 -\> 납품 (입고 자동생성)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\(G\) 구매발주 -\> 납품 (입고 자동생성)</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="g-">(G) 구매발주 -&gt; 납품 (입고 자동생성)</h1>
+<p>cymc_IF_MES_SPJTPUDelvInSave</p>
+<p>DROP PROC cymc_IF_MES_SPJTPUDelvInSave</p>
+<p>GO</p>
+<p>CREATE PROC cymc_IF_MES_SPJTPUDelvInSave</p>
+<p>@MESKey NVARCHAR(100),</p>
+<p>@Status INT OUTPUT,</p>
+<p>@Results NVARCHAR(250) OUTPUT</p>
+<p>AS</p>
+<p>SET NOCOUNT ON</p>
+<p>DECLARE @CompanySeq INT = 1,</p>
+<p>@DelvInSeq INT,</p>
+<p>@DelvInNo NVARCHAR(12),</p>
+<p>@UserSeq INT = 1,</p>
+<p>@PgmSeq INT,</p>
+<p>@DelvInDate NCHAR(8),</p>
+<p>@CurrSeq INT,</p>
+<p>@BizUnit INT</p>
+<p>,@VatRate DECIMAL(19,5)</p>
+<p>,@DelvDate NCHAR(8)</p>
+<p>SELECT @CompanySeq = 1,</p>
+<p>@BizUnit = 1</p>
+<p>-- 자국통화</p>
+<p>SELECT @CurrSeq = CONVERT(INT, EnvValue)</p>
+<p>FROM _TCOMEnv WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EnvSeq = 13</p>
+<p>SELECT @PgmSeq = 13120023 -- 프로젝트구매납품입력_cymc</p>
+<p>SELECT @VatRate = (A.VatRate / 100)</p>
+<p>FROM _TDAVatRate AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (CONVERT(NCHAR(8), GETDATE(), 112) BETWEEN A.SDate AND A.EDate)</p>
+<p>AND A.SMVatType = 8028001</p>
+<p>-- Key값 채번을 위한 임시 테이블</p>
+<p>CREATE TABLE #Temp_DelvInM</p>
+<p>(</p>
+<p>CompanySeq INT ,</p>
+<p>DelvSeq INT ,</p>
+<p>SMQcType INT ,</p>
+<p>DelvInDate NVARCHAR(8),</p>
+<p>Seq INT</p>
+<p>)</p>
+<p>CREATE TABLE #DelvInM</p>
+<p>(</p>
+<p>IDX INT IDENTITY(1,1),</p>
+<p>CompanySeq INT ,</p>
+<p>DelvSeq INT ,</p>
+<p>SMQcType INT ,</p>
+<p>DelvInDate NVARCHAR(8),</p>
+<p>Seq INT</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_QcM</p>
+<p>(</p>
+<p>IDX INT IDENTITY(1, 1),</p>
+<p>CompanySeq INT ,</p>
+<p>DelvSeq INT ,</p>
+<p>DelvSerl INT ,</p>
+<p>Seq INT ,</p>
+<p>DelvInDate NVARCHAR(8)</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_BuyingAcc</p>
+<p>(</p>
+<p>IDX INT IDENTITY(1, 1),</p>
+<p>CompanySeq INT ,</p>
+<p>DelvInSeq INT ,</p>
+<p>DelvInSerl INT ,</p>
+<p>Seq INT</p>
+<p>)</p>
+<p>-- 원천 추척용 테이블</p>
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 원천 추척용 데이터 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>STDQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 진행 Data생성용 임시 테이블</p>
+<p>--CREATE TABLE #SCOMSourceDailyBatch</p>
+<p>--(</p>
+<p>-- ToTableName NVARCHAR(100),</p>
+<p>-- ToSeq INT ,</p>
+<p>-- ToSerl INT ,</p>
+<p>-- ToSubSerl INT ,</p>
+<p>-- FromTableName NVARCHAR(100),</p>
+<p>-- FromSeq INT ,</p>
+<p>-- FromSerl INT ,</p>
+<p>-- FromSubSerl INT ,</p>
+<p>-- ToQty DECIMAL(19,5),</p>
+<p>-- ToStdQty DECIMAL(19,5),</p>
+<p>-- ToAmt DECIMAL(19,5),</p>
+<p>-- ToVAT DECIMAL(19,5),</p>
+<p>-- FromQty DECIMAL(19,5),</p>
+<p>-- FromSTDQty DECIMAL(19,5),</p>
+<p>-- FromAmt DECIMAL(19,5),</p>
+<p>-- FromVAT DECIMAL(19,5)</p>
+<p>--)</p>
+<p>---- 재고 반영용 임시 테이블</p>
+<p>--CREATE TABLE #TLGInOutMinusCheck</p>
+<p>--(</p>
+<p>-- WHSeq INT,</p>
+<p>-- FunctionWHSeq INT,</p>
+<p>-- ItemSeq INT</p>
+<p>--)</p>
+<p>--CREATE TABLE #TLGInOutDailyBatch</p>
+<p>--(</p>
+<p>-- InOutType INT ,</p>
+<p>-- InOutSeq INT ,</p>
+<p>-- Result NVARCHAR(250),</p>
+<p>-- MessageType INT ,</p>
+<p>-- Status INT</p>
+<p>--)</p>
+<p>--CREATE TABLE #TLGInOutMonth</p>
+<p>--(</p>
+<p>-- InOut INT ,</p>
+<p>-- InOutYM NCHAR(6) ,</p>
+<p>-- WHSeq INT ,</p>
+<p>-- FunctionWHSeq INT ,</p>
+<p>-- ItemSeq INT ,</p>
+<p>-- UnitSeq INT ,</p>
+<p>-- Qty DECIMAL(19,5),</p>
+<p>-- StdQty DECIMAL(19,5),</p>
+<p>-- ADD_DEL INT</p>
+<p>--)</p>
+<p>--CREATE TABLE #TLGInOutMonthLot</p>
+<p>--(</p>
+<p>-- InOut INT ,</p>
+<p>-- InOutYM NCHAR(6) ,</p>
+<p>-- WHSeq INT ,</p>
+<p>-- FunctionWHSeq INT ,</p>
+<p>-- LotNo NVARCHAR(30) ,</p>
+<p>-- ItemSeq INT ,</p>
+<p>-- UnitSeq INT ,</p>
+<p>-- Qty DECIMAL(19,5),</p>
+<p>-- StdQty DECIMAL(19,5),</p>
+<p>-- ADD_DEL INT</p>
+<p>--)</p>
+<p>CREATE TABLE #MESDelvIn(</p>
+<p>IDX_NO INT IDENTITY ,</p>
+<p>WorkingTag NCHAR(1) , -- 처리구분 신규A 수정 U 삭제 D</p>
+<p>CompanySeq INT , -- 법인내부코드 디폴트1</p>
+<p>MESPOKey NVARCHAR(100) , -- MES구매발주내부코드 필수</p>
+<p>MESPOSerl NVARCHAR(100) , -- MES구매발주내부순번 필수</p>
+<p>MESKey NVARCHAR(100) , -- MES입고내부코드 필수</p>
+<p>MESKeySerl NVARCHAR(100) , -- MES입고내부순번 필수</p>
+<p>BizUnit INT , -- 사업부문 디폴트 1</p>
+<p>SMImpType INT , -- 내외자구분 8008001 내수 8008004 수입</p>
+<p>DelvInDate NCHAR(8) , -- 입고일 필수 YYYYMMDD</p>
+<p>DelvDate NCHAR(8) , -- 입고일 필수 YYYYMMDD</p>
+<p>DeptSeq INT , -- 입고확인부서 필수</p>
+<p>EmpSeq INT , -- 입고확인담당자 필수</p>
+<p>CustSeq INT , -- 구매거래처 필수</p>
+<p>Remark NVARCHAR(1000), -- 비고</p>
+<p>IsReturn NCHAR(1) , -- 반품여부 반품 값 1</p>
+<p>CurrSeq INT , -- 통화 디폴트 1</p>
+<p>ExRate DECIMAL , -- 환율 디폴트 1</p>
+<p>LastUserSeq INT , -- 작업자</p>
+<p>LastDateTime DATETIME , -- 작업일자 필수 GETDATE()</p>
+<p>ItemSeq INT , -- 품목내부코드 필수</p>
+<p>UnitSeq INT , -- 단위내부코드 품목VIEW 단위 코드</p>
+<p>Qty DECIMAL(19,5) , -- 수량</p>
+<p>StdUnitSeq INT , -- 재고단위코드 UnitSeq랑 같은값으로 보내주세요 품목view</p>
+<p>StdUnitQty DECIMAL(19,5) , -- 재고단위수량 qty랑 같은값으로 보내주세요</p>
+<p>WHSeq INT , -- 입고장소코드 필수</p>
+<p>LOTNo NVARCHAR(60) , -- LOTNo</p>
+<p>PJTSeq INT , -- 프로젝트내부코드</p>
+<p>--ReqQty DECIMAL(19,5) , -- 검사의뢰수량</p>
+<p>--TestStartDate NCHAR(8) , -- 검사개시일 YYYY-MM-DD</p>
+<p>--TestEndDate NCHAR(8) , -- 검사종료일 YYYY-MM-DD</p>
+<p>--SMTestResult INT , -- 검사결과</p>
+<p>--PassedQty DECIMAL(19,5) , -- 합격수량</p>
+<p>--RejectQty DECIMAL(19,5) , -- 불합격수량</p>
+<p>--DisuseQty DECIMAL(19,5) , -- 검사소요폐기수량</p>
+<p>--ReqInQty DECIMAL(19,5) , -- 입고의뢰수량</p>
+<p>--QCEmpSeq INT , -- 검사자</p>
+<p>--QCDeptSeq INT , -- 검사부서</p>
+<p>ERPProcYn INT , -- ERP처리여부 0으로 전송</p>
+<p>ERPProcDateTime DATETIME , -- ERP처리일시 null로 전송</p>
+<p>Status INT , -- ERP처리상태 0으로 전송</p>
+<p>Result NVARCHAR(250) , -- ERP처리결과 null로 전송</p>
+<p>DelvInSeq INT , -- 구매입고내부코드 0으로 전송</p>
+<p>DelvInSerl INT , -- 구매입고내부순번 0으로 전송</p>
+<p>DelvInNo NVARCHAR(100) , -- 구매입고번호</p>
+<p>DelvNo NVARCHAR(100) , -- 구매입고번호</p>
+<p>QCSeq INT -- QC내부코드 0으로 전송</p>
+<p>,AccSeq INT</p>
+<p>,SMQcType INT</p>
+<p>,DelvSeq INT</p>
+<p>,DelvSerl INT</p>
+<p>,POSeq INT</p>
+<p>,POSerl INT</p>
+<p>,BuyingAccSeq INT</p>
+<p>,Price DECIMAL(19,5)</p>
+<p>,DomPrice DECIMAL(19,5)</p>
+<p>,CurAmt DECIMAL(19,5)</p>
+<p>,CurVAT DECIMAL(19,5)</p>
+<p>,DomAmt DECIMAL(19,5)</p>
+<p>,DomVAT DECIMAL(19,5)</p>
+<p>,IsVAT NVARCHAR(1)</p>
+<p>)</p>
+<p>-- WorkingTag 는 A, D 만 존재 U(수정 없음)</p>
+<p>INSERT INTO #MESDelvIn(</p>
+<p>WorkingTag ,CompanySeq ,MESPOKey ,MESPOSerl ,MESKey ,MESKeySerl ,BizUnit ,SMImpType ,</p>
+<p>DelvInDate ,DelvDate ,DeptSeq ,EmpSeq ,CustSeq ,Remark ,IsReturn ,CurrSeq ,ExRate ,</p>
+<p>LastUserSeq ,LastDateTime ,ItemSeq ,UnitSeq ,Qty ,StdUnitSeq ,StdUnitQty ,WHSeq ,LOTNo ,PJTSeq ,</p>
+<p>--ReqQty ,TestStartDate ,TestEndDate ,SMTestResult ,PassedQty ,RejectQty ,DisuseQty ,ReqInQty ,QCEmpSeq ,QCDeptSeq ,</p>
+<p>ERPProcYn ,ERPProcDateTime,Status ,Result</p>
+<p>,DelvInSeq</p>
+<p>,DelvInSerl</p>
+<p>,POSeq</p>
+<p>,POSerl</p>
+<p>,QCSeq</p>
+<p>,AccSeq</p>
+<p>,SMQcType</p>
+<p>,DelvSeq</p>
+<p>,DelvSerl</p>
+<p>,BuyingAccSeq</p>
+<p>,Price</p>
+<p>,DomPrice</p>
+<p>,CurAmt</p>
+<p>,CurVAT</p>
+<p>,DomAmt</p>
+<p>,DomVAT</p>
+<p>,IsVAT</p>
+<p>)</p>
+<p>SELECT A.WorkingTag ,@CompanySeq ,A.MESPOKey ,MESPOSerl ,MESKey ,MESKeySerl ,@BizUnit ,A.SMImpType ,</p>
+<p>A.DelvInDate ,A.DelvInDate ,A.DeptSeq ,A.EmpSeq ,A.CustSeq ,ISNULL(A.Remark,''),A.IsReturn ,@CurrSeq ,1 AS ExRate ,</p>
+<p>A.LastUserSeq ,GETDATE() ,A.ItemSeq ,A.UnitSeq ,A.Qty ,A.UnitSeq ,A.Qty ,A.WHSeq ,A.LOTNo ,A.PJTSeq ,</p>
+<p>--ReqQty ,TestStartDate ,TestEndDate ,SMTestResult ,PassedQty ,RejectQty ,DisuseQty ,ReqInQty ,QCEmpSeq ,QCDeptSeq ,</p>
+<p>0 ,'' ,0 ,'' ,</p>
+<p>CASE WHEN A.WorkingTag = 'D' THEN B.DelvInSeq ELSE 0 END,</p>
+<p>CASE WHEN A.WorkingTag = 'D' THEN B.DelvInSerl ELSE 0 END</p>
+<p>,D.POSeq AS POSeq</p>
+<p>,D.POSerl AS POSerl</p>
+<p>,0 AS QCSeq</p>
+<p>,ISNULL(J.AccSeq, 0) AS AccSeq</p>
+<p>,CASE WHEN ISNULL(G.IsInQc, '0') = '0' THEN 6035001 ELSE 6035002 END AS SMQcType</p>
+<p>,CASE WHEN A.WorkingTag = 'D' THEN B.ProgFromSeq ELSE 0 END AS DelvSeq --@@@@</p>
+<p>,CASE WHEN A.WorkingTag = 'D' THEN B.ProgFromSerl ELSE 0 END AS DelvSerl --@@@@</p>
+<p>,0 AS BuyingAccSeq</p>
+<p>,D.Price AS Price</p>
+<p>,D.DomPrice AS DomPrice,</p>
+<p>CASE WHEN A.Qty = D.Qty</p>
+<p>THEN D.CurAmt</p>
+<p>ELSE CASE WHEN ISNULL(D.IsVAT, '') = '1'</p>
+<p>THEN (ISNULL(A.Qty, 0) * ISNULL(D.Price, 0)) * 100 / (100 + 10)</p>
+<p>ELSE ISNULL(A.Qty, 0) * ISNULL(D.Price, 0)</p>
+<p>END</p>
+<p>END AS CurAmt ,</p>
+<p>CASE WHEN A.Qty = D.Qty</p>
+<p>THEN D.CurVAT</p>
+<p>ELSE CASE WHEN A.SMImpType = 8008001</p>
+<p>THEN CASE WHEN ISNULL(D.IsVAT, '') = '1'</p>
+<p>THEN (ISNULL(A.Qty, 0) * ISNULL(D.Price, 0)) - (ISNULL(A.Qty, 0) * ISNULL(D.Price, 0)) * 100 / (100 + 10)</p>
+<p>ELSE ISNULL(A.Qty, 0) * ISNULL(D.Price, 0) * 0.1</p>
+<p>END</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>END AS CurVAT ,</p>
+<p>CASE WHEN A.Qty = D.Qty</p>
+<p>THEN D.CurAmt</p>
+<p>ELSE CASE WHEN ISNULL(D.IsVAT, '') = '1'</p>
+<p>THEN (ISNULL(A.Qty, 0) * ISNULL(D.DomPrice, 0)) * 100 / (100 + 10)</p>
+<p>ELSE ISNULL(A.Qty, 0) * ISNULL(D.DomPrice, 0)</p>
+<p>END</p>
+<p>END AS DomAmt ,</p>
+<p>CASE WHEN A.Qty = D.Qty</p>
+<p>THEN D.CurVAT</p>
+<p>ELSE CASE WHEN A.SMImpType = 8008001</p>
+<p>THEN CASE WHEN ISNULL(D.IsVAT, '') = '1'</p>
+<p>THEN (ISNULL(A.Qty, 0) * ISNULL(D.DomPrice, 0)) - (ISNULL(A.Qty, 0) * ISNULL(D.DomPrice, 0)) * 100 / (100 + 10)</p>
+<p>ELSE ISNULL(A.Qty, 0) * ISNULL(D.DomPrice, 0) * 0.1</p>
+<p>END</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>END AS DomVAT</p>
+<p>,D.IsVAT AS IsVAT</p>
+<p>FROM IF_TPUDelvIn_CYMC AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TPUDelvInItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvInSeq = B.DelvInSeq</p>
+<p>AND A.DelvInSerl = B.DelvInSerl</p>
+<p>LEFT OUTER JOIN _TDAItem AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq</p>
+<p>AND G.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN IF_TPUORDPO_CYMC AS H WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.MESPOKey = H.CD_PO</p>
+<p>AND A.MESPOSerl = H.CD_PODTL</p>
+<p>LEFT OUTER JOIN _TPUORDPOItem AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.POSeq = H.POSeq</p>
+<p>AND D.POSerl = H.POSerl</p>
+<p>--LEFT OUTER JOIN _TPUORDPOItem AS D WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.MESPOKey = D.Memo1</p>
+<p>-- AND A.MESPOSerl = D.Memo2</p>
+<p>LEFT OUTER JOIN _TPUORDPO AS C WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.POSeq = C.POSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAssetAcc AS I WITH(NOLOCK) ON F.CompanySeq = I.CompanySeq</p>
+<p>AND F.AssetSeq = I.AssetSeq</p>
+<p>AND I.AssetAccKindSeq = 1</p>
+<p>LEFT OUTER JOIN _TDAAccount AS J WITH(NOLOCK) ON I.CompanySeq = J.CompanySeq</p>
+<p>AND I.AccSeq = J.AccSeq</p>
+<p>WHERE A.MESKey = @MESKey</p>
+<p>AND ISNULL(A.ERPProcYn,0) = 0 -- 처리 안된 건 기준</p>
+<p>ORDER BY A.WorkingTag, A.MESKeySerl</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999,</p>
+<p>@Results = '대상건 이 존재하지 않습니다.'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 받은 파라미터 중 수량이 0개 인 것이 있으면 삭제</p>
+<p>DELETE FROM #MESDelvIn</p>
+<p>WHERE ISNULL(Qty, 0) = 0</p>
+<p>AND WorkingTag \&lt;&gt; 'D'</p>
+<p>IF NOT EXISTS (SELECT 1 FROM #MESDelvIn )</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 99999,</p>
+<p>@Results = '진행할 수량이 없습니다.'</p>
+<p>--GOTO ERR_PROC</p>
+<p>END</p>
+<p>--select * from #MESDelvIn</p>
+<p>-- 품목코드 확인!</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '품목이 없습니다.'</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>LEFT OUTER JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.CompanySeq IS NULL</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>-- 품목코드 확인!</p>
+<p>-- 프로젝트코드 확인!</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '프로젝트가 없습니다.'</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>LEFT OUTER JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE B.CompanySeq IS NULL</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '중단된 프로젝트 입니다.'</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE ISNULL(B.IsStop,'') = '1'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '완료된 프로젝트 입니다.'</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE ISNULL(B.IsComplete,'') = '1'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>-- 프로젝트코드 확인!</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '내외자구분이 없습니다.'</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.SMImpType = B.MinorSeq</p>
+<p>AND B.MajorSeq = 8008</p>
+<p>WHERE B.CompanySeq IS NULL</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '일치하는 사원 코드가 없습니다.'</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>LEFT OUTER JOIN _TDAEmp AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.EmpSeq = B.EmpSeq</p>
+<p>WHERE B.CompanySeq IS NULL</p>
+<p>AND ISNULL(A.EmpSeq,0)\&lt;&gt;0</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>-- 다른 거래처 입력시 오류</p>
+<p>IF EXISTS(SELECT 1</p>
+<p>FROM #MESDelvIn WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>HAVING COUNT(DISTINCT CustSeq) &gt;1 )</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '동일한 입고번호(MESKey)에 다른 거래처가 입력 되었습니다. '</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>END</p>
+<p>-- 다른 입고일자 입력시 오류</p>
+<p>IF EXISTS(SELECT 1</p>
+<p>FROM #MESDelvIn WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>HAVING COUNT(DISTINCT DelvInDate) &gt;1)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '동일한 입고번호(MESKey)에 다른 입고일자가 입력 되었습니다. '</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>END</p>
+<p>-- 다른 내외자구분 입력시 오류</p>
+<p>IF EXISTS(SELECT 1</p>
+<p>FROM #MESDelvIn WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>HAVING COUNT(DISTINCT SMImpType) &gt;1)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '동일한 입고번호(MESKey)에 다른 내외자구분이 입력 되었습니다. '</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>END</p>
+<p>-- 다른 담당자 입력시 오류</p>
+<p>IF EXISTS(SELECT 1</p>
+<p>FROM #MESDelvIn WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>HAVING COUNT(DISTINCT EmpSeq) &gt;1)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '동일한 입고번호(MESKey)에 다른 입고담당자가 입력 되었습니다. '</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>END</p>
+<p>-- 에러가 발생하면 전부다 에러</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #MESDelvIn WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET ERPProcYn = 1,</p>
+<p>ERPProcDateTime = GETDATE(),</p>
+<p>Status = B.Status,</p>
+<p>Result = B.Result</p>
+<p>FROM IF_TPUDelvIn_CYMC AS A JOIN #MESDelvIn AS B ON A.MESKey = B.MESKey</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>SELECT @Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #MESDelvIn</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>SELECT @Status, @Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 에러가 발생하면 전부다 에러</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>-- 마감 체크</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>CREATE TABLE #Tmp_TCOMCloseItemCheck (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp '\&lt;ROOT&gt;\&lt;/ROOT&gt;', 2, @CompanySeq, 2639, 'DataBlock2', '#Tmp_TCOMCloseItemCheck'</p>
+<p>INSERT INTO #Tmp_TCOMCloseItemCheck</p>
+<p>(</p>
+<p>WorkingTag, IDX_NO, DataSeq, MessageType, Status, Result,</p>
+<p>ServiceSeq, MethodSeq, ItemSeq,</p>
+<p>BizUnit, Date, DeptSeq,</p>
+<p>BizUnitOld, DateOld, DeptSeqOld</p>
+<p>)</p>
+<p>SELECT A.WorkingTag, A.IDX_NO, A.IDX_NO DataSeq, 0 MessageType, A.Status, A.Result,</p>
+<p>2669 ServiceSeq, 0 MethodSeq,</p>
+<p>ISNULL(E.ItemSeq, ISNULL(B.ItemSeq, 0)),</p>
+<p>ISNULL(G.BizUnit, ISNULL(D.BizUnit, 0)) BizUnit, ISNULL(A.DelvDate, '') Date, ISNULL(F.DeptSeq, ISNULL(C.DeptSeq, 0)) DeptSeq,</p>
+<p>ISNULL(G.BizUnit, ISNULL(D.BizUnit, 0)) BizUnitOld, ISNULL(A.DelvDate, '') DateOld, ISNULL(F.DeptSeq, ISNULL(C.DeptSeq, 0)) DeptSeqOld</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>LEFT OUTER JOIN _TPUORDPOItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>AND A.POSerl = B.POSerl</p>
+<p>LEFT OUTER JOIN _TPUORDPO AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.POSeq = C.POSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS D ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.DeptSeq = D.DeptSeq</p>
+<p>LEFT OUTER JOIN _TPUDelvItem AS E ON E.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvSeq = E.DelvSeq</p>
+<p>LEFT OUTER JOIN _TPUDelv AS F ON E.CompanySeq = F.CompanySeq</p>
+<p>AND E.DelvSeq = F.DelvSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS G ON F.CompanySeq = G.CompanySeq</p>
+<p>AND F.DeptSeq = G.DeptSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>DECLARE @XmlData NVARCHAR(MAX)</p>
+<p>SELECT @XmlData = CONVERT(NVARCHAR(MAX),(</p>
+<p>SELECT *</p>
+<p>FROM #Tmp_TCOMCloseItemCheck</p>
+<p>FOR XML RAW ('DataBlock2'), ROOT('ROOT'), ELEMENTS</p>
+<p>))</p>
+<p>TRUNCATE TABLE #Tmp_TCOMCloseItemCheck</p>
+<p>INSERT INTO #Tmp_TCOMCloseItemCheck</p>
+<p>EXEC _SCOMCloseItemCheck</p>
+<p>@xmlDocument = @XmlData,</p>
+<p>@xmlFlags = 2,</p>
+<p>@ServiceSeq = 2639,</p>
+<p>@WorkingTag = N'',</p>
+<p>@CompanySeq = @CompanySeq,</p>
+<p>@LanguageSeq = 1,</p>
+<p>@UserSeq = 1,</p>
+<p>@PgmSeq = @PgmSeq</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #Tmp_TCOMCloseItemCheck WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT (SELECT TOP 1 Status FROM #Tmp_TCOMCloseItemCheck WHERE Status \&lt;&gt; 0) AS Status, (SELECT TOP 1 Result FROM #Tmp_TCOMCloseItemCheck WHERE Status \&lt;&gt; 0) AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DROP TABLE #Tmp_TCOMCloseItemCheck -- 임시테이블 삭제</p>
+<p>--/***************************************************************************************************************************************/</p>
+<p>---- 마감 체크</p>
+<p>--/***************************************************************************************************************************************/</p>
+<p>CREATE TABLE #TPUORDPOItem(IDX_NO INT IDENTITY(1,1), POSeq INT, POSerl INT)</p>
+<p>CREATE TABLE #TPUODelv(IDX_NO INT IDENTITY(1,1), DelvSeq INT)</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE(IDOrder INT, TABLENAME NVARCHAR(100))</p>
+<p>CREATE TABLE #TCOMProgressTracking(IDX_NO INT, IDOrder INT, Seq INT,Serl INT, SubSerl INT,Qty DECIMAL(19, 5), StdQty DECIMAL(19,5) , Amt DECIMAL(19, 5),VAT DECIMAL(19,5))</p>
+<p>BEGIN TRAN</p>
+<p>-- 진행 체크</p>
+<p>-- 무검사품을 제외한 품목은 검사진행 여부 체크</p>
+<p>IF EXISTS(SELECT TOP 1 1</p>
+<p>FROM (SELECT DISTINCT DelvSeq FROM #MESDelvIn) AS A</p>
+<p>JOIN _TPUDelvItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvSeq = B.DelvSeq</p>
+<p>JOIN _TPDQCTestReport AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>AND C.SourceType = '1'</p>
+<p>AND B.DelvSeq = C.SourceSeq</p>
+<p>AND B.DelvSerl = C.SourceSerl</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS F ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.ItemSeq = F.ItemSeq</p>
+<p>WHERE ISNULL(F.IsInQC, '0') \&lt;&gt; '0'</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '검사처리된 품목이 있습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>TRUNCATE TABLE #TPUORDPOItem</p>
+<p>TRUNCATE TABLE #TPUODelv</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT INTO #TPUODelv(DelvSeq)</p>
+<p>SELECT DISTINCT A.DelvSeq FROM #MESDelvIn AS A</p>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 1, '_TPUDelvInItem'--구매입고</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUDelvItem', '#TPUODelv', 'DelvSeq', '', ''</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TPUODelv AS A JOIN #TCOMProgressTracking AS B ON A.IDX_NO = B.IDX_NO)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '입고처리된 납품이 있습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 진행 체크</p>
+<p>DELETE B</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPDQCTestReport AS B ON B.CompanySeq = @CompanySeq AND B.SourceType = '1' AND A.DelvSeq = B.SourceSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '삭제 도중 오류가 발생하였습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 납품데이터 무조건 삭제</p>
+<p>DELETE B</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPUDelv AS B ON B.CompanySeq = @CompanySeq AND A.DelvSeq = B.DelvSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '삭제 도중 오류가 발생하였습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE B</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPUDelvItem AS B ON B.CompanySeq = @CompanySeq AND A.DelvSeq = B.DelvSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '삭제 도중 오류가 발생하였습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE A</p>
+<p>FROM _TCOMSourceDaily AS A</p>
+<p>JOIN #MESDelvIn AS B ON A.ToSeq = B.DelvSeq</p>
+<p>WHERE A.FromTableSeq = 13 AND A.ToTableSeq = 10</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '삭제 도중 오류가 발생하였습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #MESDelvIn WHERE WorkingTag = 'A')</p>
+<p>BEGIN</p>
+<p>-- 발주여부체크.. @@@@</p>
+<p>--IF EXISTS(SELECT TOP 1 1</p>
+<p>-- FROM #MESDelvIn AS A</p>
+<p>-- LEFT OUTER JOIN _TPUORDPOItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.POSeq = B.POSeq</p>
+<p>-- AND A.POSerl = B.POSerl</p>
+<p>-- LEFT OUTER JOIN _TPUORDPO AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>-- AND B.POSeq = C.POSeq</p>
+<p>-- WHERE C.CompanySeq IS NULL</p>
+<p>-- )</p>
+<p>--BEGIN</p>
+<p>-- ROLLBACK TRAN</p>
+<p>-- SELECT 'Err' AS Status, '발주등록이 안된 납품건이 있습니다.' AS Results</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<p>-- 거래처체크</p>
+<p>DECLARE @CustDiff INT</p>
+<p>SELECT TOP 1</p>
+<p>@CustDiff = A.CustSeq</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPUORDPO AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #MESDelvIn AS A JOIN _TPUORDPO AS B ON B.CompanySeq = @CompanySeq AND A.POSeq = B.POSeq WHERE B.CustSeq \&lt;&gt; @CustDiff)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '서로 다른 거래처의 발주건이 선택되었습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--IF @CustSeq = 0</p>
+<p>-- SELECT @CustSeq = @CustDiff</p>
+<p>-- 필수 체크(납품일)</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #MESDelvIn WHERE DelvDate = '')</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '납품일자가 입력되지 않았습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 납품일자가 발주일자 이전에 등록불가</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #MESDelvIn AS A JOIN _TPUORDPO AS B ON B.CompanySeq = @CompanySeq AND A.POSeq = B.POSeq WHERE A.DelvDate \&lt; B.PODate)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '납품일는 발주일보다 커야 합니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 필수 체크(수량)</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #MESDelvIn WHERE Qty = 0)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '수량이 입력되지 않았습니다.' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 삭제 후 진행한 수량을 가지고 판단!</p>
+<p>TRUNCATE TABLE #TPUORDPOItem</p>
+<p>TRUNCATE TABLE #TPUODelv</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT INTO #TPUORDPOItem(POSeq, POSerl)</p>
+<p>SELECT DISTINCT A.POSeq, A.POSerl FROM #MESDelvIn AS A</p>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 1, '_TPUDelvItem'--구매납품</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUORDPOItem', '#TPUORDPOItem', 'POSeq', 'POSerl', ''</p>
+<p>SELECT A.POSeq, A.POSerl, SUM(ISNULL(B.Qty, 0)) AS Qty</p>
+<p>INTO #TPUORDPODelvPre</p>
+<p>FROM #TPUORDPOItem AS A</p>
+<p>LEFT OUTER JOIN #TCOMProgressTracking AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>GROUP BY A.POSeq, A.POSerl</p>
+<p>SELECT A.POSeq, A.POSerl, SUM(ISNULL(A.Qty, 0)) AS Qty</p>
+<p>INTO #TPUORDPODelvNew</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>GROUP BY A.POSeq, A.POSerl</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TPUORDPODelvNew AS A</p>
+<p>JOIN _TPUORDPOItem AS D ON D.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = D.POSeq</p>
+<p>AND A.POSerl = D.POSerl</p>
+<p>LEFT OUTER JOIN #TPUORDPODelvPre AS B ON A.POSeq = B.POSeq</p>
+<p>AND A.POSerl = B.POSerl</p>
+<p>WHERE (D.Qty - (A.Qty + ISNULL(B.Qty, 0))) \&lt; 0</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT 'Err' AS Status, '납품수량이 발주수량을 초과 하였습니다..' AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 키값 생성</p>
+<p>DECLARE @DelvSeq INT,</p>
+<p>@DelvNo NVARCHAR(20)</p>
+<p>SELECT TOP 1</p>
+<p>@DelvSeq = 0,</p>
+<p>@DelvNo = '',</p>
+<p>@DelvDate = A.DelvDate</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>WHERE Status = 0</p>
+<p>AND WorkingTag = 'A'</p>
+<p>ORDER BY A.DelvSeq DESC</p>
+<p>EXEC @DelvSeq = _SCOMCreateSeq @CompanySeq, '_TPUDelv', 'DelvSeq', 1</p>
+<p>EXEC _SCOMCreateNo 'PU', '_TPUDelv', @CompanySeq, 0, @DelvDate, @DelvNo OUTPUT</p>
+<p>SELECT @DelvSeq = @DelvSeq + 1</p>
+<p>UPDATE #MESDelvIn</p>
+<p>SET DelvNo = @DelvNo,</p>
+<p>DelvSeq = @DelvSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>-- 순번 생성(순번은 새로 채번을 함)</p>
+<p>UPDATE A</p>
+<p>SET DelvSerl = B.DelvSerl</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN (SELECT A.IDX_NO,</p>
+<p>ROW_NUMBER() OVER(PARTITION BY DelvSeq ORDER BY DelvSeq) AS DelvSerl</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>) AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>-- 구매납품 마스터 입력</p>
+<p>INSERT INTO _TPUDelv</p>
+<p>(</p>
+<p>CompanySeq, DelvSeq, BizUnit, DelvNo, SMImpType, DelvDate, DeptSeq, EmpSeq, CustSeq, CurrSeq, ExRate,</p>
+<p>SMDelvType, Remark, IsPJT, SMStkType, IsReturn, LastUserSeq, LastDateTime, DelvMngNo, PgmSeq</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>@CompanySeq, @DelvSeq, A.BizUnit, A.DelvNo, A.SMImpType, A.DelvDate, A.DeptSeq, A.EmpSeq, A.CustSeq, A.CurrSeq, A.ExRate,</p>
+<p>6034001 SMDelvType, A.Remark, '1' IsPJT, 6033001 SMStkType, NULL IsReturn, A.LastUserSeq, GETDATE() LastDateTime, '' DelvMngNo, @PgmSeq</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #MESDelvIn</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 구매납품 아이템 입력</p>
+<p>INSERT INTO _TPUDelvItem</p>
+<p>(</p>
+<p>CompanySeq , DelvSeq , DelvSerl , ItemSeq , UnitSeq ,</p>
+<p>Qty , Price , CurAmt , CurVAT , DomPrice ,</p>
+<p>DomAmt , DomVAT , IsVAT , StdUnitSeq , StdUnitQty ,</p>
+<p>SMQcType , QcEmpSeq , QcDate , QcQty , QcCurAmt ,</p>
+<p>WHSeq , LOTNo , FromSerial , ToSerial , SalesCustSeq ,</p>
+<p>DelvCustSeq , PJTSeq , WBSSeq , UMDelayType , Remark ,</p>
+<p>IsReturn , LastUserSeq, LastDateTime, MakerSeq , SourceSeq ,</p>
+<p>SourceSerl , BadQty , ProgFromSeq , ProgFromSerl, ProgFromSubSerl,</p>
+<p>ProgFromTableSeq, SourceType , IsFiction , FicRateNum , FicRateDen ,</p>
+<p>EvidSeq , OriCurAmt , OriCurVAT , OriDomAmt , OriDomVAT ,</p>
+<p>SupplyAmt , SupplyVAT , Memo1 , Memo2 , Memo3 ,</p>
+<p>Memo4 , Memo5 , Memo6 , Memo7 , Memo8 ,</p>
+<p>SMPriceType , PgmSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq , @DelvSeq , A.DelvSerl , B.ItemSeq , B.UnitSeq ,</p>
+<p>A.Qty , B.Price , A.Qty * B.Price, A.Qty * B.Price * @VatRate, B.Price * A.ExRate DomPrice,</p>
+<p>A.Qty * B.Price * A.ExRate , A.Qty * B.Price * @VatRate * A.ExRate, B.IsVAT , B.UnitSeq , A.Qty ,</p>
+<p>CASE WHEN ISNULL(F.IsInQC, '0') = '0' THEN 6035001 ELSE 6035002 END SMQcType , NULL , '' , 0 , 0 ,</p>
+<p>CASE WHEN ISNULL(B.WHSeq, 0) \&lt;&gt; 0 THEN ISNULL(B.WHSeq, 0) ELSE ISNULL(A.WHSeq, 0) END WHSeq, A.LotNo , '' , '' , 0 ,</p>
+<p>0 , B.PJTSeq , B.WBSSeq , NULL , Remark1 ,</p>
+<p>NULL , A.LastUserSeq , GETDATE() , B.MakerSeq , NULL ,</p>
+<p>NULL , NULL , A.POSeq , A.POSerl , 0 ,</p>
+<p>13 , B.SourceType , '0' , 0 , 0 ,</p>
+<p>0 , NULL , NULL , NULL , NULL ,</p>
+<p>A.Qty * B.Price * @VatRate * A.ExRate , 0 , B.Memo1 , B.Memo2 , B.Memo3 ,</p>
+<p>B.Memo4 , B.Memo5 , B.Memo6 , B.Memo7 , B.Memo8 ,</p>
+<p>B.SMPriceType , @PgmSeq</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPUORDPOItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>AND A.POSerl = B.POSerl</p>
+<p>JOIN _TPUORDPO AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.POSeq = C.POSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS F ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.ItemSeq = F.ItemSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #MESDelvIn</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--SELECT TOP 1 * fROM _TPUDelv ORDER BY LastDateTime DESC</p>
+<p>--SELECT TOP 5 * fROM _TPUDelvItem ORDER BY LastDateTime DESC</p>
+<p>--SELECT @Status,@Results, Status, Result,DelvSeq,DelvSerl,DelvNo,* FROM #MESDelvIn RETURN</p>
+<p>/***********************************************************************************/</p>
+<p>-- 진행 반영</p>
+<p>/***********************************************************************************/</p>
+<p>CREATE TABLE #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName NVARCHAR(100),</p>
+<p>ToSeq INT,</p>
+<p>ToSerl INT,</p>
+<p>ToSubSerl INT,</p>
+<p>FromTableName NVARCHAR(100),</p>
+<p>FromSeq INT,</p>
+<p>FromSerl INT,</p>
+<p>FromSubSerl INT,</p>
+<p>ToQty DECIMAL(19,5),</p>
+<p>ToStdQty DECIMAL(19,5),</p>
+<p>ToAmt DECIMAL(19,5),</p>
+<p>ToVAT DECIMAL(19,5),</p>
+<p>FromQty DECIMAL(19,5),</p>
+<p>FromSTDQty DECIMAL(19,5),</p>
+<p>FromAmt DECIMAL(19,5),</p>
+<p>FromVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>-- 진행연결(구매발주 =&gt; 구매납품)</p>
+<p>INSERT INTO #SComSourceDailyBatch</p>
+<p>SELECT '_TPUDelvItem' AS ToTableName, B1.DelvSeq AS ToSeq, B1.DelvSerl AS ToSerl, 0,</p>
+<p>'_TPUORDPOItem' AS FromTableName, B2.POSeq AS FromSeq, B2.POSerl AS FromSerl, 0,</p>
+<p>B1.Qty, B1.Qty, B1.CurAmt, B1.CurVAT,</p>
+<p>B2.Qty, B2.StdUnitQty, B2.CurAmt, B2.CurVAT</p>
+<p>FROM #MESDelvIn AS A</p>
+<p>JOIN _TPUDelvItem AS B1 ON B1.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvSeq = B1.DelvSeq</p>
+<p>AND A.DelvSerl = B1.DelvSerl</p>
+<p>JOIN _TPUORDPOItem AS B2 ON B2.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = B2.POSeq</p>
+<p>AND A.POSerl = B2.POSerl</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #MESDelvIn</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 진행연결</p>
+<p>EXEC _SComSourceDailyBatch 'A', @CompanySeq, @UserSeq</p>
+<p>SELECT TOP 2 * FROM _TCOMSourceDaily ORDER BY LASTDATETIME DESC RETURN</p>
+<p>/***********************************************************************************/</p>
+<p>-- 진행 반영</p>
+<p>/***********************************************************************************/</p>
+<p>END</p>
+<p>/***********************************************************************************/</p>
+<p>-- 물류 반영</p>
+<p>/***********************************************************************************/</p>
+<p>-- 재고반영</p>
+<p>Create Table #TLGInOutMinusCheck</p>
+<p>(</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>-- 재고반영</p>
+<p>CREATE TABLE #TLGInOutMonth</p>
+<p>(</p>
+<p>InOut INT,</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>StdQty DECIMAL(19,5),</p>
+<p>ADD_DEL INT</p>
+<p>)</p>
+<p>--Lot재고반영</p>
+<p>Create Table #TLGInOutMonthLot</p>
+<p>(</p>
+<p>InOut INT,</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>StdQty DECIMAL(19, 5),</p>
+<p>ADD_DEL INT</p>
+<p>)</p>
+<p>-- 재고반영</p>
+<p>CREATE TABLE #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>InOutType INT,</p>
+<p>InOutSeq INT,</p>
+<p>MessageType INT,</p>
+<p>Result NVARCHAR(250),</p>
+<p>Status INT</p>
+<p>)</p>
+<p>-- 재고 삭제</p>
+<p>TRUNCATE TABLE #TLGInOutMinusCheck</p>
+<p>TRUNCATE TABLE #TLGInOutMonth</p>
+<p>TRUNCATE TABLE #TLGInOutMonthLot</p>
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<p>INSERT INTO #TLGInOutDailyBatch</p>
+<p>SELECT DISTINCT 160, A.DelvSeq, 0, '', 0</p>
+<p>FROM #MESDelvIn A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC _SLGInOutDailyDELETE @CompanySeq</p>
+<p>EXEC _SLGWHStockUPDATE @CompanySeq</p>
+<p>EXEC _SLGLOTStockUPDATE @CompanySeq</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT (SELECT TOP 1 Status FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0) AS Status, (SELECT TOP 1 Result FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0) AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>/*********************************************************************************************************************************************/</p>
+<p>-- 재고 생성</p>
+<p>TRUNCATE TABLE #TLGInOutMinusCheck</p>
+<p>TRUNCATE TABLE #TLGInOutMonth</p>
+<p>TRUNCATE TABLE #TLGInOutMonthLot</p>
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<p>INSERT INTO #TLGInOutDailyBatch</p>
+<p>SELECT DISTINCT 160, A.DelvSeq, 0, '', 0</p>
+<p>FROM #MESDelvIn A</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>EXEC _SLGInOutDailyINSERT @CompanySeq, @PgmSeq</p>
+<p>EXEC _SLGWHStockUPDATE @CompanySeq</p>
+<p>EXEC _SLGLOTStockUPDATE @CompanySeq</p>
+<p>EXEC _SLGInOutMinusCheck @CompanySeq, '#TLGInOutDailyBatch'</p>
+<p>EXEC _SLGInOutLotMinusCheck @CompanySeq, '#TLGInOutDailyBatch'</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT (SELECT TOP 1 Status FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0) AS Status, (SELECT TOP 1 Result FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0) AS Results</p>
+<p>RETURN</p>
+<p>END</p>
+<p>/***********************************************************************************/</p>
+<p>-- 물류 반영</p>
+<p>/***********************************************************************************/</p>
+<p>/*------------------------------------------------------------------------------------------------------------------------------</p>
+<p>자동입고 데이터 생성</p>
+<p>------------------------------------------------------------------------------------------------------------------------------*/</p>
+<p>DECLARE @EnvValue6500 NVARCHAR(100)</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,6500,1,@@PROCID,@EnvValue6500 OUTPUT</p>
+<p>IF @EnvValue6500 = '1'</p>
+<p>BEGIN</p>
+<p>SELECT A.WorkingTag AS WorkingTag,</p>
+<p>A.IDX_NO AS IDX_NO,</p>
+<p>A.DataSeq AS DataSeq,</p>
+<p>0 AS Status,</p>
+<p>0 AS Selected,</p>
+<p>'DataBlock1' AS TABLE_NAME,</p>
+<p>A.DelvSeq AS DelvSeq,</p>
+<p>A.DelvSerl AS DelvSerl,</p>
+<p>A.Qty AS Qty,</p>
+<p>A.Qty AS STDQty</p>
+<p>-- '1' AS SourceType, -- '구매검사일괄처리' 에서 자동입고 되는것처럼 납품건별로 자동입고 될수있도록 처리</p>
+<p>-- A.DelvDate AS DelvInDate</p>
+<p>INTO #TMP_DelvInAutoSave</p>
+<p>FROM #MESDelvIn AS A</p>
+<hr />
+<p>-- Temp테이블 데이터 XMl로 생성</p>
+<hr />
+<p>SELECT @XmlData = ''</p>
+<p>SELECT @XmlData = CONVERT(NVARCHAR(MAX),(</p>
+<p>SELECT * FROM #TMP_DelvInAutoSave</p>
+<p>FOR XML RAW ('DataBlock1'), ROOT('ROOT'), ELEMENTS</p>
+<p>))</p>
+<p>CREATE TABLE #Tmp_TPUDelvIn (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC _SCAOpenXmlToTemp '\&lt;ROOT&gt;\&lt;/ROOT&gt;', 2, @CompanySeq, 5545, 'DataBlock1', '#Tmp_TPUDelvIn'</p>
+<p>DROP TABLE #TCOMProgressTracking</p>
+<p>DROP TABLE #SCOMSourceDailyBatch</p>
+<p>DROP TABLE #TMP_PROGRESSTABLE</p>
+<p>INSERT INTO #Tmp_TPUDelvIn</p>
+<p>EXEC _SPUDelvInAutoSave</p>
+<p>@xmlDocument = @XmlData,</p>
+<p>@xmlFlags = 2,</p>
+<p>@ServiceSeq = 5545,</p>
+<p>@WorkingTag = 'A',</p>
+<p>@CompanySeq = @CompanySeq,</p>
+<p>@LanguageSeq = 1,</p>
+<p>@UserSeq = @UserSeq,</p>
+<p>@PgmSeq = 1134</p>
+<p>IF EXISTS (SELECT 1 FROM #Tmp_TPUDelvIn WHERE Status \&lt;&gt; 0 )</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #MESDelvIn</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>--SELECT TOP 10 LastDateTime, * FROM _TPUDelv ORDER BY 1 DESC</p>
+<p>--SELECT TOP 10 LastDateTime, * FROM _TPUDelvItem ORDER BY 1 DESC</p>
+<p>--SELECT TOP 10 LastDateTime, * FROM _TPUDelvIn ORDER BY 1 DESC</p>
+<p>--SELECT TOP 10 LastDateTime, * FROM _TPUDelvInItem ORDER BY 1 DESC</p>
+<p>COMMIT TRAN</p>
+<p>UPDATE A</p>
+<p>SET ERPProcYn = 1,</p>
+<p>ERPProcDateTime = GETDATE(),</p>
+<p>Status = 0,</p>
+<p>Result = '정상 처리 되었습니다.',</p>
+<p>DelvInSeq = B.DelvInSeq,</p>
+<p>DelvInSerl = B.DelvInSerl</p>
+<p>FROM IF_TPUDelvIn_CYMC AS A JOIN #MESDelvIn AS B ON A.MESKey = B.MESKey</p>
+<p>WHERE B.Status = 0</p>
+<p>SELECT @Status = 0, @Results = '정상 처리 되었습니다.'</p>
+<p>SELECT @Status, @Results</p>
+<p>RETURN</p>
+<p>/*******************************************************************************************/</p>
+<p>ERR_PROC:</p>
+<p>ROLLBACK TRAN</p>
+<p>UPDATE A</p>
+<p>SET ERPProcYn = 1,</p>
+<p>ERPProcDateTime = GETDATE(),</p>
+<p>Status = B.Status,</p>
+<p>Result = B.Result</p>
+<p>FROM IF_TPUDelvIn_CYMC AS A JOIN #MESDelvIn AS B ON A.MESKey = B.MESKey</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>SELECT @Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #MESDelvIn</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>SELECT @Status, @Results</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>BEGIN TRAN</p>
+<p>EXEC cymc_IF_MES_SPJTPUDelvInSave 'CIN231013-000003', 0, ''</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

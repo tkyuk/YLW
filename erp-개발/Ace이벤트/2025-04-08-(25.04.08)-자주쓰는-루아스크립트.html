@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(25.04.08) 자주쓰는 루아스크립트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(25.04.08) 자주쓰는 루아스크립트</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250408">(25.04.08) 자주쓰는 루아스크립트</h1>
+<p>/**************************************************************</p>
+<p>해당 내용은 개인적으로 자주 쓰는 것을 모아둔 것입니다.</p>
+<p>마음대로 사용하셔도 되지만 사용에 대한 책임은 지지 않습니다 -_-..</p>
+<p>*************************************************************/</p>
+<p>--==============================================================</p>
+<p>-- 화면에서 사용된 루아 스크립트 찾기</p>
+<p>--==============================================================</p>
+<p>SELECT TOP 500 A.PgmSeq, (SELECT caption FROM _TCAPgm where PgmSeq = A.PgmSeq), A.PgmMethodScript, '============ [ROWCOUNT = '</p>
+<p>+ CAST(ROW_NUMBER() OVER (ORDER BY A.PgmMethodSeq, A.ExecuteSeq) AS NVARCHAR) + + '] [PgmMethodName = '</p>
+<p>+ B.PgmMethodName</p>
+<p>+ '] [ExecuteSeq = '</p>
+<p>+ CAST(A.ExecuteSeq AS NVARCHAR)</p>
+<p>+ '] ===================================================================== ' + CHAR(13) +</p>
+<p>A.PgmMethodScript</p>
+<p>FROM sysdevwkCommon.._TCAPgmMethodItem AS A JOIN sysdevwkCommon.._TCAPgmMethod AS B</p>
+<p>ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.PgmSeq = B.PgmSeq</p>
+<p>AND A.PgmMethodSeq = B.PgmMethodSeq</p>
+<p>LEFT OUTER JOIN sysdevwkCommon.._TCAPgm AS C WITH(NOLOCK) ON A.PgmSeq = C.PgmSeq</p>
+<p>WHERE A.PgmMethodScript LIKE '%env%' -- 이 곳에 찾고 싶은 내용을 넣고 실행한다.</p>
+<p>--AND A.PgmMethodScript LIKE '%token%oz%' -- Lua 사용 화면 및 내용 찾기</p>
+<p>ORDER BY A.PgmMethodSeq, A.ExecuteSeq</p>
+<p>-- Lua 사용 화면 및 내용 찾기</p>
+<p>-- 제뉴인</p>
+<p>SELECT top 500 '============ [ROWCOUNT = '</p>
+<p>+ CAST(ROW_NUMBER() OVER (ORDER BY A.PgmMethodSeq, A.ExecuteSeq) AS NVARCHAR) + + '] [PgmMethodName = '</p>
+<p>+ B.PgmMethodName</p>
+<p>+ '] [ExecuteSeq = '</p>
+<p>+ CAST(A.ExecuteSeq AS NVARCHAR)</p>
+<p>+ '] ===================================================================== ' + CHAR(13) +</p>
+<p>A.PgmMethodScript</p>
+<p>, C.Caption</p>
+<p>ㄱ</p>
+<p>FROM sysdevCommon.._TCAPgmMethodItem AS A JOIN sysdevCommon.._TCAPgmMethod AS B</p>
+<p>ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.PgmSeq = B.PgmSeq</p>
+<p>AND A.PgmMethodSeq = B.PgmMethodSeq</p>
+<p>LEFT OUTER JOIN sysdevCommon.._TCAPgm AS C WITH(NOLOCK) ON A.PgmSeq = C.PgmSeq</p>
+<p>WHERE A.PgmMethodScript LIKE '%ChkAll%' -- 이 곳에 찾고 싶은 내용을 넣고 실행한다.</p>
+<p>ORDER BY A.PgmMethodSeq, A.ExecuteSeq</p>
+<p>-- SP 변경시간 확인</p>
+<p>SELECT [name], create_date, modify_date</p>
+<p>FROM sys.procedures</p>
+<p>WHERE name = 'mcnk_SWEBDelvReqItemBarCodeSave'</p>
+<p>ORDER BY 3 DESC</p>
+<p>--==============================================================</p>
+<p>-- 1.특정 문자열 포함한 sp 찾기 (VARCHAR(4000) 이상의 크기를 가진 프로시저는 찾아내지 못한다.)</p>
+<p>--==============================================================</p>
+<p>SELECT ROUTINE_NAME</p>
+<p>FROM INFORMATION_SCHEMA.ROUTINES</p>
+<p>WHERE ROUTINE_TYPE = 'PROCEDURE' AND ROUTINE_DEFINITION LIKE '%문자열%'</p>
+<p>ORDER BY ROUTINE_NAME</p>
+<p>-- 2.특정 문자열 포함한 sp 찾기 (결과가 중복되서 나옴)</p>
+<p>SELECT DISTINCT A.NAME</p>
+<p>FROM dbo.SYSOBJECTS AS A</p>
+<p>INNER JOIN dbo.SYSCOMMENTS AS B ON A.ID = B.ID</p>
+<p>WHERE A.TYPE = 'P' AND B.TEXT LIKE '%OthMthSeq%'</p>
+<p>ORDER BY A.NAME</p>
+<p>--==============================================================</p>
+<p>-- 특정 테이블 이름 찾기</p>
+<p>--==============================================================</p>
+<p>SELECT table_name</p>
+<p>FROM INFORMATION_SCHEMA.TABLES</p>
+<p>WHERE TABLE_TYPE = 'base table'</p>
+<p>AND TABLE_NAME LIKE '%테이블명%'</p>
+<p>order by TABLE_NAME</p>
+<p>--==============================================================</p>
+<p>-- 프로시저 목록 조회</p>
+<p>--==============================================================</p>
+<p>SELECT * FROM INFORMATION_SCHEMA.ROUTINES</p>
+<p>WHERE ROUTINE_TYPE = 'PROCEDURE'</p>
+<p>AND SPECIFIC_NAME LIKE '%프로시저명%'</p>
+<p>ORDER BY ROUTINE_NAME</p>
+<p>--==============================================================</p>
+<p>-- 특정 컬럼 쓰는 테이블 찾기</p>
+<p>--==============================================================</p>
+<p>SELECT T.name AS table_name, C.name AS column_name</p>
+<p>FROM sys.tables AS T</p>
+<p>INNER JOIN sys.columns AS C ON T.object_id = C.object_id</p>
+<p>WHERE C.name = 'FILESEQ'</p>
+<p>ORDER BY table_name</p>
+<p>--==============================================================</p>
+<p>-- 뷰테이블 목록 조회</p>
+<p>--==============================================================</p>
+<p>SELECT * FROM INFORMATION_SCHEMA.VIEWS</p>
+<p>WHERE TABLE_NAME LIKE '%뷰테이블명%'</p>
+<p>ORDER BY TABLE_NAME DESC</p>
+<p>--==============================================================</p>
+<p>-- 특정 테이블 쓰는 sp 찾기</p>
+<p>--==============================================================</p>
+<p>SELECT</p>
+<p>DISTINCT O.NAME</p>
+<p>FROM</p>
+<p>SYSDEPENDS AS D</p>
+<p>INNER JOIN</p>
+<p>SYSOBJECTS AS O</p>
+<p>ON</p>
+<p>D.ID = O.ID</p>
+<p>WHERE</p>
+<p>O.XTYPE = 'P'</p>
+<p>AND D.DEPID =</p>
+<p>(</p>
+<p>SELECT</p>
+<p>ID</p>
+<p>FROM</p>
+<p>SYSOBJECTS</p>
+<p>WHERE</p>
+<p>NAME = '테이블명'</p>
+<p>)</p>
+<p>--==============================================================</p>
+<p>-- 특정 컬럼 사용하는 화면 조회</p>
+<p>--==============================================================</p>
+<p>-- 1. 제뉴인</p>
+<p>SELECT A.Caption</p>
+<p>,B.Title</p>
+<p>,B.DataFieldName</p>
+<p>,B.DataFieldCd</p>
+<p>,A.*</p>
+<p>FROM sysdevCommon.._TCAPgm AS A WITH(NOLOCK)</p>
+<p>JOIN sysdevCommon.._TCAPgmSheets AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PgmSeq = A.PgmSeq</p>
+<p>WHERE Title LIKE '%매출여부%'</p>
+<p>ORDER BY 1</p>
+<p>SELECT A.Caption</p>
+<p>,B.ControlCaption</p>
+<p>,B.DataFieldName</p>
+<p>,B.DataFieldCd</p>
+<p>,A.*</p>
+<p>FROM sysdevCommon.._TCAPgm AS A WITH(NOLOCK)</p>
+<p>JOIN sysdevCommon.._TCAPgmControls AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PgmSeq = A.PgmSeq</p>
+<p>WHERE ControlCaption LIKE '%%'</p>
+<p>AND A.Caption LIKE '%프로젝트%'</p>
+<p>ORDER BY 1</p>
+<p>-- 2. ACE</p>
+<p>SELECT A.Caption</p>
+<p>,B.ControlName</p>
+<p>,B.ControlCaption</p>
+<p>,B.DataFieldName</p>
+<p>,B.DataFieldCd</p>
+<p>,A.*</p>
+<p>FROM sysdevwkCommon.._TCAPgm AS A WITH(NOLOCK)</p>
+<p>JOIN sysdevwkCommon.._TCAPgmcontrols AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PgmSeq = A.PgmSeq</p>
+<p>WHERE ControlCaption LIKE '%잔여%'</p>
+<p>ORDER BY 1</p>
+<p>--SELECT * FROM sysdevwkCommon.._TCAPgm WHERE PGMSEQ = 76320077</p>
+<p>--SELECT * FROM sysdevwkCommon.._TCAPgmcontrols WHERE CONTROLTYPE = 32 and CODEHELPPARAMS NOT LIKE '%1016%' ORDER BY CODEHELPPARAMS</p>
+<p>SELECT A.Caption</p>
+<p>,B.Title</p>
+<p>,B.DataFieldName</p>
+<p>,B.DataFieldCd</p>
+<p>,A.*</p>
+<p>FROM sysdevwkCommon.._TCAPgm AS A WITH(NOLOCK)</p>
+<p>JOIN sysdevwkCommon.._TCAPgmSheets AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PgmSeq = A.PgmSeq</p>
+<p>WHERE b.Title LIKE '%잔여%'</p>
+<p>AND B.DataFieldName LIKE '%%'</p>
+<p>AND B.DataFieldCd LIKE '%%'</p>
+<p>ORDER BY 1</p>
+<p>--==============================================================</p>
+<p>-- 환경설정 조회</p>
+<p>--==============================================================</p>
+<p>SELECT Z.ConfigName,B.*</p>
+<p>FROM _TCOMEnvConfig AS Z</p>
+<p>JOIN _TCOMEnvConfigItem AS A WITH(NOLOCK) ON A.ConfigSeq = Z.ConfigSeq</p>
+<p>JOIN _TCOMEnv AS B WITH(NOLOCK) ON A.EnvSeq = B.EnvSeq</p>
+<p>WHERE B.EnvSeq LIKE '%8876%'</p>
+<p>AND B.EnvName LIKE '%%'</p>
+<p>--==============================================================</p>
+<p>-- 테이블 컬럼명 조회</p>
+<p>--==============================================================</p>
+<p>SELECT A.TableName, A.Remark, B.ColumnName, B.Remark</p>
+<p>FROM sysdevwkCommon.._TCATables AS A WITH(NOLOCK)</p>
+<p>JOIN sysdevwkCommon.._TCAColumns AS B WITH(NOLOCK) ON B.TableSeq = A.TableSeq</p>
+<p>WHERE B.ColumnName LIKE '%%'</p>
+<p>AND B.Remark LIKE '사업장'</p>
+<p>--==============================================================</p>
+<p>-- 작업단위 스크립트 조회</p>
+<p>--==============================================================</p>
+<blockquote>
+<p>--DataBlock3</p>
+<p>SELECT A.ElementTypeSeq, C.MinorName AS ElementType, A.ElementSeq, A.Description, A.DBType AS DBTypeSeq, A.SqlScript, A.ExecuteSeq</p>
+</blockquote>
+<p>, D.MinorName AS WorkType, A.WorkTypeSeq, A.WorkTarget, A.AddElementSeq, B.UserName AS LastUserSeq, A.LastDateTime, A.Remark</p>
+<p>FROM sysdevwkCommon.._TWPKGWorkItemAdditionalElement AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN sysdevwkCommon.._TCAUser AS B ON A.LastUserSeq = B.UserSeq</p>
+<blockquote>
+<p>JOIN sysdevwkCommon.._TCAMinor AS C WITH(NOLOCK) ON A.ElementTypeSeq = C.MinorSeq</p>
+<p>AND C.LanguageSeq = 1</p>
+<p>JOIN sysdevwkCommon.._TCAMinor AS D WITH(NOLOCK) ON ISNULL(A.WorkTypeSeq, 333001) = D.MinorSeq</p>
+<p>AND D.LanguageSeq = 1</p>
+<p>WHERE A.ElementTypeSeq = 290014</p>
+<p>AND C.LanguageSeq = 1</p>
+</blockquote>
+<p>AND A.SqlScript LIKE '%SDNG_T%'</p>
+<blockquote>
+<p>ORDER BY A.AddElementSeq</p>
+</blockquote>
+<p>--==============================================================</p>
+<p>-- 인덱스 조회</p>
+<p>--==============================================================</p>
+<p>SELECT a.name AS table_name</p>
+<p>, b.name AS index_name</p>
+<p>, d.name AS column_name</p>
+<p>, b.type_desc AS index_type</p>
+<p>FROM SYS.TABLES a</p>
+<p>, SYS.INDEXES b</p>
+<p>, SYS.INDEX_COLUMNS c</p>
+<p>, SYS.COLUMNS d</p>
+<p>WHERE a.name LIKE '%인덱스명%'</p>
+<p>AND a.object_id = b.object_id</p>
+<p>AND b.object_id = c.object_id</p>
+<p>AND b.index_id = c.index_id</p>
+<p>AND c.object_id = d.object_id</p>
+<p>AND c.column_id = d.column_id</p>
+<p>--==============================================================</p>
+<p>-- 비즈니스서비스 루아스크립트 찾기</p>
+<p>-- (K-WF에서 사용되는 버전, 화면에서 쓰이는 Lua와는 조금 다름)</p>
+<p>--==============================================================</p>
+<p>SELECT * FROM _TCAServiceMethodKWF WHERE script like '%for%'</p>
+<p>--==============================================================</p>
+<p>-- 마스터 값 지정</p>
+<p>--==============================================================</p>
+<p>txtProdPlanEndDateTo.Value = ''</p>
+<p>txtProdPlanNo.Text = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'ProdPlanNo', 0)</p>
+<p>txtItemName.Text = CellText(SS1, SS1.DblClickRow, 'ItemName')</p>
+<p>txtItemNoDIS.Text = CellText(SS1, SS1.DblClickRow, 'ItemNo')</p>
+<p>fltItemSeq.Value = CellText(SS1, SS1.DblClickRow, 'ItemSeq')</p>
+<p>txtItemClassNameDIS.Text = CellText(SS1, SS1.DblClickRow, 'ItemClassName')</p>
+<p>fltItemClass.Value = CellText(SS1, SS1.DblClickRow, 'ItemClass')</p>
+<p>-- 코드헬프</p>
+<p>txtCustName.TextCd = CellText(SS1, SS1.ActiveRow, 'CustSeq')</p>
+<p>txtCustName.Text = CellText(SS1, SS1.ActiveRow, 'CustName')</p>
+<p>/*** 기본적인 루아 사용 ***/</p>
+<p>-- 데이터 블럭에 수집하지 않은 데이터를 강제로 넣어줄 때 사용한다.</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'DeptSeq', txtDeptName.TextCd)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'DeptName', txtDeptName.Text)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'GoodItemSeq', txtItemName.TextCd)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'OutDate', txtOutDate.Text)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'OutType', txtOutType.Value)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock2', 'HwSeq', SS1.HwSeq)</p>
+<p>-- 더블클릭한 데이터 가져오기</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'ChangeSeq', CellText(SS1, SS1.DblClickRow, 'ChangeSeq')</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'MOEWasteSeq', CellText(SS1, SS1.ActiveRow, 'MOESeq')</p>
+<p>-- Send되는 XML 데이터 DataBlock1의 OutDate라는 데이터블럭에 txtOutData라는 컨트롤의 Text 값을 넣어준다.</p>
+<p>-- Send되는 XML 데이터 DataBlock1의 OutType라는 데이터블럭에 txtOutType라는 컨트롤의 Value 값을 넣어준다.</p>
+<p>-- 시트의 셀에서 데이터를 가져올때</p>
+<p>CellText(SS1, SS1.ActiveRow, 'CCtrName')</p>
+<p>--- SS1 이라는 시트에서 활성화된열(ActiveRow)의 CCtrName 이라는 컬럼의 값을 가져온다.</p>
+<p>-- 시트에 값을 지정해 줄때</p>
+<p>SetText(SS1, SS1.ActiveRow, 'BillAmt', '100')</p>
+<p>-- SS1이라는 시트에서 활성화된열(ActiveRow)의 BillAmt 라는 열에 100 이라는 값을 넣어준다.</p>
+<p>/*** 기본적인 루아 사용 끝 ***/</p>
+<p>-- 다이나믹 시트에서 다이나믹부 데이터 썸하는 문장</p>
+<p>local ColSum</p>
+<p>ColSum = 0</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>for col = SS1.SheetFixCols - SS1.SheetFixCols , SS1.MaxCols - SS1.SheetFixCols -1 do</p>
+<p>ColSum = ColSum + CellText(SS1, row, 'PlanQty'..col)</p>
+<p>end</p>
+<p>SetText(SS1, row, 'DailyPlanQty', ColSum)</p>
+<p>end</p>
+<p>local TypeName</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>TypeName = CellText(SS1, SS1.ActiveRow, 'TypeName')</p>
+<blockquote>
+<p>if TypeName == 'Plan' then</p>
+</blockquote>
+<p>for col = SS1.SheetFixCols - SS1.SheetFixCols , SS1.MaxCols - SS1.SheetFixCols -1 do</p>
+<p>if CellText(SS1, row, 'Value'..col) == '1' then</p>
+<p>SS1.ActiveColumnName == 'Value'..col</p>
+<p>SS1.ActiveCellBackColor = tonumber(-3810831)</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>-- 체크된 컬럼의 합계 값 컨트롤에 넣기</p>
+<p>local Sum</p>
+<p>Sum = 0</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1,row, 'Check') == '1' then</p>
+<p>Sum = Sum + CellText(SS1, row, 'BillAmt')</p>
+<p>end</p>
+<p>end</p>
+<p>txtTotalAmt.Value = Sum</p>
+<p>-- IsWBS라는 체크박스에 체크가 되어있을때와 되어있지 않을때 점프메소드를 다르게 태운다.</p>
+<p>if Celltext(SS1, SS1.ActiveRow, 'IsWBS') == '1' then</p>
+<p>JumpOut('JumpOutWBS')</p>
+<p>else</p>
+<p>JumpOut('JumpOut')</p>
+<p>end</p>
+<p>-- 헤더명 바꿔주기</p>
+<p>SS1.ActiveColumnName = 'SMDepreCondValue1'</p>
+<p>SS1.ColumnTitle = txtSMDepreCondName1.TextName</p>
+<p>-- 데이터 원하는 로우에만 넣기</p>
+<p>for OutDataRow = 0, GetDataBlock(m_RecvXml.Data, 'DataBlock4').Rows.Count - 1 do</p>
+<p>RowIDX = GetDataSetValue(m_RecvXml.Data, 'DataBlock4', 'RowIDX', OutDataRow)</p>
+<p>ColIDX = GetDataSetValue(m_RecvXml.Data, 'DataBlock4', 'ColIDX', OutDataRow)</p>
+<p>DivRate = GetDataSetValue(m_RecvXml.Data, 'DataBlock4', 'DivRate', OutDataRow)</p>
+<p>SetText(SS1, tonumber(RowIDX), 'DivRate'..ColIDX, DivRate)</p>
+<p>SS1.ActiveRow = tonumber(RowIDX)</p>
+<p>SS1.WorkingTag = 'U'</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 점프이벤트 없애주기</p>
+<p>GetDataBlock(m_SendXml.Data, 'DataBlock1').Rows.Count == 0</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>--==============================================================</p>
+<p>-- 마지막 메세지 스크립트로 받아서 날려주기~</p>
+<p>local msg</p>
+<p>msg = GetDataSetValue(m_RecvXml.Data, 'DataBlock3', 'ProcMessage', 0)</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>--==============================================================</p>
+<p>-- 체크오류를 잡아서 메세지박스로 날려주기</p>
+<p>local msg</p>
+<p>if GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Status',0) ~= '0' then         </p>
+<blockquote>
+<p>msg = GetMessage('5', GetDictionary(1426),GetDictionary(319), '', '', '', '', '', '', '', '')</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>GoTo('END')</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>msg = '해당 Task는 WBS계획실행입니다.'</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>RunPgmMethod('Query')</p>
+</blockquote>
+<p>end</p>
+<p>if GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Status',0) ~= '0' then         </p>
+<blockquote>
+<p>MessageBox(GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Result',0), '', 'MsgBoxTypeOK')</p>
+<p>GoTo('END')</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 저장여부를 물은 뒤 저장할때 스크립트</p>
+<p>local msg, result</p>
+<p>if GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Status',0) == '71001' then         </p>
+<blockquote>
+<p>msg = GetMessage('1129', '','', '', '', '', '', '', '', '', '')</p>
+<p>result = MessageBox(msg, '', 'MsgBoxTypeYesNo')</p>
+<p>if result == 1 then</p>
+<p>RunPgmMethod('PrevDel')</p>
+<p>else</p>
+<p>GoTo('END')</p>
+<p>end</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>RunPgmMethod('PrevDel')</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- Check box 사용시 헤더 안변하도록 SEL 할때 워킹태그 날려주기</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>if SS1.WorkingTag == '' then</p>
+<p>SS1.WorkingTag = 'U'</p>
+<p>end</p>
+</blockquote>
+<p>-- ''인 상태는 변함이 없는 상태여서 헤더가 변하지 않아 저장이 되지 않았다. 그래서 이렇게 넣어주면 워킹태그가 U로 가면서 저장이 된다.</p>
+<p>--==============================================================</p>
+<p>-- 컬럼 색넣기</p>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<p>SS1.ActiveRow = -1</p>
+<p>SS1.ActiveColumnName = 'amt120P'</p>
+<p>SS1.ActiveCellBackColor = -10027111 -- 연두</p>
+<p>SS1.ActiveColumnName = 'amt180P'</p>
+<p>SS1.ActiveCellBackColor = -10027111 -- 연두</p>
+<p>SS1.ActiveColumnName = 'amt360P'</p>
+<p>SS1.ActiveCellBackColor = -10027111 -- 연두</p>
+<p>SS1.ActiveColumnName = 'amtOverP'</p>
+<p>SS1.ActiveCellBackColor = -10027111 -- 연두</p>
+<p>SS1.ActiveColumnName = 'TotPolicy'</p>
+<p>SS1.ActiveCellBackColor = -10027111 -- 연두</p>
+<p>SS1.ActiveColumnName = 'PM'</p>
+<p>SS1.ActiveCellBackColor = -8323073 -- 하늘</p>
+<p>SS1.ActiveColumnName = 'Ending'</p>
+<p>SS1.ActiveCellBackColor = -8323073 -- 하늘</p>
+<p>end</p>
+<p>-- 로우 색넣기</p>
+<p>for row = 0, SS1.DataRowCnt -1 do</p>
+<blockquote>
+<p>if CellText(SS1, row, 'CustSeq') == '0' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1 -- 전체 라인</p>
+<p>SS1.ActiveCellBackColor = -2031936 -- 토탈색</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>-- 행에 색 넣기</p>
+<p>for row = 0, SS1.DataRowCnt -1 do</p>
+<blockquote>
+<p>if CellText(SS1, row, 'BizUnit') == '0' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1 -- 전체 라인</p>
+<p>SS1.ActiveCellBackColor = -2365967 -- 연한파랑</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>-- 행에 색 넣기 2개</p>
+<p>for row = 0, SS1.DataRowCnt -1 do</p>
+<blockquote>
+<p>if CellText(SS1, row, 'QryOrder') == '1' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1 -- 전체 라인</p>
+<p>SS1.ActiveCellBackColor = -10027111 -- 초록</p>
+<p>elseif CellText(SS1, row, 'QryOrder') == '3' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1 -- 전체 라인</p>
+<p>SS1.ActiveCellBackColor = -103 -- 노랑</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>-- 글자색 넣기</p>
+<p>local SMItemForeColorCode, SMItemBackColorCode</p>
+<p>for index = 0, SS1.DataRowCnt - 1 do</p>
+<p>SMItemForeColorCode = CellText(SS1, index, 'SMItemForeColorCode')</p>
+<p>if SMItemForeColorCode == '' then SMItemForeColorCode = 0 end</p>
+<p>if tonumber(SMItemForeColorCode) ~= 0 then</p>
+<p>SS1.ActiveCol = -1</p>
+<p>SS1.ActiveRow = index</p>
+<p>SS1.ActiveCellForeColor = tonumber(SMItemForeColorCode) -- 글자색</p>
+<p>end</p>
+<p>SMItemBackColorCode = CellText(SS1, index, 'SMItemBackColorCode')</p>
+<p>if SMItemBackColorCode == '' then SMItemBackColorCode = 0 end</p>
+<p>if tonumber(SMItemBackColorCode) ~= 0 then</p>
+<p>SS1.ActiveCol = -1</p>
+<p>SS1.ActiveRow = index</p>
+<p>SS1.ActiveCellBackColor = tonumber(SMItemBackColorCode)</p>
+<p>end</p>
+<p>end</p>
+<p>-- 루아 값</p>
+<p>-- 연두 : -10027111 / '#80FF80'</p>
+<p>-- 회색 : -986896</p>
+<p>-- 분홍 : 16744703</p>
+<p>-- 분홍(약간 자주) 16711808</p>
+<p>-- 밝은 하늘색 8323073</p>
+<p>--</p>
+<p>--진한파랑 : -3810831</p>
+<p>--연한파랑 : -2365967</p>
+<p>--연한빨강 : -12334</p>
+<p>--연한자주 : -860708</p>
+<p>--연한쑥색 : -1379875</p>
+<p>--연한보라 : -1711892</p>
+<p>--연한하늘 : -2363661</p>
+<p>--연한주홍 : -136743</p>
+<p>--연한노랑 : -103</p>
+<p>--회색(DIS) : -657931</p>
+<p>--흰색 : -1 (255, 255, 255)</p>
+<p>--빨강 : -65536 (255, 0, 0)</p>
+<p>--검정 : -16777216 (0, 0, 0)</p>
+<p>--파랑 : -16776961 (0, 0, 255)</p>
+<p>--형광초록 : -10027111</p>
+<p>--==============================================================</p>
+<p>-- 시트2개일경우 저장스크립트</p>
+<p>if SS1.ChangeRowCount &gt; 0 then</p>
+<p>RunPgmMethod('Save') end</p>
+<p>if SS2.ChangeRowCount &gt; 0 then</p>
+<p>RunPgmMethod('SubSave') end</p>
+<p>-- 시트2개일경우 시트삭제스크립트</p>
+<p>** 2시트 시트삭제</p>
+<p>if _base.ActiveSheetControlName == 'SS1' then</p>
+<p>RunPgmMethod('Cut1')</p>
+<p>elseif _base.ActiveSheetControlName == 'SS2' then</p>
+<p>RunPgmMethod('Cut2')</p>
+<p>else</p>
+<p>GoTo('END')</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 소수점 반올림</p>
+<p>--==============================================================</p>
+<p>math.floor(inputDivRate + 0.500001) -- 1 2</p>
+<p>math.floor(inputDivRate + 0.5) -- 1 2</p>
+<p>math.floor((inputDivRate * 10) + 0.5) / 10 -- 2 1.7</p>
+<p>math.floor((inputDivRate * 100) + 0.5) / 100 -- 3 1.67</p>
+<p>math.floor((inputDivRate * 1000) + 0.5) / 1000 -- 4 1.667</p>
+<p>math.floor((inputDivRate * 10000) + 0.5) / 10000 -- 4 1.6667</p>
+<p>-- 올림 --</p>
+<p>rowCnt = math.ceil(TQty / IQty)</p>
+<p>--==============================================================</p>
+<p>-- 반영화면에서 반영된 것 DIS 처리 해주는 스크립트</p>
+<p>local lngRow, IsReceipt</p>
+<p>for lngRow = 0, SS1.DataRowCnt - 1 do</p>
+<p>IsReceipt = CellText(SS1, lngRow, 'IsReceipt')</p>
+<p>if IsReceipt == '1' then</p>
+<p>SS1.ActiveRow = lngRow</p>
+<p>SS1.ActiveCol = -1</p>
+<p>--SS1.ColumnControlKey = 'DIS'</p>
+<blockquote>
+<p>SS1.ActiveCellReadOnly = true</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 우측정렬 스크립트</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'SupplyRateQ'</p>
+</blockquote>
+<p>SS1.ActiveCellHorizontalAlignment = 1</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'SupplyRateA'</p>
+</blockquote>
+<p>SS1.ActiveCellHorizontalAlignment = 1</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 체크박스 한개만 되는거</p>
+<p>local ActiveRow</p>
+<p>ActiveRow = SS1.ActiveRow</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if ActiveRow ~= row then</p>
+<p>if CellText(SS1, row, 'DefaultTaxTerm') == '1' then</p>
+<p>SetText(SS1, row, 'DefaultTaxTerm', '0')</p>
+<p>if SS1.WorkingTag ~= 'A' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.WorkingTag = 'U'</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 시트 머지</p>
+<p>SS1.MergeColumns = '{TotCustName, 0}'</p>
+<p>--==============================================================</p>
+<p>-- (Lua) 통제값가져오기</p>
+<p>EnvType</p>
+<p>153001 153 _TCOMEnv : COMEnv 예) GetPgmEnv('COMEnv', 4007)</p>
+<p>153002 153 _TCOMEnvAccKind : COMEnvAccKind</p>
+<p>153003 153 _TCOMEnvGroupWare : COMEnvGroupWare</p>
+<p>153004 153 _TCOMEnvSlipSuer : COMEnvSlipSuer</p>
+<p>153005 153 _TVBMSBizEnvVar : VBMSBizEnvVar</p>
+<p>153006 153 _TVBMSEnvVar : VBMSEnvVar</p>
+<p>--통제값 추가시</p>
+<p>_TCOMEnv에 값 추가</p>
+<p>_TCAPgmEnv에 추가</p>
+<p>해야만 GetPgmEnv('COMEnv', 4007)를 사용할 수 있음</p>
+<p>--==============================================================</p>
+<p>-- 루아에서 XML 리플레이스(REPLACE)</p>
+<p>local CustNo, RCustNo</p>
+<p>for i=0, GetDataBlock(m_SendXml.Data, 'DataBlock2').Rows.Count - 1 do</p>
+<blockquote>
+<p>CustNo = GetDataSetValue(m_SendXml.Data, 'DataBlock2', '거래처번호', i) -- 거래처번호 : 데이터블럭에서 XML의 컬럼명</p>
+<p>RCustNo = string.gsub(CustNo,'?','') -- 엔터값이 string.char(13) 인데 XML에서 ? 로 표현되는듯</p>
+<p>SetDataSetValue(m_SendXml.Data, 'DataBlock2', '거래처번호', i, RCustNo)</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- SQL 관련</p>
+<p>--==============================================================</p>
+<p>-- 멀티코드도움 파라메터 변환함수</p>
+<p>_FCOMXmlToSeq(@DeptSeq, @MultiDeptSeq ) -- 테이블로 반환한다.</p>
+<p>--==============================================================</p>
+<p>-- SQL에서 SP에 들어간 단어 찾기</p>
+<p>SELECT DISTINCT so.Name</p>
+<p>FROM syscomments sc WITH(NOLOCK)</p>
+<p>JOIN sysobjects so WITH(NOLOCK) On sc.id= so.id</p>
+<p>WHERE sc.Text LIKE '%_TCRAccRptAcc%'</p>
+<p>ORDER BY so.name</p>
+<p>--==============================================================</p>
+<p>--==자동내부순번 따는 SP문</p>
+<p>SELECT @Count = COUNT(1) FROM #TCFSUnit WHERE WorkingTag = 'A' --@Count값수정 (AND Status = 0 제외)</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TCFSUnit', 'CFSUnit', @Count</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TCFSUnit</p>
+<p>SET CFSUnit = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>END</p>
+<p>-- 자동순번따는 문 2</p>
+<hr />
+<p>-- 자동순번생성</p>
+<hr />
+<p>IF EXISTS (SELECT 1 FROM #TIFRSConTxTables WHERE WorkingTag = 'A' AND Status = 0)</p>
+<blockquote>
+<p>BEGIN</p>
+</blockquote>
+<p>SELECT @Seq = ISNULL(MAX(TxTableSeq),0)</p>
+<p>FROM _TIFRSConTxTables AS A</p>
+<p>JOIN (SELECT DISTINCT RxTableSeq FROM #TIFRSConTxTables ) AS B ON A.RxTableSeq = B.RxTableSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>UPDATE #TIFRSConTxTables</p>
+<p>SET TxTableSeq = @Seq + DataSeq</p>
+<blockquote>
+<p>WHERE Status = 0</p>
+</blockquote>
+<p>AND WorkingTag = 'A'</p>
+<p>--==============================================================</p>
+<p>--SP 마지막에 메세지 넣어주기</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1030 , -- 조건에 해당하는 자료가 없습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1030)</p>
+<p>@LanguageSeq ,</p>
+<p>0, ''</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1052 , -- 처리 작업이 완료되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1052)</p>
+<p>@LanguageSeq ,</p>
+<p>0, ''</p>
+<p>END</p>
+<p>SELECT @Status AS ProcResult ,</p>
+<p>@Results AS ProcMessage</p>
+<p>--==============================================================</p>
+<p>SELECT ROW_NUMBER() OVER (ORDER BY AccNo DESC), AccNo</p>
+<p>FROM _TDAAccount</p>
+<p>WHERE CompanySeq = 1</p>
+<p>ORDER BY 1</p>
+<p>SELECT A.SlipID, A.AccDate,</p>
+<p>ROW_NUMBER() OVER (PARTITION BY A.AccDate ORDER BY A.SlipID)</p>
+<p>FROM _TACSlipRow AS A</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.AccDate BETWEEN '20110801' AND '20110815'</p>
+<p>--================================================================</p>
+<p>--품목 대중소분류 조인문 + 조건절문</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS SClass WITH(NOLOCK)</p>
+<p>ON SClass.CompanySeq = A.CompanySeq</p>
+<p>AND SClass.ItemSeq = B.ItemSeq</p>
+<p>AND SClass.UMajorItemClass = CASE WHEN @WorkingTag = 'M' THEN 2004 ELSE 2001 END -- 2004 : 자재소분류 / 2001 :품목소분류</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS MClass WITH(NOLOCK)</p>
+<p>ON MClass.CompanySeq = SClass.CompanySeq</p>
+<p>AND MClass.MinorSeq = SClass.UMItemClass</p>
+<p>AND MClass.Serl = CASE SClass.UMajorItemClass WHEN 2004 then 2001 else 1001 end</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS LClass WITH(NOLOCK)</p>
+<p>ON LClass.CompanySeq = MClass.CompanySeq</p>
+<p>AND LClass.MinorSeq = MClass.ValueSeq</p>
+<p>AND LClass.Serl = 2001</p>
+<p>AND (@ItemClassLSeq = 0 OR LClass.ValueSeq = @ItemClassLSeq)                -- 품목대분류</p>
+<p>AND (@ItemClassMSeq = 0 OR MClass.ValueSeq = @ItemClassMSeq)                -- 품목중분류</p>
+<p>AND (@ItemClassSSeq = 0 OR SClass.UMItemClass = @ItemClassSSeq)        -- 품목소분류</p>
+<p>--================================================================</p>
+<p>-- 마스터 필수 입력 안했을 경우</p>
+<p>--================================================================</p>
+<p>local CustSeq, CustName,UMCustKind, msg</p>
+<p>CustSeq = cmbTermName.Value</p>
+<p>CustName = txtCustName.Text</p>
+<p>UMCustKind = txtUMCustKindName.Value</p>
+<p>if tonumber(UMCustKind) == 0 or CustName == '' then</p>
+<blockquote>
+<p>-- 필수입력 항목을 입력하지 않았습니다.</p>
+<p>msg = GetMessage('1038', '', '', '', '', '', '', '', '', '', '' )                </p>
+<p>MessageBoxShow(msg, '')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<hr />
+<p>if cmbTermName.Text == '' then</p>
+<blockquote>
+<p>-- 필수입력 항목을 입력하지 않았습니다.</p>
+<p>msg = GetMessage('1038', '', '', '', '', '', '', '', '', '', '' )</p>
+<p>MessageBoxShow(msg, '')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 강제로 조회모드 바꿔주기</p>
+<p>--================================================================</p>
+<p>_base.IsOpen = true</p>
+<p>--================================================================</p>
+<p>-- 데이터 없으면 에러 메세지 출력</p>
+<p>--================================================================</p>
+<p>if cmbTermName.Text == '' then</p>
+<blockquote>
+<p>-- 필수입력 항목을 입력하지 않았습니다.</p>
+<p>--msg = GetMessage('1038', '', '', '', '', '', '', '', '', '', '' )</p>
+<p>msg = '표준원가 적용기간을 입력하세요.'</p>
+<p>MessageBoxShow(msg, '')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 예 / 아니오 메세지 박스 (MsgBoxTypeYesNo)</p>
+<p>--================================================================</p>
+<p>-- 기존데이터는 삭제됩니다. 진행하시겠습니까? -- 메세지출력</p>
+<p>local msg, result        </p>
+<p>msg = '입력된 데이터는 삭제하고, 다시 생성합니다.'</p>
+<p>result = MessageBox(msg, '', 'MsgBoxTypeYesNo')</p>
+<p>if result ~= 1 then</p>
+<blockquote>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--====== 하드코딩 x ======--</p>
+<p>local msg, result</p>
+<p>msg = GetMessage('1129', '','', '', '', '', '', '', '', '', '')</p>
+<p>result = MessageBox(msg, '', 'MsgBoxTypeYesNo')</p>
+<p>if result ~= 1 then</p>
+<blockquote>
+<p>GoTo('END')</p>
+<p>return;        </p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 선택한 행들에만 값 출력</p>
+<p>--================================================================</p>
+<p>-- 0. 0이면 에러처리</p>
+<p>for row = 0, GetDataBlock(m_SendXml.Data, 'DataBlock1').Rows.Count - 1 do</p>
+<p>--MessageBoxShow(row, '1')</p>
+<p>--MessageBoxShow(GetDataSetValue(m_SendXml.Data, 'DataBlock2', 'ModifyQty', row), '1')</p>
+<blockquote>
+<p>if GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'DivQty', row) == '0' then</p>
+<p>--조정수량이 0이면 수량배부할수 없습니다.</p>
+<p>MessageBoxShow(GetMessage('1156', '배부수량', '0', GetDictionary(15243), '', '', '', '', '', '', ''), '')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>-- 1.</p>
+<p>-- 선택된 행이 없으면 메시지 처리</p>
+<p>local cnt</p>
+<p>cnt = 0</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'Sel') == '1' then</p>
+<blockquote>
+<p>cnt = tonumber(cnt) + 1</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(cnt) == 0 then</p>
+<p>msg = GetMessage('1001', GetDictionary(50484),'', '', '', '', '', '', '', '', '')</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>-- 2.</p>
+<p>local row</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'Sel') == '1' then</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>RunPgmMethod('GetPrice')</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>-- G SS1 Active Row</p>
+<p>-- M</p>
+<p>-- S SS1 Active Row</p>
+<p>--================================================================</p>
+<p>-- 일의 자리 버리기</p>
+<p>--================================================================</p>
+<p>InterestAmt = Math.floor((RemLoanAmt * InterestRate / 100 * CntDays / YearDays)/10) * 10</p>
+<p>--================================================================</p>
+<p>-- 시트 값에 따른 DIS 처리</p>
+<p>--================================================================</p>
+<p>if SS1.DataRowCnt == 0 then</p>
+<p>GoTo('END')</p>
+<p>end</p>
+<p>for row=0,SS1.DataRowCnt-1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>if CellText(SS1, row, 'UMCalcType') == '2140138001' then</p>
+<p>SS1.ActiveColumnName = 'FrDate'</p>
+<p>SS1.ActiveCellReadOnly = false</p>
+</blockquote>
+<p>SS1.ActiveColumnName = 'ToDate'</p>
+<blockquote>
+<p>SS1.ActiveCellReadOnly = false</p>
+<p>else</p>
+<p>SS1.ActiveColumnName = 'FrDate'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+</blockquote>
+<p>SS1.ActiveColumnName = 'ToDate'</p>
+<blockquote>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 날짜 비교 / 날짜 계산</p>
+<p>--================================================================</p>
+<p>-- 이자일수 = 종료일 - 시작일 + 1</p>
+<p>IntCntDay = DateDiff('Day', CellText(SS1, SS1.ActiveRow, 'FrDate'), CellText(SS1, SS1.ActiveRow, 'ToDate') ) + 1</p>
+<p>--================================================================</p>
+<p>-- 체크 박스 1개만</p>
+<p>--================================================================</p>
+<p>local ActiveRowOld, ActiveRow, row</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>ActiveRow = SS1.ActiveRow</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if ActiveRow ~= row then</p>
+<p>if CellText(SS1, row, 'IsLastPlan') == '1' then</p>
+<p>SetText(SS1, row, 'IsLastPlan', '0')</p>
+<p>if SS1.WorkingTag ~= 'A' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.WorkingTag = 'U'</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+<p>--================================================================</p>
+<p>-- 확정 처리 ([경영계획]연도차수등록</p>
+<p>--================================================================</p>
+<p>-- G - SS1 - Active Row</p>
+<p>-- M - 저장SP</p>
+<p>-- S - SS1 - Active Row</p>
+<p>-- T</p>
+<p>local status, msg, CloseYN</p>
+<p>status = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Status', 0)</p>
+<p>CloseYN = CellText(SS1, SS1.ActiveRow, 'CloseYN')</p>
+<p>if status ~= '' and status ~= '0' then</p>
+<blockquote>
+<p>msg        = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'Result', 0)</p>
+<p>MessageBoxShow(msg, '')</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>if CloseYN == '1' then</p>
+<p>-- 확정되었습니다.</p>
+<p>msg = GetMessage('2152', '', '', '', '', '', '', '', '', '', '' )</p>
+<p>else</p>
+<p>-- 취소되었습니다.</p>
+<p>msg = GetMessage('1136', '', '', '', '', '', '', '', '', '', '' )</p>
+<p>end</p>
+<p>MessageBoxShow(msg, '')</p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 값에 따라 보여지는 탭 바꾸기</p>
+<p>--================================================================</p>
+<p>if cmbUmReqType.Value == '2140147001' then</p>
+<p>Repair123.Visibility = IsVisibility(false)</p>
+<p>Return123.Visibility = IsVisibility(false)</p>
+<p>GridGroupBoxC83.Visibility = IsVisibility(true)</p>
+<p>GridGroupBoxC84.Visibility = IsVisibility(false)</p>
+<p>elseif cmbUmReqType.Value == '2140147002' then</p>
+<p>Transfer123.Visibility = IsVisibility(false)</p>
+<p>Return123.Visibility = IsVisibility(false)</p>
+<p>GridGroupBoxC84.Visibility = IsVisibility(true)</p>
+<p>GridGroupBoxC83.Visibility = IsVisibility(false)</p>
+<p>else</p>
+<p>Transfer123.Visibility = IsVisibility(false)</p>
+<p>Return123.Visibility = IsVisibility(false)</p>
+<p>GridGroupBoxC83.Visibility = IsVisibility(false)</p>
+<p>GridGroupBoxC84.Visibility = IsVisibility(false)</p>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 저장 안된 데이터 있으면 체크</p>
+<p>--================================================================</p>
+<p>if SS1.WorkingTag ~= '' then</p>
+<blockquote>
+<p>MessageBoxShow('저장 후 처리하세요.', '')</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'FixYN') == '1' then</p>
+</blockquote>
+<p>SetText(SS1, SS1.ActiveRow, 'FixYN', '0')</p>
+<blockquote>
+<p>elseif CellText(SS1, SS1.ActiveRow, 'FixYN') == '0' then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'FixYN', '1')</p>
+<p>end</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 시트 행 갯수 고정 IsmenuRowInsertVisible</p>
+<p>--================================================================</p>
+<p>--init</p>
+<p>SS8.IsmenuRowInsertVisible = false -- 톱니바퀴 =&gt; 행 추가 막기</p>
+<p>SS9.IsmenuRowInsertVisible = false -- 톱니바퀴 =&gt; 행 추가 막기</p>
+<p>SS10.IsmenuRowInsertVisible = false -- 톱니바퀴 =&gt; 행 추가 막기</p>
+<p>-- query (조회된게 없으면 rowcount 0</p>
+<p>if SS8.DataRowCnt == 1 then</p>
+<blockquote>
+<p>SS8.AddRowsCount = 0</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SS8.AddRowsCount = 1</p>
+</blockquote>
+<p>end</p>
+<p>-- save</p>
+<p>SS8.AddRowsCount = 0</p>
+<p>--SS8.FrozenColumnCount = 1 -- 얘는 아님 (휠내리면 1개로 고정해서 보여주는거)</p>
+<p>--SS8.IsmenuRowInsertVisible = false</p>
+<p>-- 컬럼명칭 변경 / DataBlock 변경</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', 'GoodItemSeq', 'ItemSeq')</p>
+<p>ChangeDataBlockName(m_RecvXml.Data, 'DataBlock2', 'DataBlock1')</p>
+<p>-- ADD 모드 조회 ( IsNotUse이 1이면 A로 조회 )</p>
+<p>local i, IsNotUse</p>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<blockquote>
+<p>for i = 0, SS1.DataRowCnt - 1 do</p>
+<p>IsNotUse = CellText(SS1, i, 'IsNotUse')</p>
+<p>if IsNotUse == '1' then</p>
+<p>SS1.ActiveRow = i</p>
+<p>SS1.WorkingTag = 'A'</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- JumpIn 시 화면에 따라서 컨트롤 값 자동 설정</p>
+<p>--================================================================</p>
+<p>if         tonumber(_base.JumpPgmSeq) == 18820453</p>
+<p>then</p>
+<blockquote>
+<p>cmbUMCostEntryType.Value = '4001001'</p>
+</blockquote>
+<p>end</p>
+<p>if         tonumber(_base.JumpPgmSeq) == 18820349</p>
+<p>then</p>
+<blockquote>
+<p>cmbUMCostEntryType.Value = '4001002'</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>cmbUMCostEntryType.Value = ''</p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 컨트롤 =&gt; 시트 일괄 저장 (기존에 저장되어 있던 데이터들은 U로 바꿔줘야함</p>
+<p>--================================================================</p>
+<p>local row</p>
+<p>for row = 0, SS.DataRowCnt-1 do        </p>
+<blockquote>
+<p>SS.ActiveRow = row</p>
+<p>SetText(SS, SS.ActiveRow, 'WHName', cmbWHSeq.Text)</p>
+<p>SetText(SS, SS.ActiveRow, 'DelvDate', datDelvDate.Value)</p>
+<p>if SS.WorkingTag ~= 'A' then</p>
+<p>SS.WorkingTag = 'U'</p>
+<p>end        </p>
+</blockquote>
+<p>end</p>
+<p>--================================================================</p>
+<p>-- 환경설정 단위 세팅</p>
+<p>--================================================================</p>
+<p>local Env2000106, Env2000107, Env2000108</p>
+<p>Env2000106 = GetPgmEnv('COMEnv', 2000106)</p>
+<p>Env2000107 = GetPgmEnv('COMEnv', 2000107)</p>
+<p>Env2000108 = GetPgmEnv('COMEnv', 2000108)</p>
+<p>txtStdUnitSeq.Value = Env2000106</p>
+<p>txtStdUnitSeq2.Value = Env2000107</p>
+<p>SS.ActiveColumnName = 'Dummy8'</p>
+<p>SS.ColumnDeclength = Env2000108</p>
+<p>=======================================================================</p>
+<p>자주쓰는 루아스크립트 모음.</p>
+<p>SS1.AddRowsCount = 10 시트를 없애고 신규나 조회할때 이벤트에서 text로 추가</p>
+<p>--===========================================================================</p>
+<p>--1) 멀티헤더 명칭 변경</p>
+<p>-- ColumnHeaderRowIndex 는 변경할 헤더의 위치를 나타내는것으로 맨위가 0의 값을 가집니다.</p>
+<p>-- 만약에 헤더가 3줄이면 0,1,2의 순서로 위치 지정이 가능합니다.</p>
+<p>-- 위의 test처럼 해당 위치에 명칭을 변경하고 싶은 경우</p>
+<p>SS1.ActiveColumnName = 'Amt1' --멀티헤더시작의 컬럼명</p>
+<p>SS1.ColumnHeaderRowIndex = 0 --첫번째 헤더위치</p>
+<p>SS1.ColumnHeaderText = 'test' --변경하고 싶은 글자</p>
+<p>--===========================================================================</p>
+<p>--===========================================================================</p>
+<p>-- _base사용</p>
+<p>txtRegUserName.Text = _base.UserName</p>
+<p>txtRegUserName.TextCd = _base.UserSeq</p>
+<p>txtEmpId.Text = _base.EmpId</p>
+<p>datDate.Text = _base.LoginDate</p>
+<p>_base.PgmSeq</p>
+<p>_base.IsOpen = true -- 마스트 데이터 수집시 WorkingTag = 'U'로 설정됩니다,</p>
+<p>_base.IsOpen=false -- WorkingTag = 'A'</p>
+<p>--===========================================================================</p>
+<p>--===========================================================================</p>
+<p>JumpOut : JumpOut(string dataKey)</p>
+<p>Event등록의 DataKey값을 입력 </p>
+<p>JumpOut('Cust')</p>
+<p>--===========================================================================</p>
+<p>--==============================================================        </p>
+<p>--기본 메시지박스</p>
+<p>MessageBoxShow('1','')</p>
+<p>-- 메시지박스(Yes OR No OR Cancel)</p>
+<p>-- MsgBoxRtnNo = 0,</p>
+<p>-- MsgBoxRtnYes = 1,</p>
+<p>-- MsgBoxRtnCancel = 2</p>
+<p>local rtnType</p>
+<p>rtnType = MessageBox('', '', 'MsgBoxTypeYesNoCancel')</p>
+<p>if (rtnType == 1) then</p>
+<p>elseif (rtnType == 0) then</p>
+<p>GoTo('END')</p>
+<blockquote>
+<p>return</p>
+</blockquote>
+<p>elseif (rtnType == 2) then</p>
+<p>GoTo('END')</p>
+<blockquote>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>-- 메시지박스(Yes OR No)</p>
+<p>rtnType = MessageBox('', ' ', 'MsgBoxTypeYesNo')</p>
+<p>if rtnType == 1 then</p>
+<p>elseif (rtnType == 0) then</p>
+<p>GoTo('END')</p>
+<blockquote>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================        </p>
+<p>--==============================================================        </p>
+<p>-- 컨트롤 컨트롤키 넣기.</p>
+<p>txtUMSalesUnit.ControlKey = "DIC;"</p>
+<p>-- 시트 컨트롤키 넣기.</p>
+<p>SS1.ActiveColumnName = 'Amt1'</p>
+<p>SS1.ColumnControlKey = 'DIS'</p>
+<p>--==============================================================        </p>
+<p>--==============================================================        </p>
+<p>-- 매소드 태우기.</p>
+<p>RunPgmMethod('QuerySS1')</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- 시트 워킹태그 바꾸기.</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+</blockquote>
+<p>SS1.WorkingTag = 'U'</p>
+<p>end</p>
+<p>--==============================================================        </p>
+<p>--==============================================================        </p>
+<p>-- 시트 내용같은거 병합하기.</p>
+<p>SS1.MergeColumns = '{ItemName, 0},{ItemNo, 0},{Spec, 0}'</p>
+<p>--==============================================================        </p>
+<p>--==============================================================        </p>
+<p>-- 콤보 값 하드코딩</p>
+<p>columnSchema = '{ConfirmYn, int}{Confirm, string}'</p>
+<p>ds = CreateDataSet(ds, 'DataBlock1', columnSchema)</p>
+<p>addData = ''</p>
+<p>addData = ''..'0'..CNST_SP..''</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'1'..CNST_SP..'확정'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'2'..CNST_SP..'미확정'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>SetAddCombo(txtConfirmYn, ds, 'DataBlock1', false)</p>
+<p>--==============================================================        </p>
+<p>--==============================================================        </p>
+<p>-- Combo설정</p>
+<p>SetTypeCombo(AKEditText objCtl, int codeHelpSeq, string param1, string param2, string param3, string param4, bool isAddTotal)</p>
+<p>SetTypeCombo(txtServiceAffair, 19999, '1001', '', '', '', true)</p>
+<p>-- Combo설정 ; 시트</p>
+<p>SetTypeComboSheet(AKSpreadFP objSheet, string dataFieldName, int row, int codeHelpSeq, string param1, string param2, string param3, string param4, bool isAddTotal)</p>
+<p>-- row값이 -1이면 전체 row</p>
+<p>SetTypeComboSheet(SS1, 'CustName', -1, 19999, '1001', '', '', '', true)</p>
+<p>-- Combo Add</p>
+<p>SetAddCombo(AKEditText objCtl, DataSet ds, string tableName, bool isAddTotal)</p>
+<p>SetAddCombo(txtServiceAffair, m_SendXml.Data, 'DataBlock1', isAddTotal)</p>
+<p>-- Combo Add 시트</p>
+<p>SetAddComboSheet(AKSpreadFP objSheet, DataSet ds, string tableName, string dataFieldName, int row, bool isAddTotal)</p>
+<p>SetAddComboSheet(SS1, m_SendXml.Data, ''DataBlock1'', 'CustCd', -1, true)</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- 데이터 블럭에 수집하지 않은 데이터를 강제로 넣어줄 때 사용한다.</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'OutDate', txtOutDate.Text)</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'OutType', txtOutType.Value)</p>
+<p>-- Send되는 XML 데이터 DataBlock1의 OutDate라는 데이터블럭에 txtOutData라는 컨트롤의 Text 값을 넣어준다.</p>
+<p>-- Send되는 XML 데이터 DataBlock1의 OutType라는 데이터블럭에 txtOutType라는 컨트롤의 Value 값을 넣어준다.</p>
+<p>주) column이 있으면 수정, 없으면 자동 추가된다.</p>
+<p>-- 시트의 셀에서 데이터를 가져올때</p>
+<p>CellText(SS1, SS1.ActiveRow, 'CCtrName')</p>
+<p>--- SS1 이라는 시트에서 활성화된열(ActiveRow)의 CCtrName 이라는 컬럼의 값을 가져온다.</p>
+<p>-- 시트에 값을 지정해 줄때</p>
+<p>SetText(SS1, SS1.ActiveRow, 'BillAmt', '100')</p>
+<p>-- SS1이라는 시트에서 활성화된열(ActiveRow)의 BillAmt 라는 열에 100 이라는 값을 넣어준다.</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- 컬럼 색넣기</p>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<p>SS1.ActiveRow = -1</p>
+<p>SS1.ActiveColumnName = 'BillNo'</p>
+<p>SS1.ActiveCellBackColor = -1379875 -- 쑥색</p>
+<p>end</p>
+<p>-- 로우 색넣기</p>
+<p>for row = 0, SS1.DataRowCnt -1 do</p>
+<blockquote>
+<p>if CellText(SS1, row, 'CustSeq') == '0' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1 -- 전체 라인</p>
+<p>SS1.ActiveCellBackColor = -2031936 -- 토탈색</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>-- 글자색 넣기</p>
+<p>local SMItemForeColorCode, SMItemBackColorCode</p>
+<p>for index = 0, SS1.DataRowCnt - 1 do</p>
+<p>SMItemForeColorCode = CellText(SS1, index, 'SMItemForeColorCode')</p>
+<p>if SMItemForeColorCode == '' then SMItemForeColorCode = 0 end</p>
+<p>if tonumber(SMItemForeColorCode) ~= 0 then</p>
+<p>SS1.ActiveCol = -1</p>
+<p>SS1.ActiveRow = index</p>
+<p>SS1.ActiveCellForeColor = tonumber(SMItemForeColorCode) -- 글자색</p>
+<p>end</p>
+<p>SMItemBackColorCode = CellText(SS1, index, 'SMItemBackColorCode')</p>
+<p>if SMItemBackColorCode == '' then SMItemBackColorCode = 0 end</p>
+<p>if tonumber(SMItemBackColorCode) ~= 0 then</p>
+<p>SS1.ActiveCol = -1</p>
+<p>SS1.ActiveRow = index</p>
+<p>SS1.ActiveCellBackColor = tonumber(SMItemBackColorCode)</p>
+<p>end</p>
+<p>end</p>
+<p>-- 루아 값</p>
+<p>--진한파랑 : -3810831</p>
+<p>--연한파랑 : -2365967</p>
+<p>--연한자주 : -860708</p>
+<p>--연한쑥색 : -1379875</p>
+<p>--연한보라 : -1711892</p>
+<p>--연한하늘 : -2363661</p>
+<p>--연한주홍 : -136743</p>
+<p>--연한노랑 : -103</p>
+<p>--회색(DIS) : -657931</p>
+<p>--흰색 : -1 (255, 255, 255)</p>
+<p>--빨강 : -65536 (255, 0, 0)</p>
+<p>--검정 : -16777216 (0, 0, 0)</p>
+<p>--파랑 : -16776961 (0, 0, 255)</p>
+<p>--형광초록 : -10027111</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- 시트2개일경우 저장스크립트</p>
+<p>if SS1.ChangeRowCount &gt; 0 then</p>
+<p>RunPgmMethod('Save') end</p>
+<p>if SS2.ChangeRowCount &gt; 0 then</p>
+<p>RunPgmMethod('SubSave') end</p>
+<p>-- 시트2개일경우 시트삭제스크립트</p>
+<p>** --2시트 시트삭제</p>
+<p>if _base.ActiveSheetControlName == 'SS1' then</p>
+<p>RunPgmMethod('Cut1')</p>
+<p>elseif _base.ActiveSheetControlName == 'SS2' then</p>
+<p>RunPgmMethod('Cut2')</p>
+<p>else</p>
+<p>GoTo('END')</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- (Lua) 통제값가져오기</p>
+<p>EnvType</p>
+<p>153001 153 _TCOMEnv : COMEnv 예) GetPgmEnv('COMEnv', 4007)</p>
+<p>153002 153 _TCOMEnvAccKind : COMEnvAccKind</p>
+<p>153003 153 _TCOMEnvGroupWare : COMEnvGroupWare</p>
+<p>153004 153 _TCOMEnvSlipSuer : COMEnvSlipSuer</p>
+<p>153005 153 _TVBMSBizEnvVar : VBMSBizEnvVar</p>
+<p>153006 153 _TVBMSEnvVar : VBMSEnvVar</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- 루아에서 XML 리플레이스(REPLACE)</p>
+<p>local CustNo, RCustNo</p>
+<p>for i=0, GetDataBlock(m_SendXml.Data, 'DataBlock2').Rows.Count - 1 do</p>
+<blockquote>
+<p>CustNo = GetDataSetValue(m_SendXml.Data, 'DataBlock2', '거래처번호', i) -- 거래처번호 : 데이터블럭에서 XML의 컬럼명</p>
+<p>RCustNo = string.gsub(CustNo,'?','') -- 엔터값이 string.char(13) 인데 XML에서 ? 로 표현되는듯</p>
+<p>SetDataSetValue(m_SendXml.Data, 'DataBlock2', '거래처번호', i, RCustNo)</p>
+</blockquote>
+<p>end</p>
+<p>-- 보내는 xml의 DataBlock명 변경</p>
+<p>ChangeDataBlockName(m_SendXml.Data, 'tableName', 'toTableName')</p>
+<p>ChangeDataBlockName(m_SendXml.Data, 'DataBlock1', 'DataBlock2')</p>
+<p>-- 보내는 xml의 DataField명 변경</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', 'AccName', 'AccSeqName')</p>
+<p>-- xml의 DataSet에서 데이터 읽는 방법</p>
+<p>string GetDataSetValue(DataSet ds, string tableName, string columnName, int row)</p>
+<p>EX) txtWhCd.Text = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'WhCd', 0)</p>
+<p>-- xml DataSet의 데이터 수정하는 방법</p>
+<p>void SetDataSetValue(DataSet ds, string tableName, string columnName, int row, string value)</p>
+<p>EX) SetDataSetValue(m_SendXml.Data, 'DataBlock1', 'WhCd', 0, '00001')</p>
+<p>-- DataBlock Table의 데이터 건수</p>
+<p>GetDataBlock(rtnDs, Table).Rows.Count : 데이터 건수</p>
+<p>EX) GetDataBlock(m_SendXml.Data, 'DataBlock1').Rows.Count</p>
+<p>-- DataBlock Table복사 방법</p>
+<p>void CopyDataBlock(DataSet ds, string fromTableName, string toTableName)</p>
+<p>EX) CopyDataBlock(m_SendXml.Data, 'DataBlock1', 'DataBlock2' )</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- 시트 더블클릭 색넣기(Init-초기에 넣을것..)</p>
+<p>SS1.IsDblClickRow = true</p>
+<p>-- 시트 DIS처리하기.</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>--권한체크</p>
+<p>columnSchema = '{UMSalesUnit, string}'</p>
+<blockquote>
+<p>ds = CreateDataSet(ds, 'DataBlock1', columnSchema)</p>
+</blockquote>
+<p>addData = txtUMSalesUnit.TextCd</p>
+<blockquote>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>DataSetClear(m_SendXml.Data, '')</p>
+<p>MergeDataSet(m_SendXml, ds)</p>
+</blockquote>
+<p>rtnDs = ExecuteService(1021426, 1, m_SendXml.Data, rtnDs, '')</p>
+<p>if (rtnDs ~= nil) then</p>
+<p>AllSalesUnitYn = GetDataSetValue(rtnDs, 'DataBlock1', 'AllSalesUnitYn', 0)</p>
+<p>UseYn = GetDataSetValue(rtnDs, 'DataBlock1', 'UseYn', 0)</p>
+<p>end</p>
+<blockquote>
+<p>if AllSalesUnitYn == '0' and UseYn == '0' then</p>
+</blockquote>
+<p>MessageBoxShow('해당 영업부문에 조회/수정/삭제 권한이 없습니다.','')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<blockquote>
+<p>end</p>
+<p>DataSetClear(m_SendXml.Data, '')</p>
+</blockquote>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- Default Value</p>
+<p>/*</p>
+<p>부서         CNST_DEPT         _base.DeptSeq, _base.DeptName</p>
+<p>근무부서         CNST_WKDEPT        </p>
+<p>사원         CNST_EMP        </p>
+<p>거래처         CNST_CUST        </p>
+<p>사업장         CNST_ACCUNIT         _base.AccUnit, _base.AccUnitName</p>
+<p>사업부문         CNST_BiZUNIT         _base.BizUnit, _base.BizUnitName</p>
+<p>전표관리단위        CNST_SLIPUNIT        </p>
+<p>생산사업장         CNST_FACTUNIT         </p>
+<p>비용구분         CNST_UMCOSTTYPE        </p>
+<blockquote></blockquote>
+<p>COMBO값                </p>
+<p>Index선택         COMBO_IDX_N         ex. COMBO_IDX_1</p>
+<p>처음         COMBO_FIRST        </p>
+<p>마지막         COMBO_LAST        </p>
+<p>빈값         COMBO_NULL        </p>
+<p>-------------------------------------------------------------------------                </p>
+<p>통제값                </p>
+<p>ERP사용국가                           ENV_Nation        </p>
+<p>회사구분 Initial         ENV_SiteInit        </p>
+<p>관세율(%)                                    ENV_CustomsTariff        </p>
+<p>BOM자재 수량 소숫점 아래 자릿수              ENV_DecLenBOM        </p>
+<p>자재 수량 소숫점 아래 자릿수                 ENV_DecLenMatQty        </p>
+<p>자재 원화단가 소숫점 아래 자릿수             ENV_DecLenMatCost        </p>
+<p>자재 외화단가 소숫점 아래 자릿수             ENV_DecLenMatCostFor        </p>
+<p>제품/상품 수량 소숫점 아래 자릿수            ENV_DecLenGoodsQty        </p>
+<p>제품/상품 원화단가 소숫점 아래 자릿수        ENV_DecLenGoodsCost        </p>
+<p>제품/상품 외화단가 소숫점 아래 자릿수        ENV_DecLenGoodsCostFor        </p>
+<p>환율 소숫점 아래 자릿수                      ENV_DecLenExcRate        </p>
+<p>기준외화 화폐                                ENV_BasicKorCurr        </p>
+<p>기준원화 화폐                                ENV_BasicForCurr        </p>
+<p>회계 원화 소수점 아래 자리수                 ENV_DecLenKOR        </p>
+<p>회계 외화 소수점 아래 자리수                 ENV_DecLenFOR        </p>
+<p>주민등록번호 입력형태         ENV_ResNo        </p>
+<p>사업자등록번호 입력형태         ENV_BizRegNo        </p>
+<p>법인등록번호 입력형태         ENV_LawRegNo        </p>
+<p>BOM자재 수량 소숫점 아래 자릿수              ENV_DecLenBOM</p>
+<p>구매/자재 수량 소수점 자릿수                        ENV_DecLenMatQty</p>
+<p>구매/자재 원화단가 소수점 자릿수                ENV_DecLenMatCost</p>
+<p>구매/자재 거래통화단가 소수점 자릿수        ENV_DecLenMatCostFor</p>
+<p>판매/제품 수량 소수점 자릿수                        ENV_DecLenGoodsQty</p>
+<p>판매/제품 원화단가 소수점 자릿수                ENV_DecLenGoodsCost</p>
+<p>판매/제품 거래통화단가 소수점 자릿수        ENV_DecLenGoodsCostFor</p>
+<p>환율 소수점 자릿수                                                ENV_DecLenExcRate</p>
+<p>기준외화 통화                                                        ENV_BasicKorCurr</p>
+<p>자국 통화                                                                ENV_BasicForCurr</p>
+<p>거래금액 소수점 자릿수                                        ENV_DecLenKOR</p>
+<p>자국통화금액 소수점 자릿수                                ENV_DecLenFOR</p>
+<p>날짜         Y+1                                현재년도 1년 후 (2017 -&gt; 2018)</p>
+<blockquote>
+<p>Y+1FM 현재년도 1년 후 초월 (201710 -&gt; 201801)</p>
+<p>Y+1FMFD 현재년도 1년 후 초월 초일 (20171027 -&gt;20180101)</p>
+<p>Y+1LM 현재년도 1년 후 말월 (201710 -&gt; 201812)</p>
+<p>Y+1M 현재년도 1년 후 월 (201710 -&gt; 201810)</p>
+<p>Y+1MD 현재년도 1년 후 월일 (20171027 -&gt; 20181027)</p>
+<p>Y-1 현재년도 1년 전 (2017 -&gt; 2016)</p>
+<p>Y-1FM 현재년도 1년 전 초월 (201710 -&gt; 201601)</p>
+<p>Y-1LM 현재년도 1년전 말월 (201710 -&gt; 201612)</p>
+<p>Y-1M 현재년도 1년전 월 (201710 -&gt; 201610)</p>
+<p>Y-1M-1D 현재년도 1년전 전월 일 (20171027 -&gt; 20160927)</p>
+<p>Y-1MD 현재년도 1년전 월일 (20171027 -&gt; 20161027)</p>
+<p>YFM 현재년도 초월 (201710 -&gt; 201701)</p>
+<p>YFMD 현재년도 초월 일 (20171027 -&gt; 20170127)</p>
+<p>YFMFD 현재년도 초월 초일 (20171027 -&gt; 20170101)</p>
+<p>YLM 현재년도 말월 (201710 -&gt; 201712)</p>
+<p>YLMLD 현재년도 말월 말일 (20171027 -&gt; 20171231)</p>
+<p>YMD+15 현재년월일 + 15일</p>
+</blockquote>
+<p>*/                </p>
+<p>--==============================================================</p>
+<p>--==============================================================</p>
+<p>-- 다른건이 선택 / 등록되지 않은 건 / 없는 건 =&gt; 에러 메세지</p>
+<p>--==============================================================</p>
+<p>local cnt, zeroQty, OutWHSeq, BizUnitCnt0, BizUnitCnt2, TransBizUnit, TransBizUnitDiff, OutWHSeq, OutWHSeqDiff</p>
+<p>cnt                                                 = 0</p>
+<p>zeroQty                                 = 0</p>
+<p>OutWHSeq                        = 0</p>
+<p>BizUnitCnt0                        = 0</p>
+<p>BizUnitCnt2                        = 0</p>
+<p>TransBizUnit                = 0</p>
+<p>TransBizUnitDiff        = 0</p>
+<p>OutWHSeq                        = 0</p>
+<p>OutWHSeqDiff        = 0</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'Sel') == '1' then</p>
+<blockquote>
+<p>cnt = tonumber(cnt) + 1</p>
+<p>-- 수량이 없는 건</p>
+<p>if tonumber(CellText(SS1, row, 'Qty')) == 0 then</p>
+<p>zeroQty = tonumber(zeroQty) + 1</p>
+<p>end</p>
+<p>-- 사업단위별생산품목정보가 등록되지 않은 건</p>
+<p>if tonumber(CellText(SS1, row, 'BizUnitCnt')) == 0 then</p>
+<p>BizUnitCnt0 = tonumber(BizUnitCnt0) + 1</p>
+<p>end                </p>
+<p>-- 사업단위별생산품목정보가 2건 이상 등록 된 경우</p>
+<p>if tonumber(CellText(SS1, row, 'BizUnitCnt')) &gt; 1 then</p>
+<p>BizUnitCnt2 = tonumber(BizUnitCnt2) + 1</p>
+<p>end                </p>
+<p>-- 출고사업단위가 다른 경우</p>
+<p>if TransBizUnit == 0 then</p>
+<p>TransBizUnit = tonumber(CellText(SS1, row, 'TransBizUnit'))</p>
+<p>elseif TransBizUnit ~= tonumber(CellText(SS1, row, 'TransBizUnit')) then</p>
+<p>TransBizUnitDiff = tonumber(TransBizUnitDiff) + 1</p>
+<p>end</p>
+<p>-- 출고창고가 다른 경우</p>
+<p>if OutWHSeq == 0 then</p>
+<p>OutWHSeq = tonumber(CellText(SS1, row, 'OutWHSeq'))</p>
+<p>elseif OutWHSeq ~= tonumber(CellText(SS1, row, 'OutWHSeq')) then</p>
+<p>OutWHSeqDiff = tonumber(OutWHSeqDiff) + 1</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(cnt) == 0 then</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(zeroQty) &gt; 0 then</p>
+<p>msg = '요청가능수량이 없는 건이 선택되었습니다.'</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(BizUnitCnt0) &gt; 0 then</p>
+<p>msg = '사업단위별생산품목정보가 등록되지 않은 건이 선택되었습니다.'</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(BizUnitCnt2) &gt; 0 then</p>
+<p>msg = '사업단위별생산품목정보가 2건 이상 등록 된 건이 선택되었습니다.'</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(OutWHSeqDiff) &gt; 0 then</p>
+<p>msg = '출고창고가 다른 건이 선택되었습니다.'</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(TransBizUnitDiff) &gt; 0 then</p>
+<p>msg = '출고사업단위가 다른 건이 선택되었습니다.'</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 키 값 유무에 따라 WorkingTag A or U</p>
+<p>--==============================================================</p>
+<p>for row = 1, SS2.DataRowCnt-1 do</p>
+<p>SS2.ActiveRow = row</p>
+<blockquote>
+<p>if CellText(SS2, row, 'ItemSerl') == '0' then</p>
+<p>SS2.WorkingTag = 'A'</p>
+<p>else</p>
+<p>SS2.WorkingTag = 'U'</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 비율에 따라 시트 계산</p>
+<p>--==============================================================</p>
+<p>local DivQty, InputQty, ModifyQty,SumInputQty</p>
+<p>DivQty = fltDivQty.Text</p>
+<p>SumInputQty = 0</p>
+<p>for row=0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>if CellText(SS1, row, 'Select') == '1' then</p>
+<p>SumInputQty = SumInputQty + CellText(SS1, row, 'InputQty')</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>for row=0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>if CellText(SS1, row, 'Select') == '1' then</p>
+</blockquote>
+<p>InputQty = CellText(SS1, SS1.ActiveRow, 'InputQty')</p>
+<blockquote>
+<p>ModifyQty = DivQty * InputQty / SumInputQty</p>
+</blockquote>
+<p>SetText(SS1, SS1.ActiveRow, 'ModifyQty', ModifyQty)        </p>
+<blockquote>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 행추가 - 입력한 숫자만큼 행추가하기 (거래명세서입력_evc, 구매납품입력_sscnt)</p>
+<p>--==============================================================</p>
+<p>-- 버튼은 행추가지만 기능은 행복사에 가까움....</p>
+<p>local IsSet, IsNotAllModify, IsNotRowAdd, IsNotAccAmtMod, col, CellName, CellNameText, RowAddCnt</p>
+<p>RowAddCnt = fltRowCnt.Value</p>
+<p>if tonumber(RowAddCnt) == 0 then</p>
+<blockquote>
+<p>RowAddCnt = 1</p>
+</blockquote>
+<p>end</p>
+<p>-- 데이터복사</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>for row = 0, RowAddCnt -1 do</p>
+<blockquote>
+<p>Trow = SS1.DataRowCnt</p>
+<p>-- 행추가</p>
+<p>SS1.StartRow = Trow</p>
+<p>SS1.ActionCount = 1</p>
+<p>SS1.ActionType = 'ActionType_InsertRow'</p>
+<p>-- 컬럼을 돌면서 데이터 복사하여 넣자</p>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveCol = col</p>
+<p>CellName = SS1.ActiveColumnName</p>
+<p>CellNameText = CellText(SS1, SS1.ActiveRow, CellName)</p>
+<p>if SS1.ActiveColumnName == 'InvoiceSerl' then</p>
+<p>CellNameText = ''        </p>
+<p>end</p>
+<p>SetText(SS1, Trow, CellName, CellNameText)</p>
+<p>if SS1.ActiveCellReadOnly == true then</p>
+<p>SS1.ActiveRow = Trow</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+<p>end</p>
+<p>end</p>
+<p>-- 추가된 행은 워킹태그를 'A'로 변경하자.</p>
+<p>SS1.ActiveRow = Trow</p>
+<p>SS1.WorkingTag = 'A'</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 포커스 설정 (거래명세서입력_evc)</p>
+<p>--==============================================================</p>
+<p>-- 22.12.09 점프 후 바로 행추가 시 에러 제거하기 위해 포커스 설정</p>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<blockquote>
+<p>SetFocus(SS1)</p>
+<p>SetActiveCell(SS1, 0, 'ItemName')</p>
+<p>-- 포커스만 이동하고 이동시 ActiveRow 는 처리가 되지 않아 아래처럼 코딩 추가</p>
+<p>SS1.ActiveRow = 0</p>
+<p>SS1.ActiveColumnName = 'ItemName'</p>
+<p>-- 관리항목 시트로 In 하는 순간부터 아래로 아래로 이동하도록 처리</p>
+<p>SS1.IsEditEnterMode = true</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 콤보 추가 (ex.진행, 미진행) 신선생산입고조회_evc</p>
+<p>--==============================================================</p>
+<p>--Init에 추가</p>
+<p>local columnSchema</p>
+<p>local ds</p>
+<p>local addData</p>
+<p>columnSchema = '{Progress, string}{ProgressSeq, int}'</p>
+<p>ds = CreateDataSet(ds, 'DataBlock1', columnSchema)</p>
+<p>addData = ''</p>
+<p>addData = ''..''..CNST_SP..'0'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'미진행'..CNST_SP..'1'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'진행'..CNST_SP..'2'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>DataSetClear(m_SendXml.Data, '')</p>
+<p>MergeDataSet(m_SendXml, ds)</p>
+<p>SetAddCombo(txtProgress, ds, 'DataBlock1', false)</p>
+<p>txtProgress.Value = 0</p>
+<p>--==============================================================</p>
+<p>-- 시트 값에 따라 점프 불가능 [LOT/Batch] 공정실적조회_jis</p>
+<p>--==============================================================</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1,row, 'LOTNo') == '99999' then</p>
+<p>msg = '집계기준이 품목별인 경우 등록화면으로 넘어갈 수 없습니다.'</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>-- 마스터 값에 따라 점프 불가능 [LOT/Batch] 공정실적조회_jis</p>
+<p>if aKEditCombo4_18.Value == 8022085 then</p>
+<p>msg = '집계기준이 품목별인 경우 등록화면으로 넘어갈 수 없습니다.'</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- JumpIn시 시트 더블클릭하기 조성비등록_djb (JumpIn)</p>
+<p>--==============================================================</p>
+<p>if SS1.DataRowCnt &gt;= 0 then</p>
+<blockquote>
+<p>SS1.DblClickRow = SS1.DataRowCnt - 1</p>
+<p>RunPgmMethod('QuerySS2')</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- merge 머지 조성비등록_djb (JumpIn)</p>
+<p>--==============================================================</p>
+<p>SS1.MergeColumns = '{GoodItemSeq,1},{UMCompositionType,1},{GoodItemName,1},{GoodItemNo,1},{UMCompositionTypeName,1}'</p>
+<p>--==============================================================</p>
+<p>-- 마스터 색상 넣기</p>
+<p>--==============================================================</p>
+<p>txtQcTitleName.CaptionCtl.Foreground = GetBrush("Red")</p>
+<p>--txtQcTitleName.CaptionCtl.Foreground = GetBrush("#FFFF4500")</p>
+<p>--==============================================================</p>
+<p>-- 조회되는 값이 없을 경우 시트 초기화 (New)</p>
+<p>--==============================================================</p>
+<p>if fltQcTitleSeq.Value == '0' or txtUMItemTypeName2.TextCd == '0' then</p>
+<blockquote>
+<p>SS2.AddRowsCount = 0</p>
+<p>ClearForm('SS2', 'NEW')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 조회조건 하나도 없으면 에러 (품목별검사여부조회,품목별검사항목등록_djb)</p>
+<p>--==============================================================</p>
+<p>local msg</p>
+<p>if GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'SMQryType', 0) == '' and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'ItemClass', 0) == ''</p>
+<blockquote>
+<p>and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'ItemName', 0) == '' and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'ItemNo', 0) == ''</p>
+<p>and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'Spec', 0) == '' and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'AssetSeq', 0) == '' then</p>
+<p>msg = GetMessage('1260', AddStringObjects('1', GetDictionary(50316), '', '', '', '', '', '', '', ''),GetDictionary(359), '', '', '', '', '', '', '', '')</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- Expanded 설정 (조회 시 닫혀있어야함) (품목별검사여부조회)</p>
+<p>--==============================================================</p>
+<p>ExpanderC11.IsExpanded = false</p>
+<p>--==============================================================</p>
+<p>-- 시트 2개 저장 (품목별검사항목등록_djb, 품목별Routing등록_sys)</p>
+<p>--==============================================================</p>
+<p>if SS1.ChangeRowCount &gt; 0 then</p>
+<blockquote>
+<p>RunPgmMethod('Save_SS1')</p>
+</blockquote>
+<p>end</p>
+<p>if SS2.ChangeRowCount &gt; 0 then</p>
+<blockquote>
+<p>RunPgmMethod('Save_SS2')</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 출력할 데이터 없으면 리포트 출력 안함</p>
+<p>--==============================================================</p>
+<p>if GetDataBlock(m_RecvXml.Data, 'DataBlock1') == nil or GetDataBlock(m_RecvXml.Data, 'DataBlock1').Rows.Count == 0 then -- 출력할 데이터가 없으면 리포트를 출력하지 않음</p>
+<blockquote>
+<p>MessageBoxShow(GetMessage('126', '', '', '', '', '', '', '', '', '', ''), '')</p>
+<p>GoTo('END')</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 코드도움 파라미터 (품목별검사항목등록_djb)</p>
+<p>--==============================================================</p>
+<p>-- 메소드 이름 : SetParam (E-처리)</p>
+<p>-- CodeHelpBefore에 입력</p>
+<p>if SS2.ActiveColumnName == 'UMQCTitleName' then</p>
+<p>-- 1번 파라미터에 값 넣기</p>
+<blockquote>
+<p>--SS2.</p>
+<p>= cmbQCKind.Value</p>
+</blockquote>
+<p>-- 1,3번 파라미터에 값 넣기(밑에 3개 모두 동일)</p>
+<p>SS2.ColumnCodeHelpParams = cmbQCKind.Value..'|'..''..'|'..fltItemClass.Value</p>
+<p>SS2.ColumnCodeHelpParams = cmbQCKind.Value..'|'..'|'..fltItemClass.Value</p>
+<p>SS2.ColumnCodeHelpParams = cmbQCKind.Value..'||'..fltItemClass.Value</p>
+<p>txtEtcWkItem.CodeHelpParams = cmbWkItemName.Value..'||'..datAppDate.Text..'|'..txtEmpName.TextCd</p>
+<p>--==============================================================</p>
+<p>-- 시트 조회 후 키값 없는 행 WorkingTag = 'A' 로 변경 (사업단위별품목매칭_djb)</p>
+<p>--==============================================================</p>
+<p>local i, CustSeq</p>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<blockquote>
+<p>for i = 0, SS1.DataRowCnt - 1 do</p>
+<p>CustSeq = CellText(SS1, i, 'CustSeq')</p>
+<p>if CustSeq == '0' then</p>
+<p>SS1.ActiveRow = i</p>
+<p>SS1.WorkingTag = 'A'</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 선택된 row 없을 때 에러처리 (사업단위별품목매칭_djb)</p>
+<p>-- Active row 없을 때 에러처리 (사업단위별품목매칭_djb)</p>
+<p>--==============================================================</p>
+<p>-- 선택된 건이(가) 없습니다.</p>
+<p>if GetDataBlock(m_SendXml.Data, 'DataBlock5').Rows.Count == 0 then</p>
+<blockquote>
+<p>_base.IsJumpEventCancel = true</p>
+<p>msg1 = GetMessage('1119', GetDictionary(2529), '', '', '', '', '', '', '', '', '' )</p>
+<p>MessageBoxShow(msg1, '')</p>
+<p>GoTo('END')</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 시트 수량 합계 계산 (조성비등록_djb) - 시트삭제, 조회 뒤에 RunPgmMethod / 수량 changed에 넣기</p>
+<p>--==============================================================</p>
+<p>local Qty</p>
+<p>RealActiveRow = SS2.ActiveRow</p>
+<p>SS2.ActiveColumnName = 'Qty'</p>
+<p>QtySum = 0.0</p>
+<p>for i = 0, SS2.DataRowCnt-1 do</p>
+<p>SS2.ActiveRow = i</p>
+<p>Qty = 0.0</p>
+<p>Qty = CellText(SS2, SS2.ActiveRow, 'Qty')</p>
+<p>if Qty == '' or Qty == nil then</p>
+<p>Qty = 0</p>
+<p>end</p>
+<p>QtySum = QtySum + Qty</p>
+<p>end</p>
+<p>fltSumQty.Value = QtySum</p>
+<p>--==============================================================</p>
+<p>-- 더블클릭 할 때만 코드도움 타기 / 직접 입력 가능 (샘플/Retest의뢰입력_djb)</p>
+<p>--==============================================================</p>
+<p>if SS1.CodeHelpDblClick == false then</p>
+<p>SS1.IsCodeHelpCancelEvent = true</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 시트 입력 시 사업단위, 부서, 사원 값 없는 경우 로그인 사용자 정보 가져오기 / 직접 입력 가능 (출고가능확인요청_djb)</p>
+<p>--==============================================================</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'BizUnit') == '0' then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'BizUnit', _base.BizUnit)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'BizUnitName', _base.BizUnit)</p>
+<p>SS1.ColumnCodeHelpParams = _base.BizUnit</p>
+<p>end</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'EmpSeq') == '0' then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'EmpSeq', _base.EmpSeq)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'EmpName', _base.EmpName)</p>
+<p>SS1.ColumnCodeHelpParams = _base.BizUnit</p>
+<p>end</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'DeptSeq') == '0' then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DeptSeq' , _base.DeptSeq)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DeptName', _base.DeptName)</p>
+<p>SS1.ColumnCodeHelpParams = _base.BizUnit</p>
+<p>end</p>
+<hr />
+<p>SS1.IsCodeHelpCancelEvent = false</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'BizUnit') ~= '0' then</p>
+<blockquote>
+<p>SS1.ColumnCodeHelpParams = CellText(SS1, SS1.ActiveRow, 'BizUnit')</p>
+</blockquote>
+<p>else</p>
+<p>SetText(SS1, SS1.ActiveRow, 'BizUnit', _base.BizUnit)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'BizUnitName', _base.BizUnit)</p>
+<p>SS1.ColumnCodeHelpParams = _base.BizUnit</p>
+<p>end</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 체크박스 저장 - 누르면 바로 저장 / 저장 안된 데이터 있으면 '저장 후 체크 메세지 출력' FrmWPDSample_djb / djb_SWPDSampleSaveCfm</p>
+<p>--==============================================================</p>
+<p>if SS1.WorkingTag ~= '' then</p>
+<blockquote>
+<p>MessageBoxShow('저장 후 처리하세요.', '')</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'IsCfm') == '1' then</p>
+</blockquote>
+<p>SetText(SS1, SS1.ActiveRow, 'IsCfm', '0')</p>
+<blockquote>
+<p>elseif CellText(SS1, SS1.ActiveRow, 'IsCfm') == '0' then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'IsCfm', '1')</p>
+<p>end</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>IsCfm - Sel로 ControlKey 설정</p>
+<p>G - Active Row</p>
+<p>M</p>
+<p>S - Active Row</p>
+<p>WorkingTag - '' 으로 설정</p>
+<p>--==============================================================</p>
+<p>-- 체크박스 저장 - 누르면 바로 저장 / 저장 안된 데이터 있으면 '저장 후 체크 메세지 출력' FrmWPDSample_djb / djb_SWPDSampleSaveCfm</p>
+<p>--==============================================================</p>
+<p>for col = 12, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveRow = -1</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ColumnHeaderRowIndex = 0</p>
+<p>if SS1.ColumnHeaderText == '1Q' or SS1.ColumnHeaderText == '2Q' or SS1.ColumnHeaderText == '3Q' or SS1.ColumnHeaderText == '4Q' then</p>
+<p>SS1.ActiveCellBackColor = tonumber(-2031936)</p>
+<p>end</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 선택된 행 없으면 에러처리 (출력물)</p>
+<p>--==============================================================</p>
+<p>local cnt</p>
+<p>cnt = 0</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'Sel') == '1' then</p>
+<p>cnt = tonumber(cnt) + 1</p>
+<p>end</p>
+<p>end</p>
+<p>if tonumber(cnt) == 0 then</p>
+<p>msg = GetMessage('1001', GetDictionary(50484),'', '', '', '', '', '', '', '', '')</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 시트 컬럼 색깔 지정</p>
+<p>--==============================================================</p>
+<p>local col</p>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<blockquote>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ColumnHeaderRowIndex = 0</p>
+<p>if SS1.ColumnHeaderText == '생성종료일' then</p>
+<p>SetColumnHeaderForeColor(SS1, 0, SS1.ActiveColumnName, -65536, true)</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- TOTAL 색 없애기 (회색 지정)</p>
+<p>--==============================================================</p>
+<p>for row = 0, SS2.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS2.ActiveRow = row</p>
+<p>if CellText(SS2, row, 'ItemName') == 'TOTAL' then</p>
+<p>SS2.ActiveCol = -1</p>
+<p>SS2.ActiveCellBackColor = -986896</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 조회조건 날짜 Fr,To 숫자 입력</p>
+<p>--==============================================================</p>
+<p>if tonumber(fltSetDateMM.Value) \&lt; 1 or tonumber(fltSetDateMM.Value) &gt; 12 then</p>
+<blockquote>
+<p>MessageBoxShow('조회월은 1~12월 사이의 숫자로 입력해야합니다.','')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(fltSetDateMMTo.Value) \&lt; 1 or tonumber(fltSetDateMMTo.Value) &gt; 12 then</p>
+<blockquote>
+<p>MessageBoxShow('조회월은 1~12월 사이의 숫자로 입력해야합니다.','')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(fltSetDateMM.Value) &gt; tonumber(fltSetDateMMTo.Value) then</p>
+<blockquote>
+<p>MessageBoxShow('조회월이 잘못 입력 되었습니다.','')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 점프 후 두 번째 시트 바로 조회</p>
+<p>--==============================================================</p>
+<p>-- 첫 번째 행을 ActiveRow로 설정합니다.</p>
+<p>SS1.ActiveRow = 0</p>
+<p>-- 시트1 조회결과를 바탕으로, 첫 번째 행에 대한 더블클릭 결과를 바로 보여줘야합니다.</p>
+<p>RunPgmMethod('SS2Query')</p>
+<p>-- 삭제 버튼이 정상 동작하지 않는 오류를 피하기 위해, 아래와 같이 로직 추가하였습니다.</p>
+<p>_base.IsOpen = true</p>
+<p>--==============================================================</p>
+<p>-- 복사저장 (FrmWACForeSCAccReg_emk) (MR항목별계정과목등록(Forecasting)_emk)</p>
+<p>--==============================================================</p>
+<p>local rtnType</p>
+<p>-- 메시지박스(Yes OR No)</p>
+<p>rtnType = MessageBox(datBasicDateOld.Text..'월 데이터를 '..datBasicDate.Text..'월로 복사하여 저장하시겠습니까?', ' ', 'MsgBoxTypeYesNo')</p>
+<p>if rtnType == 1 then</p>
+<p>elseif (rtnType == 0) then</p>
+<p>datBasicDateOld.Text = datBasicDate.Text</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>if SS1.DataRowCnt == 0 then</p>
+<blockquote>
+<p>MessageBoxShow('쉬트에 자료가 없습니다. \n자료를 입력하세요.', '')</p>
+</blockquote>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 반복문 - 1~12월 컬럼 DIS;HID; (FrmWACMR7CAPEX_emk)</p>
+<p>--==============================================================</p>
+<p>local i, AccYM</p>
+<p>if chkAccYMHID.Value == '1' then</p>
+<blockquote>
+<p>for i=1, 12 do</p>
+<p>SS1.ActiveColumnName = 'BudYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>SS1.ActiveColumnName = 'CurYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>end</p>
+<p>else</p>
+<p>for i=1, 12 do</p>
+<p>SS1.ActiveColumnName = 'BudYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CurYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 글자색 / 폰트크기 / 배경색 (FrmWACMR7CAPEX_emk)</p>
+<p>-- 데이터가 0보다 작으면 빨간색 처리</p>
+<p>-- 일부 컬럼은 배경색 제거</p>
+<p>--==============================================================</p>
+<p>local ColName</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1 -- 전체 라인</p>
+<blockquote>
+<p>if CellText(SS1, row, 'BackColor') ~= nil and CellText(SS1, row, 'BackColor') ~= '' then</p>
+<p>SS1.ActiveCellBackColor = CellText(SS1, row, 'BackColor') --배경색</p>
+<p>end</p>
+<p>if CellText(SS1, row, 'fontColor') ~= nil and CellText(SS1, row, 'fontColor') ~= '' then</p>
+</blockquote>
+<p>SS1.ActiveCellForeColor = CellText(SS1, row, 'FontColor') -- 글자색</p>
+<blockquote>
+<p>end</p>
+</blockquote>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveCol = col</p>
+<blockquote>
+<p>-- 굵게 대신 폰트크기 적용</p>
+<p>if CellText(SS1, row, 'IsBold') == '1' then</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ActiveCellFontSize = 12</p>
+<p>end</p>
+<p>ColName = SS1.ActiveColumnName</p>
+<p>if col &gt;=4 and col \&lt;= 79 then</p>
+<p>-- 데이터가 0보다 작으면 빨간색으로 처리</p>
+<p>if tonumber(CellText(SS1, row, ColName)) \&lt; 0 then</p>
+<p>SS1.ActiveCellForeColor = -65536 --빨강</p>
+<p>end</p>
+<p>end</p>
+<p>-- 비고 컬럼은 배경색 제거</p>
+<p>if ColName == 'MonMemo' or ColName == 'YTDMemo' then</p>
+<p>SS1.ActiveCellBackColor = -1</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 멀티 헤더 명칭 변경 (FrmWACMR7CAPEX_emk)</p>
+<p>--==============================================================</p>
+<p>local CurYM, AccYM</p>
+<p>AccYM = datAccYM.Text</p>
+<p>CurYM = tonumber(string.sub(AccYM,1,4))</p>
+<p>SS1.ActiveColumnName = 'Actual' --멀티헤더시작의 컬럼명</p>
+<p>SS1.ColumnHeaderRowIndex = 0 --첫번째 헤더위치</p>
+<p>SS1.ColumnHeaderText = CurYM..' Actual' --변경하고 싶은 글자</p>
+<p>--==============================================================</p>
+<p>-- 조회조건 값에 따라 다이나믹 고정부, 가변부 컬럼 숨기기 (FrmWACGroupMR2GroupKindESPL_emk)</p>
+<p>--==============================================================</p>
+<p>local i</p>
+<p>if chkIsHidRemark.Value == '1' then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'MonthBudRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'MonthPYRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'YTDBudRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'YTDPYRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'MonthBudRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'MonthPYRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'YTDBudRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'YTDPYRemark'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+</blockquote>
+<p>end</p>
+<p>for col = SS1.SheetFixCols, SS1.MaxCols - 1 do</p>
+<blockquote>
+<p>SS1.ActiveCol = col</p>
+<p>if string.find(SS1.ActiveColumnName, 'DiffYM') ~= nil then</p>
+<p>if chkIsHidDiff.Value == '1' then</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>else</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 라벨 색상 / Label Color (Init)</p>
+<p>--==============================================================</p>
+<p>aKEditLabel19.Foreground = GetBrush(-65536)</p>
+<p>aKEditLabel204.Foreground = GetBrush("Red")</p>
+<p>--==============================================================</p>
+<p>-- 전체 선택</p>
+<p>--==============================================================</p>
+<p>local CheckValue</p>
+<p>if txtCheckAll.Value == '1' then</p>
+<blockquote>
+<p>CheckValue = '1'</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>CheckValue = '0'        </p>
+</blockquote>
+<p>end</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do                </p>
+<blockquote>
+<p>SetText(SS1, row, 'Sel', CheckValue)                        </p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 값이 없는 경우 코드도움 실행 취소 (FrmWSLWeighBridge_emk)</p>
+<p>--==============================================================</p>
+<p>local strTag, strCollector</p>
+<p>strTag                         = '00'</p>
+<p>strCollector        = ''</p>
+<p>-- 운반업체 코드도움 없으면 거래처 코드도움 실행취소</p>
+<p>if txtCollectorName.TextCd == 0 or txtCollectorName.TextCd == '' or txtCollectorName.TextCd == '0' or txtCollectorName.TextCd == nil then</p>
+<blockquote>
+<p>SS1.IsCodeHelpCancelEvent = true</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>if tonumber(txtWeighBridgeTypeName.Value) == 1000661001 or tonumber(txtWeighBridgeTypeName.Value) == 1000661004 then</p>
+<p>strTag = '01'</p>
+<p>end</p>
+<p>strCollector        = txtCollectorName.TextCd</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnCodeHelpParams = strTag..'|||'..strCollector</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 코드도움 선택된 행만 반복</p>
+<p>--==============================================================</p>
+<p>-- 코드도움에서 여러 항목 선택 시에도 성상 및 처리방법이 정상 설정되도록 수정하였습니다.</p>
+<p>-- CodeHelpSelectedRows를 정상적으로 가져오기 위해, SS1에 Changed로 연결하여 로직 작성하였습니다.</p>
+<p>local ActCol, StrRow, EndRow, ActiveRowOld, row</p>
+<p>ActCol = SS1.ActiveColumnName</p>
+<p>EndRow = SS1.ActiveRow + SS1.CodeHelpSelectedRows - 1</p>
+<p>if SS1.ActiveRow &gt; EndRow then</p>
+<blockquote>
+<p>EndRow = SS1.ActiveRow</p>
+</blockquote>
+<p>end</p>
+<p>-- 여기서 ActiveRow에 대해 동작하는 이벤트메서드를 호출합니다.</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>for row = SS1.ActiveRow, EndRow, 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>RunPgmMethod('SS1GetWasteInfo') -- SS ActiveRow Get...</p>
+<p>RunPgmMethod('SS1ItemNameChg')</p>
+</blockquote>
+<p>end</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+<p>--==============================================================</p>
+<p>-- 시트 높이 고정</p>
+<p>--==============================================================</p>
+<p>for row = 0, 6 do                </p>
+<blockquote>
+<p>SetRowHeight(SS1, row, 20)</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 멀티 헤더 높이 고정</p>
+<p>--==============================================================</p>
+<p>SS1.ColumnHeaderRowsHeight = 20</p>
+<p>--==============================================================</p>
+<p>-- 컬럼의 특정 위치 DIS 처리</p>
+<p>--==============================================================</p>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<blockquote>
+<p>SS1.ActiveCol = col</p>
+<p>if SS1.ActiveColumnName == 'RKDayPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true                </p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'RKDayResult' then                </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true                </p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'RKDayDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true                </p>
+<p>end        </p>
+<p>if SS1.ActiveColumnName == 'RKMonthPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                </p>
+<p>if SS1.ActiveColumnName == 'RKMonthDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'RKMonthTarget' then        </p>
+<p>SS1.ActiveRow = 1</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'RKMonthProcRate' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STDayPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STDayResult' then        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STDayDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthTarget' then        </p>
+<p>SS1.ActiveRow = 1</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthProcRate' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 체크 컬럼 클릭 시 DIS 처리</p>
+<p>--==============================================================</p>
+<p>-- ets 로직 추가 23.07.17 SJPARK</p>
+<p>-- 표준품인 경우 품목추가정보와 겹치지 않도록 ets 추가 컬럼 DIS 처리</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'ISStd') == '1' and SS1.WorkingTag == 'A' then        </p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'AssyName'         </p>
+<p>SS1.ActiveCellReadOnly = false</p>
+<p>SS1.ActiveColumnName = 'AfterTx'         </p>
+<p>SS1.ActiveCellReadOnly = false</p>
+<p>SS1.ActiveColumnName = 'HeatTx'         </p>
+<p>SS1.ActiveCellReadOnly = false</p>
+<p>SS1.ActiveColumnName = 'QCYN'         </p>
+<p>SS1.ActiveCellReadOnly = false</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'AssyName'         </p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'AfterTx'         </p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'HeatTx'         </p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'QCYN'         </p>
+<p>SS1.ActiveCellReadOnly = true</p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 조회 시 일부 컬럼 DIS 처리</p>
+<p>--==============================================================</p>
+<p>local row</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveColumnName = 'PurUnitName'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'AssyName'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'AfterTx'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'HeatTx'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'QCYN'</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+</blockquote>
+<p>end</p>
+<p>--==============================================================</p>
+<p>-- 컬럼 전부 DIS 처리 및 툴바 DIS 처리</p>
+<p>--==============================================================</p>
+<p>local ErrorChk</p>
+<p>for row = 0, SS1.DataRowCnt-1 do</p>
+<p>if CellText(SS1, row, 'DelvOrderSeq') ~= '0' then                </p>
+<p>SS1.ActiveRow = row                </p>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end</p>
+<p>else</p>
+<blockquote>
+<p>ErrorChk = '1'</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>if ErrorChk == '1' then</p>
+<blockquote>
+<p>GetToolbar('Save').EventArgs.Disable = false</p>
+<p>GetToolbar('Cut').EventArgs.Disable = false</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>GetToolbar('Save').EventArgs.Disable = true</p>
+<p>GetToolbar('Cut').EventArgs.Disable = true</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

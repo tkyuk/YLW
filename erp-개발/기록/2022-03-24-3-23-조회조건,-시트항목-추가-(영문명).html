@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\- 3/23 - 조회조건, 시트항목 추가 (영문명)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\- 3/23 - 조회조건, 시트항목 추가 (영문명)</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-323-">- 3/23 - 조회조건, 시트항목 추가 (영문명)</h1>
+<ul>
+<li>구매단가등록_sdng</li>
+</ul>
+<p><img alt="" src="assets/3-23-조회조건,-시트항목-추가-(영문명)/image23.png" /></p>
+<p><strong>1. 조회조건 추가</strong></p>
+<p>**  (1) 영문명**</p>
+<p>**      - TEXT**</p>
+<p>**      - 품목마스터의 영문명과 Like조건**</p>
+<p>영문명 - ItemEngName</p>
+<p><strong>2. 시트항목 추가</strong></p>
+<p>**  (1) 영문명**</p>
+<p>**      - TEXT, DIS**</p>
+<p>**      - 규격컬럼 뒤로 추가해주세요.**</p>
+<p>영문명 - ItemEngName - DIS;CLC;</p>
+<ul>
+<li>비즈니스</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>BSSPUBaseBuyPrice_sdng</li>
+</ul>
+<blockquote>
+<p>Query에만 추가</p>
+</blockquote>
+<p><img alt="" src="assets/3-23-조회조건,-시트항목-추가-(영문명)/image24.png" /></p>
+<p>** SP</p>
+<p><img alt="" src="assets/3-23-조회조건,-시트항목-추가-(영문명)/image25.png" /></p>
+<p>DECLARE (조회조건)</p>
+<blockquote>
+<p>- @ItemEngName NVARCHAR(100)</p>
+</blockquote>
+<p>SELECT (조회조건)</p>
+<p>- @ItemEngName = ISNULL(ItemEngName, '')</p>
+<p>SELECT</p>
+<p>- B.ItemEngName AS ItemEngName (B = _TDAItem)</p>
+<p>WHERE</p>
+<p>- AND (@ItemEngName = '' OR LTRIM(B.ItemEngName) LIKE @ItemEngName + N'%') -- 영문명 추가 (앞에 공백 있는 데이터가 존재하여 LTRIM 처리) 20220323 KHKANG</p>
+  </article>
+</div>
+</body>
+</html>

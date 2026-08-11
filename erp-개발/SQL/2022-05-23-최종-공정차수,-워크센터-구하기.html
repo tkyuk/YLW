@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>최종 공정차수, 워크센터 구하기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>최종 공정차수, 워크센터 구하기</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">최종 공정차수, 워크센터 구하기</h1>
+<p>UPDATE #TMESWorkReport</p>
+<p>SET ProcRev = B.ProcRev</p>
+<p>FROM #TMESWorkReport AS A JOIN (SELECT A.ItemSeq, MAX(B.ProcRev) AS ProcRev</p>
+<p>FROM #TMESWorkReport AS A JOIN _TPDROUItemProcRevFactUnit AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = B.BizUnit</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>GROUP BY A.ItemSeq) AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE ISNULL(A.WorkOrderSeq,0) = 0</p>
+<p>UPDATE #TMESWorkReport</p>
+<p>SET ProcSeq = B.ProcSeq,</p>
+<p>WorkCenterSeq = C.WorkcenterSeq</p>
+<p>FROM #TMESWorkReport AS A JOIN (SELECT A.ItemSeq, B.ProcRev, MAX(B.ProcSeq) AS ProcSeq</p>
+<p>FROM #TMESWorkReport AS A JOIN _TPDROUItemProc AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = B.BizUnit</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.ProcRev = B.ProcRev</p>
+<p>WHERE ISNULL(A.WorkOrderSeq,0) = 0</p>
+<p>GROUP BY A.ItemSeq, B.ProcRev) AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.ProcRev = B.ProcRev</p>
+<p>JOIN _TPDROUItemProcWC AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = C.BizUnit</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ProcRev = C.ProcRev</p>
+<p>AND B.ProcSeq = C.ProcSeq</p>
+<p>WHERE ISNULL(A.WorkOrderSeq,0) = 0</p>
+  </article>
+</div>
+</body>
+</html>

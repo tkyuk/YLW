@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컨트롤에 따른 원화, 외화 소수점 자리수 세팅</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>컨트롤에 따른 원화, 외화 소수점 자리수 세팅</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">컨트롤에 따른 원화, 외화 소수점 자리수 세팅</h1>
+<p>-- 원화 소수점 자리수</p>
+<p>if cmbSMCurrTypeName.Value == '8056001' then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'Qty'</p>
+<p>SS1.ColumnDeclength = _base.ENV_DecLenGoodsQty</p>
+<p>SS1.ActiveColumnName = 'SalesAmt'</p>
+<p>SS1.ColumnDeclength = _base.ENV_DecLenKOR</p>
+</blockquote>
+<p>-- 외화</p>
+<p>elseif cmbSMCurrTypeName.Value == '8056002' then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'Qty'</p>
+<p>SS1.ColumnDeclength = _base.ENV_DecLenGoodsQty</p>
+<p>SS1.ActiveColumnName = 'SalesAmt'</p>
+<p>SS1.ColumnDeclength = _base.ENV_DecLenFOR</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

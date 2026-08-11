@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드도움 행만큼 금액계산</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드도움 행만큼 금액계산</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">코드도움 행만큼 금액계산</h1>
+<p>local ActCol, StrRow, EndRow, ActiveRowOld, row</p>
+<p>ActCol = SS1.ActiveColumnName</p>
+<p>EndRow = SS1.ActiveRow + SS1.CodeHelpSelectedRows - 1</p>
+<p>if SS1.ActiveRow &gt; EndRow then</p>
+<blockquote>
+<p>EndRow = SS1.ActiveRow</p>
+</blockquote>
+<p>end</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>for row = SS1.ActiveRow, EndRow, 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>if tonumber(CellText(SS1, SS1.ActiveRow, 'UMSelfPayType')) == 0 then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'IsVATDiv' ,'0')                </p>
+<p>end</p>
+<p>if chkIsKEAD.Text == '1' then</p>
+<p>-- 부가세 분할여부 체크 건인 경우</p>
+<p>if tonumber(CellText(SS1, SS1.ActiveRow, 'IsVATDiv')) == 1 then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'SupplyAmt' ,tonumber(CellText(SS1, row, 'OrgAmt')))         -- 부가세공급가액 = 기관부담금</p>
+<p>SetText(SS1, SS1.ActiveRow, 'SupplyAmt_PG' , tonumber(CellText(SS1, row, 'PersAmt'))) -- 부가세공급가액(PG) = 개인부담금</p>
+<p>else</p>
+<p>SetText(SS1, SS1.ActiveRow, 'SupplyAmt' ,tonumber(CellText(SS1, row, 'OrgAmt')) + tonumber(CellText(SS1, row, 'PersAmt')))         -- 부가세공급가액 = 기관부담금 + 개인부담금</p>
+<p>SetText(SS1, SS1.ActiveRow, 'SupplyAmt_PG' ,'0') -- 부가세공급가액(PG) = 0</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+  </article>
+</div>
+</body>
+</html>

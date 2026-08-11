@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자동입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>자동입력</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-31</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">자동입력</h1>
+<p>for row = 0, SS2.DataRowCnt-1 do</p>
+<p>SS2.ActiveRow = row</p>
+<p>SetText(SS2, SS2.ActiveRow, 'QuoteDelvDate', datQuoteDelvDate.Value)</p>
+<p>if SS2.WorkingTag ~= 'A' then</p>
+<p>SS2.WorkingTag = 'U'</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

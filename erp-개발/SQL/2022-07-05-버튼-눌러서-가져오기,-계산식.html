@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>버튼 눌러서 가져오기, 계산식</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>버튼 눌러서 가져오기, 계산식</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">버튼 눌러서 가져오기, 계산식</h1>
+<p>버튼 눌러서 가져오기</p>
+<p>운전자금(유산스)_mcnk</p>
+<p>차입명                        LCNo                        BL일자                        수입처                        금융기관                        수입비용전표번호                통화                        LC개설일</p>
+<p>DROP TABLE #TMP</p>
+<p>DROP TABLE #TMP2</p>
+<p>DECLARE @BLDateFr NCHAR(8),</p>
+<p>@BLDateTo NCHAR(8),</p>
+<p>@LCNo NVARCHAR(100)</p>
+<p>SELECT @BLDateFr = '20210701'</p>
+<p>SELECT @BLDateTo = '20220730'</p>
+<p>CREATE TABLE #TMP</p>
+<p>(</p>
+<p>BLSeq INT,</p>
+<p>LCSeq INT,</p>
+<p>BLNo NVARCHAR(100),</p>
+<p>BLDate NCHAR(8)</p>
+<p>)</p>
+<p>INSERT INTO #TMP</p>
+<p>SELECT B.BLSeq,</p>
+<p>A.MngValSeq,</p>
+<p>B.BLNo,</p>
+<p>B.BLDate</p>
+<p>FROM _TSLExpImpInfo AS A WITH(NOLOCK)</p>
+<p>JOIN _TUIImpBL AS B WITH(NOLOCK) ON A.CompanySeq =B.CompanySeq AND A.KeySeq =B.BLSeq</p>
+<p>WHERE MngSerl = 2025</p>
+<p>AND MngValSeq \&lt;&gt;0 -- 수입BL등록의 수입정보 탭에 LCNo가 있는 데이터</p>
+<p>AND BLDate &gt;= @BLDateFr</p>
+<p>AND BLDate \&lt;= @BLDateTo</p>
+<p>AND A.TableSeq = 43</p>
+<p>SELECT</p>
+<p>ISNULL(T.BLSeq , 0) AS BLSeq ,</p>
+<p>ISNULL(T.LCSeq , 0) AS LCSeq ,</p>
+<p>ISNULL(T.BLDate ,'') AS BLDate ,</p>
+<p>ISNULL(A.CustSeq , 0) AS CustSeq , -- 수입처코드</p>
+<p>ISNULL(G.CustName , 0) AS CustName , -- 수입처</p>
+<p>'' AS ExpenseSlip , -- 수입비용전표번호</p>
+<p>0 AS ExpenseSlipSeq , -- 수입비용전표코드</p>
+<p>ISNULL(H.PaymentDate ,'') AS LCDate -- LC개설일</p>
+<p>INTO #TMP2</p>
+<p>FROM #TMP AS T</p>
+<p>JOIN _TSLExpExpense AS A WITH(NOLOCK) ON A.CompanySeq =1 --@CompanySeq</p>
+<p>AND A.SourceSeq = T.BLSeq</p>
+<p>AND A.SMSourceType = 8215004</p>
+<p>LEFT OUTER JOIN _TDACust AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.CustSeq = A.CustSeq</p>
+<p>JOIN _TSLImpPayment AS H WITH(NOLOCK) ON H.CompanySeq =1 --@CompanySeq</p>
+<p>AND H.PaymentSeq = T.LCSeq</p>
+<p>ORDER BY T.BLSeq, T.LCSeq</p>
+<p>SELECT * FROM #TMP2 ORDER BY BLSeq, LCSeq</p>
+  </article>
+</div>
+</body>
+</html>

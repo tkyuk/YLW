@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>번호 매기기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>번호 매기기</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">번호 매기기</h1>
+<p>UPDATE A</p>
+<p>SET CustSeq = ISNULL(B.MaxSerl, 0) + ISNULL(B.Serl, 0)</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN ( SELECT A.IDX_NO,</p>
+<p>A.QuoteSeq,</p>
+<p>MAX(ISNULL(B.CustSeq, 0)) AS MaxSerl,</p>
+<p>ROW_NUMBER() OVER(PARTITION BY A.QuoteSeq ORDER BY A.QuoteSeq) AS Serl</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>LEFT OUTER JOIN gcos_TPUQuoteReqCust AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.QuoteSeq = B.QuoteSeq</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>GROUP BY A.IDX_NO, A.QuoteSeq</p>
+<p>)</p>
+<p>AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+  </article>
+</div>
+</body>
+</html>

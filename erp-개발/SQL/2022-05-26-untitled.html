@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022-05-26-untitled</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2022-05-26-untitled</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>인원현황 예외자 등록 화면에 등록된 사원은 제외되어서 조회</p>
+<p>변수를 담는 임시테이블에 예외자 사원 코드 추가와</p>
+<p>인원현황 예외자 테이블을 join 걸어서 하려함</p>
+<p>LEFT OUTER JOIN _THRInfExEmp AS E WITH(NOLOCK) ON A.CompanySeq = E.Compan</p>
+<p>AND A.EmpSeq = E.EmpSeq</p>
+<p>==&gt; 서브쿼리를 통해 WHERE 문에 바로 추가</p>
+<p>AND A.EmpSeq NOT IN (SELECT EmpSeq</p>
+<p>FROM _THRInfExEmp WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND @BaseDate BETWEEN BegDate AND EndDate)</p>
+  </article>
+</div>
+</body>
+</html>

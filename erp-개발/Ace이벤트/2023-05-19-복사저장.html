@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>복사저장</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>복사저장</h1>
+    <div class="meta">
+      <span class="note-date">2023-05-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">복사저장</h1>
+<p>FrmWACForeSCAccReg_emk</p>
+<p>MR항목별계정과목등록(Forecasting)_emk</p>
+<p><img alt="" src="assets/복사저장/image44.png" /></p>
+<p>local rtnType</p>
+<p>-- 메시지박스(Yes OR No)</p>
+<p>rtnType = MessageBox(datBasicDateOld.Text..'월 데이터를 '..datBasicDate.Text..'월로 복사하여 저장하시겠습니까?', ' ', 'MsgBoxTypeYesNo')</p>
+<p>if rtnType == 1 then</p>
+<p>elseif (rtnType == 0) then</p>
+<p>datBasicDateOld.Text = datBasicDate.Text</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>if SS1.DataRowCnt == 0 then</p>
+<blockquote>
+<p>MessageBoxShow('쉬트에 자료가 없습니다. \n자료를 입력하세요.', '')</p>
+</blockquote>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

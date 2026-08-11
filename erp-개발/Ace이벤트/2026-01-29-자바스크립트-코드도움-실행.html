@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자바스크립트 코드도움 실행</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>자바스크립트 코드도움 실행</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">자바스크립트 코드도움 실행</h1>
+<p>1. 코드도움 실행을 위한 데이터 담기</p>
+<p>var args = {</p>
+<p>CodeHelpConst: 108720024,   //실행하려는 코드도움 Seq 값</p>
+<p>CodeHelpParam1: "",  //실행하려는 코드도움 Param1 값</p>
+<p>CodeHelpParam2: "",  //실행하려는 코드도움 Param2 값</p>
+<p>CodeHelpParam3: "",  //실행하려는 코드도움 Param3 값</p>
+<p>CodeHelpParam4: "",  //실행하려는 코드도움 Param4 값</p>
+<p>FieldName: "WorkOrderNo",            //실행하려는 코드도움 DataFieldName 값</p>
+<p>FieldCd: "WorkOrderSeq",              //실행하려는 코드도움 DataFieldCd 값</p>
+<p>editingText: "",               //실행하려는 코드도움의 Text 값</p>
+<p>col: 0,                          //Sheet ActiveCol </p>
+<p>row: 0,                          //Sheet ActiveRow</p>
+<p>isPasting: true,</p>
+<p>Control: txtWorkOrderNo, //Active Sheet</p>
+<p>Page: _Page //현재 화면 객체 정보</p>
+<p>};</p>
+<p>﻿</p>
+<p>2. 코드도움 실행</p>
+<p>txtWorkOrderNo.kevent_codehelp(args);</p>
+<p>﻿</p>
+<p>* 참고화면</p>
+<p>FrmWPDPOPWorkReportTS_ssv &gt; JS\$OrderNo</p>
+<p>출처: \&lt;<a href="https://call.sysware.co.kr/">https://call.sysware.co.kr/</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

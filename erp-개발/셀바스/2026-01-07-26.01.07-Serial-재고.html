@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26.01.07 Serial 재고</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>26.01.07 Serial 재고</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="260107-serial">26.01.07 Serial 재고</h1>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 10 -- 거래명세표 _SWLGInOutDailyForInvoice</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 12 -- 수출INVOICE _SWLGInOutDailyForInvoice</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 140 -- 생산입고 _SWLGInOutDailyforGoodIn</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 30 -- 기타출고 _SWLGInOutDailyForEtcOut</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 40 -- 기타입고 _SWLGInOutDailyForEtcIn</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 81 -- 적송 _SWLGInOutDailyForMove</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 10 -- 거래명세표 _SWLGInOutDailyForInvoice</p>
+<p>-- svs_SWLGEtcInOutSerialNotSubCheck</p>
+<p>-- svs_SWLGEtcInOutSerialNotSubSave</p>
+<p>-- svs_SWSLInvoiceDelvCfmSave</p>
+<p>-- 출고창고(-) 0 1</p>
+<p>-- 매출대기창고 (+) 0 2</p>
+<p>-- 판매후보관창고 (+) 0 3</p>
+<p>-- 세트구성품 세트구성품창고 (-) 1 4</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 12 -- 수출INVOICE _SWLGInOutDailyForInvoice</p>
+<p>-- 거래명세서와 동일</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 140 -- 생산입고 _SWLGInOutDailyforGoodIn</p>
+<p>-- svs_SWPDSFCWorkReportSerialCheck</p>
+<p>-- svs_SWPDSFCWorkReportSerialSave</p>
+<p>/*</p>
+<p>제품입고 (+) 0 1</p>
+<p>제품입고 (-) 0 2</p>
+<p>*/</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 30 -- 기타출고 _SWLGInOutDailyForEtcOut</p>
+<p>-- svs_SWLGEtcInOutSerialNotSubCheck</p>
+<p>-- svs_SWLGEtcInOutSerialNotSubSave</p>
+<p>/*</p>
+<p>출고창고(-) 0 1</p>
+<p>구성품 출고창고(-) 0 2</p>
+<p>*/</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 40 -- 기타입고 _SWLGInOutDailyForEtcIn</p>
+<p>-- svs_SWLGEtcInOutSerialSubCheck</p>
+<p>-- svs_SWLGEtcInOutSerialSubSave</p>
+<p>/*</p>
+<p>입고창고 0 1</p>
+<p>구성품 출고창고 0 2</p>
+<p>*/</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutStock WHERE INOUTTYPE = 81 -- 적송 _SWLGInOutDailyForMove</p>
+<p>-- svs_SWLGEtcInOutSerialNotSubCheck</p>
+<p>-- svs_SWLGEtcInOutSerialNotSubSave</p>
+<p>-- 적송입고</p>
+<p>-- svs_SWLGEtcInOutCfmCheck</p>
+<p>-- svs_SWLGEtcInOutCfm</p>
+<p>/*</p>
+<p>출고 1 1</p>
+<p>입고(적송중) 1 2</p>
+<p>적송자동입고(출고-적송중 창고입고) 2 3</p>
+<p>입고 2 4</p>
+<p>*/</p>
+<p>/*</p>
+<p>svs_SWLGEtcInOutSerialNotSubCheck</p>
+<p>svs_SWLGEtcInOutSerialNotSubSave</p>
+<p>거래명세표 10 : 0 1</p>
+<p>수출INVOICE 12 : 0 1</p>
+<p>기타출고 30 : 0 1</p>
+<p>적송출고 81 : 1 1</p>
+<p>svs_SWPDSFCWorkReportSerialCheck</p>
+<p>svs_SWPDSFCWorkReportSerialSave</p>
+<p>생산입고 140 : 0 1</p>
+<p>svs_SWLGEtcInOutSerialSubCheck</p>
+<p>svs_SWLGEtcInOutSerialSubSave</p>
+<p>기타입고 40 : 0 1</p>
+<p>svs_SWLGEtcInOutCfm</p>
+<p>적송입고 81 : 2 4</p>
+<p>*/</p>
+<p>/*</p>
+<p>`</p>
+<p>/*</p>
+<p>1. svs_SWLGEtcInOutSerialNotSubSave</p>
+<p>InOutDataSerl = 1</p>
+<p>수정 : DataKind =&gt; 81인 경우만 1 아니면 0</p>
+<p>-- Serial 재고 생성</p>
+<p>InOutDataSerl = 1</p>
+<p>*/</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutSerialStock WHERE InOutType = 10</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutSerialStock WHERE InOutType = 12</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutSerialStock WHERE InOutType = 30</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutSerialStock WHERE InOutType = 40</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutSerialStock WHERE InOutType = 140</p>
+<p>SELECT DISTINCT DataKind, InOutDataSerl FROM _TLGInOutSerialStock WHERE InOutType = 81</p>
+  </article>
+</div>
+</body>
+</html>

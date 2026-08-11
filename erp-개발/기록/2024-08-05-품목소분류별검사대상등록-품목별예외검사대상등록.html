@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품목소분류별검사대상등록 / 품목별예외검사대상등록</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>품목소분류별검사대상등록 / 품목별예외검사대상등록</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">품목소분류별검사대상등록 / 품목별예외검사대상등록</h1>
+<p>SELECT A.EnvValue, B.WHName</p>
+<p>FROM _TCOMEnv AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAWH AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.EnvValue = B.WHSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.EnvSeq = 2000062 -- 검사품입고창고_biont</p>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>/*</p>
+<p>SELECT DISTINCT</p>
+<p>A.MinorSeq AS UMItemClass,</p>
+<p>A.MinorName AS UMItemClassName,</p>
+<p>B.IsNotQC,</p>
+<p>C.ItemClassMName AS UMItemClassNameM,</p>
+<p>C.ItemClassLName AS UMItemClassNameL,</p>
+<p>B.IsFinQC,</p>
+<p>B.IsInQC,</p>
+<p>B.IsOutQC,</p>
+<blockquote>
+<p>CASE WHEN A.MajorSeq = 2001 THEN (SELECT MinorName FROM _TDASMinor WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND MinorSeq = 8010001)</p>
+<p>ELSE (SELECT MinorName FROM _TDASMinor WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND MinorSeq = 8010002) END AS SMItemTypeName,</p>
+<p>CASE WHEN A.MajorSeq = 2001 THEN 8010001 ELSE 8010002 END AS SMItemType,</p>
+</blockquote>
+<p>B.IsAfterQCPAM,</p>
+<p>B.IsPurQC,</p>
+<p>B.IsOspQC,</p>
+<p>B.IsPMSOutQc</p>
+<p>FROM _TDAUMinor AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TPDQAItemClassQCKind AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.MinorSeq = B.UMItemClass</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS C WITH(NOLOCK) ON A.MinorSeq = C.ItemClassSSeq</p>
+<p>AND A.CompanySeq = C.CompanySeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq IN (2001, 2004)</p>
+<p>ORDER BY CASE WHEN A.MajorSeq = 2001 THEN 8010001 ELSE 8010002 END, C.ItemClassLName, C.ItemClassMName, A.MinorName                -- By 18.05.28 hjlim 수정 (품목구분, 대분류명, 중분류명, 소분류명 순으로 정렬)</p>
+<p>SELECT *</p>
+<p>FROM _TPDQAItemQCKind</p>
+<p>SELECT * FROM _TDASMinor WHERE MajorSeq = 6018</p>
+<p>*/</p>
+<p>-- 인수검사 IsInQC        </p>
+<p>-- 최종검사 IsFinQC        </p>
+<p>-- 출하검사 IsOutQC        </p>
+<p>-- 입고후시험 IsAfterQCPAM</p>
+<p>-- 외주검사 IsOspQC        </p>
+<p>-- 구매검사 IsPurQC        </p>
+<p>-- 공정시험 IsPMSOutQC</p>
+<p>/*</p>
+<p>6018001 공정검사</p>
+<p>6018002 인수검사</p>
+<p>6018003 최종검사</p>
+<p>6018004 출하검사</p>
+<p>6018005 구매검사</p>
+<p>6018006 외주검사</p>
+<p>6018008 입고후시험</p>
+<p>*/</p>
+<p>SELECT A.ItemSeq,</p>
+<p>C.IsInQC,</p>
+<p>C.IsAfterQCPAM</p>
+<p>FROM _TDAItem AS A</p>
+<p>JOIN _TDAItemClass AS B WITH(NOLOCK) ON B.ItemSeq = A.ItemSeq</p>
+<p>AND B.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _TPDQAItemClassQCKind AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.UMItemClass = B.UMItemClass</p>
+<p>WHERE A.ItemSeq = 25359</p>
+<p>--SELECT * FROM _TPDQAItemClassQCKind WHERE UMItemClass = 2001035</p>
+<p>SELECT A.ItemSeq,</p>
+<p>CASE WHEN B.IsUse = '1' THEN '1' ELSE '0' END AS IsInQC,</p>
+<p>CASE WHEN C.IsUse = '1' THEN '1' ELSE '0' END AS IsAfterQCPAM</p>
+<p>FROM _TDAItem AS A</p>
+<p>LEFT OUTER JOIN _TPDQAItemQCKind AS B WITH(NOLOCK) ON B.CompanySeq = 1</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.SMQcKind = 6018002</p>
+<p>LEFT OUTER JOIN _TPDQAItemQCKind AS C WITH(NOLOCK) ON C.CompanySeq = 1</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>AND C.SMQcKind = 6018003</p>
+<p>WHERE A.ItemSeq = 25359</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serial별 재고 합</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>Serial별 재고 합</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="serial">Serial별 재고 합</h1>
+<p>SELECT A.SerialNo, B.ItemNo, ISNULL(H.SumInOut,0),H.*</p>
+<p>FROM _TLGSerialMaster                                        AS A WITH (NOLOCK)</p>
+<blockquote>
+<p>JOIN svs_TLGSerialMaster        AS A1 WITH (NOLOCK) ON A1.CompanySeq = A.CompanySeq</p>
+<p>AND A1.SerialNo         = A.SerialNo</p>
+<p>LEFT OUTER JOIN _TDAItem        AS B WITH (NOLOCK) ON A.CompanySeq        = B.CompanySeq</p>
+<p>AND A.ItemSeq                = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit        AS C WITH (NOLOCK) ON B.CompanySeq        = C.CompanySeq</p>
+<p>AND B.UnitSeq                = C.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAWH                AS D WITH (NOLOCK) ON A.CompanySeq        = D.CompanySeq</p>
+<p>AND A.WHSeq                = D.WHSeq</p>
+<p>LEFT OUTER JOIN _TDACust        AS E WITH (NOLOCK) ON E.CompanySeq        = A.CompanySeq</p>
+<p>AND E.CustSeq                = A.CustSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItemClass AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.ItemSeq = A.ItemSeq</p>
+<p>AND F.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS G WITH(NOLOCK) ON G.CompanySeq = F.CompanySeq</p>
+<p>AND G.ItemClassSSeq = F.UMItemClass</p>
+<p>LEFT OUTER JOIN (SELECT H.SerialNo, SUM(InOut) AS SumInOut</p>
+<p>FROM _TLGInOutSerialStock AS H WITH(NOLOCK)</p>
+<p>GROUP BY H.SerialNo) AS H ON H.SerialNo = A.SerialNo</p>
+<p>ORDER BY 3,2</p>
+  </article>
+</div>
+</body>
+</html>

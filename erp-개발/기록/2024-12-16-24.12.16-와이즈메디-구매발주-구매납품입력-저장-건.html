@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.16 와이즈메디 구매발주 -\> 구매납품입력 저장 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.16 와이즈메디 구매발주 -\> 구매납품입력 저장 건</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241216-">24.12.16 와이즈메디 구매발주 -&gt; 구매납품입력 저장 건</h1>
+<p>DROP PROC STSLotMngInitQtySave_MG_TTEST</p>
+<p>GO</p>
+<p>CREATE PROC STSLotMngInitQtySave_MG_TTEST</p>
+<p>@pWorkingTag CHAR(1) = null,</p>
+<p>@pAccUnit CHAR(2) = null,</p>
+<p>@pOwnerKind CHAR(1) = null,</p>
+<p>@pPlaceKind CHAR(1) = null,</p>
+<p>@pPlaceCd VARCHAR(6) = null,</p>
+<p>@pCustCd CHAR(6) = null,</p>
+<p>@pItemCd CHAR(6) = null,</p>
+<p>@pUnitCd CHAR(3) = null,</p>
+<p>@pLotNo NVARCHAR(20) = null,</p>
+<p>@pQty NUMERIC(19, 5) = null,</p>
+<p>@pLotNoOld NVARCHAR(20) = null,</p>
+<blockquote>
+<p>@pDelvDate                CHAR(8)                = '',</p>
+<p>@pCustLotNo                NVARCHAR(20) = '',</p>
+<p>@pRemark                VARCHAR(1000) = '',</p>
+<p>@pLoginId                CHAR(8) = '',</p>
+<p>@pIsSub                        CHAR(1) = '',                        -- @pIsSub \&lt;&gt; '1' : Lot기초재고수량등록에서 들어옴 , @pIsSub = '1' 서브Sp로 들어옴</p>
+</blockquote>
+<p>@pStatus NVARCHAR(10) = null OUTPUT,</p>
+<p>@pResults NVARCHAR(3000) = null OUTPUT</p>
+<p>AS</p>
+<p>DECLARE @wStkYM CHAR(6), @wPlaceKind CHAR(1), @wnStkQty NUMERIC(19, 5),</p>
+<p>@vcStatus NVARCHAR(10),</p>
+<p>@vcResults NVARCHAR(250),</p>
+<blockquote>
+<p>@vcCurrDate                        CHAR(12)</p>
+<p>SELECT                @pWorkingTag        = LTRIM(RTRIM(ISNULL(@pWorkingTag,''))),</p>
+<p>@pAccUnit = LTRIM(RTRIM(ISNULL(@pAccUnit ,''))),</p>
+<p>@pOwnerKind = LTRIM(RTRIM(ISNULL(@pOwnerKind ,''))),</p>
+<p>@pPlaceKind = LTRIM(RTRIM(ISNULL(@pPlaceKind ,''))),</p>
+<p>@pPlaceCd = LTRIM(RTRIM(ISNULL(@pPlaceCd ,''))),</p>
+<p>@pCustCd = LTRIM(RTRIM(ISNULL(@pCustCd ,''))),</p>
+<p>@pItemCd = LTRIM(RTRIM(ISNULL(@pItemCd ,''))),</p>
+<p>@pUnitCd = LTRIM(RTRIM(ISNULL(@pUnitCd ,''))),</p>
+<p>@pLotNo = LTRIM(RTRIM(ISNULL(@pLotNo ,''))),</p>
+<p>@pQty = LTRIM(RTRIM(ISNULL(@pQty ,0))),</p>
+<p>@pLotNoOld = LTRIM(RTRIM(ISNULL(@pLotNoOld ,''))),</p>
+<p>@pDelvDate                = LTRIM(RTRIM(ISNULL(@pDelvDate        ,''))),</p>
+<p>@pCustLotNo                = LTRIM(RTRIM(ISNULL(@pCustLotNo,''))),</p>
+<p>@pRemark                = LTRIM(RTRIM(ISNULL(@pRemark        ,''))),</p>
+<p>@pLoginId                = LTRIM(RTRIM(ISNULL(@pLoginId        ,'')))</p>
+</blockquote>
+<p>SELECT @vcStatus = 'OK', @vcResults = 'X'</p>
+<p>EXEC SDAGetSystemDate @vcCurrDate OUTPUT</p>
+<p>SELECT @wStkYM = MIN(StartYYMM)</p>
+<p>FROM TSBAccStart</p>
+<p>WHERE AccUnit = @pAccUnit</p>
+<p>IF @pUnitCd = ''</p>
+<p>SELECT @pUnitCd = StkUnitCd FROM TDAItemMaster WHERE ItemCd = @pitemCd</p>
+<p>SELECT @wPlaceKind = '', @wPlaceKind = ''</p>
+<p>IF LEN(LTRIM(RTRIM(@pPlaceCd))) = '2'</p>
+<p>SELECT @wPlaceKind = 'W'</p>
+<p>ELSE IF LEN(LTRIM(RTRIM(@pPlaceCd))) = '5'</p>
+<p>SELECT @wPlaceKind = 'D'</p>
+<p>ELSE IF LEN(LTRIM(RTRIM(@pPlaceCd))) = '6'</p>
+<p>SELECT @wPlaceKind = 'C'</p>
+<p>IF @pWorkingTag = 'A'</p>
+<p>GOTO ADD_PROC</p>
+<p>ELSE IF @pWorkingTag = 'U'</p>
+<p>GOTO UPDATE_PROC</p>
+<p>ELSE IF @pWorkingTag = 'D'</p>
+<p>GOTO DELETE_PROC</p>
+<p>RETURN</p>
+<p>ADD_PROC:</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM TTSLotMngUnit</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNo</p>
+<p>AND AccUnit = @pAccUnit AND OwnerKind = @pOwnerKind</p>
+<p>AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd)</p>
+<p>BEGIN</p>
+<blockquote>
+<p>IF EXISTS(SELECT TOP 1 1 FROM TTSLotMngUnit</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNo</p>
+<p>AND AccUnit = @pAccUnit AND OwnerKind = @pOwnerKind</p>
+<p>AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd AND UnitBaseQty = 0)</p>
+<p>BEGIN</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM TTSLotMng_MG WHERE AccUnit = @pAccUnit AND ItemCd = @pItemCd AND LotNo = @pLotNo)</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DUP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DUP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>INSERT TTSLotMng_MG</p>
+<p>(AccUnit,ItemCd, LotNo, DelvDate, CustLotNo, Remark, RegDate, RegEmpId, UptDate, UptEmpId)</p>
+<p>SELECT</p>
+<p>@pAccUnit, @pItemCd, @pLotNo, @pDelvDate , @pCustLotNo, @pRemark, @vcCurrDate, @pLoginId, '', ''</p>
+<p>IF @@ROWCOUNT = 0 OR @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+</blockquote>
+<p>SELECT @pLotNoOld = @pLotNo</p>
+<p>GOTO UPDATE_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<blockquote>
+<p>--SELECT * FROM TTSLotMngUnit</p>
+</blockquote>
+<p>-- WHERE InOutYM = @wStkYM AND LotNo = @pLotNo</p>
+<p>-- AND AccUnit = @pAccUnit AND OwnerKind = @pOwnerKind</p>
+<p>-- AND PlaceKind = @wPlaceKind</p>
+<p>-- AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>-- AND ItemCd = @pItemCd AND UnitCd = @pUnitCd --AND UnitBaseQty = 0</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DUP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DUP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+</blockquote>
+<p>END</p>
+<blockquote></blockquote>
+<p>END</p>
+<p>SELECT @wnStkQty = CASE ConvNum WHEN 0 THEN @pQty ELSE @pQty * ConvDen / ConvNum END</p>
+<p>FROM TDAItemUnit WHERE ItemCd = @pItemCd AND UnitCd = @pUnitCd</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>SELECT @wnStkQty = 0</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+</blockquote>
+<p>BEGIN TRAN</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>INSERT TTSLotMngUnit</p>
+<p>(InOutYM, LotNo, AccUnit, OwnerKind, PlaceKind,</p>
+<p>PlaceCd, CustCd, ItemCd, UnitCd,</p>
+<p>UnitBaseQty, UnitInQty, UnitOutQty, UnitStkQty,</p>
+<p>BaseQty, InQty, OutQty, StkQty)</p>
+<p>SELECT @wStkYM, @pLotNo, @pAccUnit, @pOwnerKind, @wPlaceKind,</p>
+<p>@pPlaceCd, @pCustCd, @pItemCd, @pUnitCd,</p>
+<p>@pQty, 0, 0, @pQty,</p>
+<p>@wnStkQty, 0, 0, @wnStkQty</p>
+<p>IF @@ROWCOUNT = 0 OR @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus, @pResults + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>----- TTSInOutMng 에 넣기</p>
+<p>UPDATE TTSLotMng</p>
+<p>SET BaseQty = @wnStkQty,</p>
+<p>StkQty = @wnStkQty + InQty - OutQty</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNo AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @vcResults = @pResults + '(TTSLotMng)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>INSERT TTSLotMng</p>
+<p>(InOutYM, LotNo, AccUnit, OwnerKind, PlaceKind,</p>
+<p>PlaceCd, CustCd, ItemCd,</p>
+<p>BaseQty, InQty, OutQty, StkQty,</p>
+<p>BaseAmt, InAmt, OutAmt, StkAmt)</p>
+<p>SELECT</p>
+<p>@wStkYM, @pLotNo, @pAccUnit, @pOwnerKind, @wPlaceKind,</p>
+<p>@pPlaceCd, @pCustCd, @pItemCd,</p>
+<p>@wnStkQty, 0, 0, @wnStkQty,</p>
+<p>0, 0, 0, 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + + '(TTSLotMng)'</p>
+<p>RETURN                         </p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>----- TTSLot 에 넣기</p>
+<p>UPDATE TTSLot</p>
+<p>SET CrtQty = CrtQty + @wnStkQty</p>
+<p>WHERE LotNo = @pLotNo</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>INSERT TTSLot</p>
+<p>(ItemCd,LotNo,CrtDate,ValiDate,CrtQty,CrtAmt,CustCd)</p>
+<p>SELECT</p>
+<p>@pItemCd, @pLotNo, @wStkYM + '01', '', @wnStkQty, 0, @pCustCd</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLot)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus , @pResults = @vcResults + '(TTSLot)'</p>
+<p>RETURN                                </p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+</blockquote>
+<p>-- TTSLotMng_MG 존재하는 경우 에러 -&gt; 존재하는 경우 UPDATE 24.12.16 SJPARK</p>
+<blockquote>
+<p>IF EXISTS(SELECT TOP 1 1 FROM TTSLotMng_MG WHERE AccUnit = @pAccUnit AND ItemCd = @pItemCd AND LotNo = @pLotNo)</p>
+<p>BEGIN</p>
+</blockquote>
+<p>UPDATE TTSLotMng_MG</p>
+<p>SET LotNo                = @pLotNo                ,</p>
+<p>DelvDate                = @pDelvDate        ,</p>
+<p>CustLotNo        = @pCustLotNo        ,</p>
+<p>Remark                = @pRemark                ,</p>
+<p>UptDate                = @vcCurrDate        ,</p>
+<p>UptEmpId                = @pLoginId</p>
+<p>WHERE 1=1</p>
+<p>AND AccUnit        = @pAccUnit</p>
+<p>AND ItemCd        = @pItemCd</p>
+<p>AND LotNo                = @pLotNo</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<blockquote>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DUP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DUP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+</blockquote>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT TTSLotMng_MG</p>
+<p>(AccUnit,ItemCd, LotNo, DelvDate, CustLotNo, Remark, RegDate, RegEmpId, UptDate, UptEmpId)</p>
+<p>SELECT</p>
+<p>@pAccUnit, @pItemCd, @pLotNo, @pDelvDate , @pCustLotNo, @pRemark, @vcCurrDate, @pLoginId, '', ''</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+</blockquote>
+<p>END</p>
+<p>END</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1' COMMIT TRAN</p>
+<p>IF @pIsSub \&lt;&gt; '1' SELECT @vcStatus, @vcResults, @pLotNo</p>
+</blockquote>
+<p>RETURN</p>
+<p>/**************************************************************************************************************/</p>
+<p>/**************************************************************************************************************/</p>
+<p>UPDATE_PROC:</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>IF EXISTS(SELECT 1 FROM TTSLotMngUnit</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd)</p>
+<p>SELECT @pLotNo = @pLotNo</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN                                                </p>
+<p>END</p>
+<p>END</p>
+<p>-- IF (@pItemCd \&lt;&gt; @pItemCd) OR (@pUnitCd \&lt;&gt; @pUnitCd) OR (@pLotNo \&lt;&gt; @pLotNo)</p>
+<p>-- BEGIN</p>
+<p>-- IF EXISTS(SELECT 1 FROM TTSLotMngUnit</p>
+<p>-- WHERE InOutYM = @wStkYM AND LotNo = @pLotNo AND AccUnit = @pAccUnit</p>
+<p>-- AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>-- AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>-- AND ItemCd = @pItemCd AND UnitCd = @pUnitCd)</p>
+<p>-- BEGIN</p>
+<p>-- EXEC SDAErrMsg 'DUP', @pResults OUTPUT, @pStatus OUTPUT</p>
+<p>-- SELECT @pStatus, @pResults</p>
+<p>-- RETURN</p>
+<p>-- END</p>
+<p>-- END</p>
+<p>SELECT @wnStkQty = CASE ConvNum WHEN 0 THEN @pQty ELSE @pQty * ConvDen / ConvNum END</p>
+<p>FROM TDAItemUnit WHERE ItemCd = @pItemCd AND UnitCd = @pUnitCd</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>SELECT @wnStkQty = 0</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE TTSLotMngUnit</p>
+<p>SET UnitBaseQty = 0, UnitStkQty = UnitInQty - UnitOutQty,</p>
+<p>BaseQty = 0, StkQty = InQty - OutQty</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd</p>
+<p>UPDATE TTSLotMngUnit</p>
+<p>SET UnitBaseQty = @pQty, UnitStkQty = @pQty + UnitInQty - UnitOutQty,</p>
+<p>BaseQty = @wnStkQty, StkQty = @wnStkQty + InQty - OutQty</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNo AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>INSERT TTSLotMngUnit</p>
+<p>(InOutYM, LotNo, AccUnit, OwnerKind, PlaceKind,</p>
+<p>PlaceCd, CustCd, ItemCd, UnitCd,</p>
+<p>UnitBaseQty, UnitInQty, UnitOutQty, UnitStkQty,</p>
+<p>BaseQty, InQty, OutQty, StkQty)</p>
+<p>SELECT @wStkYM, @pLotNo, @pAccUnit, @pOwnerKind, @wPlaceKind,</p>
+<p>@pPlaceCd, @pCustCd, @pItemCd, @pUnitCd,</p>
+<p>@pQty, 0, 0, @pQty,</p>
+<p>@wnStkQty, 0, 0, @wnStkQty</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'UPDATEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'UPDATEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN                         </p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>UPDATE TTSLotMng</p>
+<p>SET BaseQty = 0,</p>
+<p>StkQty = InQty - OutQty</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>UPDATE TTSLotMng</p>
+<p>SET BaseQty = @wnStkQty,</p>
+<p>StkQty = @wnStkQty + InQty - OutQty</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNo AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>INSERT TTSLotMng</p>
+<p>(InOutYM, LotNo, AccUnit, OwnerKind, PlaceKind,</p>
+<p>PlaceCd, CustCd, ItemCd,</p>
+<p>BaseQty, InQty, OutQty, StkQty,</p>
+<p>BaseAmt, InAmt, OutAmt, StkAmt)</p>
+<p>SELECT</p>
+<p>@wStkYM, @pLotNo, @pAccUnit, @pOwnerKind, @wPlaceKind,</p>
+<p>@pPlaceCd, @pCustCd, @pItemCd,</p>
+<p>@wnStkQty, 0, 0, @wnStkQty,</p>
+<p>0, 0, 0, 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'UPDATEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'UPDATEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>----- TTSLot 에 넣기</p>
+<p>SELECT @wnStkQty = SUM(ISNULL(StkQty,0))</p>
+<p>FROM TTSLotMng</p>
+<p>WHERE ItemCd = @pItemCd</p>
+<p>AND LotNo = @pLotNo</p>
+<p>AND OwnerKind = '0'</p>
+<p>UPDATE TTSLot</p>
+<p>SET CrtQty = @wnStkQty</p>
+<p>WHERE LotNo = @pLotNo</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>INSERT TTSLot</p>
+<p>(ItemCd,LotNo,CrtDate,ValiDate,CrtQty,CrtAmt,CustCd)</p>
+<p>SELECT</p>
+<p>@pItemCd, @pLotNo, @wStkYM + '01', '', @wnStkQty, 0, @pCustCd</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLot)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLot)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM TTSLotMng_MG WHERE AccUnit = @pAccUnit AND ItemCd = @pItemCd AND LotNo = @pLotNoOld)</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN                                                </p>
+<p>END        </p>
+<p>END</p>
+</blockquote>
+<p>UPDATE TTSLotMng_MG</p>
+<p>SET LotNo                = @pLotNo                ,</p>
+<blockquote>
+<p>DelvDate                = @pDelvDate        ,</p>
+<p>CustLotNo        = @pCustLotNo        ,</p>
+<p>Remark                = @pRemark                ,</p>
+<p>UptDate                = @vcCurrDate        ,</p>
+<p>UptEmpId                = @pLoginId</p>
+</blockquote>
+<p>WHERE 1=1</p>
+<blockquote>
+<p>AND AccUnit        = @pAccUnit</p>
+<p>AND ItemCd        = @pItemCd</p>
+<p>AND LotNo                = @pLotNoOld</p>
+</blockquote>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'UPDATEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'UPDATEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+</blockquote>
+<p>END</p>
+<p>IF @pIsSub \&lt;&gt; '1' COMMIT TRAN</p>
+<p>IF @pIsSub \&lt;&gt; '1' SELECT @vcStatus, @vcResults, @pLotNo</p>
+<p>RETURN</p>
+<p>/**************************************************************************************************************/</p>
+<p>/**************************************************************************************************************/</p>
+<p>DELETE_PROC:</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>IF EXISTS(SELECT 1 FROM TTSLotMngUnit</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd) AND @pIsSub \&lt;&gt; '1'</p>
+<p>SELECT @pLotNo = @pLotNo</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>SELECT @wnStkQty = a.UnitBaseQty</p>
+<p>FROM TTSLotMngUnit a</p>
+<p>WHERE a.InOutYM = @wStkYM AND a.LotNo = @pLotNoOld AND a.AccUnit = @pAccUnit</p>
+<p>AND a.OwnerKind = @pOwnerKind AND a.PlaceKind = @wPlaceKind</p>
+<p>AND a.PlaceCd = @pPlaceCd AND a.CustCd = @pCustCd</p>
+<p>AND a.ItemCd = @pItemCd AND a.UnitCd = @pUnitCd</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN TRAN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>----- Old에 대한 TTSInOutMng 에 반영</p>
+<p>UPDATE TTSLotMng</p>
+<p>SET BaseQty = 0,</p>
+<p>StkQty = InQty - OutQty</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit AND OwnerKind = @pOwnerKind</p>
+<p>AND PlaceKind = @wPlaceKind AND PlaceCd = @pPlaceCd</p>
+<p>AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'DELETEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DELETEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>IF (SELECT Count(*)</p>
+<p>FROM TTSLotMng</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit AND OwnerKind = @pOwnerKind</p>
+<p>AND PlaceKind = @wPlaceKind AND PlaceCd = @pPlaceCd</p>
+<p>AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>AND InQty = 0 AND OutQty = 0 AND StkQty = 0) &gt; 0</p>
+<p>BEGIN</p>
+<p>DELETE TTSLotMng</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit AND OwnerKind = @pOwnerKind</p>
+<p>AND PlaceKind = @wPlaceKind AND PlaceCd = @pPlaceCd</p>
+<p>AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>END</p>
+<p>UPDATE TTSLotMngUnit</p>
+<p>SET UnitBaseQty = 0, UnitStkQty = UnitInQty - UnitOutQty ,</p>
+<p>BaseQty = 0, StkQty = InQty - OutQty</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd</p>
+<p>IF @@ROWCOUNT = 0 OR @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'DELETEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng) OR (TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DELETEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng) OR (TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>IF (SELECT Count(*)</p>
+<p>FROM TTSLotMngUnit</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd</p>
+<p>AND InQty = 0 AND OutQty = 0 AND StkQty = 0) &gt; 0</p>
+<p>BEGIN</p>
+<p>DELETE TTSLotMngUnit</p>
+<p>WHERE InOutYM = @wStkYM AND LotNo = @pLotNoOld AND AccUnit = @pAccUnit</p>
+<p>AND OwnerKind = @pOwnerKind AND PlaceKind = @wPlaceKind</p>
+<p>AND PlaceCd = @pPlaceCd AND CustCd = @pCustCd</p>
+<p>AND ItemCd = @pItemCd AND UnitCd = @pUnitCd</p>
+<p>END</p>
+<p>----- TTSLot 에 넣기</p>
+<p>UPDATE TTSLot</p>
+<p>SET CrtQty = CrtQty - @wnStkQty</p>
+<p>WHERE LotNo = @pLotNo</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLot) OR (TTSLotMngUnit)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLot) OR (TTSLotMngUnit)'</p>
+<p>RETURN                        </p>
+<p>END</p>
+<p>END</p>
+<p>IF (SELECT Count(*) FROM TTSLot WHERE LotNo = @pLotNo AND ItemCd = @pItemCd AND ISNULL(CrtQty,0) = 0) &gt; 0</p>
+<p>BEGIN</p>
+<p>DELETE TTSLot</p>
+<p>WHERE LotNo = @pLotNo AND ItemCd = @pItemCd</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM TTSLotMng_MG WHERE AccUnit = @pAccUnit AND ItemCd = @pItemCd AND LotNo = @pLotNoOld)</p>
+<p>BEGIN</p>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLotMng_MG)'</p>
+<p>RETURN                                                </p>
+<p>END        </p>
+<p>END</p>
+</blockquote>
+<p>DELETE TTSLotMng_MG</p>
+<p>WHERE 1 = 1</p>
+<blockquote>
+<p>AND AccUnit        = @pAccUnit</p>
+<p>AND ItemCd        = @pItemCd</p>
+<p>AND LotNo                = @pLotNoOld</p>
+</blockquote>
+<p>IF @@ROWCOUNT = 0 OR @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<blockquote>
+<p>IF @pIsSub \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'DELETEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @vcStatus, @vcResults + '(TTSLot) OR (TTSLotMng_MG)'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DELETEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>SELECT @pStatus = @vcStatus, @pResults = @vcResults + '(TTSLot) OR (TTSLotMng_MG)'</p>
+<p>RETURN                </p>
+<p>END</p>
+</blockquote>
+<p>END</p>
+<p>IF @pIsSub \&lt;&gt; '1' COMMIT TRAN</p>
+<p>IF @pIsSub \&lt;&gt; '1' SELECT @vcStatus, @vcResults, ''</p>
+<p>RETURN</p>
+<p>--GO</p>
+<p>--BEGIN TRAN</p>
+<p>--exec SUGDeliveryItemSave_MG_TTEST N'A_/A', N'01', N'202412160007', N'_/', N'002424_/002424', N'008_/008', N'3350_/3350', N'5280_/5420', N'17688000_/18157000', N'3350_/3350', N'17688000_/18157000', N'06_/06', N'1120102_/1120102', N'0_/0', N'5280_/5420', N'17688000_/18157000', N'008_/008', N'5280_/5420', N'_/', N'_/', N'_/', N'202412000061_/202412000061', N'0001_/0002', N'_/', N'_/', N'_/', N'Y24025_/Y24026', N'_/', N'_/', N'006002', N'1', N'1', N'KRW', N'1_/1', N'_/', N'_/', N'0_/0', N'0_/0', N'0_/0', N'_/', N'20241216', N'_/', N'_/', N'1_/1', N'_/', N'_/', N'_/'</p>
+<p>--ROLLBACK TRAN</p>
+<p>TTSLotMng_MG =&gt; ItemCd, LotNo에 대해 중복 불가능</p>
+<p>수정 전 : 존재하는 경우 에러</p>
+<p>수정 후 : 존재하는 경우 UPDATE</p>
+<p>백업 : STSLotMngInitQtySave_MG_BAK241216</p>
+  </article>
+</div>
+</body>
+</html>

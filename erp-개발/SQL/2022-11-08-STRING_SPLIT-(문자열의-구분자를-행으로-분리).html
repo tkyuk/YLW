@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRING_SPLIT (문자열의 구분자를 행으로 분리)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>STRING_SPLIT (문자열의 구분자를 행으로 분리)</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="string_split">STRING_SPLIT (문자열의 구분자를 행으로 분리)</h1>
+<p>-- STRING_SPLIT( "문자열", "구분자" ) =&gt; 컬럼 문자열의 구분자를 행으로 분리 할 수 있다</p>
+<p>SELECT A.EmpSeq, A.EmpName, LastDateTime, value</p>
+<p>FROM _TDAEmp AS A</p>
+<p>CROSS APPLY string_split(CONVERT(NVARCHAR(10),A.LastDateTime,23),'-')</p>
+<p><img alt="" src="assets/STRING_SPLIT-(문자열의-구분자를-행으로-분리)/image11.png" /></p>
+<p>행을 열로 변환 (피벗테이블 PIVOT)</p>
+<p>CREATE PROC djb_SWPDQCReportBtnQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @QCSeq INT</p>
+<p>SELECT @QCSeq = ISNULL(A.QCSeq, 0)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>CREATE TABLE #Tmp_Minor</p>
+<p>(</p>
+<p>MinorSeq INT ,</p>
+<p>Serl INT ,</p>
+<p>ValueText NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_Minor</p>
+<p>SELECT A.MinorSeq ,</p>
+<p>A.Serl ,</p>
+<p>A.ValueText</p>
+<p>FROM _TDAUMinorValue AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND MajorSeq = 1000566</p>
+<p>SELECT MinorSeq AS UMMngType , -- 기기명</p>
+<p>[15000001] AS EquipName , -- 검사항목</p>
+<p>[15000002] AS InspectionItem, -- 단위</p>
+<p>[15000003] AS UnitName , -- 기준값</p>
+<p>[15000004] AS STDValue</p>
+<p>FROM (SELECT Serl,MinorSeq,ValueText FROM #Tmp_Minor) AS B</p>
+<p>PIVOT (</p>
+<p>MIN(ValueText)</p>
+<p>FOR Serl</p>
+<p>IN ([15000001],[15000002],[15000003],[15000004])</p>
+<p>) AS A</p>
+<p>LEFT OUTER JOIN djb_TPDQCReportInspection AS C ON C.CompanySeq = @ComPanySeq</p>
+<p>AND A.MinorSeq = C.UMMngType</p>
+<p>AND C.QCSeq = @QCSeq</p>
+<p>WHERE C.CompanySeq IS NULL</p>
+  </article>
+</div>
+</body>
+</html>

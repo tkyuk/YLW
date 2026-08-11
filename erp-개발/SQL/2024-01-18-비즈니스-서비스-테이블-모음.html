@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>비즈니스 서비스 테이블 모음</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>비즈니스 서비스 테이블 모음</h1>
+    <div class="meta">
+      <span class="note-date">2024-01-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">비즈니스 서비스 테이블 모음</h1>
+<p>SELECT * FROM _TCAService WHERE ServiceSeq = 70320085</p>
+<p>SELECT * FROM _TCAServiceDataBlock WHERE ServiceSeq = 70320085 and DataFieldName in( '면세구분','쇼핑몰주문번호')</p>
+<p>select * from _TCAServiceMethodLink WHERE ServiceSeq = 70320085 and DataFieldSeq in(224,225,226)</p>
+<p>SELECT * FROM _TCAServiceMethod WHERE ServiceSeq = 70320085 AND MethodSeq = 2</p>
+<p>SELECT * FROM _TCAServiceMethodKWF WHERE ServiceSeq = 70320085</p>
+  </article>
+</div>
+</body>
+</html>

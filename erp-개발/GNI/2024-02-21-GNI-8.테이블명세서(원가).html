@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI 8.테이블명세서(원가)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI 8.테이블명세서(원가)</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni-8">GNI 8.테이블명세서(원가)</h1>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 방기철</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시스템 : MES시스템 정보와 ERP연동을 통한 제조현장시스템 개선</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2018.11.05.</td>
+</tr>
+<tr>
+<td>버 전 : 1.0</td>
+<td>페이지 : 1/2</td>
+<td>승 인 : 정길환 (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">번호</th>
+<th>테이블명</th>
+<th>설 명</th>
+<th>발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td>_TESMBAccount</td>
+<td>관리회계계정과목 정보</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">11</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td>_TDACCtr</td>
+<td>활동센터마스터</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">275</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td>_TESMDProdAllocOrd</td>
+<td>배부처리순서</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td>_TESMDProdAllocName</td>
+<td>배부처리명 마스터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td>_TESMDProdCCtrSend</td>
+<td>활동센터배부_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td>_TESMDProdCCtrRev</td>
+<td>활동센터배부_받는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td>_TESMDProdCCtrAcc</td>
+<td>활동센터배부_배부기준계정</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td>_TESMDProdFrDirCCtr</td>
+<td>직접활동센터배부_보내는 활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td>_TESMDProdFrDirCCtrToItem</td>
+<td>직접활동센터배부_계정별 Activity</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">10</td>
+<td>_TESMPDProdAllocOrd</td>
+<td>프로젝트)배부처리순서</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">11</td>
+<td>_TESMPDProdAllocName</td>
+<td>프로젝트)배부처리명 마스터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">12</td>
+<td>_TESMPDProdCCtrSend</td>
+<td>프로젝트)활동센터배부_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">13</td>
+<td>_TESMPDProdCCtrRev</td>
+<td>프로젝트)활동센터배부_받는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">14</td>
+<td>_TESMPDProdCCtrAcc</td>
+<td>프로젝트)활동센터배부_계정</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">15</td>
+<td>_TESMDProfAllocOrd</td>
+<td>판관)배부처리순서</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">16</td>
+<td>_TESMDProfAllocName</td>
+<td>판관)배부처리명마스터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">17</td>
+<td>_TESMDProfCCtrSend</td>
+<td>판관)활동센터배부_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">18</td>
+<td>_TESMDProfCCtrRev</td>
+<td>판관)활동센터배부_받는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">19</td>
+<td>_TESMDProfCCtrAcc</td>
+<td>판관)활동센터배부_계정</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">20</td>
+<td>_TESMDProfDirCCtr</td>
+<td>판매직접활동센터배부처리_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">21</td>
+<td>_TESMDProfDirCCtrAcc</td>
+<td>판매직접활동센터배부_계정별 배부기준</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">22</td>
+<td>_TESMGInOutStock</td>
+<td>재고일일입출고정보</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">23</td>
+<td>_TESMGMonthlyStockAmt</td>
+<td>월집계 재고테이블</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">24</td>
+<td>_TESMCProdStkPrice</td>
+<td>월별 재고단가</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">25</td>
+<td>_TESMGMatInput</td>
+<td>생산투입집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">26</td>
+<td>_TESMGOSPDelvInMatInput</td>
+<td>외주입고실적별자재투입내역_관리회계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">27</td>
+<td>_TESMCProdFEtcInAccAmt</td>
+<td>기타대체적송입고 계정별 금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">28</td>
+<td>_TESMCProdFMonthlyStockAmt</td>
+<td>월집계재고테이블_제품(원가용)</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">29</td>
+<td>_TESMCProdFAccAmt</td>
+<td>월별 계정별 재고금액(제조원가단위)</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">30</td>
+<td>_TESMGSlipCost</td>
+<td>전표집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">31</td>
+<td>_TESMGSlipCostSum</td>
+<td>전표비용집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">32</td>
+<td>_TESMGPJTResource</td>
+<td>프로젝트실적집계_관리회계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">33</td>
+<td>_TESMGDriverSum</td>
+<td>배부기준집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">34</td>
+<td>_TESMCSttlProc</td>
+<td>결산처리내역</td>
+<td></td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">35</td>
+<td>_TESMCProdCostSum</td>
+<td>활동센터별금액집계(원가항목포함)</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 방기철</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시스템 : MES시스템 정보와 ERP연동을 통한 제조현장시스템 개선</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2018.11.05.</td>
+</tr>
+<tr>
+<td>버 전 : 1.0</td>
+<td>페이지 : 1/2</td>
+<td>승 인 : 정길환 (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">번호</th>
+<th>테이블명</th>
+<th>설 명</th>
+<th>발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td>_TESMBAccount</td>
+<td>관리회계계정과목 정보</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">11</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td>_TDACCtr</td>
+<td>활동센터마스터</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">275</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td>_TESMDProdAllocOrd</td>
+<td>배부처리순서</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td>_TESMDProdAllocName</td>
+<td>배부처리명 마스터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td>_TESMDProdCCtrSend</td>
+<td>활동센터배부_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td>_TESMDProdCCtrRev</td>
+<td>활동센터배부_받는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td>_TESMDProdCCtrAcc</td>
+<td>활동센터배부_배부기준계정</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td>_TESMDProdFrDirCCtr</td>
+<td>직접활동센터배부_보내는 활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td>_TESMDProdFrDirCCtrToItem</td>
+<td>직접활동센터배부_계정별 Activity</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">10</td>
+<td>_TESMPDProdAllocOrd</td>
+<td>프로젝트)배부처리순서</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">11</td>
+<td>_TESMPDProdAllocName</td>
+<td>프로젝트)배부처리명 마스터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">12</td>
+<td>_TESMPDProdCCtrSend</td>
+<td>프로젝트)활동센터배부_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">13</td>
+<td>_TESMPDProdCCtrRev</td>
+<td>프로젝트)활동센터배부_받는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">14</td>
+<td>_TESMPDProdCCtrAcc</td>
+<td>프로젝트)활동센터배부_계정</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">15</td>
+<td>_TESMDProfAllocOrd</td>
+<td>판관)배부처리순서</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">16</td>
+<td>_TESMDProfAllocName</td>
+<td>판관)배부처리명마스터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">17</td>
+<td>_TESMDProfCCtrSend</td>
+<td>판관)활동센터배부_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">18</td>
+<td>_TESMDProfCCtrRev</td>
+<td>판관)활동센터배부_받는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">19</td>
+<td>_TESMDProfCCtrAcc</td>
+<td>판관)활동센터배부_계정</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">20</td>
+<td>_TESMDProfDirCCtr</td>
+<td>판매직접활동센터배부처리_보내는활동센터</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">21</td>
+<td>_TESMDProfDirCCtrAcc</td>
+<td>판매직접활동센터배부_계정별 배부기준</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">22</td>
+<td>_TESMGInOutStock</td>
+<td>재고일일입출고정보</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">23</td>
+<td>_TESMGMonthlyStockAmt</td>
+<td>월집계 재고테이블</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">24</td>
+<td>_TESMCProdStkPrice</td>
+<td>월별 재고단가</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">25</td>
+<td>_TESMGMatInput</td>
+<td>생산투입집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">26</td>
+<td>_TESMGOSPDelvInMatInput</td>
+<td>외주입고실적별자재투입내역_관리회계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">27</td>
+<td>_TESMCProdFEtcInAccAmt</td>
+<td>기타대체적송입고 계정별 금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">28</td>
+<td>_TESMCProdFMonthlyStockAmt</td>
+<td>월집계재고테이블_제품(원가용)</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">29</td>
+<td>_TESMCProdFAccAmt</td>
+<td>월별 계정별 재고금액(제조원가단위)</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">30</td>
+<td>_TESMGSlipCost</td>
+<td>전표집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">31</td>
+<td>_TESMGSlipCostSum</td>
+<td>전표비용집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">32</td>
+<td>_TESMGPJTResource</td>
+<td>프로젝트실적집계_관리회계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">33</td>
+<td>_TESMGDriverSum</td>
+<td>배부기준집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">34</td>
+<td>_TESMCSttlProc</td>
+<td>결산처리내역</td>
+<td></td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">35</td>
+<td>_TESMCProdCostSum</td>
+<td>활동센터별금액집계(원가항목포함)</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">번호</th>
+<th>테이블명</th>
+<th>설 명</th>
+<th>발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">36</td>
+<td>_TESMCProdCostSumRlt</td>
+<td>활동센터별 배부_배부결과</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">11</td>
+</tr>
+<tr>
+<td style="text-align: center;">37</td>
+<td>_TESMCProdDriverClass</td>
+<td>품목분류별 배부기준값</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">275</td>
+</tr>
+<tr>
+<td style="text-align: center;">38</td>
+<td>_TESMCProdDriverItem</td>
+<td>품목별 배부기준값</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">39</td>
+<td>_TESMCProdCCtrRlt</td>
+<td>활동센터별 배부_배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">40</td>
+<td>_TESMCProdDirItemTgtAmt</td>
+<td>직접활동센터배부_배부대상금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">41</td>
+<td>_TESMCProdDirItemRlt</td>
+<td>직접활동센터배부_배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">42</td>
+<td>_TESMCProdFProdReport</td>
+<td>생산내역</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">43</td>
+<td>_TESMCProdFMatInput</td>
+<td>제품별투입 자재금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">44</td>
+<td>_TESMCProdFGoodIn</td>
+<td>제품별 입고내역</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">45</td>
+<td>_TESMCProdFProcStock</td>
+<td>제품별 재공수량</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">46</td>
+<td>_TESMCProdFGoodCostResult</td>
+<td>제품별 배부후금액집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">47</td>
+<td>_TESMCProdFItemCost</td>
+<td>제품별 비용배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">48</td>
+<td>_TESMCProdFGoodInAmt</td>
+<td>제품입고 계정별 금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">49</td>
+<td>_TESMCProdFMatInputAmt</td>
+<td>제품반제품 투입금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">50</td>
+<td>_TESMCProdFGoodCostSUM</td>
+<td>제품별제조원가집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">51</td>
+<td>_TESMPCProdCostSum</td>
+<td>(프로젝트)활동센터별비용집계처리</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">52</td>
+<td>_TESMPCProdCostSumRlt</td>
+<td>(프로젝트제조)활동센터별 배부_배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">53</td>
+<td>_TESMPCProdDriverSum</td>
+<td>(프로젝트제조)배부기준값 집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">54</td>
+<td>_TESMPCProdCCtrRlt</td>
+<td>(프로젝트제조)활동센터배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">55</td>
+<td>_TESMCProfCostSumRlt</td>
+<td>판관)활동센터별 비용집계처리</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">56</td>
+<td>_TESMCProfDriverCCtr</td>
+<td>판관)활동센터 배부기준값</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">57</td>
+<td>_TESMCProfDriverItem</td>
+<td>판관)품목별 배부기준값</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">58</td>
+<td>_TESMCProfCostSum</td>
+<td>판관)활동센터별금액집계</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">59</td>
+<td>_TESMCProfCCtrRlt</td>
+<td>판관)활동센터별 배부_배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">60</td>
+<td>_TESMCProfInDirCCtrTgtAmt</td>
+<td>판매간접활동센터배부_배부대상금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">61</td>
+<td>_TESMCProfInDirCCtrRlt</td>
+<td>판매간접활동센터배부_배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">62</td>
+<td>_TESMCProfDirCCtrTgtAmt</td>
+<td>판매직접활동센터배부_배부대상금액</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">63</td>
+<td>_TESMCProfDirCCtrRlt</td>
+<td>판매직접활동센터배부_배부결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">64</td>
+<td>_TESMCProfItemDtl</td>
+<td>판관비 제품배부내역상세</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">65</td>
+<td>_TESMCProfItemRlt</td>
+<td>판관비 제품배부내역</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">66</td>
+<td>_TESMCProfCostItemRate</td>
+<td>총원가결산처리_매출원가비율</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">67</td>
+<td>_TESMCProfSalesAccAmt</td>
+<td>총원가 계정별 매출원가</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">68</td>
+<td>_TESMCProfRlt</td>
+<td>판관비결과</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">69</td>
+<td>_TESMCProdSlipM</td>
+<td>결산전표 내역마스터</td>
+<td></td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+<tr>
+<td style="text-align: center;">70</td>
+<td>_TESMCProdSlipD</td>
+<td>원가결산 전표내역 디테일</td>
+<td> </td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;"> </td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Version 1.0 EISDMTD22</p>
+<p>※ 작성 방법 : 테이블별로 관련 정보 사항을 기술함</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

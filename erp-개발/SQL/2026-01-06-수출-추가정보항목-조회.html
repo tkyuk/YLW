@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수출 추가정보항목 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>수출 추가정보항목 조회</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">수출 추가정보항목 조회</h1>
+<p>SELECT *</p>
+<p>FROM _TCOMUserDefine AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCADictionary AS Dic WITH(NOLOCK) ON A.CompanySeq = 1</p>
+<p>AND Dic.LanguageSeq = 1</p>
+<p>AND A.WordSeq = Dic.WordSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.TableName = '_TSLExpImpInfo'</p>
+<p>AND A.DefineUnitSeq = 8212001</p>
+<p>ORDER BY A.QrySort</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPDATE / 없으면 INSERT (사이트용 테이블 로직)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>UPDATE / 없으면 INSERT (사이트용 테이블 로직)</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="update-insert">UPDATE / 없으면 INSERT (사이트용 테이블 로직)</h1>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'gcos_TSLOrderItem', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock2', -- 템프테이블명</p>
+<p>'OrderSeq,OrderSerl' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq, ''</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock2 WHERE WorkingTag = 'U' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>UPDATE gcos_TSLOrderItem</p>
+<p>SET PackingSheetLink = A.PackingSheetLink,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE(),</p>
+<p>PgmSeq = @PgmSeq</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN gcos_TSLOrderItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 사이트용 테이블 로직(수정 시 사이트용 테이블에 데이터 없을 경우 신규 생성합니다.)</p>
+<p>INSERT INTO gcos_TSLOrderItem(</p>
+<p>CompanySeq,</p>
+<p>OrderSeq,</p>
+<p>OrderSerl,</p>
+<p>OrderSubSerl,</p>
+<p>PackingSheetLink,</p>
+<p>LastUserSeq,</p>
+<p>LastDateTime,</p>
+<p>PgmSeq)</p>
+<p>SELECT @CompanySeq,</p>
+<p>A.OrderSeq,</p>
+<p>A.OrderSerl,</p>
+<p>ISNULL(A.OrderSubSerl,0),</p>
+<p>A.PackingSheetLink,</p>
+<p>@UserSeq,</p>
+<p>GETDATE(),</p>
+<p>@pgmSeq</p>
+<p>FROM #BIZ_OUT_DataBlock2 A</p>
+<p>WHERE WorkingTag = 'U'</p>
+<p>AND Status = 0</p>
+<p>AND NOT EXISTS(SELECT 1</p>
+<p>FROM gcos_TSLOrderItem AS B WITH(NOLOCK)</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = B.OrderSeq</p>
+<p>AND A.OrderSerl = B.OrderSerl</p>
+<p>AND A.OrderSubSerl = B.OrderSubSerl)</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

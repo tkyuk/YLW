@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생산실적</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>생산실적</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">생산실적</h1>
+<p>CREATE OR ALTER VIEW gcos_VMESIFWorkReport</p>
+<p>AS</p>
+<p>SELECT A.CompanySeq AS CompanySeq -- 법인코드</p>
+<p>,A.WorkReportSeq AS WorkReportSeq -- 작업실적코드</p>
+<p>,A.WorkDate AS WorkDate -- 작업일자</p>
+<p>,ISNULL(C.WorkOrderNo,'') AS WorkOrderNo -- 작업지시번호</p>
+<p>,I.ItemName AS ItemName -- 품목명</p>
+<p>,I.ItemNo AS ItemNo -- 품목번호</p>
+<p>,I.Spec AS Spec -- 규격</p>
+<p>,A.ProdQty AS ProdQty -- 생산수량</p>
+<p>,A.OKQty AS OKQty -- 양품수량</p>
+<p>,A.BadQty AS BadQty -- 불량수량</p>
+<p>,U.UnitName AS UnitName -- 단위</p>
+<p>,A.Remark AS Remark -- 비고</p>
+<p>,ISNULL(E.OrderSeq , 0) AS OrderSeq -- 수주코드</p>
+<p>,ISNULL(G.CustName ,'') AS OrderCustName -- 수주거래처명</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>LEFT OUTER JOIN _TCACompany AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.WorkOrderSeq = A.WorkOrderSeq</p>
+<p>AND C.WorkOrderSerl = A.WorkOrderSerl</p>
+<p>LEFT OUTER JOIN _TDAItem AS I WITH(NOLOCK) ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.ItemSeq = A.GoodItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON U.CompanySeq = I.CompanySeq</p>
+<p>AND U.UnitSeq = I.UnitSeq</p>
+<p>OUTER APPLY (SELECT D.CompanySeq, D.ToSeq, MAX(FromSeq) AS FromSeq</p>
+<p>FROM _TCOMSourceDailyTrace AS D WITH(NOLOCK)</p>
+<p>WHERE D.CompanySeq = A.CompanySeq</p>
+<p>AND D.ToSeq = A.WorkReportSeq</p>
+<p>AND D.ToSerl = 0</p>
+<p>AND D.ToTableSeq = 6 -- 작업실적</p>
+<p>AND D.FromTableSeq = 19 -- 수주</p>
+<p>GROUP BY D.CompanySeq, D.ToSeq</p>
+<p>) AS D</p>
+<p>LEFT OUTER JOIN _TSLOrder AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.OrderSeq = D.FromSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS G WITH(NOLOCK) ON G.CompanySeq = E.CompanySeq</p>
+<p>AND G.CustSeq = E.CustSeq</p>
+<p>--GO</p>
+<p>--SELECT * FROM gcos_VMESIFWorkReport ORDER BY WorkReportSeq</p>
+  </article>
+</div>
+</body>
+</html>

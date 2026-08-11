@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소계 - 개발툴</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>소계 - 개발툴</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">소계 - 개발툴</h1>
+<p>생산계획대비실적달성조회_mcf</p>
+<p><img alt="" src="assets/소계-개발툴/image105.png" /></p>
+<p>mcf_SWMRPProdPlanRltListQuery</p>
+<p>CREATE PROCEDURE mcf_SWMRPProdPlanRltListQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @BizUnit INT ,</p>
+<p>@WorkDateFr NCHAR(8),</p>
+<p>@WorkDateTo NCHAR(8),</p>
+<p>@WorkCenterSeq INT ,</p>
+<p>@WorkStartDate NCHAR(8) -- 작업일 From과 동일한 연도의 1월 1일</p>
+<p>SELECT @BizUnit = ISNULL(A.BizUnit , 0),</p>
+<p>@WorkDateFr = ISNULL(A.WorkDateFr ,''),</p>
+<p>@WorkDateTo = ISNULL(A.WorkDateTo ,''),</p>
+<p>@WorkCenterSeq = ISNULL(A.WorkCenterSeq, 0)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>SELECT @WorkStartDate = CONVERT(CHAR(8), DATEADD(YEAR, DATEDIFF(YEAR, 0, @WorkDateFr), 0), 112)</p>
+<p>--==============================--</p>
+<p>-- 1. 전일 미달 수량 구하기 (PreShortQty) : 작업일From일과 동일한 연도의 1월1일부터 작업일From까지 작업지시-작업실적 양품수량 --</p>
+<p>--==============================--</p>
+<p>-- 전일미달수량 임시테이블 (작업일연도 1월1일 ~ 작업일 From 까지의 지시수량)</p>
+<p>SELECT ISNULL(A.WorkCenterSeq, 0) AS WorkCenterSeq ,</p>
+<p>ISNULL(A.GoodItemSeq , 0) AS ItemSeq ,</p>
+<p>ISNULL(SUM(A.OrderQty), 0) AS PreOrderQty</p>
+<p>INTO #PreShortQtyOrder</p>
+<p>FROM _TPDSFCWorkOrder AS A WITH(NOLOCK)</p>
+<p>WHERE A.WorkDate BETWEEN @WorkStartDate AND @WorkDateFr</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>AND (@WorkCenterSeq = 0 OR A.WorkCenterSeq = @WorkCenterSeq)</p>
+<p>GROUP BY A.WorkCenterSeq,</p>
+<p>A.GoodItemSeq</p>
+<p>-- 전일미달수량 임시테이블 (작업일연도 1월1일 ~ 작업일 From 까지의 양품수량)</p>
+<p>SELECT ISNULL(A.WorkCenterSeq , 0) AS WorkCenterSeq ,</p>
+<p>ISNULL(A.GoodItemSeq , 0) AS ItemSeq ,</p>
+<p>ISNULL(SUM(A.OKQty) , 0) AS PreOKQty</p>
+<p>INTO #PreShortQtyReport</p>
+<p>FROM _TPDSFCWorkReport AS A WITH(NOLOCK)</p>
+<p>WHERE A.WorkDate BETWEEN @WorkStartDate AND @WorkDateFr</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>AND (@WorkCenterSeq = 0 OR A.WorkCenterSeq = @WorkCenterSeq)</p>
+<p>GROUP BY A.WorkCenterSeq,</p>
+<p>A.GoodItemSeq</p>
+<p>-- 지시수량 - 양품수량 (정렬하기 위해 임시테이블에 담기)</p>
+<p>SELECT ISNULL(A.WorkCenterSeq,B.WorkCenterSeq) AS WorkCenterSeq ,</p>
+<p>ISNULL(A.ItemSeq,B.ItemSeq) AS ItemSeq ,</p>
+<p>ISNULL(A.PreOrderQty,0)-ISNULL(B.PreOKQty,0) AS PreShortQty</p>
+<p>INTO #PreShortQtyTmp</p>
+<p>FROM #PreShortQtyOrder AS A</p>
+<p>FULL OUTER JOIN #PreShortQtyReport AS B ON A.WorkCenterSeq = B.WorkCenterSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>CREATE TABLE #ResultTmp</p>
+<p>(</p>
+<p>WorkCenterSeq INT DEFAULT 0,</p>
+<p>ItemSeq INT DEFAULT 0,</p>
+<p>PreShortQty DECIMAL(19,5) DEFAULT 0,</p>
+<p>PlanQty DECIMAL(19,5) DEFAULT 0,</p>
+<p>OKQty DECIMAL(19,5) DEFAULT 0,</p>
+<p>AchRate DECIMAL(19,5) DEFAULT 0,</p>
+<p>ShortQty DECIMAL(19,5) DEFAULT 0,</p>
+<p>ID INT IDENTITY(1,1) -- 정렬하기 위해 추가</p>
+<p>)</p>
+<p>-- 최종테이블에 워크센터 ,품목, 전일미달수량 INSERT</p>
+<p>INSERT INTO #ResultTmp (WorkCenterSeq,ItemSeq,PreShortQty)</p>
+<p>SELECT *</p>
+<p>FROM #PreShortQtyTmp</p>
+<p>ORDER BY WorkCenterSeq, ItemSeq</p>
+<p>--==============================--</p>
+<p>-- 2. 계획수량, 양품수량 구하기--</p>
+<p>-- 2-1. 계획수량: 작업일From~To 까지의 작업지시 수량 합계</p>
+<p>-- 2-2. 양품수량: 작업일From~To 까지의 작업실적 양품수량 합계</p>
+<p>--==============================--</p>
+<p>-- 2-1. 작업지시 임시테이블 담기 (From~To 까지의 작업지시 수량 합계)</p>
+<p>SELECT ISNULL(A.WorkCenterSeq , 0) AS WorkCenterSeq ,</p>
+<p>ISNULL(A.GoodItemSeq , 0) AS ItemSeq ,</p>
+<p>ISNULL(SUM(A.OrderQty) , 0) AS OrderQty</p>
+<p>INTO #PlanQty</p>
+<p>FROM _TPDSFCWorkOrder AS A WITH(NOLOCK)</p>
+<p>WHERE A.BizUnit = @BizUnit</p>
+<p>AND (@WorkCenterSeq = 0 OR A.WorkCenterSeq = @WorkCenterSeq)</p>
+<p>AND A.WorkDate BETWEEN @WorkDateFr AND @WorkDateTo</p>
+<p>GROUP BY A.WorkCenterSeq ,</p>
+<p>A.GoodItemSeq</p>
+<p>-- 최종 테이블 없는 워크센터, 품목 INSERT</p>
+<p>INSERT INTO #ResultTmp (WorkCenterSeq,ItemSeq)</p>
+<p>SELECT A.WorkCenterSeq, A.ItemSeq</p>
+<p>FROM #PlanQty AS A</p>
+<p>LEFT OUTER JOIN #ResultTmp AS B ON A.WorkCenterSeq = B.WorkCenterSeq AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkCenterSeq IS NULL</p>
+<p>-- 작업실적 임시테이블 담기 (From~To 까지의 작업실적 양품수량 합계)</p>
+<p>SELECT ISNULL(A.WorkCenterSeq , 0) AS WorkCenterSeq ,</p>
+<p>ISNULL(A.GoodItemSeq , 0) AS ItemSeq ,</p>
+<p>ISNULL(SUM(A.OKQty) , 0) AS OKQty</p>
+<p>INTO #OKQty</p>
+<p>FROM _TPDSFCWorkReport AS A WITH(NOLOCK)</p>
+<p>WHERE A.BizUnit = @BizUnit</p>
+<p>AND (@WorkCenterSeq = 0 OR A.WorkCenterSeq = @WorkCenterSeq)</p>
+<p>AND A.WorkDate BETWEEN @WorkDateFr AND @WorkDateTo</p>
+<p>GROUP BY A.WorkCenterSeq ,</p>
+<p>A.GoodItemSeq</p>
+<p>-- 최종 테이블 없는 워크센터, 품목 INSERT</p>
+<p>INSERT INTO #ResultTmp (WorkCenterSeq,ItemSeq)</p>
+<p>SELECT A.WorkCenterSeq, A.ItemSeq</p>
+<p>FROM #OKQty AS A</p>
+<p>LEFT OUTER JOIN #ResultTmp AS B ON A.WorkCenterSeq = B.WorkCenterSeq AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkCenterSeq IS NULL</p>
+<p>-- 계획수량, 양품수량, 달성률, 금일미달수량 UPDATE</p>
+<p>UPDATE #ResultTmp</p>
+<p>SET PlanQty = B.OrderQty,</p>
+<p>OKQty = C.OKQty</p>
+<p>FROM #ResultTmp AS A</p>
+<p>JOIN #PlanQty AS B ON A.WorkCenterSeq = B.WorkCenterSeq AND A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #OKQty AS C ON A.WorkCenterSeq = C.WorkCenterSeq AND A.ItemSeq = C.ItemSeq</p>
+<p>UPDATE #ResultTmp</p>
+<p>SET AchRate = ISNULL(OKQty,1) /</p>
+<p>CASE WHEN (ISNULL(PreShortQty,0) + ISNULL(PlanQty,0)) = 0 THEN 1 ELSE (ISNULL(PreShortQty,0) + ISNULL(PlanQty,0)) END</p>
+<p>* 100, -- 달성률(%) : (전일미달수량 + 계획수량) / 양품수량 *100</p>
+<p>ShortQty = (ISNULL(PreShortQty,0) + ISNULL(PlanQty,0)) - ISNULL(OKQty,0) -- 금일미달수량: (전일미달수량 + 계획수량) - 양품수량</p>
+<p>FROM #ResultTmp AS A</p>
+<p>SELECT A.WorkCenterSeq,</p>
+<p>A.ItemSeq,</p>
+<p>A.PreShortQty,</p>
+<p>A.PlanQty ,</p>
+<p>A.OKQty ,</p>
+<p>A.AchRate ,</p>
+<p>A.ShortQty ,</p>
+<p>1 AS Gubun</p>
+<p>INTO #Result</p>
+<p>FROM #ResultTmp AS A</p>
+<p>--=============--</p>
+<p>-- 소 계 --</p>
+<p>--=============--</p>
+<p>INSERT #Result</p>
+<p>SELECT A.WorkCenterSeq,</p>
+<p>0, -- ItemSeq</p>
+<p>SUM(A.PreShortQty),</p>
+<p>SUM(A.PlanQty ),</p>
+<p>SUM(A.OKQty ),</p>
+<p>SUM(A.AchRate ),</p>
+<p>SUM(A.ShortQty ),</p>
+<p>2</p>
+<p>FROM #ResultTmp AS A GROUP BY A.WorkCenterSeq</p>
+<p>SELECT A.WorkCenterSeq,</p>
+<p>CASE WHEN A.ItemSeq = 0</p>
+<p>THEN '소계'</p>
+<p>ELSE B.WorkCenterName END AS WorkCenterName,</p>
+<p>A.ItemSeq,</p>
+<p>ISNULL(C.ItemName,'') AS ItemName ,</p>
+<p>ISNULL(C.ItemNo ,'') AS ItemNo ,</p>
+<p>ISNULL(C.Spec ,'') AS Spec ,</p>
+<p>PreShortQty AS PreShortQty,</p>
+<p>PlanQty AS PlanQty ,</p>
+<p>OKQty AS OKQty ,</p>
+<p>AchRate AS AchRate ,</p>
+<p>ShortQty AS ShortQty</p>
+<p>FROM #Result AS A</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.WorkCenterSeq = A.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>ORDER BY A.WorkCenterSeq, A.Gubun,A.ItemSeq</p>
+<p>RETURN</p>
+<p>--go</p>
+<p>--begin tran</p>
+<p>--DECLARE @CONST_#BIZ_IN_DataBlock1 INT-- , @CONST_#BIZ_OUT_DataBlock1 INT--SELECT @CONST_#BIZ_IN_DataBlock1 = 0-- , @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>--IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>--BEGIN</p>
+<p>-- CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>-- (-- WorkingTag NCHAR(1)-- , IDX_NO INT-- , DataSeq INT-- , Selected INT-- , MessageType INT-- , Status INT-- , Result NVARCHAR(255)-- , ROW_IDX INT-- , IsChangedMst NCHAR(1)-- , TABLE_NAME NVARCHAR(255)-- , BizUnit INT, WorkDateFr NCHAR(8), WorkDateTo NCHAR(8), WorkCenterSeq INT-- ) -- SET @CONST_#BIZ_IN_DataBlock1 = 1--END--IF @CONST_#BIZ_OUT_DataBlock1 = 0--BEGIN-- CREATE TABLE #BIZ_OUT_DataBlock1-- (-- WorkingTag NCHAR(1)-- , IDX_NO INT-- , DataSeq INT-- , Selected INT-- , MessageType INT-- , Status INT-- , Result NVARCHAR(255)-- , ROW_IDX INT-- , IsChangedMst NCHAR(1)-- , TABLE_NAME NVARCHAR(255)-- , BizUnit INT, WorkDateFr NCHAR(8), WorkDateTo NCHAR(8), WorkCenterSeq INT, WorkCenterName NVARCHAR(100), ItemName NVARCHAR(100), ItemNo NVARCHAR(100), Spec NVARCHAR(100), ItemSeq INT, PreShortQty DECIMAL(19, 5), PlanQty DECIMAL(19, 5), OKQty DECIMAL(19, 5), AchRate DECIMAL(19, 5), ShortQty DECIMAL(19, 5)-- ) -- SET @CONST_#BIZ_OUT_DataBlock1 = 1--END--DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>-- , @INPUT_ERROR_SEVERITY INT</p>
+<p>-- , @INPUT_ERROR_STATE INT</p>
+<p>-- , @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>--INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, BizUnit, WorkDateFr, WorkDateTo, WorkCenterSeq) --SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'1', N'DataBlock1', N'2', N'20221026', N'20221026', N'1'--IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--DECLARE @HasError NCHAR(1)-- , @UseTransaction NCHAR(1)-- -- 내부 SP용 파라메터-- , @ServiceSeq INT-- , @MethodSeq INT-- , @WorkingTag NVARCHAR(10)-- , @CompanySeq INT-- , @LanguageSeq INT-- , @UserSeq INT-- , @PgmSeq INT-- , @IsTransaction BIT--SET @HasError = N'0'--SET @UseTransaction = N'0'--BEGIN TRY--SET @ServiceSeq = 95320041----SET @MethodSeq = 1--SET @WorkingTag = N''--SET @CompanySeq = 1--SET @LanguageSeq = 1--SET @UserSeq = 27292--SET @PgmSeq = 95320074--SET @IsTransaction = 0---- ExecuteOrder : 1 : Start--EXEC mcf_SWMRPProdPlanRltListQuery-- @ServiceSeq-- , @WorkingTag-- , @CompanySeq-- , @LanguageSeq-- , @UserSeq-- , @PgmSeq-- , @IsTransaction</p>
+<p>--IF @@ERROR \&lt;&gt; 0 --BEGIN-- SET @HasError = N'1'-- GOTO GOTO_END--END---- ExecuteOrder : 1 : End--GOTO_END:</p>
+<p>--END TRY</p>
+<p>--BEGIN CATCH</p>
+<p>---- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>-- IF @UseTransaction = N'1'</p>
+<p>-- ROLLBACK TRAN</p>
+<p>-- DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>-- , @ERROR_SEVERITY INT</p>
+<p>-- , @ERROR_STATE INT</p>
+<p>-- , @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>-- SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>-- , @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>-- , @ERROR_STATE = ERROR_STATE()</p>
+<p>-- , @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>-- RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>-- RETURN</p>
+<p>--END CATCH</p>
+<p>---- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>--IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>-- ROLLBACK TRAN</p>
+<p>--DROP TABLE #BIZ_IN_DataBlock1--DROP TABLE #BIZ_OUT_DataBlock1--rollback tran</p>
+  </article>
+</div>
+</body>
+</html>

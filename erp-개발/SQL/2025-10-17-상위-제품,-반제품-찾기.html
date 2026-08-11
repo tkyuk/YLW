@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>상위 제품, 반제품 찾기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>상위 제품, 반제품 찾기</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">상위 제품, 반제품 찾기</h1>
+<p>--==================================================</p>
+<p>-- 시작 : 상위 제품, 반제품 찾기</p>
+<p>--==================================================</p>
+<p>DECLARE @MaxLevel INT = 20</p>
+<p>CREATE TABLE #DiscontItemMat(</p>
+<p>SubItemSeq INT -- 자재</p>
+<p>)</p>
+<p>CREATE TABLE #ExclusiveMat( -- output</p>
+<p>GoodItemSeq INT, -- 최상위 제품</p>
+<p>BOMRev NCHAR(2),</p>
+<p>ItemSeq INT -- 자재</p>
+<p>)</p>
+<p>INSERT INTO #DiscontItemMat</p>
+<p>SELECT ItemSeq</p>
+<p>FROM #TDAItem</p>
+<p>DELETE #DiscontItemMat</p>
+<p>FROM #DiscontItemMat AS A</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON I.CompanySeq = @CompanySeq</p>
+<p>AND I.ItemSeq = A.SubItemSeq</p>
+<p>JOIN _TDAItemAsset AS B WITH(NOLOCK) ON B.CompanySeq = I.CompanySeq</p>
+<p>AND B.AssetSeq = I.AssetSeq</p>
+<p>JOIN _TDASMinor AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.MinorSeq = B.SMAssetGrp</p>
+<p>AND C.MinorValue \&lt;&gt; '1' -- 자재가 아닌 건은 제거</p>
+<p>-- 전용자재 구하기(중간에 있는 제품/반제품 제외)</p>
+<p>;WITH CTE_ReverseTPDBOM(ParentItemSeq, ParentItemBomRev, SubItemSeq, SubItemBomRev, Lvl)</p>
+<p>AS</p>
+<p>(</p>
+<p>SELECT B.ItemSeq AS ParentItemSeq</p>
+<p>,B.ItemBomRev AS ParentItemBomRev</p>
+<p>,B.SubItemSeq AS SubItemSeq</p>
+<p>,B.SubItemBomRev AS SubItemBomRev</p>
+<p>,1 AS Lvl</p>
+<p>FROM #DiscontItemMat AS A</p>
+<p>JOIN _TPDBOM AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.SubItemSeq = A.SubItemSeq</p>
+<p>JOIN _TDAItem AS C WITH (NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.SubItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>UNION ALL</p>
+<p>SELECT B.ItemSeq AS ParentItemSeq</p>
+<p>,B.ItemBomRev AS ParentItemBomRev</p>
+<p>,B.SubItemSeq AS SubItemSeq</p>
+<p>,B.SubItemBomRev AS SubItemBomRev</p>
+<p>,A.lvl + 1 AS lvl</p>
+<p>FROM CTE_ReverseTPDBOM AS A</p>
+<p>JOIN _TPDBOM AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.SubItemSeq = A.ParentItemSeq</p>
+<p>AND B.SubItemBomRev = A.ParentItemBomRev</p>
+<p>JOIN _TDAItem AS C WITH (NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ParentItemSeq</p>
+<p>WHERE A.Lvl \&lt; @MaxLevel -- 재귀호출 방지</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>),</p>
+<p>CTE_GoodItemSeq AS ( -- 최상위 제품 찾기, 입력된 자재도 함께 담기</p>
+<p>SELECT DISTINCT</p>
+<p>R.SubItemSeq AS SubItemSeq,</p>
+<p>R.SubItemBomRev AS SubItemBomRev,</p>
+<p>R.ParentItemSeq AS GoodItemSeq</p>
+<p>FROM CTE_ReverseTPDBOM AS R</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON I.CompanySeq = @CompanySeq</p>
+<p>AND I.ItemSeq = R.SubItemSeq</p>
+<p>JOIN _TDAItemAsset AS IA WITH(NOLOCK) ON IA.CompanySeq = I.CompanySeq</p>
+<p>AND IA.AssetSeq = I.AssetSeq</p>
+<p>JOIN _TDASMinor AS F WITH(NOLOCK) ON F.CompanySeq = IA.CompanySeq</p>
+<p>AND F.MinorSeq = IA.SMAssetGrp</p>
+<p>JOIN _TDAItem AS I2 WITH(NOLOCK) ON I2.CompanySeq = @CompanySeq</p>
+<p>AND I2.ItemSeq = R.ParentItemSeq</p>
+<p>JOIN _TDAItemAsset AS IA2 WITH(NOLOCK) ON IA2.CompanySeq = I2.CompanySeq</p>
+<p>AND IA2.AssetSeq = I2.AssetSeq</p>
+<p>WHERE NOT EXISTS (</p>
+<p>SELECT 1</p>
+<p>FROM _TPDBOM AS B WITH(NOLOCK)</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND B.SubItemSeq = R.ParentItemSeq) -- 최상위 품목: 자식으로 쓰인적 없는 품목</p>
+<p>AND F.MinorValue = '1' -- 자재만 담기</p>
+<p>AND IA2.SMAssetGrp IN (6008002, 6008004) -- 최상위 품목이 제품, 반제품일 때만</p>
+<p>)</p>
+<p>INSERT INTO #ExclusiveMat(GoodItemSeq, ItemSeq, BOMRev)</p>
+<p>SELECT A.GoodItemSeq</p>
+<p>,A.SubItemSeq</p>
+<p>,A.SubItemBomRev</p>
+<p>FROM CTE_GoodItemSeq AS A</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON I.CompanySeq = @CompanySeq</p>
+<p>AND I.ItemSeq = A.GoodItemSeq</p>
+<p>WHERE I.SMStatus IN (2001002, 2001003)</p>
+<p>SELECT B.ITEMNO, C.ITEMNO,A.*</p>
+<p>FROM #ExclusiveMat AS A</p>
+<p>JOIN _TDAITEM AS B ON B.ITEMSEQ =A.ITEMSEQ</p>
+<p>JOIN _TDAITEM AS C ON C.ITEMSEQ =A.GOODITEMSEQ</p>
+<p>WHERE B.ITEMNO LIKE '%HCA102KA%'</p>
+<p>ORDER BY 1,2</p>
+<p>--==================================================</p>
+<p>-- 종료 : 상위 제품, 반제품 찾기</p>
+<p>--==================================================</p>
+<p>CREATE PROCEDURE gnst_SWDAExclusiveMat</p>
+<p><span class="mark">-- gnst_SWDAExclusiveMat : 제품을 통해 단산품목전용자재만 반환하는 SP 입니다.</span></p>
+<p><span class="mark">-- gnst_SWDAExclusiveMat2: 자재를 통해 단산품목을 먼저 찾고 전용자재인 것만 반환하는 SP 입니다.</span></p>
+<p>@CompanySeq INT,</p>
+<p>@MaxLevel INT = 20</p>
+<p>AS</p>
+<p>/*</p>
+<p>CREATE TABLE #DiscontItem( -- input</p>
+<p>GoodItemSeq INT,</p>
+<p>BOMRev NCHAR(2)</p>
+<p>)</p>
+<p>CREATE TABLE #ExclusiveMat( -- output</p>
+<p>GoodItemSeq INT,</p>
+<p>BOMRev NCHAR(2),</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>*/</p>
+<p>--==================================================</p>
+<p>-- 단산품목 소요자재 중 자재인 것만 가져오기</p>
+<p>--==================================================</p>
+<p>;WITH CTE_TPDBOM(ItemSeq, ItemBomRev, SubItemSeq, SubItemBomRev,Lvl, GoodItemSeq)</p>
+<p>AS</p>
+<p>(</p>
+<p>SELECT B.ItemSeq AS ItemSeq</p>
+<p>,B.ItemBomRev AS ItemBomRev</p>
+<p>,B.SubItemSeq AS SubItemSeq</p>
+<p>,B.SubItemBomRev AS SubItemBomRev</p>
+<p>,1 AS Lvl</p>
+<p>,A.GoodItemSeq AS GoodItemSeq</p>
+<p>FROM #DiscontItem AS A</p>
+<p>JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.GoodItemSeq</p>
+<p>AND B.ItemBomRev = A.BOMRev</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.SubItemSeq = C.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>UNION ALL</p>
+<p>SELECT B.ItemSeq AS ItemSeq</p>
+<p>,B.ItemBomRev AS ItemBomRev</p>
+<p>,B.SubItemSeq AS SubItemSeq</p>
+<p>,B.SubItemBomRev AS SubItemBomRev</p>
+<p>,A.Lvl + 1 AS Lvl</p>
+<p>,A.GoodItemSeq AS GoodItemSeq</p>
+<p>FROM CTE_TPDBOM AS A</p>
+<p>JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.SubItemSeq</p>
+<p>AND B.ItemBomRev = A.SubItemBomRev</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.SubItemSeq = C.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.Lvl \&lt; @MaxLevel -- 재귀호출 방지</p>
+<p>)</p>
+<p>SELECT DISTINCT A.GoodItemSeq,A.SubItemSeq</p>
+<p>INTO #DiscontItemMat</p>
+<p>FROM CTE_TPDBOM AS A</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON I.CompanySeq = @CompanySeq</p>
+<p>AND A.SubItemSeq = I.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS B WITH(NOLOCK) ON B.CompanySeq = I.CompanySeq</p>
+<p>AND B.AssetSeq = I.AssetSeq</p>
+<p>JOIN _TDASMinor AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.SMAssetGrp = C.MinorSeq</p>
+<p>AND C.MinorValue = '1' -- 자재</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>DELETE FROM #DiscontItemMat</p>
+<p>WHERE SubItemSeq IN (</p>
+<p>SELECT SubItemSeq</p>
+<p>FROM #DiscontItemMat</p>
+<p>GROUP BY SubItemSeq</p>
+<p>HAVING COUNT(DISTINCT GoodItemSeq) &gt;= 2</p>
+<p>)</p>
+<p>--==================================================</p>
+<p>-- 전용자재 구하기(중간에 있는 제품/반제품 제외)</p>
+<p>--==================================================</p>
+<p>;WITH CTE_ReverseTPDBOM(ParentItemSeq, ParentItemBomRev, SubItemSeq, SubItemBomRev, Lvl, STDMatItemSeq,GoodItemSeq)</p>
+<p>AS</p>
+<p>(</p>
+<p>SELECT B.ItemSeq AS ParentItemSeq</p>
+<p>,B.ItemBomRev AS ParentItemBomRev</p>
+<p>,B.SubItemSeq AS SubItemSeq</p>
+<p>,B.SubItemBomRev AS SubItemBomRev</p>
+<p>,1 AS Lvl</p>
+<p>,A.SubItemSeq AS STDMatItemSeq</p>
+<p>,A.GoodItemSeq AS GoodItemSeq</p>
+<p>FROM #DiscontItemMat AS A</p>
+<p>JOIN _TPDBOM AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.SubItemSeq = A.SubItemSeq</p>
+<p>JOIN _TDAItem AS C WITH (NOLOCK) ON @CompanySeq = C.CompanySeq</p>
+<p>AND A.SubItemSeq = C.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>UNION ALL</p>
+<p>SELECT B.ItemSeq AS ParentItemSeq</p>
+<p>,B.ItemBomRev AS ParentItemBomRev</p>
+<p>,B.SubItemSeq AS SubItemSeq</p>
+<p>,B.SubItemBomRev AS SubItemBomRev</p>
+<p>,A.lvl + 1 AS lvl</p>
+<p>,A.STDMatItemSeq AS STDMatItemSeq</p>
+<p>,A.GoodItemSeq AS GoodItemSeq</p>
+<p>FROM CTE_ReverseTPDBOM AS A</p>
+<p>JOIN _TPDBOM AS B WITH (NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.SubItemSeq = A.ParentItemSeq</p>
+<p>AND B.SubItemBomRev = A.ParentItemBomRev</p>
+<p>JOIN _TDAItem AS C WITH (NOLOCK) ON @CompanySeq = C.CompanySeq</p>
+<p>AND A.ParentItemSeq = C.ItemSeq</p>
+<p>WHERE A.Lvl \&lt; @MaxLevel -- 재귀호출 방지</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>)</p>
+<p>SELECT DISTINCT A.ParentItemSeq, A.SubItemSeq,A.SubItemBomRev , A.GoodItemSeq</p>
+<p>INTO #TempExclusiveMat -- 단산품목 소요자재 역전개 테이블</p>
+<p>FROM CTE_ReverseTPDBOM AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON A.GoodItemSeq = B.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON B.AssetSeq = C.AssetSeq</p>
+<p>AND C.SMAssetGrp IN(6008002 ,6008004) -- 제품,반제품</p>
+<p>JOIN _TDAItem AS D WITH(NOLOCK) ON A.SubItemSeq = D.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS E WITH(NOLOCK) ON D.AssetSeq = E.AssetSeq</p>
+<p>JOIN _TDASMinor AS F WITH(NOLOCK) ON E.SMAssetGrp = F.MinorSeq</p>
+<p>AND F.MinorValue = '1' -- 자재만</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>DELETE FROM #TempExclusiveMat</p>
+<p>WHERE SubItemSeq IN (</p>
+<p>SELECT SubItemSeq</p>
+<p>FROM #TempExclusiveMat</p>
+<p>GROUP BY SubItemSeq</p>
+<p>HAVING COUNT(DISTINCT ParentItemSeq) &gt;= 2</p>
+<p>)</p>
+<p>INSERT INTO #ExclusiveMat(GoodItemSeq,ItemSeq, BOMRev)</p>
+<p>SELECT ParentItemSeq,SubItemSeq,SubItemBomRev</p>
+<p>FROM #TempExclusiveMat AS A</p>
+<p>JOIN #DiscontItem AS B ON A.ParentItemSeq = B.GoodItemSeq</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

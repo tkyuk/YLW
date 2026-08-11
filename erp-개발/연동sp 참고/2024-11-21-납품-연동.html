@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>납품 연동</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>납품 연동</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">납품 연동</h1>
+<p>tnt_SWLGIFImpDelvCrt</p>
+<p>tnt_SWLGIFDelvCrt</p>
+<p>tnt_SWLGIFOSPDelvCrt</p>
+<p>dial_SWMESPUDelvIF_Delv</p>
+<p>dial_SWMESPUDelvIF_ImpDelv</p>
+<p>dial_SWMESPUDelvReturnIF_Delv</p>
+<p>dial_SWMESPUDelvReturnIF_ImpDelv</p>
+<p>수입BL -&gt; 수입입고</p>
+<p>SELECT top 100 * FROM _TUIImpDelv WHERE DelvSeq &gt;= 295</p>
+<p>SELECT top 100 * FROM _TUIImpDelvItem WHERE DelvSeq &gt;= 295 ORDER BY DelvSerl Desc</p>
+<p>SELECT top 100 * FROM _TLGLotStock WHERE StkYM = '202411'ORDER BY StkYM Desc</p>
+<p>SELECT top 100 * FROM _TLGInOutStock WHERE InOutType = 240 AND InOutDate = '20241126'ORDER BY InOutDate Desc</p>
+<p>SELECT top 100 * FROM _TLGInOutLotStock WHERE InOutType = 240 AND InOutDate = '20241126'ORDER BY InOutDate Desc</p>
+  </article>
+</div>
+</body>
+</html>

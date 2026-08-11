@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022-10-28-untitled-7</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2022-10-28-untitled-7</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>1. 전일미달, 생산계획 수량 집계 수정</p>
+<p><span class="mark">   1) 중단건의 잔량 제외 요청</span></p>
+<p><span class="mark">       - ex) 작업지시: 100, 생산실적: 80 입력해서 20개 잔량으로 남은건 중단시 잔량만 제외한 80으로 집계 되어야 함</span></p>
+<p><span class="mark">   2) 외주워크센터건 제외</span></p>
+<blockquote>
+<p>JOIN _TPDBaseWorkCenter AS W WITH(NOLOCK) ON A.WorkCenterSeq = W.WorkCenterSeq</p>
+<p>AND A.CompanySeq = W.CompanySeq</p>
+<p>WHERE (W.SMWorkCenterType IN (6011001, 6011002)) -- 외주워크센터건 제외</p>
+</blockquote>
+<p>2. 달성률 수식 수정요청합니다.</p>
+<p>- 양품수량/(전일미달수량+계획수량)으로 변경바랍니다.</p>
+<p>3. 소계절 수정요청</p>
+<p>1) 정렬시 소계절 구분이 안되므로 워크센터 조회하고, 품명에 "소계" 조회하도록 수정요청합니다.</p>
+<p>2) 소계절의 달성률 계산시 합산이 아닌 소계절의 양품수량/(전일미달수량+계획수량)으로 계산되어야 합니다.</p>
+<p><img alt="" src="assets/untitled-7/image53.png" /></p>
+<p><img alt="" src="assets/untitled-7/image54.png" /></p>
+<p>출처: \&lt;<a href="http://61.250.183.6:8100/Page/Open/25164/100101/0/18820244">http://61.250.183.6:8100/Page/Open/25164/100101/0/18820244</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

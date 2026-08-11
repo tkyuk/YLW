@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자재투입, 생산실적</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>자재투입, 생산실적</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">자재투입, 생산실적</h1>
+<p>CREATE TABLE #Input</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>BizUnit INT,</p>
+<p>WorkOrderNo NVARCHAR(50),</p>
+<p>InputDate NCHAR(8),</p>
+<p>DeptName NVARCHAR(100),</p>
+<p>DeptSeq INT,</p>
+<p>WorkCenterName NVARCHAR(100),</p>
+<p>WorkCenterSeq INT,</p>
+<p>GoodItemName NVARCHAR(200),</p>
+<p>GoodItemNo NVARCHAR(100),</p>
+<p>GoodItemSpec NVARCHAR(200),</p>
+<p>GoodItemSeq INT,</p>
+<p>ProcName NVARCHAR(100),</p>
+<p>ProdPlanNo NVARCHAR(50),</p>
+<p>MatItemName NVARCHAR(200),</p>
+<p>MatItemNo NVARCHAR(100),</p>
+<p>MatItemSpec NVARCHAR(200),</p>
+<p>MatUnitName NVARCHAR(50),</p>
+<p>MatUnitSeq INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>StdUnitQty DECIMAL(19,5),</p>
+<p>RealLotNo NVARCHAR(50),</p>
+<p>RRealLotNo NVARCHAR(50),</p>
+<p>SerialNoFrom NVARCHAR(50),</p>
+<p>InputType INT,</p>
+<p>IsPaid NCHAR(1),</p>
+<p>WorkReportSeq INT,</p>
+<p>ItemSerl INT,</p>
+<p>MatItemSeq INT,</p>
+<p>CustName NVARCHAR(100),</p>
+<p>OSPDelvInSeq INT,</p>
+<p>OSPDelvInSerl INT,</p>
+<p>IsOSP INT,</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>Price DECIMAL(19,5),</p>
+<p>WorkType INT,</p>
+<p>WorkTypeName NVARCHAR(50),</p>
+<p>ProdQty DECIMAL(19,5),</p>
+<p>ProcRev NCHAR(2),</p>
+<p>AssetSeq INT,</p>
+<p>AssetName NVARCHAR(50),</p>
+<p>MatProcSeq INT,</p>
+<p>CCtrSeq INT,</p>
+<p>CCtrName NVARCHAR(100),</p>
+<p>Remark NVARCHAR(200),</p>
+<p>OrderCustName NVARCHAR(100),</p>
+<p>WorkDate NCHAR(8),</p>
+<p>ItemClassLName NVARCHAR(200),</p>
+<p>ItemClassMName NVARCHAR(200),</p>
+<p>ItemClassSName NVARCHAR(200),</p>
+<p>ItemClassLSeq INT,</p>
+<p>ItemClassMSeq INT,</p>
+<p>ItemClassSSeq INT</p>
+<p>)</p>
+<p>--select @MatItemName</p>
+<p>-- 2021.12.07 UPDATE BY 오주헌 :: Insert~Select문 수정</p>
+<p>INSERT INTO #Input (</p>
+<blockquote>
+<p>BizUnit</p>
+<p>,WorkOrderNo</p>
+<p>,InputDate</p>
+<p>,DeptName</p>
+</blockquote>
+<p>,DeptSeq</p>
+<blockquote>
+<p>,WorkCenterName</p>
+</blockquote>
+<p>,WorkCenterSeq</p>
+<blockquote>
+<p>,GoodItemName</p>
+<p>,GoodItemNo</p>
+<p>,GoodItemSpec</p>
+</blockquote>
+<p>,GoodItemSeq</p>
+<blockquote>
+<p>,ProcName</p>
+<p>,ProdPlanNo</p>
+<p>,MatItemName</p>
+<p>,MatItemNo</p>
+<p>,MatItemSpec</p>
+<p>,MatUnitName</p>
+</blockquote>
+<p>,MatUnitSeq</p>
+<blockquote>
+<p>,Qty</p>
+<p>,StdUnitQty</p>
+<p>,RealLotNo</p>
+<p>,RRealLotNo</p>
+<p>,SerialNoFrom</p>
+<p>,InputType</p>
+<p>,IsPaid</p>
+<p>,WorkReportSeq</p>
+<p>,ItemSerl</p>
+<p>,MatItemSeq</p>
+<p>,CustName</p>
+<p>,OSPDelvInSeq</p>
+<p>,OSPDelvInSerl</p>
+<p>,IsOSP</p>
+<p>,Amt</p>
+<p>,Price</p>
+<p>,WorkType</p>
+<p>,WorkTypeName</p>
+<p>,ProdQty</p>
+<p>,ProcRev</p>
+<p>,AssetSeq</p>
+<p>,AssetName</p>
+<p>,MatProcSeq</p>
+<p>,CCtrSeq</p>
+<p>,CCtrName</p>
+<p>,Remark</p>
+<p>,OrderCustName</p>
+<p>,WorkDate</p>
+</blockquote>
+<p>,ItemClassLName</p>
+<p>,ItemClassMName</p>
+<p>,ItemClassSName</p>
+<p>,ItemClassLSeq</p>
+<p>,ItemClassMSeq</p>
+<p>,ItemClassSSeq</p>
+<blockquote>
+<p>)</p>
+</blockquote>
+<p>SELECT R.BizUnit ,</p>
+<p>W.WorkOrderNo ,</p>
+<p>I.InputDate ,</p>
+<p>D.DeptName AS DeptName , -- 입고부서</p>
+<p>D.DeptSeq,</p>
+<p>C.WorkCenterName AS WorkCenterName ,</p>
+<p>C.WorkCenterSeq,</p>
+<p>G.ItemName AS GoodItemName ,</p>
+<p>G.ItemNo AS GoodItemNo ,</p>
+<p>G.Spec AS GoodItemSpec ,</p>
+<p>G.ItemSeq,</p>
+<p>P.ProcName AS ProcName ,</p>
+<p>V.ProdPlanNo AS ProdPlanNo ,</p>
+<p>M.ItemName AS MatItemName ,</p>
+<p>M.ItemNo AS MatItemNo ,</p>
+<p>M.Spec AS MatItemSpec ,</p>
+<p>U.UnitName AS MatUnitName , -- 입고단위</p>
+<p>U.UnitSeq,</p>
+<p>ISNULL(I.Qty, 0) AS Qty ,</p>
+<p>ISNULL(I.StdUnitQty, 0)AS StdUnitQty ,</p>
+<p>I.RealLotNo AS RealLotNo , -- 투입자재 RealLotNo</p>
+<p>R.RealLotNo AS RRealLotNo , -- (생산실적 RealLotNo)</p>
+<p>I.SerialNoFrom ,</p>
+<p>I.InputType ,</p>
+<p>I.IsPaid ,</p>
+<p>I.WorkReportSeq ,</p>
+<p>I.ItemSerl ,</p>
+<p>I.MatItemSeq ,</p>
+<p>'' ,</p>
+<p>0 ,</p>
+<p>0 ,</p>
+<p>6064001 ,</p>
+<p>0, --(SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl) AS Amt,</p>
+<p>0, --CASE WHEN I.Qty = 0 THEN 0 ELSE ISNULL((SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl), 0) / I.Qty END AS Price,</p>
+<p>R.WorkType ,</p>
+<p>B.MinorName AS WorkTypeName ,</p>
+<p>ISNULL(R.ProdQty, 0) AS ProdQty ,</p>
+<p>--ISNULL(R.OKQty,0) AS ProdQty,</p>
+<p>R.ProcRev AS ProcRev ,</p>
+<p>M.AssetSeq AS AssetSeq , -- 재고자산분류코드</p>
+<p>M1.AssetName AS AssetName , -- 재고자산분류</p>
+<p>I.ProcSeq AS MatProcSeq ,</p>
+<p>C.CCtrSeq ,</p>
+<p>E.CCtrName ,</p>
+<p>I.Remark AS Remark ,</p>
+<p>Z.CustName AS OrderCustName ,</p>
+<p>R.WorkDate AS WorkDate ,</p>
+<p>VC.ItemClassLName AS ItemClassLName ,</p>
+<p>VC.ItemClassMName AS ItemClassMName ,</p>
+<p>VC.ItemClassSName AS ItemClassSName ,</p>
+<p>VC.ItemClassLSeq AS ItemClassLSeq ,</p>
+<p>VC.ItemClassMSeq AS ItemClassMSeq ,</p>
+<p>VC.ItemClassSSeq AS ItemClassSSeq</p>
+<p>FROM _TPDSFCMatinput AS I WITH(NOLOCK) -- 자재투입 테이블</p>
+<p>JOIN _TPDSFCWorkReport AS R WITH(NOLOCK) ON I.WorkReportSeq = R.WorkReportSeq -- 생산실적 테이블</p>
+<p>AND I.CompanySeq = R.CompanySeq</p>
+<p>--JOIN #GoodItem AS KA ON R.GoodItemSeq = KA.ItemSeq</p>
+<p>JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON R.WorkCenterSeq = C.WorkCenterSeq</p>
+<p>AND I.CompanySeq = C.CompanySeq</p>
+<p>JOIN _TDADept AS D WITH(NOLOCK) ON R.DeptSeq = D.DeptSeq</p>
+<p>AND I.CompanySeq = D.CompanySeq</p>
+<p>JOIN _TDAItem AS G WITH(NOLOCK) ON R.GoodItemSeq = G.ItemSeq</p>
+<p>AND I.CompanySeq = G.CompanySeq</p>
+<p>JOIN _TDAItem AS M WITH(NOLOCK) ON I.MatItemSeq = M.ItemSeq</p>
+<p>AND I.CompanySeq = M.CompanySeq</p>
+<p>JOIN _TDAItemAsset AS M1 WITH(NOLOCK) ON M.AssetSeq = M1.AssetSeq</p>
+<p>AND I.CompanySeq = M1.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON I.MatUnitSeq = U.UnitSeq</p>
+<p>AND I.CompanySeq = U.CompanySeq</p>
+<p>JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON R.ProcSeq = P.ProcSeq</p>
+<p>AND I.CompanySeq = P.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = W.WorkOrderSerl</p>
+<p>AND I.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS V WITH(NOLOCK) ON V.ProdPlanSeq = W.ProdPlanSeq</p>
+<p>AND I.CompanySeq = V.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.MinorSeq = R.WorkType</p>
+<p>AND I.CompanySeq = B.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACCtr AS E WITH(NOLOCK) ON C.CCtrSeq = E.CCtrSeq</p>
+<p>AND I.CompanySeq = E.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACust AS Z WITH(NOLOCK) ON R.CustSeq = Z.CustSeq</p>
+<p>AND R.CompanySeq = Z.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS TC WITH(NOLOCK) ON TC.CompanySeq = M.CompanySeq --2022.08.30 우승현 추가</p>
+<p>AND TC.ItemSeq = M.ItemSeq</p>
+<p>AND UMajorItemClass IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS VC WITH(NOLOCK) ON VC.CompanySeq = TC.CompanySeq --2022.08.30 우승현 추가</p>
+<p>AND VC.ItemClassSSeq = TC.UMItemClass</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@BizUnit = 0 OR R.BizUnit = @BizUnit)</p>
+<p>AND (I.InputDate LIKE @StdMonth + '%')</p>
+<p>--AND (@InputDate = '' OR I.InputDate &gt;= @InputDate)</p>
+<p>--AND (@InputDateTo = '' OR I.InputDate \&lt;= @InputDateTo)</p>
+<p>--AND (@WorkOrderNo = '' OR W.WorkOrderNo LIKE RTRIM(@WorkOrderNo) + N'%')</p>
+<p>--AND (@DeptSeq = 0 OR R.DeptSeq = @DeptSeq)</p>
+<p>--AND (@GoodItemName = '' OR G.ItemName LIKE @GoodItemName + N'%')</p>
+<p>--AND (@GoodItemNo = '' OR G.ItemNo LIKE @GoodItemNo + N'%')</p>
+<p>--AND (@MatItemName = '' OR M.ItemName LIKE @MatItemName + N'%')</p>
+<p>--AND (@MatItemNo = '' OR M.ItemNo LIKE @MatItemNo + N'%')</p>
+<p>--AND (@WorkCenterName = '' OR C.WorkCenterName LIKE @WorkCenterName + N'%')</p>
+<p>--AND (@ProdPlanNo = '' OR V.ProdPlanNo LIKE @ProdPlanNo + N'%')</p>
+<p>--AND (@ProcName = '' OR P.ProcName LIKE @ProcName + N'%')</p>
+<p>--AND (@CustName = '')</p>
+<p>--AND (@IsOSP IN (0,6064001))</p>
+<p>--AND (@RRealLotNo = '' OR R.RealLotNo LIKE @RRealLotNo + N'%')</p>
+<p>--AND (@RealLotNo = '' OR I.RealLotNo LIKE @RealLotNo + N'%')</p>
+  </article>
+</div>
+</body>
+</html>

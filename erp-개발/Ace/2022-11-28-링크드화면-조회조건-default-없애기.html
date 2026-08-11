@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>링크드화면 - 조회조건 default 없애기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>링크드화면 - 조회조건 default 없애기</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-default">링크드화면 - 조회조건 default 없애기</h1>
+<p>default 공백으로 넣으면 동작하지 않기 때문에</p>
+<p>초기 - pgmseq에 따라서 값 넣어주기</p>
+<p>if _base.PgmSeq == 97920008 then</p>
+<blockquote>
+<p>txtDeptName.Text = _base.DeptName</p>
+<p>txtEmpName.Text = _base.EmpName</p>
+<p>txtDeptName.TextCd = _base.DeptSeq</p>
+<p>txtEmpName.TextCd = _base.EmpSeq</p>
+</blockquote>
+<p>txtReqDeptName.Text = 0</p>
+<blockquote>
+<p>txtReqEmpName.Text = 0</p>
+<p>txtReqDeptName.TextCd = ''</p>
+<p>txtReqEmpName.TextCd = ''</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>txtDeptName.Text = 0</p>
+<p>txtEmpName.Text = 0</p>
+<p>txtDeptName.TextCd = ''</p>
+<p>txtEmpName.TextCd = ''</p>
+<p>txtReqDeptName.Text = _base.DeptName</p>
+<p>txtReqEmpName.Text = _base.EmpName</p>
+<p>txtReqDeptName.TextCd = _base.DeptSeq</p>
+<p>txtReqEmpName.TextCd = _base.EmpSeq</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

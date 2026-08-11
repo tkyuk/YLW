@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2\. 권한부여 및 테이블 등록</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2\. 권한부여 및 테이블 등록</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="2">2. 권한부여 및 테이블 등록</h1>
+<ol>
+<li>권한 부여</li>
+</ol>
+<p>운영관리 - 권한 – 화면권한 - 그룹별 프로그램 권한등록</p>
+<p><img alt="" src="assets/2-.-권한부여-및-테이블-등록/image17.png" /></p>
+<p>==============================================================</p>
+<ol>
+<li></li>
+<li>
+<p>만들기 (신규)</p>
+</li>
+</ol>
+<p>K-STUDIO(2014) - 개발툴 - 테이블 조회 =&gt; ‘테이블신규등록‘ 클릭</p>
+<p><img alt="" src="assets/2-.-권한부여-및-테이블-등록/image18.png" /></p>
+<p>* 테이블 등록 (만들기)</p>
+<p>- master영역 / item영역 총 2개 작성</p>
+<p><img alt="" src="assets/2-.-권한부여-및-테이블-등록/image19.png" /></p>
+<p><img alt="" src="assets/2-.-권한부여-및-테이블-등록/image20.png" /></p>
+<p>데이터유형</p>
+<hr />
+<p>NVARCHAR는 공백이 없다</p>
+<p>NCHAR는 공백 존재</p>
+<p>ex. NCHAR ‘1234 ’</p>
+<p>NVARCHAR ‘1234’</p>
+<p>둘이 더하면 =&gt; ‘1234 1234’</p>
+<hr />
+<p>* 대부분 – INT – INT형은 자리수가 필요 없다</p>
+<p>CompanySeq 회사명 – 필수 (키 값)</p>
+<p>OrderSeq 테이블 키 값</p>
+<p>키 값은 정수형이므로 int (코드값은 대부분 int)</p>
+<p>* 날짜 – NCHAR – 자리수 8</p>
+<p>8자리 고정</p>
+<p>* 주문번호 – NVARCHAR – 자리수 50</p>
+<p>YYYYMMDD + 순번4 = 12자리</p>
+<p>(A) (B)</p>
+<p>대부분 (A)(B)지만 회사마다 다르므로 넉넉하게 50자리)</p>
+<p>* 최종수정일 - DATETIME</p>
+<blockquote>
+<p>시분초도 들어가기 때문</p>
+</blockquote>
+<hr />
+<p>키여부</p>
+<p>CompanySeq 는 고정</p>
+<p>item테이블은 키값이 serl까지 포함해서 3개</p>
+<p>마스터키값 1개 / 품명 1개 =&gt; 품명 말고 따로 순서를 키 값으로 설정</p>
+<p>(순번을 키 값으로)</p>
+<p>CompanySeq 까지 총 3개</p>
+<p>============================================================== </p>
+<ol start="3">
+<li>테이블 스크립트 생성</li>
+</ol>
+<p>K-STUDIO – 개발툴 - table명 작성 - 조회 - 테이블선택 – 추가</p>
+<p><img alt="" src="assets/2-.-권한부여-및-테이블-등록/image21.png" /></p>
+<p>체크 해야할 것 4가지</p>
+<p>Table생성여부, DropTable추가, PrimaryKey생성, LogTable추가</p>
+<p>=&gt; 스크립트생성테이블 나옴</p>
+<p>=&gt; 전체 선택</p>
+<p>테이블스크립트를 sql에 복붙 (마지막 go지우기)</p>
+<p>===&gt; 테이블이 데이터베이스에 생성된다</p>
+<hr />
+<ol start="4">
+<li>업무별외부키생성</li>
+</ol>
+<p>외부키생성정의명</p>
+<p>그림의 외부키</p>
+<p><img alt="" src="assets/2-.-권한부여-및-테이블-등록/image22.png" /></p>
+<p><img alt="" src="assets/2-.-권한부여-및-테이블-등록/image23.png" /></p>
+  </article>
+</div>
+</body>
+</html>

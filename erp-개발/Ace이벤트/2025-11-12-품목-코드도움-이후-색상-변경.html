@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품목 코드도움 이후 색상 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>품목 코드도움 이후 색상 변경</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">품목 코드도움 이후 색상 변경</h1>
+<p>local ActCol, ActiveRowOld, ActiveColumnNameOld</p>
+<p>EndRow = SS1.ActiveRow + SS1.CodeHelpSelectedRows - 1</p>
+<p>if SS1.ActiveRow &gt; EndRow then</p>
+<blockquote>
+<p>EndRow = SS1.ActiveRow</p>
+</blockquote>
+<p>end</p>
+<p>--- ActiveRowOld, ActiveColumnNameOld 선언</p>
+<hr />
+<p>-- 셀바스 추가 25.11.12 SJPARK</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>ActiveColumnNameOld = SS1.ActiveColumnName</p>
+<p>for row = SS1.ActiveRow, EndRow, 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveColumnName = 'IsSerial'</p>
+<p>if CellText(SS1, row, 'IsSerial') == '1' then</p>
+<p>SS1.ActiveCellBackColor = '#FFF9C4'</p>
+<p>else</p>
+<p>SS1.ActiveCellBackColor = -1118482</p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'IsOption'</p>
+<p>if CellText(SS1, row, 'IsOption') == '1' then</p>
+<p>SS1.ActiveCellBackColor = '#FFF9C4'</p>
+<p>else</p>
+<p>SS1.ActiveCellBackColor = -1118482</p>
+<p>end        </p>
+</blockquote>
+<p>end</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+<p>SS1.ActiveColumnName = ActiveColumnNameOld</p>
+<hr />
+<p>fnCalcSheetWBS(SS1, txtCurrName, fltExRate, txtCustName, txtDeptName, datInvoiceDate, SS1.ActiveRow, EndRow, 'ItemSeq', 'UnitSeq', 'STDQty', 'ItemPrice', 'CustPrice',</p>
+<blockquote>
+<p>'Price', 'Qty', 'VATRate', 'IsInclusedVAT', 'CurAmt', 'CurVAT', 'CurAmtTotal', 'DomAmt', 'DomVAT', 'DomAmtTotal', '',</p>
+<p>'',txtSMExpKindName.TextCd, 'DomPrice', 'UnitName', 'STDUnitName', 'STDUnitSeq', 'IsQtyChange', -1, 'WHName', 'WHSeq', txtBizUnitName.TextCd,</p>
+<p>txtAmtDecEnv.Value, txtVATDecEnv.Value, txtCurAmtEnv.Value, txtDomAmtEnv.Value, txtCurrEnv.Value, txtCurrEnvName.Value, txtBasicAmt.Value, txtEmpName.TextCd,'UMEtcOutKind')</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

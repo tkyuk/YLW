@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분류</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>분류</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">분류</h1>
+<p>\&lt;\&lt;분류.sql&gt;&gt;</p>
+<p>-- 61.250.183.1:8101</p>
+<p>SELECT A.MinorName AS 소분류,</p>
+<p>C.MinorName AS 중분류,</p>
+<p>E.MinorName AS 대분류</p>
+<p>FROM _TDAUMinor AS A</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.MajorSeq = B.MajorSeq</p>
+<p>AND A.MinorSeq = B.MinorSeq</p>
+<p>AND B.Serl = 1001 -- 추가정보정의 품목중분류</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ValueSeq = C.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.MajorSeq = D.MajorSeq</p>
+<p>AND C.MinorSeq = D.MinorSeq</p>
+<p>AND D.Serl = 2001 -- 추가정보정의 품목대분류</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS E ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.ValueSeq = E.MinorSeq</p>
+<p>WHERE A.MajorSeq = 2001</p>
+<p>SELECT *</p>
+<p>FROM _VDAItemClass</p>
+<p>SELECT DISTINCT C.MinorName,E.MinorName, G.MinorName</p>
+<p>FROM _TSLOrderItem AS A</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND B.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq AND B.UMItemClass = C.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON ( C.MinorSeq = D.MinorSeq AND D.Serl in (1001,2001) AND C.MajorSeq = D.MajorSeq AND C.CompanySeq = D.CompanySeq )</p>
+<p>-- 중분류</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS E WITH(NOLOCK) ON ( D.ValueSeq = E.MinorSeq AND D.CompanySeq = E.CompanySeq )--AND E.IsUse = '1' )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS F WITH(NOLOCK) ON ( E.MinorSeq = F.MinorSeq AND F.Serl = 2001 AND E.MajorSeq = F.MajorSeq AND E.CompanySeq = F.CompanySeq )</p>
+<p>-- 대분류</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS G WITH(NOLOCK) ON ( F.ValueSeq = G.MinorSeq AND F.CompanySeq = G.CompanySeq )--AND G.IsUse = '1' )</p>
+<p>SELECT DISTINCT C.ItemClassSName,C.ItemClassMName, C.ItemClassLName</p>
+<p>FROM _TSLOrderItem AS A</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND B.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq AND B.UMItemClass = C.ItemClassSSeq</p>
+  </article>
+</div>
+</body>
+</html>

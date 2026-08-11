@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unexpected token in JSON at position 71908 오류가 발생하고 있습니다.</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>Unexpected token in JSON at position 71908 오류가 발생하고 있습니다.</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="unexpected-token-in-json-at-position-71908">Unexpected token in JSON at position 71908 오류가 발생하고 있습니다.</h1>
+<p><strong>Unexpected token 오류</strong></p>
+<p><strong>문제 상황</strong></p>
+<p>"Unexpected token in JSON at position 71908 오류가 발생하고 있습니다." 메시지가 발생합니다.</p>
+<p><strong>원인</strong></p>
+<p>해당 오류는 조회하는 데이터에 JSON에서 허용하지 않는 특수 문자를 포함하고 있어 JSON으로 변환 시 발생하는 오류입니다.</p>
+<p><strong>해결 방안</strong></p>
+<p>조회 시 프로파일러로 실행문을 잡아 테이블 데이터에 문제가 되는 특수 문자가 있다면 해당 문자를 제거합니다.</p>
+<p>위 방법으로 원인을 파악하기 어려운 경우, 다음 실행문을 활용하여 문제가 되는 문자를 찾을 수 있습니다.</p>
+<p>--실행문 예시</p>
+<p>select CfmItem, SUBSTRING(CfmItem, 14, 1), CONVERT(VARBINARY, SUBSTRING(CfmItem, 14, 1))</p>
+<p>, SUBSTRING(CfmItem, 5, 1), CONVERT(VARBINARY, SUBSTRING(CfmItem, 5, 1))</p>
+<p>FROM _TFPSLShoppingMallOrder WITH(NOLOCK)</p>
+<p>WHERE MallOrderNo = '736278'select CfmItem, SUBSTRING(CfmItem, 14, 1), CONVERT(VARBINARY, SUBSTRING(CfmItem, 14, 1))</p>
+<p>, SUBSTRING(CfmItem, 5, 1), CONVERT(VARBINARY, SUBSTRING(CfmItem, 5, 1))</p>
+<p>FROM _TFPSLShoppingMallOrder WITH(NOLOCK)</p>
+<p>WHERE MallOrderNo = '736279'</p>
+<p>예시</p>
+<p><img alt="" src="assets/Unexpected-token-in-JSON-at-position-71908-오류가-발생하고-있습니다/image183.png" /></p>
+<p>위 데이터의 경우 공백 문자에 다른 값이 들어가 있습니다.</p>
+<p>정상적인 공백의 경우 0x2000 값으로 출력되어야 합니다. -&gt; 문제가 되는 문자: 0x1D00</p>
+<p>출처: \&lt;<a href="https://kdc.ksystem.co.kr/developments/erpops/M1736731785188">https://kdc.ksystem.co.kr/developments/erpops/M1736731785188</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드도움 취소 (IsCodeHelpCancelEvent)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드도움 취소 (IsCodeHelpCancelEvent)</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="iscodehelpcancelevent">코드도움 취소 (IsCodeHelpCancelEvent)</h1>
+<p>--==============================================================</p>
+<p>-- 값이 없는 경우 코드도움 실행 취소 (FrmWSLWeighBridge_emk)</p>
+<p>--==============================================================</p>
+<p>local strTag, strCollector</p>
+<p>strTag                         = '00'</p>
+<p>strCollector        = ''</p>
+<p>-- 운반업체 코드도움 없으면 거래처 코드도움 실행취소</p>
+<p>if txtCollectorName.TextCd == 0 or txtCollectorName.TextCd == '' or txtCollectorName.TextCd == '0' or txtCollectorName.TextCd == nil then</p>
+<blockquote>
+<p>SS1.IsCodeHelpCancelEvent = true</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>if tonumber(txtWeighBridgeTypeName.Value) == 1000661001 or tonumber(txtWeighBridgeTypeName.Value) == 1000661004 then</p>
+<p>strTag = '01'</p>
+<p>end</p>
+<p>strCollector        = txtCollectorName.TextCd</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnCodeHelpParams = strTag..'|||'..strCollector</p>
+</blockquote>
+<p>end</p>
+<p>if txtDeptName.Value == 0 or txtDeptName.Value == null or txtDeptName.Value == '' then</p>
+<blockquote>
+<p>MessageBox('부서를 입력해주세요.', '', 'MsgBoxTypeOK')</p>
+<p>SS.IsCodeHelpCancelEvent = true</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>SS.ColumnCodeHelpParams = txtDeptName.Value..'|||'</p>
+  </article>
+</div>
+</body>
+</html>

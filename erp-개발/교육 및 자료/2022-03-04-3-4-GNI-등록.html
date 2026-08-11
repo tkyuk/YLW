@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3/4 GNI 등록</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>3/4 GNI 등록</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#교육 및 자료</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="34-gni">3/4 GNI 등록</h1>
+<p>\&lt;\&lt;0304.sql&gt;&gt;\&lt;\&lt;0304.hwp&gt;&gt;</p>
+<p>GNI 특징 - 대분류-소분류 참조</p>
+<p>SELECT * FROM TDAMajor -- 대분류</p>
+<p>SELECT * FROM TDAMinor -- 소분류</p>
+<p>SELECT * FROM TCTCodeHelpMajor -- 코드헬프</p>
+<p>-- 테이블안에 추가정보가 다 있다 (단점 : 최대 12개)</p>
+<p>-- Major = Header1~12</p>
+<p>-- Minor = Item 1~12</p>
+<p>-- GNI에서는 소스타입이 있다 =&gt; E, C, T</p>
+<p>-- SourceType (거의 E사용)</p>
+<p>-- E - 사용자정의코드 MinorCd를 키 값으로 조인</p>
+<p>-- C - 시스템정의코드 ITEM1을 키 값으로 조인 (MinorCd말고 ITEM1을 키값으로 가져옴)</p>
+<p>-- T =&gt; 다른 테이블에서 들어오는 것</p>
+<p>-- SourceType = C인 경우</p>
+<p>-- 1. 대분류의 소분류 중에 코드헬프를 쓰는 소분류는 대분류를 조회 했을 때 HelpKind 부분에 값이 있다 (HelpKind 3,4,5,6,7 = 453)</p>
+<p>SELECT MajorCd, MajorNm, HelpKind3, HelpKind4, HelpKind5 FROM TDAMajor WHERE MajorCd LIKE '099%'</p>
+<p>-- 2. 소분류 - 코드헬프를 쓰는 Item에 코드헬프의 JoinTable값이 있다</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd LIKE '099%' -- Item 3,4,5,6,7 =&gt; 1120102 / 4110302 / 4210102 / 1120302 / 4110102 / 4210302</p>
+<p>-- 3. 코드헬프 소분류 조회 시 키값 = 대분류(HelpKind) / JoinTable = 소분류(Item) 넣어서 조회</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd LIKE '453%' AND JoinTable = '1120102'</p>
+<p>-- 대분류(HelpKind) =&gt; 사용할 코드헬프의 키값</p>
+<p>-- 소분류(Item) =&gt; 사용할 코드헬프의 JoinTable값</p>
+<p>-- SourceType = T인 경우</p>
+<p>-- =&gt; 다른 테이블에서 들어오는 것</p>
+<p>-- =&gt; 다른 등록화면 SP에서 추가입력</p>
+<p>-- =&gt; 코드헬프 못 씀 / 대분류등록에서도 볼 수 없다</p>
+<p>-- T 예시 (057)</p>
+<p>-- TDAMajor : (SourceType = T, MajorNm = 단위) ==&gt; 단위 테이블에서 값을 가져온다 (단위 테이블 = TDAUnit)</p>
+<p>-- TDAMinor</p>
+<p>-- JoiniTable =&gt; UnitCd ==&gt; 실제 테이블 (단위테이블)의 키 값(UnitCd)</p>
+<p>-- MinorNm =&gt; UnitNm ==&gt; 실제 테이블 (단위테이블)의 이름 (UnitNm)</p>
+<p>-- MinorNm을 선택하면 JoinTable (테이블 키값)이 들어옴</p>
+<p>-- 단위 대분류</p>
+<p>SELECT * FROM TDAMajor WHERE MajorCd like '057%'</p>
+<p>-- 단위 소분류</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd like '057%'</p>
+<p>-- 단위 테이블</p>
+<p>SELECT * FROM TDAUnit</p>
+<p>-- 밑의 과정이 단위 소분류와 같다</p>
+<p>SELECT *</p>
+<p>FROM TDAMinor as a</p>
+<p>JOIN TDAUnit as b</p>
+<p>on a.JoinTable = b.UnitCd</p>
+<p>WHERE MinorCd like '057%'</p>
+<hr />
+<p>--대분류 조회 및 추가</p>
+<p>--(마스타 및 운영관리) 마스터등록 = 공통마스터 = 대분류등록</p>
+<p>--* 대분류 추가 (ex. Q39)</p>
+<p>--여유칸이 없으면 DB에서 넣어줘야한다</p>
+<p>--(대분류)코드 값을 지정해야함 / 숫자로만 된거 =&gt; 시스템에서 만들어져 있는거</p>
+<p>--EX. 새로 만들 때 Q38 =&gt; Q39으로 만들면된다</p>
+<p>--만들기전에 검색해야함</p>
+<p>SELECT * FROM TDAMajor WHERE MajorCd like 'Q%'</p>
+<p>--추가 검색 유의 사항</p>
+<p>SELECT * FROM TCTCodeHelpMajor WHERE MajorCd LIKE 'Q%'</p>
+<p>-- 조회화면 TDAMAJOR에서는 없던 QGC / QGT가 나옴</p>
+<p>-- =&gt; 이 값들은 만들 때 피해줘야한다</p>
+<p>-- 제일 마지막꺼 복사</p>
+<p>-- MajorCd : Q38 -&gt; Q39</p>
+<p>-- SysType : 밑에서 설명</p>
+<p>-- MajorNm : T-교육</p>
+<p>-- SourceType : E (만든거니까 사용자정의코드인 E사용)</p>
+<p>-- RegDate,AddDate : 오늘 날짜로 수정</p>
+<p>-- 소분류 추가</p>
+<p>-- 소분류 title =&gt; 추가정보 느낌</p>
+<p>-- 소분류 등록에서 안보임 =&gt; SysType를 1로 바꿔줘야 보임 (TDAMajor의 두 번째 컬럼)</p>
+<p>-- 각 자리마다 페이지를 가지고 있다</p>
+<p>-- (모듈을 알 수 없으므로,</p>
+<p>-- 1. 모든 자리를 1로 바꾸거나 2. 연관된 데이터 참조)</p>
+<p>-- 소분류등록에서 값을 입력하면 ITEM1~ 차례대로 써진다</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd LIKE 'Q39%'</p>
+<hr />
+<p>--스플리트하는 SP에서 금액은 'N'을 붙여줘야 에러가 안나고 0이 나온다</p>
+<p>-- =&gt; 금액은 0이 넘어와도 N'0'으로 넘어와야함</p>
+<p>-- 저장할 때 쓰는 SP (현재시간 출력)</p>
+<p>DECLARE @vcSystemDate NCHAR(12) --YYYYMMDDHHmm</p>
+<p>EXEC SDAGetSystemDate @vcSystemDate OUTPUT</p>
+<p>select @vcSystemDate</p>
+<p>--TDAErrorMsg (제뉴인처럼 단어 조합은 안됨 / 대신 직접 작성)</p>
+<p>DECLARE @vcStatus NVARCHAR(100),</p>
+<p>@vcResult NVARCHAR(100)</p>
+<p>EXEC SDAErrMsg 'AAUTH', @vcResult OUTPUT, @vcStatus OUTPUT</p>
+<p>-- =====</p>
+<p>-- 애초에 OK가 아니면 다 에러 취급</p>
+<p>SELECT @vcStatus, @vcResult</p>
+<p>--==========================================</p>
+<p>--==========================================</p>
+<p>GNI 진행</p>
+<p>TSSInvoiceItem --거래명세서 // SONo,SOSerl join하면 진행</p>
+<p>진행된 상태인지 안된 상태인지</p>
+<p>제뉴인과 달리 찾아주는 sp가 없음</p>
+<p>수주 - 출하 - 거래명세서 - 세금명세서 순</p>
+<p>밑으로 내려갈수록 이전의 키값들을 다 가지고 있다 (누적)</p>
+<p>SELECT * FROM TSASOItem -- 수주</p>
+<p>SELECT * FROM TSSDelvReqItem</p>
+<p>-- 출하의뢰 (수주번호의 SONo, SOSerl를 가지고 있음) -- DelvNo - 출하의뢰번호</p>
+<p>SELECT * FROM TSSInvoiceITem</p>
+<p>-- 거래명세서 (수주번호의 SONo, SOSerl + 출하의뢰의 DelvNo, DelvSerl를 가지고 있음)</p>
+<p>TssbillItem - 세금계산</p>
+<p>이후 프로세스가 이전 프로세스의 키값을 가지고 있음</p>
+<p>(출하에는 수주 키값 있지만 수주에는 출하 키값은 없다)</p>
+<p>수주 1 - 100</p>
+<p>(수주1의) 거래명세서 1 - 50 A/1</p>
+<p>(수주1의) 거래명세서 2 - 50 마스터 키값, 시리얼 = A/2</p>
+<p>세금계산서 1 - 25 A/2</p>
+<p>세금계산서 2- 25 A/2</p>
+<p>(A만 걸면 안되고 2까지 같이 걸어줘야함)</p>
+<p>* 거래명세서 입장에서 봤을 때</p>
+<p>수주는 그냥 가져올 수 있지만</p>
+<p>세금계산서 여러개가 발생했으므로 모든 건을 집계 해서 (sum) 가져와야함</p>
+<p>25 + 25 이렇게 집계해야 50개를 가져올 수 있기 때문에</p>
+<p>진행은 Seq, Serl(아이템 키)까지 걸어줘야함</p>
+<p>+. 키 값들이 다 CHAR형 / 숫자는 NUMERIC</p>
+<p>SCTQry_ylwsh05008</p>
+<p>SSASalesOrder01Save</p>
+<p>채번 시</p>
+<p>날짜 기준으로 가져옴</p>
+<p>날짜 + MAX값 가져와서 + 1</p>
+<p>SDANextSerialno // @wSONo =&gt; 새로 채번한 값</p>
+<p>MAX값 구하고 저장하기 전 그 찰나에 누가 데이터를 저장할 수 있기 때문에</p>
+<p>if문 부분이 있다</p>
+<p>여러 사람의 중복으로 병목현상 =&gt; 무한루프 =&gt; 채번같은 경우는 밖으로 빼줘서 해야한다</p>
+<p>* 업무별 외부키가 별도로 없다</p>
+<p>번호자체가 테이블에서 키값으로 쓰이기 때문</p>
+<p>** TSASOM ProgressType</p>
+<p>TSASOItem - ProgClss</p>
+<p>0 - 초기값</p>
+<p>1 - 완료</p>
+<p>1이 아닌값 2 - 중단</p>
+<p>StkQty - 전체</p>
+<p>NextQty - 진행 수량</p>
+<p>StkQty, NextQty 비교하여 진행, 중단 결정</p>
+<p>SSADelvReq2Save</p>
+<p>진행수량 관리해주는 로직</p>
+<p>TDACONTROLSUB =&gt; 수량통제</p>
+<p>영업/수출관리 - 기본정보 - 운영환경관리 (영업수출) 진행 =&gt; 요청수량 초과허용 체크</p>
+<p>영업/수출관리 - 기본정보 - 판매단가</p>
+<p>(컨트롤)화폐에 따라서 판매단가가 바뀜</p>
+<p>SDAEnvModSal</p>
+<p>영업/수출관리 - 판매단가</p>
+<p>우선순위</p>
+<p>( 거래처 - 유통 - 품목 순 ) 단가등록 // 운영환경관리에 나와 있음</p>
+<p>\&lt;\&lt;0307.txt&gt;&gt;\&lt;\&lt;SCTQry_ylwa05006_ksystem_sjpark.sql&gt;&gt;\&lt;\&lt;SCTQry_ylwa06002_0307.sql&gt;&gt;</p>
+<p>3/7 GNI 조회모음</p>
+<p>0307</p>
+<p>SP와 세팅화면으로만 구성되어있음</p>
+<p>영업/수출관리 - 영업활동 - 수주현황</p>
+<p>=&gt; 폼화면과 달리 SP만</p>
+<p>폼명 : ylwa00000 _site</p>
+<p>ylwa + 숫자 5개 _사이트명 (필요시 작성)</p>
+<p>뒤에 아무것도 없으면 영림원 표준</p>
+<p>구매/수입관리 - 구매계획관리 - 구매요청현황 =&gt; 구매합니다</p>
+<p>==&gt; 구매품의를 올림</p>
+<p>구매요청 =&gt; 구매품의</p>
+<p>SCTQry_ 가 앞에 붙는다</p>
+<p>마스타 및 운영관리 - 운영관리 - 조회모음등록</p>
+<p>폼 ID 작성</p>
+<p>1. NOQ, AddTotal 기능</p>
+<p>2. 전체선택 체크박스 추가</p>
+<p>3. 출력물 - 활성여부</p>
+<p>4. dynamic sheet (보통은 General Sheet)</p>
+<p>before 품목명 품목코드</p>
+<p>after 품목명 품목코드 + 재질 + 색상</p>
+<p>after 품목명 품목코드 + 재질 + 색상 + 규격</p>
+<p>하나 추가할 때 마다 할 일이 많음</p>
+<p>==&gt; 동적으로 보여주기</p>
+<p>품목명 품목코드 + val</p>
+<p>===========</p>
+<p>고정</p>
+<p>5. 구조변경 (시트 갯수가 여러개 일 때 )</p>
+<p>6. 시트관계</p>
+<blockquote>
+<p>S1 =&gt; (S2, S3) ==&gt; S1 누르면 S2,3 각각 뜸</p>
+<p>MajorCd를 담아서감</p>
+</blockquote>
+<p>Step-2</p>
+<p>일반 - 위치 지정 같은거</p>
+<p>콤보 쪽은 좀 중요 =&gt; 하드 코딩이 가능</p>
+<p>권한넣는법 - 폼등록</p>
+<blockquote>
+<p>viewflag =&gt; 버튼 보여줌</p>
+</blockquote>
+<p>===============</p>
+<p>마스타 = 운영관리 - 조회모음등록</p>
+<p>조회모음에 등록한다고</p>
+<p>운영관리 프로그램 폼등록</p>
+<hr />
+<p>sp</p>
+<p>SCTQry_ylwa05006_ksystem_sjpark</p>
+<p>거래처 =&gt; 대표자명이 있음 =&gt; 옆에 추가 (대표)</p>
+<p>원화금액 옆에 컬럼 추가 total</p>
+<p>==========================</p>
+<p>*조건추가</p>
+<p>조회모음 - 조회모음등록</p>
+<p>Code유형 - Text, CodeHelp,</p>
+<p>CodeHelp - 있는걸 사용</p>
+<p>Text -</p>
+<p>sp</p>
+<p>변수 3번째 추가 =&gt;i3stCombCond에 추가</p>
+<p>WHERE에 조건 추가</p>
+<blockquote>
+<p>필수가 아니기 때문에 = '' OR 추가</p>
+</blockquote>
+<p>Text =&gt; 일일히 정해주는 것</p>
+<blockquote>
+<p>Seq - 01,02,03,04</p>
+<p>Code = 마음대로 (보통은 001 002 003 004)</p>
+<p>새로 생길 때마다 추가해줘야해서 잘 안쓰긴함</p>
+</blockquote>
+<p>SP =&gt; 하부조건</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.04 단암 WBS 업데이트 보류</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.04 단암 WBS 업데이트 보류</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250904-wbs">25.09.04 단암 WBS 업데이트 보류</h1>
+<p>SELECT PocEmpSeq , B.WBSSEQ</p>
+<p>FROM das_TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS A2 WITH(NOLOCK) ON A.CompanySeq = A2.CompanySeq</p>
+<p>AND A.PJTSeq = A2.PJTSeq</p>
+<p>JOIN _TPJTProjectItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.PJTSeq = B.PJTSeq</p>
+<p>AND B.PJTItemSerl = 1</p>
+<p>JOIN das_TPJTWBSEmp AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.PJTSeq = A2.RelationPJTSeq</p>
+<p>AND C.WBSSeq = B.WBSSeq</p>
+<blockquote>
+<p>AND C.EndDate = '99991231'</p>
+<p>AND C.UMManageType2 = 7027001</p>
+<p>--UPDATE A</p>
+</blockquote>
+<p>-- SET PocEmpSeq = @PocEmpSeq</p>
+<p>-- FROM das_TPJTProject AS A</p>
+<p>-- JOIN _TPJTProject AS A2 WITH(NOLOCK) ON A.CompanySeq = A2.CompanySeq</p>
+<p>-- AND A.PJTSeq = A2.PJTSeq</p>
+<p>-- JOIN _TPJTProjectItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>-- AND A.PJTSeq = B.PJTSeq</p>
+<p>-- AND B.PJTItemSerl = 1</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A2.RelationPJTSeq = @PJTSeq</p>
+<p>-- AND B.WBSSeq = @WBSSeq</p>
+<blockquote>
+<p>SELECT DISTINCT WBSSEQ FROM das_TPJTWBSEmp</p>
+<p>SELECT DISTINCT WBSSEQ FROM _TPJTProjectItem</p>
+<p>SELECT *</p>
+<p>FROM _TPJTProjectItem</p>
+<p>WHERE WBSSEQ IN (SELECT DISTINCT WBSSEQ FROM das_TPJTWBSEmp)</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

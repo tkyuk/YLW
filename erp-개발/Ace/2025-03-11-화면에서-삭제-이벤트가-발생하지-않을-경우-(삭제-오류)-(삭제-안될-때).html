@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>화면에서 삭제 이벤트가 발생하지 않을 경우 (삭제 오류) (삭제 안될 때)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>화면에서 삭제 이벤트가 발생하지 않을 경우 (삭제 오류) (삭제 안될 때)</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">화면에서 삭제 이벤트가 발생하지 않을 경우 (삭제 오류) (삭제 안될 때)</h1>
+<p><strong>문제 상황</strong></p>
+<p>화면에서 툴바의 삭제 버튼을 클릭할 때 삭제 이벤트가 실행되지 않는 경우</p>
+<p><strong>해결 방안</strong></p>
+<p><strong>삭제 이벤트가 중복되어 충돌이 발생하는 경우</strong></p>
+<p>폼 메인에 삭제 이벤트가 있으면 버튼이나 기타 다른 MethodType을 '처리'로 설정합니다.</p>
+<p><strong>삭제 이벤트가 하나인데도 작동하지 않는 경우</strong></p>
+<p>주로 점프 후 발생하는 경우가 많습니다. 점프 후 조회 할 때 _base.IsOpen이 true가 아닌 false로 되어있는 경우입니다.</p>
+<p><span class="mark">원인은 마스터에는 아무런 액션이 취해지지 않고 시트에만 조회했기 때문에 발생됩니다. </span></p>
+<p>이 경우에는 아래의 두가지 처리를 해 줍니다.</p>
+<p>조회 한 다음 마스터에도 처리결과 반영</p>
+<p>조회 성공 후 <span class="mark">_base.IsOpen = true</span> 로 변경</p>
+  </article>
+</div>
+</body>
+</html>

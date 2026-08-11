@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\_TCOMSourceDailyTrace 진행건 보기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\_TCOMSourceDailyTrace 진행건 보기</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_tcomsourcedailytrace">_TCOMSourceDailyTrace 진행건 보기</h1>
+<p>\&lt;===========================</p>
+<p>=======================&gt;</p>
+<p>-- 구매요청 -&gt; 구매품의 -&gt; 구매발주</p>
+<p>-- 구매발주에서 구매요청 볼 때</p>
+<p>SELECT c.*</p>
+<p>FROM _TPUORDPO AS A</p>
+<p>JOIN _TPUORDPOItem AS B ON A.POSeq = B.POSeq</p>
+<p>OUTER APPLY (SELECT POReqNo AS ReqNo ,</p>
+<p>ReqDate AS ReqDate ,</p>
+<p>EmpSeq AS ReqEmpSeq ,</p>
+<p>DeptSeq AS ReqDeptSeq</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOReq AS D WITH(NOLOCK) ON Z.FromSeq = D.POReqSeq</p>
+<p>WHERE Z.CompanySeq = B.CompanySeq</p>
+<p>AND Z.ToSeq = B.POSeq</p>
+<p>AND Z.ToSerl = B.POSerl</p>
+<p>AND Z.FromTableSeq = 12 -- 구매요청</p>
+<p>AND Z.ToTableSeq = 13 -- 구매발주</p>
+<p>) as c</p>
+<p>ORDER BY A.LastDateTime DESC</p>
+<p>-- 수주에서 거래명세서로 진행된 건 볼 때</p>
+<p>SELECT *</p>
+<p>FROM _TSLOrder AS A</p>
+<p>JOIN _TSLOrderItem AS B ON A.OrderSeq = B.OrderSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToQty) AS InvoiceQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = B.CompanySeq</p>
+<p>AND Z.FromSeq = B.OrderSeq</p>
+<p>AND Z.FromSerl = B.OrderSerl</p>
+<p>AND Z.FromTableSeq = 16 -- 수주</p>
+<p>AND Z.ToTableSeq = 18 -- 거래명세서</p>
+<p>) as c</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>and a.BizUnit = @BizUnit</p>
+<p>AND A.OrderDate BETWEEN @StdDate/*6개월전*/ AND @StdDate</p>
+  </article>
+</div>
+</body>
+</html>

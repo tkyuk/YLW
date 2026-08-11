@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선택한 값들끼리 sp 동작 및 뿌리기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>선택한 값들끼리 sp 동작 및 뿌리기</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">선택한 값들끼리 sp 동작 및 뿌리기</h1>
+<p>local i</p>
+<blockquote>
+<p>i=0</p>
+</blockquote>
+<p>for row = 0, SS1.DataRowCnt-1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>if (CellText(SS1, SS1.ActiveRow, 'Select') == '1') then</p>
+<blockquote>
+<p>SetText(SS1, SS1.ActiveRow, 'ModifyQty' , GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'ModifyQty', i))</p>
+<p>i=i+1</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

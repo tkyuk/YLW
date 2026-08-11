@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행별로 type 유형 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>행별로 type 유형 변경</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="type">행별로 type 유형 변경</h1>
+<p>local row, col, rowType</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>rowType = CellText(SS1, row, 'RowCellType') -- ActiveRow 대신 row 사용</p>
+<p>if rowType == 'FLOAT' then</p>
+<p>SS1.ActiveColumnName = 'TotAmt'</p>
+<p>SS1.ActiveCellType = 'enFloat'</p>
+<p>SS1.ActiveCellDecimalPlaces = 2</p>
+<p>SS1.ActiveCellShowSeparator = true</p>
+<p>elseif rowType == 'CHECK' then</p>
+<p>for col = SS1.SheetFixCols, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ActiveCellType = 'enCheck'</p>
+<p>end</p>
+<p>elseif rowType == 'DATE' then</p>
+<p>for col = SS1.SheetFixCols, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ActiveCellType = 'enDate'</p>
+<p>end</p>
+<p>else</p>
+<p>for col = SS1.SheetFixCols, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ActiveCellType = 'enText'</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

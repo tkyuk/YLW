@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSNo / HSCode</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>HSNo / HSCode</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="hsno-hscode">HSNo / HSCode</h1>
+<p><span class="mark">-- 가져오기</span></p>
+<p>CREATE TABLE #TEMP_HSNo</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>CompanySeq INT,</p>
+<p>CustSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>HSNo NVARCHAR(20),</p>
+<p>STDDate NCHAR(8) -- 2025.01.23 김영석 : 일자 추가</p>
+<p>)</p>
+<p>INSERT INTO #TEMP_HSNo(IDX_NO, CompanySeq, CustSeq, ItemSeq, HSNo, STDDate)</p>
+<p>SELECT A.IDX_NO, A.CompanySeq, C.CustSeq, B.ItemSeq, N'', C.BillDate</p>
+<p>FROM #TSLBill AS A</p>
+<p>JOIN _TPJTSLBillItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.BillSeq = A.BillSeq</p>
+<p>AND B.PJTBillSerl = A.BillSerl</p>
+<p>JOIN _TSLBill AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.BillSeq = A.BillSeq</p>
+<p>UNION ALL</p>
+<p>SELECT A.IDX_NO, A.CompanySeq, C.CustSeq, B.ItemSeq, N'', C.Billdate</p>
+<p>FROM #TSLBill AS A</p>
+<p>JOIN _TSLSalesItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.SalesSeq = A.SalesSeq</p>
+<p>AND B.SalesSerl = A.SalesSerl</p>
+<p>JOIN _TSLBill AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.BillSeq = A.BillSeq</p>
+<p>EXEC _SWSLGetHSNoSub '#TEMP_HSNo', 'HSNo', 'ItemSeq', @CompanySeq, 'STDDate'</p>
+<p>--============================================================================</p>
+<p>--============================================================================</p>
+<p>LEFT OUTER JOIN #TEMP_HSNo AS HS WITH(NOLOCK) ON HS.CompanySeq = BL.CompanySeq -- 2023.07.25 김영석 추가</p>
+<p>AND HS.IDX_NO = BL.IDX_NO</p>
+<p><span class="mark">-- 출력용 max 값 사용 예시 (_SWSLPerformerInvoiceRptQuery)</span></p>
+<p>LEFT OUTER JOIN (SELECT A.ItemSeq, ISNULL(MAX(HS.HSCode),'') AS HSCode</p>
+<p>FROM #Temp AS A</p>
+<p>JOIN _TDAItemClass AS CL WITH (NOLOCK) ON CL.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = CL.ItemSeq</p>
+<p>AND CL.UMajorItemClass IN (2001,2004)</p>
+<p>JOIN _TSLHSCodeItemClass AS HS WITH (NOLOCK) ON HS.CompanySeq = @CompanySeq</p>
+<p>AND CL.UMItemClass = HS.UMItemClass</p>
+<p>AND HS.UMItemClass \&lt;&gt; 0</p>
+<p>GROUP BY A.ItemSeq) AS Y ON C.ItemSeq = Y.ItemSeq</p>
+  </article>
+</div>
+</body>
+</html>

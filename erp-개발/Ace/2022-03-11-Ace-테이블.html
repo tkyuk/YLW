@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ace 테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>Ace 테이블</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ace">Ace 테이블</h1>
+<p><img alt="" src="assets/Ace-테이블/image68.png" /></p>
+<p>영업 (계획정보)</p>
+<p>연간판매계획</p>
+<ul>
+<li>_TSLPlanYearSales</li>
+</ul>
+<p>월실행계획</p>
+<ul>
+<li>_TSLPlanMonthSales</li>
+</ul>
+<p>재고자산분류</p>
+<ul>
+<li>
+<p>_TDASMajor</p>
+</li>
+<li>
+<p>_TDASMinor</p>
+</li>
+<li>
+<p>_TDASItemAsset</p>
+</li>
+</ul>
+<p>물류</p>
+<p>입출고요청</p>
+<ul>
+<li>
+<p>_TLGInOutReq (Master)</p>
+</li>
+<li>
+<p>_TLGInOutReqItem (품목)</p>
+</li>
+<li>
+<p>_TLGInOutReq_Confirm (확정)</p>
+</li>
+</ul>
+<p>입출고</p>
+<ul>
+<li>
+<p>_TLGInOutDaily (Master)</p>
+</li>
+<li>
+<p>_TLGInOutDailyItem (품목)</p>
+</li>
+<li>
+<p>_TLGInOutStock (수불상세)</p>
+</li>
+</ul>
+<p>영업 프로세스</p>
+<p>수주입력</p>
+<ul>
+<li>
+<p>_TSLOrder (Master)</p>
+</li>
+<li>
+<p>_TSLOrderItem (아이템)</p>
+</li>
+<li>
+<p>_TSLOrder_Confirm (확정)</p>
+</li>
+<li>
+<p>_TSLOrderSum (실적집계)</p>
+</li>
+</ul>
+<p>출하의뢰</p>
+<ul>
+<li>
+<p>_TSLDVReq (Master)</p>
+</li>
+<li>
+<p>_TSLDVReqItem (출하의뢰아이템)</p>
+</li>
+<li>
+<p>_TSLDVReq_Confirm (출하의뢰확정)</p>
+</li>
+</ul>
+<p>거래명세서</p>
+<ul>
+<li>
+<p>_TSLLInvoice (Master)</p>
+</li>
+<li>
+<p>_TSLLInvoiceItem (아이템)</p>
+</li>
+<li>
+<p>_TSLLInvoiceSum (실적집계)</p>
+</li>
+<li>
+<p>_TSLCreditDaily (판매미수일일상세)</p>
+</li>
+<li>
+<p>_TSLCreditSum (판매미수집계)</p>
+</li>
+</ul>
+<p>매출정산처리</p>
+<ul>
+<li>
+<p>_TSLSales (Master)</p>
+</li>
+<li>
+<p>_TSLSalesItem (아이템)</p>
+</li>
+<li>
+<p>_TSLSalesSum (실적집계)</p>
+</li>
+<li>
+<p>_TSLSalesBillRelation (매출-세금계산서연결)</p>
+</li>
+</ul>
+<p>세금계산서 (청구)</p>
+<ul>
+<li>
+<p>_TSLBill (Master)</p>
+</li>
+<li>
+<p>_TSLBillItem (출력)</p>
+</li>
+<li>
+<p>_TSLBillCreditDaily (청구미수일일상세)</p>
+</li>
+<li>
+<p>_TSLBillCreditSum (청구미수집계)</p>
+</li>
+</ul>
+<p>매출 재고 (물류)</p>
+<ul>
+<li>
+<p>_TLGInOutDaily (입출고Master)</p>
+</li>
+<li>
+<p>_TLGInOutDailyItem (입출고품목)</p>
+</li>
+<li>
+<p>_TLGInOutStock (입출고수불상세)</p>
+</li>
+<li>
+<p>_TLGWhStock (월 창고수불집계)</p>
+</li>
+</ul>
+<p>세금계산서</p>
+<ul>
+<li>
+<p>_TSLBill (Master)</p>
+</li>
+<li>
+<p>_TSLBillItem (출력)</p>
+</li>
+<li>
+<p>_TSLBillCreditDaily (청구미수일일상세)</p>
+</li>
+<li>
+<p>_TSLBillCreditSum (청구미수집계)</p>
+</li>
+</ul>
+<p>입금</p>
+<ul>
+<li>
+<p>_TSLReceipt (Master)</p>
+</li>
+<li>
+<p>_TSLReceiptDesc (내역정보)</p>
+</li>
+<li>
+<p>_TSLReceiptBill (세금계산서별 입금)</p>
+</li>
+<li>
+<p>_TSLAltReceipt (매출품목별 세금계산서 입금)</p>
+</li>
+</ul>
+<blockquote></blockquote>
+<p>선수금대체처리 (덜 중요)</p>
+<ul>
+<li>
+<p>_TSLPreReceipt</p>
+</li>
+<li>
+<p>_TSLPreReceiptItem</p>
+</li>
+<li>
+<p>_TSLPreReceiptBill</p>
+</li>
+<li>
+<p>_TSLPreReceiptBillSales</p>
+</li>
+</ul>
+<p>_TPDMPSProdReq</p>
+<p>_TPDMPSDailyProdPlan</p>
+<p><img alt="" src="assets/Ace-테이블/image69.png" /></p>
+  </article>
+</div>
+</body>
+</html>

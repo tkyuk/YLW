@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중복체크 로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>중복체크 로직</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-31</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">중복체크 로직</h1>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.</p>
+<p>@LanguageSeq ,</p>
+<p>25961,'' -- '대체'</p>
+<p>,29408,'' -- 'serialNo'</p>
+<p>UPDATE A</p>
+<p>SET A.Result = @Results,</p>
+<p>A.MessageType = @MessageType,</p>
+<p>A.Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('A', 'U')</p>
+<p>AND (</p>
+<p>-- 기존 테이블 중복체크</p>
+<p>EXISTS (</p>
+<p>SELECT 1</p>
+<p>FROM _TLGItemConvertDesc AS B WITH(NOLOCK)</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.ConvertSeq = B.ConvertSeq</p>
+<p>AND A.Dummy2 = B.Dummy2</p>
+<p>AND (A.WorkingTag = 'A' OR (A.WorkingTag = 'U' AND A.ConvertSerl \&lt;&gt; B.ConvertSerl))</p>
+<p>)</p>
+<p>OR</p>
+<p>-- 입력 시트 내 중복 체크</p>
+<p>EXISTS (</p>
+<p>SELECT 1</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS C</p>
+<p>WHERE A.IDX_NO \&lt;&gt; C.IDX_NO -- 자기 자신 제외</p>
+<p>AND A.ConvertSeq = C.ConvertSeq</p>
+<p>AND A.Dummy2 = C.Dummy2</p>
+<p>)</p>
+<p>)</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<blockquote>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE Message LIKE '%중복%')</p>
+<p>@LanguageSeq ,</p>
+<p>25961,'' -- SELECT * FROM _TCADictionary WHERE Word like '대체' AND LanguageSeq = 1</p>
+</blockquote>
+<p>,29408,'' -- SELECT * FROM _TCADictionary WHERE Word like '%serialNo%' AND LanguageSeq = 1</p>
+<p>-- 신규입력시 기존데이터와 중복된 경우</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN _TLGItemConvertDesc AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ConvertSeq = B.ConvertSeq</p>
+<p>AND A.Dummy2 = B.Dummy2</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>-- 수정시 기존데이터와 중복된 경우</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN _TLGItemConvertDesc AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.Dummy2 = B.Dummy2</p>
+<p>AND A.ConvertSeq = B.ConvertSeq</p>
+<p>AND A.ConvertSerl \&lt;&gt; B.ConvertSerl</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>-- 시트 내에서 중복된경우</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock2 AS B ON A.IDX_NO \&lt;&gt; B.IDX_NO</p>
+<p>AND A.ConvertSeq = B.ConvertSeq</p>
+<p>AND A.Dummy2 = B.Dummy2</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 채번</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 채번</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">제뉴인 채번</h1>
+<p>IF EXISTS (SELECT 1 FROM #TPDSFCWorkReport AS A WHERE A.WorkingTag = 'A' AND A.Status = 0)</p>
+<p>BEGIN</p>
+<p>SELECT @Date = WorkDate</p>
+<p>FROM #TPDSFCWorkReport</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>AND RealLotNo = ''</p>
+<p>ORDER BY DataSeq</p>
+<p>-- LotNo 채번</p>
+<p>SELECT @MaxSerl = RIGHT('00' + CAST(RIGHT(MAX(REPLACE(LOTNO,'-','')),3) AS NVARCHAR), 3)</p>
+<p>FROM _TLGLotMaster</p>
+<p>WHERE REPLACE(LOTNO,'-','') LIKE REPLACE(@ToolNo + RIGHT(@Date,6) + @WorkStartTime,' ','')+'%'</p>
+<p>IF @MaxSerl IS NULL</p>
+<p>SELECT @MaxSerl = '001'</p>
+<p>ELSE</p>
+<p>EXEC _SDANextSerialNo @MaxSerl OUTPUT, 3 -- 3은 자리수</p>
+<p>UPDATE #TPDSFCWorkReport</p>
+<p>SET RealLotNo = RTRIM(@ToolNo)+'-' + RIGHT(@Date,6) + @WorkStartTime +'-'+@MaxSerl</p>
+<p>WHERE WorkingTag ='A'</p>
+<p>END</p>
+<p>mtl_SPDSFCWorkReportCheck</p>
+<p>_SDANextSerialNo</p>
+  </article>
+</div>
+</body>
+</html>

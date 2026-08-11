@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LotNo 소문자로 입력해도 자동으로 대문자로 저장</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>LotNo 소문자로 입력해도 자동으로 대문자로 저장</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="lotno">LotNo 소문자로 입력해도 자동으로 대문자로 저장</h1>
+<p>저장sp가 아니라 체크에서 update 쳐야한다</p>
+<p>공백</p>
+<p>자재기타입고입력 =&gt; evc_SWLGEtcInOutItemCheckADD</p>
+<p>구매납품입력 =&gt; evc_SWPUDelvItemCheck</p>
+<p>UPDATE A</p>
+<p>SET A.LotNo = UPPER(A.LotNo)</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(A.LotNo, '') \&lt;&gt; ''</p>
+  </article>
+</div>
+</body>
+</html>

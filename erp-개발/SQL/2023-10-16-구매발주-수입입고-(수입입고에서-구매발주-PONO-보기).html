@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매발주 -\> 수입입고 (수입입고에서 구매발주 PONO 보기)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매발주 -\> 수입입고 (수입입고에서 구매발주 PONO 보기)</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-pono">구매발주 -&gt; 수입입고 (수입입고에서 구매발주 PONO 보기)</h1>
+<p>--==================================================================</p>
+<p>-- PONO 구하기 23.10.16 SJPARK</p>
+<p>--==================================================================</p>
+<p>TRUNCATE TABLE #TMP_SOURCETABLE</p>
+<p>TRUNCATE TABLE #TCOMSourceTracking</p>
+<p>---- 진행</p>
+<p>--CREATE TABLE #TMP_SOURCETABLE (IDOrder INT, TABLENAME NVARCHAR(100))</p>
+<p>--CREATE TABLE #TCOMSourceTracking (</p>
+<p>-- IDX_NO INT ,</p>
+<p>-- IDOrder INT ,</p>
+<p>-- Seq INT ,</p>
+<p>-- Serl INT ,</p>
+<p>-- SubSerl INT ,</p>
+<p>-- Qty DECIMAL(19, 5),</p>
+<p>-- STDQty DECIMAL(19, 5),</p>
+<p>-- Amt DECIMAL(19, 5),</p>
+<p>-- VAT DECIMAL(19, 5))</p>
+<p>-- PONO 구하기 23.10.10 SJPARK</p>
+<p>--CREATE TABLE #TMP_SOURCEITEM</p>
+<p>--(</p>
+<p>-- IDX_NO INT IDENTITY,</p>
+<p>-- SourceSeq INT,</p>
+<p>-- SourceSerl INT,</p>
+<p>-- SourceSubSerl INT</p>
+<p>--)</p>
+<p>INSERT #TMP_SOURCETABLE (</p>
+<blockquote>
+<p>IDOrder</p>
+<p>,TABLENAME</p>
+<p>)</p>
+</blockquote>
+<p>SELECT 1,'_TPUORDPOItem'</p>
+<p>INSERT INTO #TMP_SOURCEITEM(SourceSeq, SourceSerl) -- IsNext=1(진행), 2(미진행)</p>
+<p>SELECT A.Seq, A.Serl</p>
+<p>FROM #TMP AS A WITH(NOLOCK)</p>
+<p>EXEC _SWCOMSourceTracking @CompanySeq, '_TUIImpDelvItem', '#TMP_SOURCEITEM', 'SourceSeq', 'SourceSerl', ''</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS Z1 WITH(NOLOCK) ON Z1.IDX_NO = D.IDX_NO</p>
+<p>LEFT OUTER JOIN _TPUORDPOItem AS Z2 WITH(NOLOCK) ON Z2.CompanySeq = @CompanySeq -- 2023.08.01 김영석 추가</p>
+<p>AND Z2.POSeq = Z1.Seq</p>
+<p>AND Z2.POSerl = Z1.Serl</p>
+<p>LEFT OUTER JOIN _TPUORDPO AS Z3 WITH(NOLOCK) ON Z3.CompanySeq = Z2.CompanySeq -- 2023.08.01 김영석 추가</p>
+<p>AND Z3.POSeq = Z2.POSeq</p>
+<p>prsace_SWSLImpDelvItemListQuery</p>
+  </article>
+</div>
+</body>
+</html>

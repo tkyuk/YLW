@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JUMP 점프 명칭 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>JUMP 점프 명칭 변경</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="jump">JUMP 점프 명칭 변경</h1>
+<p>-- 보내는 화면에 추가</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', '보내는명칭', '받는명칭')</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', 'PJTSeq', 'MasterPJTSeq')</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', 'PJTName', 'MasterPJTName')</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', 'PJTNo', 'MasterPJTNo')</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', 'NeedQty', 'Qty')</p>
+<p>ChangeDataFieldName(m_SendXml.Data, 'DataBlock1', 'ReqDelvDate', 'DelvDate')</p>
+<p>ChangeDataBlockName(m_SendXml.Data, 'DataBlock1', 'DataBlock2')</p>
+  </article>
+</div>
+</body>
+</html>

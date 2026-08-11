@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매단가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매단가</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">구매단가</h1>
+<p>-- 구매단가 : 구매발주</p>
+<p>CREATE TABLE #TPUBaseGetPrice (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp '\&lt;ROOT&gt;\&lt;/ROOT&gt;', 2, @CompanySeq, 2640, 'DataBlock1', '#TPUBaseGetPrice'</p>
+<p>-- 단가 정보 구해옴.</p>
+<p>INSERT INTO #TPUBaseGetPrice</p>
+<p>(</p>
+<p>IDX_NO, ItemSeq, PUType, CustSeq -- 거래처 추가 23.10.18 SJPARK</p>
+<p>)</p>
+<p>SELECT A.IDX_NO, B.ItemSeq, 'PUORDPO' AS PUType, A.CustSeq</p>
+<p>FROM #MESPO AS A</p>
+<p>JOIN _TDAItem AS B ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TPUBaseGetPrice)</p>
+<p>BEGIN</p>
+<p>EXEC _SPUBaseGetPrice @xmlDocument= '',@xmlFlags=2,@ServiceSeq=2640,@WorkingTag=N'AUTO',@CompanySeq=@CompanySeq,@LanguageSeq=1,@UserSeq=@UserSeq,@PgmSeq=@PgmSeq</p>
+<p>END</p>
+<p>--구매</p>
+<p>SELECT LEFT(M.DelvInDate,6) AS DelvYM,</p>
+<p>M.CustSeq AS CustSeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>A.UnitSeq AS UnitSeq,</p>
+<p>SUM(A.Qty) AS Qty,</p>
+<p>ISNULL(B.Price,0) AS AdjPrice -- 해당월 조정가.</p>
+<p>FROM _TPUDelvIn AS M WITH(NOLOCK)</p>
+<p>JOIN _TPUDelvInItem AS A WITH(NOLOCK) ON A.DelvInSeq = M.DelvInSeq</p>
+<p>AND A.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPUBASEBuyPriceItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND M.CustSeq = B.CustSeq</p>
+<p>AND B.CurrSeq = @CurrSeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>AND CONVERT(NCHAR(8), DATEADD(DD, -1, DATEADD(MM, 1, LEFT(M.DelvInDate,6) + '01')), 112) BETWEEN B.StartDate AND B.EndDate</p>
+<p>LEFT OUTER JOIN _TPUBASEBuyPriceItem AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.ItemSeq = I.ItemSeq</p>
+<p>AND ISNULL(I.IsPrice,'0') = '1'</p>
+<p>AND @CurrDate BETWEEN I.StartDate AND I.EndDate</p>
+  </article>
+</div>
+</body>
+</html>

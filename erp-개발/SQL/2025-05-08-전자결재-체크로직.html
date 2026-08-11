@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전자결재 체크로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>전자결재 체크로직</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">전자결재 체크로직</h1>
+<p>emk_SWDACustBankAccCheck</p>
+<p>--=================================================</p>
+<p>-- 전자결재 체크</p>
+<p>--=================================================</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1243 , -- 결재진행 중입니다. 수정이나 삭제할 수 없습니다.</p>
+<p>@LanguageSeq ,</p>
+<p>0, N''</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = REPLACE(@Results,'@2', ''),</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A JOIN _TCOMGroupWare AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.WorkKind = 'OTHoli_das'</p>
+<p>AND B.TblKey = A.AppSeq</p>
+<p>AND B.IsProg = '1' AND B.IsEnd \&lt;&gt; '1'</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('U','D')</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>18 , -- 결재진행 중입니다. 수정이나 삭제할 수 없습니다.</p>
+<p>@LanguageSeq ,</p>
+<p>0, N'결재처리된 건 '</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = REPLACE(@Results,'@2', ''),</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A JOIN _TCOMGroupWare AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.WorkKind = 'OTHoli_das'</p>
+<p>AND B.TblKey = A.AppSeq</p>
+<p>AND B.IsProg = '1' AND B.IsEnd = '1'</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('U','D')</p>
+<p>--=================================================</p>
+<p>-- 전자결재 체크 종료</p>
+<p>--=================================================</p>
+  </article>
+</div>
+</body>
+</html>

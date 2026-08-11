@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2/25 OZ 출력물</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2/25 OZ 출력물</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#교육 및 자료</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="225-oz">2/25 OZ 출력물</h1>
+<p>\&lt;\&lt;0225.txt&gt;&gt;</p>
+<p>출력물 작성하기 전에</p>
+<p>SP가 잘 돌아가는지 '출력물' 버튼을 눌러서 확인 후</p>
+<p>잘 돌아가면 출력물 작성</p>
+<p>출력물은 XML파일이 있음 =&gt;</p>
+<p>원래는 웹에서 테스트해야하지만</p>
+<p>출력물에서는 cs로 확인</p>
+<hr />
+<p>NOTEPAD =&gt; 정제 =&gt;</p>
+<p>주문조회에서 가져와서</p>
+<p>sp =&gt; xml ==&gt; 이게 필요</p>
+<p>출력물을 만들기 위해서 파일 5개 만들어야함</p>
+<blockquote>
+<p>=&gt; 무조건 같은 파일에 있어야한다</p>
+</blockquote>
+<p>1. XML =&gt; RptWSLOrder_sjpark =&gt;</p>
+<p>2. xsd (1번 파일에서 지운 뒤 저장할 때 .xsd붙임)</p>
+<p>3. OZ Query Designer (.odi)</p>
+<blockquote>
+<p>일단 저장 (이름 : RptWSLOrder_sjpark)</p>
+<p>XML -&gt; 우클릭 스토어 추가</p>
+<p>XML, XSD 경로에서 추가(1,3 위치)</p>
+<p>XML파서 - xerces</p>
+<p>우클릭 - 데이터 셋 추가 =&gt; DataBlock2</p>
+<p>기준 path지정</p>
+<p>전체 컬럼 선택 =&gt; 필드 추가</p>
+</blockquote>
+<p>4. oz report (진짜 출력 디자인)</p>
+<blockquote>
+<p>일단 먼저 저장</p>
+<p>데이터 트리 - ODI 추가</p>
+<p>데이터 밴드 - 시트에서 보여주는 데이터를 그려주는 느낌</p>
+<p>SP문 =&gt; 5개 나왔으면, 자동으로 5개나오게 해주는 느낌</p>
+<p>ESC =&gt; 전체가 잡힘 (표 높이= 0.7)</p>
+<p>출력물은 그룹화를 해주는게 중요</p>
+<p>보통은 키값으로 묶지만 없다면 번호로 해도된다</p>
+<p>(CUSTNO말고 ORDERNO)</p>
+<p>제목 - 맑은 고딕 / 22 / (선택)굵게</p>
+<p>보통은 왼쪽</p>
+<p>움직일 때는 오른쪽 클릭으로</p>
+<p>단가, 수량 금액은 무조건 오른쪽 (FLOAT형식)</p>
+<p>라벨서식 - (별도로 소수점 요청이 없으면 그냥 숫자들어가서 확인)</p>
+<p>** 가장 중요한건 합계</p>
+<p>데이터형태 -- 요약 (필드이름CURAMT인지 확인) =&gt; Sum</p>
+<p>(보통 오른쪽정렬 되어있지만, 확인)</p>
+<p>납기일 형태 변경</p>
+<p>1. sp</p>
+<p>2. 표시형식 - 붙여넣기</p>
+<p>3. 자주 쓰는 자바스크립트</p>
+<p>페이지 추가 : 페이지풋터 밴드</p>
+<p>왼쪽 : OZSystem - Page_Of_Total</p>
+<p>OnBind =&gt; 순차적으로 실행하는데 거의 마지막 단계</p>
+<p>자주쓰는거 복붙하고 ''는 지우기</p>
+</blockquote>
+<p>5.</p>
+<p>서버에 올리기</p>
+<p>업체들 서버의 출력물 경로에 이 파일이 있어야함</p>
+<p>우리꺼에 넣을 때</p>
+<p>'원격 데스크톱 연결'</p>
+<p>암호 = sysdelv1!@</p>
+<p>주로 웹은 c / cs는 d</p>
+<p>c - k system - OZ 70 - repository</p>
+<p>껍데기는 필요없고 실행파일 3개만 있으면 된다</p>
+<p>KsystemDEV_wk_CS = FileService</p>
+<p>데이터밴드 / 더미밴드만 사용</p>
+<p>Genuine</p>
+<p>D:\KsystemDev\FileService\SetupClient\Report\OZ</p>
+<p>Ace</p>
+<p>D:\KsystemDEV_wk_CS\FileService\SetupClient\Report\OZ</p>
+  </article>
+</div>
+</body>
+</html>

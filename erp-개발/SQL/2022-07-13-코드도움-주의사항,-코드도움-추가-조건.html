@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드도움 주의사항, 코드도움 추가 조건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드도움 주의사항, 코드도움 추가 조건</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">코드도움 주의사항, 코드도움 추가 조건</h1>
+<p>DROP PROCEDURE dbo.sys_SWCACodeHelpBasePlan</p>
+<p>GO</p>
+<p>CREATE PROCEDURE dbo.sys_SWCACodeHelpBasePlan</p>
+<p>@WorkingTag varchar(1),</p>
+<p>@LanguageSeq INT,</p>
+<p>@CodeHelpSeq INT,</p>
+<p>@DefQueryOption INT,</p>
+<p>@CodeHelpType INT,</p>
+<p>@PageCount INT = 20,</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@Keyword nvarchar(100)='',</p>
+<p>@Param1 nvarchar(50)='',</p>
+<p>@Param2 nvarchar(50)='',</p>
+<p>@Param3 nvarchar(50)='',</p>
+<p>@Param4 nvarchar(50)='',</p>
+<p>@ConditionSeq nvarchar(200)=''</p>
+<p>AS</p>
+<p>--EXEC _SYMMETRICKeyOpen</p>
+<p>SET ROWCOUNT @PageCount</p>
+<p>SELECT ISNULL(A.FixYN ,'') AS FixYN , -- 확정</p>
+<p>ISNULL(A.PlanYear ,'') AS PlanYearQuery , -- 계획년도</p>
+<p>ISNULL(A.PlanYearAmd ,'') AS PlanYearAmd, -- 연도차수</p>
+<p>ISNULL(A.BizPlanSeq ,'') AS WorkingBizPlanSeq , -- 경영계획키</p>
+<p>ISNULL(A.BizPlanName ,'') AS WorkingBizPlanName, -- 경영계획명</p>
+<p>ISNULL(A.StartYM ,'') AS StartYM , -- 계획적용시작월</p>
+<p>ISNULL(A.EndYM ,'') AS EndYM , -- 계획적용종료월</p>
+<p>ISNULL(A.IsFirstPlan ,'') AS IsFirstPlan, -- 당초계획</p>
+<p>ISNULL(A.IsLastPlan ,'') AS IsLastPlan , -- 최종계획</p>
+<p>ISNULL(A.Remark ,'') AS Remark -- 비고</p>
+<p>FROM SYS_TBPYearAmd AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@ConditionSeq = '' OR</p>
+<p>(@ConditionSeq = '0' AND ISNULL(A.FixYN, '') \&lt;&gt; '1') OR</p>
+<p>(@ConditionSeq = '1' AND ISNULL(A.FixYN, '') = '1')</p>
+<p>)</p>
+<p>AND A.BizPlanName LIKE @Keyword + N'%'</p>
+<p>SET ROWCOUNT 0</p>
+<p>RETURN</p>
+<p>-- ISNULL(A.FixYN, '') \&lt;&gt; '1'</p>
+<p>-- ISNULL(A.FixYN, '') = '1'</p>
+<p><img alt="" src="assets/코드도움-주의사항,-코드도움-추가-조건/image9.png" /></p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.08.01 차기이월처리 데이터 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.08.01 차기이월처리 데이터 생성</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="240801">24.08.01 차기이월처리 데이터 생성</h1>
+<p>--CompanySeq, SMAccStd, AccUnit, AccYM, SlipUnit, IsIni, AccSeq, UMCostType</p>
+<p>--select * into _TACSlipSum_bak240801 from _TACSlipSum</p>
+<p>--SELECT * INTO _TACSlipSumFor_bak240801 FROM _TACSlipSumFor</p>
+<p>--SELECT * INTO _TACSlipSumRem_bak240801 FROM _TACSlipSumFor</p>
+<p>--SELECT * INTO _TACSlipSumRemFor_bak240801 FROM _TACSlipSumRemFor</p>
+<p>-- _TACSlipSum_TESTAdd</p>
+<p>-- _TACSlipSumFor_TESTAdd</p>
+<p>-- _TACSlipSumRem_TESTAdd</p>
+<p>-- _TACSlipSumRemFor_TESTAdd</p>
+<p>/*</p>
+<blockquote>
+<p>insert into _TACSlipSum</p>
+</blockquote>
+<p>SELECT A.*</p>
+<p>FROM JISTEST.dbo._TACSlipSum AS A WITH (NOLOCK)</p>
+<p>INNER JOIN _TDAAccount AS B WITH (NOLOCK)</p>
+<p>ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.AccSeq = A.AccSeq</p>
+<p>AND B.SMAccKind IN (4018001,4018002, 4018003)</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.SMAccStd = 1</p>
+<p>AND A.AccUnit = 1</p>
+<p>AND A.AccYM = '202401'</p>
+<p>AND A.IsIni = '0'</p>
+<p>*/</p>
+<p>/*</p>
+<blockquote>
+<p>INSERT INTO _TACSlipSumFor</p>
+</blockquote>
+<p>SELECT A.*</p>
+<p>FROM jistest.dbo._TACSlipSumFor AS A WITH (NOLOCK)</p>
+<p>INNER JOIN _TDAAccount AS B WITH (NOLOCK)</p>
+<p>ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.AccSeq = A.AccSeq</p>
+<p>AND B.SMAccKind IN (4018001,4018002, 4018003)</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.SMAccStd = 1</p>
+<p>AND A.AccUnit = 1</p>
+<p>AND A.AccYM = '202401'</p>
+<p>AND A.IsIni = '0'</p>
+<p>*/</p>
+<p>/*</p>
+<blockquote>
+<p>insert into _TACSlipSumRem</p>
+</blockquote>
+<p>SELECT A.*</p>
+<p>FROM jistest.dbo._TACSlipSumRem AS A WITH (NOLOCK)</p>
+<p>INNER JOIN _TDAAccount AS B WITH (NOLOCK)</p>
+<p>ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.AccSeq = A.AccSeq</p>
+<p>AND B.SMAccKind IN (4018001,4018002, 4018003)</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.SMAccStd = 1</p>
+<p>AND A.AccUnit = 1</p>
+<p>AND A.AccYM = '202401'</p>
+<p>AND A.IsIni = '0'</p>
+<p>*/</p>
+<p>/*</p>
+<p>insert into _TACSlipSumRemFor</p>
+<p>SELECT A.*</p>
+<p>FROM jistest.dbo._TACSlipSumRemFor AS A WITH (NOLOCK)</p>
+<p>INNER JOIN _TDAAccount AS B WITH (NOLOCK)</p>
+<p>ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.AccSeq = A.AccSeq</p>
+<p>AND B.SMAccKind IN (4018001,4018002, 4018003)</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.SMAccStd = 1</p>
+<p>AND A.AccUnit = 1</p>
+<p>AND A.AccYM = '202401'</p>
+<p>AND A.IsIni = '0'</p>
+<p>/*</p>
+  </article>
+</div>
+</body>
+</html>

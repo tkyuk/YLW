@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>싸이맥스 구매요청 생성 파라미터</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>싸이맥스 구매요청 생성 파라미터</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">싸이맥스 구매요청 생성 파라미터</h1>
+<p>BEGIN TRAN</p>
+<p>EXEC cymc_SPUORDPOReqMESCreate_TTEST</p>
+<p>@WorkingTag = 'A'</p>
+<p>,@CompanySeq = 1</p>
+<p>,@cdPurReg = 'PRG241002-000002'</p>
+<p>,@RevNo = 1</p>
+<p>,@CD_SO = ''</p>
+<p>,@CD_REGMANAGER = 1</p>
+<p>,@DT_REG = '20241008'</p>
+<p>,@DT_WORKSTART = ''</p>
+<p>,@DT_INREQ = ''</p>
+<p>,@UserSeq = 1</p>
+<p>,@Status = ''</p>
+<p>,@Results = ''</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT * FROM MESGUN.GwMES_CYMECHS.dbo.VI_PUR021T WHERE CD_PURREG = 'PRG241002-000002'</p>
+<p>SELECT * FROM MESGUNLIVE.GwMES_CYMECHS.dbo.VI_PUR021T WHERE CD_PURREG = 'PRG241002-000002'</p>
+  </article>
+</div>
+</body>
+</html>

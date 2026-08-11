@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일정시간마다 이벤트 반복</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>일정시간마다 이벤트 반복</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">일정시간마다 이벤트 반복</h1>
+<p>// 5분마다 조회를 반복 실행하는 이벤트를 작성하였습니다.</p>
+<p>if (!\$scope.intervalId) { // 실행 중이 아니면 시작</p>
+<p>\$scope.intervalId = setInterval(function () {</p>
+<p>if (_Page.ExecuteMethod('Query') == false) return true;</p>
+<p>console.log("쿼리 실행됨");</p>
+<p>}, 300000); // 5분(5분 * 60초 * 1000ms)마다 실행</p>
+<p>console.log("5초 간격 자동 실행 시작");</p>
+<p>} else { // 실행 중이면 종료</p>
+<p>clearInterval(\$scope.intervalId);</p>
+<p>\$scope.intervalId = null;</p>
+<p>console.log("자동 실행 중지됨");</p>
+<p>}</p>
+<p>JS확장이벤트로 구현 가능합니다.</p>
+<p>예시로 만든 예제 전달드립니다.</p>
+<p>\&lt;코드&gt;</p>
+<p>Method명칭 -&gt; JS\$SetInterval</p>
+<p>MethodType -&gt; E-처리</p>
+<p>if (!\$scope.intervalId) { // 실행 중이 아니면 시작</p>
+<p>\$scope.intervalId = setInterval(function () {</p>
+<p>if (_Page.ExecuteMethod('Query') == false) return true;</p>
+<p>console.log("쿼리 실행됨");</p>
+<p>}, 5000); // 5초마다 실행</p>
+<p>﻿</p>
+<p>console.log("5초 간격 자동 실행 시작");</p>
+<p>aKEditButton63.ControlKey = '';</p>
+<p>} else { // 실행 중이면 종료</p>
+<p>clearInterval(\$scope.intervalId);</p>
+<p>\$scope.intervalId = null;</p>
+<p>console.log("자동 실행 중지됨");</p>
+<p>aKEditButton63.ControlKey = 'DIS'; //DIS처리를 통해 반복실행중인지 시각적으로 표현</p>
+<p>}</p>
+<p>﻿</p>
+<p>해당 내용에 대해 주문입력8_ghpark 화면으로 실행 테스트 결과 정상 작동함을 확인하였습니다.</p>
+<p>실제 적용된 사이트 화면 : 공정별생산진행현황_ssv</p>
+<p>출처: \&lt;<a href="https://call.sysware.co.kr/Page/Open/79968/100101/3/18820569">https://call.sysware.co.kr/Page/Open/79968/100101/3/18820569</a>&gt;</p>
+<p><img alt="" src="assets/일정시간마다-이벤트-반복/image89.png" /></p>
+  </article>
+</div>
+</body>
+</html>

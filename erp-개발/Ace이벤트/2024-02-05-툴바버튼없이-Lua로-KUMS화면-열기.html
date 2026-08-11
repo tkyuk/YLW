@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>툴바버튼없이 Lua로 KUMS화면 열기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>툴바버튼없이 Lua로 KUMS화면 열기</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="lua-kums">툴바버튼없이 Lua로 KUMS화면 열기</h1>
+<p>FrmWSLInvoiceInfoMail_djb 거래명세서조회(Email)_djb</p>
+<p>WOpenKums(m_RecvXml, 'A')\
+--'A' : 알림톡--'S' : SMS--'M' : MAIL</p>
+<p>출처: \&lt;<a href="https://kdc.ksystem.co.kr/WebDev">https://kdc.ksystem.co.kr/WebDev</a>&gt;</p>
+<p>local msg, result</p>
+<p>if GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'CustClass', 0) == "1" then</p>
+<blockquote>
+<p>result = MessageBox('딜러거래처가 선택되었습니다. 출력하시겠습니까?', '', 'MsgBoxTypeYesNo')</p>
+<p>if result ~= 1 then</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>else</p>
+<p>WOpenKums(m_RecvXml, 'M')</p>
+<p>end</p>
+</blockquote>
+<p>else        </p>
+<blockquote>
+<p>WOpenKums(m_RecvXml, 'M')</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

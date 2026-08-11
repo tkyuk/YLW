@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022-12-13-untitled-14</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2022-12-13-untitled-14</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>배차등록 화면 신규개발</p>
+<p>1. 거래명세서입력, 기타출고입력, 자재기타출고입력, 이동입력 등의 화면에 점프로 입력함</p>
+<p>2. 이번 개발은 거래명세서에서 입력하는 것까지임</p>
+<p><img alt="" src="assets/untitled-14/image66.png" /></p>
+<p>3. 각 항목별 정의</p>
+<p>1) 배차번호 : 저장후 자동생성 - 년/월/일(8자리) + 일련번호(4자리)</p>
+<p>2) 관리번호 : 업무구분의 번호 (거래명세서번호, 기타출고번호 등)</p>
+<p>3) 업무구분 : 거래명세서 / 기타출고 / 자재기타출고 / 이동 등</p>
+<p>4) 선적유형 : Local 구분, 기타출고처럼 Local구분이 없는 경우 디폴트로 '내수' 지정</p>
+<p>5) 차량번호 : 차량번호, 차량번호 코드도움</p>
+<p>- 차량번호 입력 시 운임톤수(차량종류), 운전자명 자동입력</p>
+<p>6) 차량번호(수기) : 차량이 미등록된 차량으로 운행 시 수기로 직접입력하는 항목</p>
+<p>7) 운임톤수 : 차량종류, 차량종류 코드도움</p>
+<p>- 차량번호 입력 시 자동입력, 수정가능</p>
+<p>8) 운전자명 : 미등록 차량인 경우 텍스트로 수기 입력</p>
+<p>- 차량번호 입력 시 자동입력, 수정가능</p>
+<p>9) 운송사 : LS EVC 환경설정에 배차 운송업체에 입력된 거래처를 디폴트로 입력</p>
+<p>- LS EVC 환경설정 추가, 환경설정에 운송업체 추가 (거래처 코드도움)</p>
+<p>10) 거래명세서입력, 기타출고입력 등 배차등록한 화면에서 점프 시</p>
+<p>기입력된 배차가 없으면 초기화면, 기입력된 배차가 있으면 조회 후 수정가능</p>
+<p>- 배차는 진행과 관계없이 수정/삭제 가능</p>
+<p>11) 거래명세서 출력 시 본 화면에서 입력한 차량정보를 함께 출력</p>
+<p>- 차량번호 : 차량번호가 있으면 차량번호 출력, 없으면 차량번호(수기)를 출력</p>
+<p>- 서비스레벨 : '일반'으로 하드코딩</p>
+<p>- 컨테이너ID : 공란</p>
+<p>- 나머지 항목 : 배차등록 시 입력한 항목들 출력</p>
+<p>- 오류수정 건 별도 스펙참조하여 개발</p>
+<p>=&gt; 거래명세서 출력물에 품목을 2개이상 넣으면 품목별로 페이지스킵이 됨</p>
+<p><img alt="" src="assets/untitled-14/image65.png" /></p>
+<p>12) 거래명세서입력_evc 화면에 [ㅁ배차여부] 추가</p>
+<p>- 할인초과 자리에 배차여부 추가</p>
+<p>- 순서는 아래와 같이 배차여부, 여신초과</p>
+<p><img alt="" src="assets/untitled-14/image67.png" /></p>
+<p>[ 차량번호 코드도움 이미지 ]</p>
+<p><img alt="" src="assets/untitled-14/image68.png" /></p>
+<p>[ 차량종류 코드도움 이미지 ]</p>
+<p><img alt="" src="assets/untitled-14/image69.png" /></p>
+<p>출처: \&lt;<a href="http://61.250.183.6:8100/Page/Open/28139/100101/0/18820244">http://61.250.183.6:8100/Page/Open/28139/100101/0/18820244</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

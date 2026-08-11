@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드도움 파라미터 codehelp before 파라미터</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드도움 파라미터 codehelp before 파라미터</h1>
+    <div class="meta">
+      <span class="note-date">2023-01-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="codehelp-before">코드도움 파라미터 codehelp before 파라미터</h1>
+<p>-- 시트</p>
+<p>if SS1.ActiveColumnName == 'UMRLCUnitName' then</p>
+<p>SS1.ColumnCodeHelpParams = CellText(SS1, SS1.ActiveRow, 'UMRLCSeq')..'|||'</p>
+<p>end</p>
+<p>-- Param1 =&gt; 대분류 코드</p>
+<p>-- Param2 =&gt; 일련번호 (시트설정에서 HID 풀어줘야함)</p>
+<p>if SS1.ActiveColumnName == 'UMFactoryUnitName' then</p>
+<blockquote>
+<p>SS1.ColumnCodeHelpParams = '1000365|15000001|'..tostring(cmbBizUnitName.Value)..'|'</p>
+</blockquote>
+<p>end</p>
+<p>if SS2.ActiveColumnName == 'UMQCTitleName' then</p>
+<p>SS2.ColumnCodeHelpParams = cmbQCKind.Value..'|'..''..'|'..fltItemClass.Value</p>
+<p>SS2.ColumnCodeHelpParams = cmbQCKind.Value..'|'..'|'..fltItemClass.Value</p>
+<p>SS2.ColumnCodeHelpParams = cmbQCKind.Value..'||'..fltItemClass.Value</p>
+<p>end</p>
+<p>-- 컨트롤</p>
+<p>txtUnitSeq.CodeHelpParams = tostring(txtPJTNo.TextCd)..'|||'</p>
+<p>txtAssySeq.CodeHelpParams = tostring(txtPJTNo.TextCd)..'|||'</p>
+<p>txtEtcWkItem.CodeHelpParams = cmbWkItemName.Value..'||'..datAppDate.Text..'|'..txtEmpName.TextCd</p>
+  </article>
+</div>
+</body>
+</html>

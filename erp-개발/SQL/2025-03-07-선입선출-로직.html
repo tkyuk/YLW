@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선입선출 로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>선입선출 로직</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">선입선출 로직</h1>
+<p><span class="mark">-- 사용일수</span></p>
+<p>DROP TABLE #Result</p>
+<p>DROP TABLE #Tmp_Useday</p>
+<p>CREATE TABLE #Result(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>UseFrDate NVARCHAR(8),</p>
+<p>UseEndDate NVARCHAR(8),</p>
+<p>InitDays DECIMAL(19,5),</p>
+<p>PossibleDays DECIMAL(19,5),</p>
+<p>UseDays DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #Tmp_Useday(</p>
+<p>AbsDate NVARCHAR(8),</p>
+<p>UseDays DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #Result</p>
+<p>SELECT '20250210','20250531', 3,3,0</p>
+<p>UNION SELECT '20250301','20250630', 3.25,3.25,0</p>
+<p>INSERT INTO #Tmp_Useday</p>
+<p>SELECT '20250305',1</p>
+<p>UNION SELECT '20250306',0.5</p>
+<p>UNION SELECT '20250501',1</p>
+<p>UNION SELECT '20250601',0.25</p>
+<p>DECLARE @AbsDate NVARCHAR(8), @PossibleDays DECIMAL(19,5), @Month NVARCHAR(8), @IDX_NO INT, @UseDays DECIMAL(19,5)</p>
+<p>SELECT @AbsDate = '', @UseDays = 0</p>
+<p>SELECT '#Result',* FROM #Result</p>
+<p>SELECT '#Tmp_Useday',* FROM #Tmp_Useday</p>
+<p>WHILE(1=1)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1 @UseDays = UseDays,</p>
+<p>@AbsDate = AbsDate</p>
+<p>FROM #Tmp_Useday</p>
+<p>WHERE AbsDate &gt; @AbsDate</p>
+<p>AND UseDays &gt; 0</p>
+<p>ORDER BY AbsDate</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>SELECT @IDX_NO = 0</p>
+<p>SELECT @PossibleDays = 0</p>
+<p>WHILE(1=1)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1 @IDX_NO = IDX_NO,</p>
+<p>@PossibleDays = PossibleDays</p>
+<p>FROM #Result</p>
+<p>WHERE @AbsDate BETWEEN UseFrDate AND UseEndDate</p>
+<p>AND IDX_NO &gt; @IDX_NO</p>
+<p>AND PossibleDays &gt; 0</p>
+<p>ORDER BY IDX_NO</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>IF @PossibleDays &gt;= @UseDays</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET UseDays = UseDays + @UseDays, -- 사용일 누적</p>
+<p>PossibleDays = PossibleDays - @UseDays -- 잔여일 차감</p>
+<p>FROM #Result AS A</p>
+<p>WHERE IDX_NO = @IDX_NO</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET UseDays = InitDays,</p>
+<p>PossibleDays = 0</p>
+<p>FROM #Result AS A</p>
+<p>WHERE IDX_NO = @IDX_NO</p>
+<p>END</p>
+<p>SELECT @UseDays = @UseDays - @PossibleDays</p>
+<p>IF @UseDays \&lt;= 0 BREAK</p>
+<p>END</p>
+<p>END</p>
+<p>SELECT * FROM #Result</p>
+<p><span class="mark">-- 재고 수량</span></p>
+<p>-- Stored Procedure 생성 구문</p>
+<p>CREATE PROCEDURE dbo.hcwoo_SWLotCalc</p>
+<p>AS</p>
+<p>BEGIN</p>
+<p>SET NOCOUNT ON;</p>
+<p>-- 1. 테스트 데이터 준비</p>
+<p>CREATE TABLE #TempPJTNeedStk (</p>
+<p>PJTSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>NeedQty DECIMAL(19, 5), -- 총 필요수량</p>
+<p>StkQty DECIMAL(19, 5) -- 기 충당된 수량</p>
+<p>);</p>
+<p>CREATE TABLE #Tmp_StkQty (</p>
+<p>ItemSeq INT,</p>
+<p>LotNo NVARCHAR(100),</p>
+<p>StkQty DECIMAL(19, 5)</p>
+<p>);</p>
+<p>INSERT INTO #TempPJTNeedStk (PJTSeq, ItemSeq, NeedQty, StkQty) VALUES (1, 101, 100, 0);</p>
+<p>INSERT INTO #Tmp_StkQty (ItemSeq, LotNo, StkQty) VALUES</p>
+<p>(101, 'LOT-001', 10),</p>
+<p>(101, 'LOT-002', 30),</p>
+<p>(101, 'LOT-003', 80),</p>
+<p>(101, 'LOT-004', 70);</p>
+<p>-- 2. Lot별 재고와 필요수량을 결합한 기본 임시테이블 생성</p>
+<p>CREATE TABLE #TempLotQty(</p>
+<p>IDX_NO INT,</p>
+<p>PJTSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>NeedQty DECIMAL(19,5), -- 순 필요수량</p>
+<p>RemNeedQty DECIMAL(19,5),</p>
+<p>LotNo NVARCHAR(100),</p>
+<p>LotStkQty DECIMAL(19,5)</p>
+<p>);</p>
+<p>INSERT INTO #TempLotQty(IDX_NO, PJTSeq, ItemSeq, NeedQty, RemNeedQty, LotNo, LotStkQty)</p>
+<p>SELECT</p>
+<p>ROW_NUMBER() OVER(PARTITION BY A.PJTSeq, A.ItemSeq ORDER BY B.LotNo) AS IDX_NO, -- LotNo 순으로 선입선출 순서 부여</p>
+<p>A.PJTSeq,</p>
+<p>A.ItemSeq,</p>
+<p>ISNULL(A.NeedQty, 0) - ISNULL(A.StkQty, 0) AS NeedQty,</p>
+<p>ISNULL(A.NeedQty, 0) - ISNULL(A.StkQty, 0) AS RemNeedQty,</p>
+<p>B.LotNo,</p>
+<p>B.StkQty AS LotStkQty</p>
+<p>FROM #TempPJTNeedStk AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN #Tmp_StkQty AS B WITH(NOLOCK) ON A.ItemSeq = B.ItemSeq;</p>
+<hr />
+<p>-- 비교 로직 1: #TempCumulative 임시 테이블 사용 방식</p>
+<hr />
+<p>-- 3. 윈도우 함수를 사용하여 누적 재고량 계산</p>
+<p>CREATE TABLE #TempCumulative (</p>
+<p>IDX_NO INT,</p>
+<p>PJTSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>NeedQty DECIMAL(19, 5),</p>
+<p>LotNo NVARCHAR(100),</p>
+<p>LotStkQty DECIMAL(19, 5),</p>
+<p>PrevCumulativeLotQty DECIMAL(19, 5), -- 이전 Lot까지의 누적 재고</p>
+<p>CurrentCumulativeLotQty DECIMAL(19, 5) -- 현재 Lot까지의 누적 재고</p>
+<p>);</p>
+<p>INSERT INTO #TempCumulative</p>
+<p>SELECT</p>
+<p>IDX_NO,</p>
+<p>PJTSeq,</p>
+<p>ItemSeq,</p>
+<p>NeedQty,</p>
+<p>LotNo,</p>
+<p>LotStkQty,</p>
+<p>ISNULL(SUM(LotStkQty) OVER (PARTITION BY PJTSeq, ItemSeq ORDER BY IDX_NO ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0) AS PrevCumulativeLotQty,</p>
+<p>SUM(LotStkQty) OVER (PARTITION BY PJTSeq, ItemSeq ORDER BY IDX_NO) AS CurrentCumulativeLotQty</p>
+<p>FROM #TempLotQty;</p>
+<p>-- 4. 누적 재고량을 기반으로 각 Lot별 배분 수량(AllocatedQty) 계산</p>
+<p>SELECT</p>
+<p>A.PJTSeq,</p>
+<p>A.ItemSeq,</p>
+<p>A.NeedQty,</p>
+<p>A.LotNo,</p>
+<p>A.LotStkQty,</p>
+<p>CASE</p>
+<p>WHEN A.NeedQty \&lt;= A.PrevCumulativeLotQty THEN 0</p>
+<p>WHEN A.NeedQty &gt; A.CurrentCumulativeLotQty THEN A.LotStkQty</p>
+<p>ELSE A.NeedQty - A.PrevCumulativeLotQty</p>
+<p>END AS AllocatedQty</p>
+<p>FROM #TempCumulative AS A WITH(NOLOCK)</p>
+<p>ORDER BY A.PJTSeq, A.ItemSeq, A.IDX_NO;</p>
+<hr />
+<p>-- 비교 로직 2: CTE 사용 방식</p>
+<hr />
+<p>CREATE TABLE #ResultQty (</p>
+<p>IDX_NO INT,</p>
+<p>PJTSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>LotNo NVARCHAR(100),</p>
+<p>LotStkQty DECIMAL(19,5),</p>
+<p>AllocQty DECIMAL(19,5)</p>
+<p>);</p>
+<p>WITH CTE AS (</p>
+<p>SELECT</p>
+<p>T.IDX_NO,</p>
+<p>T.PJTSeq,</p>
+<p>T.ItemSeq,</p>
+<p>T.NeedQty,</p>
+<p>T.LotNo,</p>
+<p>T.LotStkQty,</p>
+<p>SUM(T.LotStkQty) OVER(</p>
+<p>PARTITION BY T.PJTSeq, T.ItemSeq</p>
+<p>ORDER BY T.IDX_NO</p>
+<p>ROWS UNBOUNDED PRECEDING</p>
+<p>) AS CumLotQty</p>
+<p>FROM #TempLotQty T</p>
+<p>)</p>
+<p>INSERT INTO #ResultQty (IDX_NO, PJTSeq, ItemSeq, LotNo, LotStkQty, AllocQty)</p>
+<p>SELECT</p>
+<p>IDX_NO,</p>
+<p>PJTSeq,</p>
+<p>ItemSeq,</p>
+<p>LotNo,</p>
+<p>LotStkQty,</p>
+<p>CASE</p>
+<p>WHEN CumLotQty \&lt;= NeedQty</p>
+<p>THEN LotStkQty</p>
+<p>WHEN CumLotQty - LotStkQty \&lt; NeedQty</p>
+<p>THEN NeedQty - (CumLotQty - LotStkQty)</p>
+<p>ELSE 0</p>
+<p>END AS AllocQty</p>
+<p>FROM CTE</p>
+<p>ORDER BY PJTSeq, ItemSeq, IDX_NO;</p>
+<p>SELECT 111, * FROM #ResultQty;</p>
+<p>-- 임시 테이블 정리</p>
+<p>DROP TABLE #TempPJTNeedStk;</p>
+<p>DROP TABLE #Tmp_StkQty;</p>
+<p>DROP TABLE #TempLotQty;</p>
+<p>DROP TABLE #TempCumulative;</p>
+<p>DROP TABLE #ResultQty;</p>
+<p>SET NOCOUNT OFF;</p>
+<p>END;</p>
+  </article>
+</div>
+</body>
+</html>

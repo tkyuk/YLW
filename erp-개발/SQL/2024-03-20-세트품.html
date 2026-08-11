@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세트품</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>세트품</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">세트품</h1>
+<p>SELECT DISTINCT</p>
+<p>A.ItemName AS SetItemName, -- 세트품명</p>
+<p>A.ItemNo AS SetItemNo, -- 세트품번</p>
+<p>A.Spec                 AS SetSpec, -- 세트규격</p>
+<blockquote>
+<p>A.ItemSeq AS SetItemSeq -- 세트품코드</p>
+</blockquote>
+<p>FROM _TDAItem AS A WITH(NOLOCK)</p>
+<p>INNER JOIN _TDAItemSales AS B WITH(NOLOCK) ON A.ItemSeq = B.ItemSeq</p>
+<blockquote>
+<p>AND B.IsSet = '1'</p>
+<p>AND A.CompanySeq = B.CompanySeq</p>
+</blockquote>
+<p>WHERE A.SMStatus NOT IN (2001001, 2001005)</p>
+<blockquote>
+<p>AND A.SMStatus NOT IN (SELECT ItemStatus FROM _TDAItemStatusCodeHelp WITH(NOLOCK) WHERE ItemCodeHelpSeq = 2)</p>
+<p>ORDER BY A.ItemName</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>콤보 값에 따라 툴바 숨기기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>콤보 값에 따라 툴바 숨기기</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">콤보 값에 따라 툴바 숨기기</h1>
+<p>if cmbPrintName.Value == '2100020001' then</p>
+<p>GetToolbar('Print1').EventArgs.Visible = true</p>
+<blockquote>
+<p>GetToolbar('Print2').EventArgs.Visible = false</p>
+<p>GetToolbar('Print3').EventArgs.Visible = false</p>
+<p>GetToolbar('Print4').EventArgs.Visible = false</p>
+<p>datStdDate.ControlKey = 'NOQ;'</p>
+<p>datStdYM.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif cmbPrintName.Value == '2100020002' then</p>
+<blockquote>
+<p>GetToolbar('Print1').EventArgs.Visible = false</p>
+<p>GetToolbar('Print2').EventArgs.Visible = true</p>
+<p>GetToolbar('Print3').EventArgs.Visible = false</p>
+<p>GetToolbar('Print4').EventArgs.Visible = false</p>
+<p>datStdDate.ControlKey = 'DIS;HID;'</p>
+<p>datStdYM.ControlKey = 'NOQ;'</p>
+</blockquote>
+<p>elseif cmbPrintName.Value == '2100020003' then</p>
+<blockquote>
+<p>GetToolbar('Print1').EventArgs.Visible = false</p>
+<p>GetToolbar('Print2').EventArgs.Visible = false</p>
+<p>GetToolbar('Print3').EventArgs.Visible = true</p>
+<p>GetToolbar('Print4').EventArgs.Visible = false</p>
+<p>datStdDate.ControlKey = 'NOQ;'</p>
+<p>datStdYM.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif cmbPrintName.Value == '2100020004' then</p>
+<p>GetToolbar('Print1').EventArgs.Visible = false</p>
+<blockquote>
+<p>GetToolbar('Print2').EventArgs.Visible = false</p>
+<p>GetToolbar('Print3').EventArgs.Visible = false</p>
+<p>GetToolbar('Print4').EventArgs.Visible = true</p>
+<p>datStdDate.ControlKey = 'NOQ;'</p>
+<p>datStdYM.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>end</p>
+<p>FrmPUPrintGroup_DAT</p>
+<p>매입출력물모음_dat</p>
+<p><img alt="" src="assets/콤보-값에-따라-툴바-숨기기/image76.png" /></p>
+  </article>
+</div>
+</body>
+</html>

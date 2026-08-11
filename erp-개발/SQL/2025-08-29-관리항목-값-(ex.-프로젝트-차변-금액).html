@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리항목 값 (ex. 프로젝트 차변 금액)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>관리항목 값 (ex. 프로젝트 차변 금액)</h1>
+    <div class="meta">
+      <span class="note-date">2025-08-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ex">관리항목 값 (ex. 프로젝트 차변 금액)</h1>
+<p>SELECT B.RemValSeq AS SVCPJTSeq, A.AccSeq,SUM(A.DrAmt) AS Amt</p>
+<p>FROM _TACSlipRow AS A WITH(NOLOCK)</p>
+<p>JOIN _TACSlipRem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.SlipSeq = A.SlipSeq</p>
+<p>AND B.RemSeq = 1036</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.AccSeq IN (SELECT TitleSeq2 FROM #Title WHERE IsAccSeq = 1)</p>
+<p>AND B.RemValSeq IN (SELECT SVCPJTSeq FROM #TempFixedCol )</p>
+<p>GROUP BY B.RemValSeq, A.AccSeq</p>
+  </article>
+</div>
+</body>
+</html>

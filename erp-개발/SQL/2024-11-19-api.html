@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>api</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>api</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="api">api</h1>
+<p>IF OBJECT_ID ('tempdb..#Tmp_Response_Tmp') IS NOT NULL DROP TABLE #Tmp_Response_Tmp</p>
+<p>DECLARE @APIRet INT, -- OLE 자동화 프로시저 호출 결과 리턴 값을 담을 변수(0:성공, 0 아닌 숫자는 실패)</p>
+<p>@APIToken INT, -- OLE 자동화 프로시저 개채 생성 토큰 값을 담을 변수(여기서는 1회용 개체 사용권)</p>
+<p>@URL NVARCHAR(256), -- HTTP 서버 URL 변수</p>
+<p>@RequestText NVARCHAR(MAX),</p>
+<p>@ResponseText NVARCHAR(MAX),</p>
+<p>@APIIP NVARCHAR(100),</p>
+<p>@APIDNS NVARCHAR(100),</p>
+<p>@APICertID NVARCHAR(100),</p>
+<p>@APICertKey NVARCHAR(100),</p>
+<p>@MessageType INT,</p>
+<p>@DocHandle INT,</p>
+<p>@SQLScriptID NVARCHAR(100),</p>
+<p>@SQL NVARCHAR(MAX)</p>
+<p>DECLARE @ServiceID NVARCHAR(100) = '',</p>
+<p>@MethodID NVARCHAR(100) = 'HistoryQuery',</p>
+<p>@SendDataXml NVARCHAR(MAX) = '',</p>
+<p>@Status INT = 0 ,</p>
+<p>@Result NVARCHAR(250) = '' ,</p>
+<p>@RecvDataXml NVARCHAR(MAX) = ''</p>
+<p>SELECT @Status = 0,</p>
+<p>@Result = '',</p>
+<p>@RecvDataXml = '',-- 호출한 SP에서 에러가 발생하지 않도록 결과값에 추가</p>
+<p>@ServiceID = LTRIM(RTRIM(ISNULL(@ServiceID , ''))),</p>
+<p>@MethodID = LTRIM(RTRIM(ISNULL(@MethodID , '')))</p>
+<p>--,@SendDataXml = LTRIM(RTRIM(ISNULL(@SendDataXml , '')))</p>
+<p>SELECT @APIIP = LTRIM(RTRIM(ISNULL('KEY_1' , ''))),</p>
+<p>@APIDNS = LTRIM(RTRIM(ISNULL('proas' , ''))),</p>
+<p>@APICertID = LTRIM(RTRIM(ISNULL('KEY_1' , ''))),</p>
+<p>@APICertKey = LTRIM(RTRIM(ISNULL('aaa' , '')))</p>
+<p>SELECT @URL = '<a href="https://www.proas.co.kr:8088/Angkor.Ylw.Common.HttpExecute/RestOutsideService.svc/OpenApi/">https://www.proas.co.kr:8088/Angkor.Ylw.Common.HttpExecute/RestOutsideService.svc/OpenApi/</a>' + 'WBS.Ylw.WPKG.BisWorkItemPatch/HistoryQuery'</p>
+<p>CREATE TABLE #Tmp_Response_Tmp(ResponseText NVARCHAR(MAX))</p>
+<p>DECLARE @json NVARCHAR(MAX);</p>
+<p>--=============================</p>
+<p>SET @json =</p>
+<p>'{</p>
+<p>"ROOT" : {</p>
+<p>"certId" : "KEY_1",</p>
+<p>"certKey" : "aaa",</p>
+<p>"tokenKey" : "tokenkey1",</p>
+<p>"dsn" : "proas_oper",</p>
+<p>"dsnBis" : "proas_bis",</p>
+<p>"dsnOper" : "proas_oper",</p>
+<p>"companySeq" : "1",</p>
+<p>"data" : {</p>
+<p>"ROOT" : [</p>
+<p>{</p>
+<p>"WorkingTag": "",</p>
+<p>"IDX_NO": "1",</p>
+<p>"DataSeq": "1",</p>
+<p>"Status": "0",</p>
+<p>"Selected": "1",</p>
+<p>"Sel": "1",</p>
+<p>"WorkItemName": "24.11.05 옵션 탭 - 판매가 변경 이벤트 추가",</p>
+<p>"WorkItemSeq": "18835758",</p>
+<p>"WorkItemVer": "5",</p>
+<p>"Remark": "옵션 탭 - 옵션유형 ''할인'' 건의 판매가 변경 시품목정보 탭 - 판매단가 변경 및 시트 재계산 되도록 로직 반영",</p>
+<p>"PkgType": "수정",</p>
+<p>"PkgTypeSeq": "213003",</p>
+<p>"PriorityType": "보통",</p>
+<p>"PriorityTypeSeq": "81001",</p>
+<p>"PkgUserName": "박성재",</p>
+<p>"PkgUserSeq": "51399",</p>
+<p>"PkgDateTime": "2024-11-19 10:32:06",</p>
+<p>"BusinessName": "영업관리",</p>
+<p>"BusinessSeq": "8",</p>
+<p>"IsMonthly": "0",</p>
+<p>"MonthlyDate": "",</p>
+<p>"TABLE_NAME": "DataBlock3",</p>
+<p>"PackageTypeSeq": "297003",</p>
+<p>"IsHistory" :"1"</p>
+<p>}</p>
+<p>]</p>
+<p>}</p>
+<p>}</p>
+<p>}'</p>
+<p>BEGIN TRY --예외 실행문 시작</p>
+<p>--커넥션 생성</p>
+<p>--MSXML2.ServerXMLHTTP 웹페이지를 읽는 xml파서 개체 형식의 OLE 인스턴스 개체 생성(출력된 토큰값으로 사용)</p>
+<p>EXEC @APIRet = SP_OACreate 'MSXML2.ServerXMLHTTP', @APIToken OUT</p>
+<p>--OLE 인스턴스 개체 생성 결과가 정상일 경우 시작</p>
+<p>IF @APIRet = 0</p>
+<p>BEGIN</p>
+<p>--API접속</p>
+<p>EXEC sp_OAMethod @APIToken, 'open', NULL, 'POST', @URL, 'false'</p>
+<p>EXEC sp_OAMethod @APIToken, 'setRequestHeader', NULL, 'Content-type', 'application/json' -- 공백안됨</p>
+<p>EXEC sp_OAMethod @APIToken, 'setTimeouts', NULL, 200000, 200000, 200000, 200000 --연결 유지 시간 정의 (URL접속시간/Socket접속시간/전송시간/결과시간)</p>
+<p>EXEC sp_OAMethod @APIToken, 'Send', NULL, @json</p>
+<p>-- 결과INSERT</p>
+<p>INSERT INTO #Tmp_Response_Tmp(ResponseText)</p>
+<p>EXEC sp_OAGetProperty @APIToken, 'ResponseText'</p>
+<p>SELECT @ResponseText = REPLACE(A.ResponseText, '\&lt;?xml version="1.0" encoding="UTF-8"?&gt;', '') --응답 결과 출력</p>
+<p>FROM #Tmp_Response_Tmp AS A</p>
+<p>SELECT @ResponseText = REPLACE(REPLACE(@ResponseText, '[', ''), ']', '')</p>
+<p>SELECT * FROM OPENJSON(@ResponseText)</p>
+<p>SELECT SiteName</p>
+<p>,SiteInit</p>
+<p>FROM OPENJSON(@ResponseText)</p>
+<p>WITH(SiteName NVARCHAR(100) '\$.DataBlock4.SiteName',</p>
+<p>CustSeq NVARCHAR(100) '\$.DataBlock4.CustSeq',</p>
+<p>SiteInit NVARCHAR(100) '\$.DataBlock4.SiteInit'</p>
+<p>);</p>
+<p>END</p>
+<p>EXEC sp_OADestroy @APIToken</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>PRINT ERROR_MESSAGE()</p>
+<p>END CATCH</p>
+  </article>
+</div>
+</body>
+</html>

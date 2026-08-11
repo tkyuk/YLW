@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컬럼 중간에 추가하기 (동적쿼리)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>컬럼 중간에 추가하기 (동적쿼리)</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">컬럼 중간에 추가하기 (동적쿼리)</h1>
+<p>/*</p>
+<p>테이블 중간에 컬럼 추가 시 기존 데이터 백업 후 처리 (컬럼 명칭 변경은 처리할 수 없습니다.)</p>
+<p>1. @TableName 명칭 지정</p>
+<p>2. CREATE문 넣기</p>
+<p>*/</p>
+<p>DECLARE @TableName NVARCHAR(128) = '테이블명';</p>
+<p>DECLARE @BackupName NVARCHAR(128) = @TableName + '_BAK';</p>
+<p>DECLARE @Columns NVARCHAR(MAX) = '';</p>
+<p>DECLARE @Sql NVARCHAR(MAX);</p>
+<p>-- 1. 백업 테이블 생성 (기존 데이터 보관)</p>
+<p>SET @Sql = 'IF OBJECT_ID(''' + @BackupName + ''', ''U'') IS NOT NULL DROP TABLE ' + QUOTENAME(@BackupName);</p>
+<p>EXEC sp_executesql @Sql;</p>
+<p>SET @Sql = 'SELECT * INTO ' + QUOTENAME(@BackupName) + ' FROM ' + QUOTENAME(@TableName);</p>
+<p>EXEC sp_executesql @Sql;</p>
+<p>-- 2. 원본 테이블 삭제</p>
+<p>SET @Sql = 'IF OBJECT_ID(''' + @TableName + ''', ''U'') IS NOT NULL DROP TABLE ' + QUOTENAME(@TableName);</p>
+<p>EXEC sp_executesql @Sql;</p>
+<p>/**********************************************************/</p>
+<p>-- CREATE 문 넣기</p>
+<p>/*********************************************************/</p>
+<p>-- 4. [핵심] 백업 테이블에 존재하는 컬럼 리스트 추출 (STRING_AGG 사용 - SQL 2017 이상)</p>
+<p>-- 만약 하위 버전이라면 STUFF/FOR XML 방식을 써야 합니다.</p>
+<p>SELECT @Columns = STRING_AGG(QUOTENAME(name), ', ')</p>
+<p>FROM sys.columns</p>
+<p>WHERE object_id = OBJECT_ID(@BackupName);</p>
+<p>-- 5. 동적 INSERT 실행 (백업에 있던 컬럼만 골라서 복구)</p>
+<p>IF @Columns IS NOT NULL AND @Columns \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>SET @Sql = 'INSERT INTO ' + QUOTENAME(@TableName) + ' (' + @Columns + ') ' +</p>
+<p>'SELECT ' + @Columns + ' FROM ' + QUOTENAME(@BackupName);</p>
+<p>EXEC sp_executesql @Sql;</p>
+<p>END</p>
+<p>-- 6. 백업 테이블 삭제</p>
+<p>SET @Sql = 'DROP TABLE ' + QUOTENAME(@BackupName);</p>
+<p>EXEC sp_executesql @Sql;</p>
+  </article>
+</div>
+</body>
+</html>

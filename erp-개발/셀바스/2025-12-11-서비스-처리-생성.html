@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서비스 처리 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>서비스 처리 생성</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">서비스 처리 생성</h1>
+<p>SELECT InvoiceSeq,InOutSeq,* FROM svs_TSIASServiceMaster where ReceiptSeq = 57</p>
+<p>SELECT InvoiceSeq,InOutSeq,InvoiceSerl,InOutSerl,* FROM svs_TSIASServiceRepair where ReceiptSeq = 57</p>
+<p>SELECT A.LastDateTime, A.LastUserSeq, A.InvoiceSeq, B.*</p>
+<p>FROM svs_TSIASServiceRepair AS A</p>
+<p>JOIN _TSLInvoiceItem AS B ON B.InvoiceSeq = A.InvoiceSeq</p>
+<p>AND B.InvoiceSerl = A.InvoiceSerl</p>
+<p>JOIN _TLGInOutStock AS C ON C.InOutSeq = B.InvoiceSeq</p>
+<p>AND C.InOutSerl = B.InvoiceSerl</p>
+<p>AND C.InOutType = 10</p>
+<p>WHERE A.ReceiptSeq = 57</p>
+<p>SELECT A.LastDateTime, A.LastUserSeq, A.InOutSeq, B.*</p>
+<p>FROM svs_TSIASServiceRepair AS A</p>
+<p>JOIN _TLGInOutDailyItem AS B ON B.InOutSeq = A.InOutSeq</p>
+<p>AND B.InOutSerl = A.InOutSerl</p>
+<p>JOIN _TLGInOutStock AS C ON C.InOutSeq = B.InOutSeq</p>
+<p>AND C.InOutSerl = B.InOutSerl</p>
+<p>AND C.InOutType = B.InOutType</p>
+<p>WHERE A.ReceiptSeq = 57</p>
+<p>SELECT * FROM _TLGInOutStock WHERE ItemSeq IN(7463,7462) AND InOutType IN(10)</p>
+<p>SELECT * FROM _TLGWHStock         WHERE ItemSeq IN(7463,7462)</p>
+<p>SELECT * FROM _TLGInOutStock WHERE ItemSeq IN(5301,2420) AND InOutType IN(30)</p>
+<p>SELECT * FROM _TLGWHStock         WHERE ItemSeq IN(5301,2420)</p>
+<p>SELECT * FROM _TSLORDER WHERE OrderSeq IN(2417,2420)</p>
+<p>SELECT * FROM _TSLORDERITEM WHERE OrderSeq IN(2417,2420)</p>
+<p>SELECT * FROM svs_TSLORDER WHERE OrderSeq IN(2417,2420)</p>
+<p>SELECT * FROM svs_TSLORDERITEM WHERE OrderSeq IN(2417,2420)</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, InvoiceSeq, InOutSeq, * FROM svs_TSIASServiceMaster WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' AND ReceiptSeq = 22 ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, InvoiceSeq, InOutSeq, * FROM svs_TSIASServiceRepair WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' AND ReceiptSeq = 22 ORDER BY 1 DESC</p>
+<p>-- 수출Order</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TSLOrder WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TSLOrderItem WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM svs_TSLOrder WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM svs_TSLOrderItem WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>-- 거래명세서</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TSLInvoice WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TSLInvoiceItem WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TSLSales WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TSLSalesItem WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>-- 기타출고</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TLGInOutDaily WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+<p>SELECT TOP 5 LastDateTime,LastUserSeq, * FROM _TLGInOutDailyItem WHERE LastUserSeq = 27292 AND LastDateTime &gt;= '20251211' ORDER BY 1 DESC</p>
+  </article>
+</div>
+</body>
+</html>

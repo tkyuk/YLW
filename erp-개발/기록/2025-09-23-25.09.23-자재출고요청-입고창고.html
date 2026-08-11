@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.23 자재출고요청 입고창고</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.23 자재출고요청 입고창고</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250923">25.09.23 자재출고요청 입고창고</h1>
+<p>-- das_SWMatOutCombineReqQuery</p>
+<p>-- 자재출고처리(통합)_das</p>
+<p>SELECT B.WorkCenterSeq,UseType,H.FieldWhSeq AS InWHSeq,</p>
+<p>CASE WHEN A.UseType = 6044001 THEN 1</p>
+<p>WHEN A.UseType = 6044002 THEN 2</p>
+<p>WHEN A.UseType = 6044004 THEN 2</p>
+<p>ELSE 0 END,</p>
+<p>A.OutReqSeq, B.OutReqItemSerl, A.OutReqNo, A.ReqDate,</p>
+<p>A.EmpSeq, A.DeptSeq, A.Remark, B.Memo4, D.GoodItemSeq,</p>
+<p>B.ItemSeq, ISNULL(G.COCLevelSeq, F.COCLevelSeq), B.Qty, 0, 0,</p>
+<p>0, 0, B.WorkDate, B.Memo5, '0',</p>
+<p>D.WorkOrderNo, 0, CASE WHEN IA.SMAssetGrp = 6008005 THEN H.FieldWhSeq -- 공정품</p>
+<p>WHEN SM.MinorValue = N'1' THEN H.MatOutWhSeq -- 자재</p>
+<p>ELSE H.GoodOutWHSeq -- 제상품</p>
+<p>END AS OutWHSeq,</p>
+<p>H.FieldWhSeq AS InWHSeq</p>
+<p>FROM _TPDMMOutReqM AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutReqItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.OutReqSeq = B.OutReqSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.Memo4 = C.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.WorkOrderSeq = D.WorkOrderSeq</p>
+<p>AND B.WorkOrderSerl = D.WorkOrderSerl</p>
+<p>LEFT OUTER JOIN _TDAItem AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.GoodItemSeq = E.ItemSeq</p>
+<p>LEFT OUTER JOIN das_TPJTProject AS F WITH(NOLOCK) ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.Memo4 = F.PJTSeq</p>
+<p>LEFT OUTER JOIN DAS_TPDQAPjtItemCOCLevel AS G WITH(NOLOCK) ON B.CompanySeq = G.CompanySeq</p>
+<p>AND B.Memo4 = G.PJTSeq</p>
+<p>AND B.ItemSeq = G.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS H WITH(NOLOCK) ON B.CompanySeq = H.CompanySeq</p>
+<p>AND B.WorkCenterSeq = H.WorkCenterSeq</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON B.CompanySeq = I.CompanySeq</p>
+<p>AND B.ItemSeq = I.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS IA WITH(NOLOCK) ON I.CompanySeq = IA.CompanySeq</p>
+<p>AND I.AssetSeq = IA.AssetSeq</p>
+<p>JOIN _TDASMinor AS SM WITH(NOLOCK) ON IA.SMAssetGrp = SM.MinorSeq</p>
+<p>AND SM.MajorSeq = 6008</p>
+<p>AND IA.CompanySeq = SM.CompanySeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.UseType IN (6044001, 6044002, 6044004) -- 생산출고, 생산추가출고 + 외주추가출고</p>
+<p>AND A.OutReqNo LIKE '202509180002'</p>
+<p>-- 자재출고요청품목조회</p>
+<p>select UseType,P.WorkCenterSeq,CWH.WHSeq,M.UseType,</p>
+<p>CASE</p>
+<p>WHEN M.UseType = 6044004 THEN CWH.WHSeq -- 외주추가인 경우 거래처의 생산외주창고</p>
+<p>ELSE P.FieldWhSeq</p>
+<p>END AS InWHSeq</p>
+<p>, CASE</p>
+<p>WHEN M.UseType = 6044004 THEN CWH.WHName -- 외주추가인 경우 거래처의 생산외주창고</p>
+<p>ELSE IWH.WHName</p>
+<p>END AS InWHName</p>
+<p>FROM _TPDMMOutReqM AS M WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutReqItem AS R WITH(NOLOCK) ON M.CompanySeq = R.CompanySeq</p>
+<p>AND M.OutReqSeq = R.OutReqSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS RI WITH(NOLOCK) ON M.CompanySeq = RI.CompanySeq</p>
+<p>AND R.ItemSeq = RI.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS WO WITH(NOLOCK) ON M.CompanySeq = WO.CompanySeq</p>
+<p>AND R.WorkOrderSeq = WO.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = WO.WorkOrderSerl</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS P WITH(NOLOCK) ON WO.CompanySeq = P.CompanySeq</p>
+<p>AND WO.WorkCenterSeq= P.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS IWH WITH(NOLOCK) ON P.CompanySeq = IWH.CompanySeq</p>
+<p>AND P.FieldWHSeq = IWH.WHSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS CWH WITH(NOLOCK) ON R.CustSeq = CWH.CommissionCustSeq</p>
+<p>AND M.BizUnit = CWH.BizUnit</p>
+<p>AND CWH.SMWHKind = 8002024 -- 생산외주창고</p>
+<p>AND CWH.IsNotUse \&lt;&gt; N'1'</p>
+<p>WHERE M.CompanySeq = 1</p>
+<p>AND M.UseType IN (6044001, 6044002, 6044004) -- 생산출고, 생산추가출고 + 외주추가출고</p>
+<p>AND M.OutReqNo LIKE '202509180002'</p>
+<blockquote>
+<p>--SELECT * FROM _TDASMinor WHERE MajorSeq= 6044</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(ACE) MES 거래명세서 출고 생성 및 삭제</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(ACE) MES 거래명세서 출고 생성 및 삭제</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ace-mes">(ACE) MES 거래명세서 출고 생성 및 삭제</h1>
+<p>DROP PROCEDURE dbo.mcm_SSLInvoiceProc</p>
+<p>GO</p>
+<p>CREATE PROCEDURE dbo.mcm_SSLInvoiceProc</p>
+<p>@WorkingTag NVARCHAR(1) , -- A:삽입(판매출고) D:삭제(판매출고취소)</p>
+<p>@InvoiceSeq INT , -- 필수 _/로 묶어서 전송 ex 한 건이 경우 1_/, 여러 건인 경우 1_/2_/3…</p>
+<p>@UserSeq INT , -- 필수</p>
+<p>@Status NVARCHAR(10) OUTPUT, -- 상태값</p>
+<p>@Results NVARCHAR(250) OUTPUT -- 에러메세지</p>
+<p>AS</p>
+<p>DECLARE @CompanySeq INT = 1 ,</p>
+<p>@LanguageSeq INT = 1 ,</p>
+<p>@CurrDateTime DATETIME</p>
+<p>SELECT @WorkingTag = LTRIM(RTRIM(ISNULL(@WorkingTag , '')))</p>
+<p>,@UserSeq = LTRIM(RTRIM(ISNULL(@UserSeq , 0)))</p>
+<p>,@Status = 'OK'</p>
+<p>,@Results = CASE WHEN @WorkingTag = 'A' THEN '출고처리가 완료되었습니다.' ELSE '출고처리 취소되었습니다.' END</p>
+<p>,@CurrDateTime = GETDATE()</p>
+<p>-- 호출 Log 남기기</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects where Name = 'mcm_TMESInvoiceProclog' AND xtype = 'U' )</p>
+<p>BEGIN</p>
+<p>CREATE TABLE mcm_TMESInvoiceProclog</p>
+<p>(</p>
+<p>LogSeq INT IDENTITY(1,1) NOT NULL,</p>
+<p>WorkingTag NVARCHAR(1) ,</p>
+<p>InvoiceSeq NVARCHAR(20) ,</p>
+<p>UserSeq INT ,</p>
+<p>Status NVARCHAR(10) NULL,</p>
+<p>Results NVARCHAR(250) NULL,</p>
+<p>LogDateTime DATETIME NOT NULL</p>
+<p>)</p>
+<p>END</p>
+<p>INSERT mcm_TMESInvoiceProclog</p>
+<p>(</p>
+<p>WorkingTag ,</p>
+<p>InvoiceSeq ,</p>
+<p>UserSeq ,</p>
+<p>Status ,</p>
+<p>Results ,</p>
+<p>LogDateTime</p>
+<p>)</p>
+<p>SELECT @WorkingTag,</p>
+<p>@InvoiceSeq,</p>
+<p>@UserSeq,</p>
+<p>@Status,</p>
+<p>@Results,</p>
+<p>@CurrDateTime</p>
+<p>IF @WorkingTag NOT IN ('A', 'D')</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 'ERR', @Results = '잘못된 작업코드 입니다.'</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>-- 재고반영</p>
+<p>CREATE TABLE #TLGInOutMonth</p>
+<p>(</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TLGInOutMonthLot</p>
+<p>(</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>WorkingTag NVARCHAR(10),</p>
+<p>InOutType INT,</p>
+<p>InOutSeq INT,</p>
+<p>InOutSerl INT,</p>
+<p>InOutSubSerl INT,</p>
+<p>DataKind INT,</p>
+<p>MessageType INT,</p>
+<p>Result NVARCHAR(250),</p>
+<p>Status INT</p>
+<p>)</p>
+<p>CREATE TABLE #MESData</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>CompanySeq INT,</p>
+<p>WorkingTag NCHAR(1),</p>
+<p>InvoiceSeq INT,</p>
+<p>InOutType INT,</p>
+<p>BizUnit INT,</p>
+<p>InvoiceDate NCHAR(8),</p>
+<p>SMSalesCrtKind INT,</p>
+<p>IsDelvCfm NCHAR(1),</p>
+<p>MessageType INT,</p>
+<p>Status INT,</p>
+<p>Result NVARCHAR(250)</p>
+<p>)</p>
+<p>INSERT INTO #MESData</p>
+<p>(</p>
+<p>IDX_NO,CompanySeq,WorkingTag,InvoiceSeq,InOutType,</p>
+<p>BizUnit,InvoiceDate,SMSalesCrtKind,IsDelvCfm,</p>
+<p>MessageType,Status,Result</p>
+<p>)</p>
+<p>SELECT 1 AS IDX_NO, @CompanySeq, @WorkingTag, A.InvoiceSeq, 10,</p>
+<p>A.BizUnit, A.InvoiceDate, 0, CASE WHEN @WorkingTag = 'A' THEN '1' ELSE '0' END,</p>
+<p>0 AS MessageType, 0 AS Status, '' AS Result</p>
+<p>FROM _TSLInvoice AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.InvoiceSeq = @InvoiceSeq</p>
+<p>-- 3) 담은 대상 없으면 RETURN</p>
+<p>IF NOT EXISTS ( SELECT 1 FROM #MESData)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999</p>
+<p>, @Results = '거래명세서 처리 대상이 없습니다.'</p>
+<p>-- Log Insert</p>
+<p>UPDATE mcm_TMESInvoiceProclog</p>
+<p>SET Status = @Status,</p>
+<p>Results = @Results,</p>
+<p>InvoiceSeq = @InvoiceSeq</p>
+<p>WHERE LogDateTime = @CurrDateTime</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 기처리된 내역인데, 처리로 올 경우 에러</p>
+<p>UPDATE A</p>
+<p>SET Status = 2,</p>
+<p>Result = '이미 출고처리된 내역입니다.'</p>
+<p>FROM #MESData AS A</p>
+<p>JOIN _TSLInvoice AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.InvoiceSeq = B.InvoiceSeq</p>
+<p>WHERE Status = 0</p>
+<p>AND A.IsDelvCfm = '1'</p>
+<p>AND B.IsDelvCfm = '1'</p>
+<p>UPDATE A</p>
+<p>SET Status = 2,</p>
+<p>Result = '이미 출고취소된 내역입니다.'</p>
+<p>FROM #MESData AS A</p>
+<p>JOIN _TSLInvoice AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.InvoiceSeq = B.InvoiceSeq</p>
+<p>WHERE Status = 0</p>
+<p>AND A.IsDelvCfm = '0'</p>
+<p>AND B.IsDelvCfm = '0'</p>
+<hr />
+<p>-- 0. 수불마감체크 필요</p>
+<hr />
+<p>CREATE TABLE #TLGClosingCheck</p>
+<p>(</p>
+<p>IDX_NO INT ,</p>
+<p>InOutYM NCHAR(6) ,</p>
+<p>ItemSeq INT ,</p>
+<p>WHSeq INT ,</p>
+<p>MessageType INT ,</p>
+<p>Status INT ,</p>
+<p>Result NVARCHAR(255)</p>
+<p>)</p>
+<p>INSERT INTO #TLGClosingCheck</p>
+<p>SELECT A.IDX_NO, LEFT(A.InvoiceDate,6), B.ItemSeq, B.WHSeq, 0, 0, ''</p>
+<p>FROM #MESData AS A</p>
+<p>LEFT OUTER JOIN _TSLInvoiceItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.InvoiceSeq = B.InvoiceSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.Qty \&lt;&gt; 0</p>
+<p>EXEC _SWLGClosingCheck @CompanySeq, @LanguageSeq</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result,</p>
+<p>Status = 2</p>
+<p>FROM #MESData AS A</p>
+<p>JOIN #TLGClosingCheck AS B WITH(NOLOCK) ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.Status \&lt;&gt; 0</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #MESData WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = Status</p>
+<p>, @Results = Result</p>
+<p>FROM #MESData</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>UPDATE mcm_TMESInvoiceProclog</p>
+<p>SET Status = @Status,</p>
+<p>Results = @Results,</p>
+<p>InvoiceSeq = @InvoiceSeq</p>
+<p>WHERE LogDateTime = @CurrDateTime</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--===================================================================</p>
+<p>-- 트랜잭션 Start 구간</p>
+<p>--===================================================================</p>
+<p>BEGIN TRAN</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TSLInvoice', -- 원테이블명</p>
+<p>'#MESData', -- 템프테이블명</p>
+<p>'InvoiceSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>999999, ''</p>
+<p>UPDATE _TSLInvoice</p>
+<p>SET IsDelvCfm = B.IsDelvCfm,</p>
+<p>DelvCfmEmpSeq= CASE WHEN B.WorkingTag = 'D' THEN 0 ELSE @UserSeq END,</p>
+<p>DelvCfmDate = CASE WHEN B.WorkingTag = 'D' THEN '' ELSE GETDATE() END,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM _TSLInvoice AS A</p>
+<p>JOIN #MESData AS B ON A.InvoiceSeq = B.InvoiceSeq</p>
+<p>WHERE B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999, @Results = '출고 작업시 오류발생하였습니다.'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<hr />
+<p>-- 출고취소</p>
+<hr />
+<p>IF EXISTS ( SELECT 1 FROM #MESData WHERE IsDelvCfm = '0') -- 출고취소</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<hr />
+<p>-- 2-2) 수불삭제 (거래명세서)</p>
+<hr />
+<p>INSERT INTO #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>WorkingTag , InOutType , InOutSeq , InOutSerl , InOutSubSerl ,</p>
+<p>DataKind , MessageType , Result , Status</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>N'D'</p>
+<p>, 10 -- 거래명세표</p>
+<p>, D.InvoiceSeq</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, 0, 0, '', 0</p>
+<p>FROM #MESData AS D</p>
+<p>WHERE D.InvoiceSeq &gt; 0</p>
+<p>-- 수불 반영 (DELETE)</p>
+<p>IF EXISTS ( SELECT 1 FROM #TLGInOutDailyBatch WHERE WorkingTag IN (N'U', N'D') )</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWLGInOutDailyDELETE @CompanySeq = @CompanySeq</p>
+<p>, @Level = 1</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999, @Results = '수불삭제시 오류발생하였습니다.'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>IF NOT EXISTS ( SELECT 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>-- 창고재고 집계</p>
+<p>EXEC dbo._SWLGWHStockUPDATE @CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999, @Results = '창고재고집계시 오류발생하였습니다.'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<hr />
+<p>-- 'D' / 'U' 인 경우 삭제 END</p>
+<hr />
+<hr />
+<p>-- 출고처리</p>
+<hr />
+<p>IF EXISTS ( SELECT 1 FROM #MESData WHERE IsDelvCfm = '1') -- 출고처리</p>
+<p>BEGIN                </p>
+<blockquote>
+<p>-----------------------------------------------</p>
+<p>-- 재고반영</p>
+<p>-----------------------------------------------</p>
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<p>INSERT INTO #TLGInOutDailyBatch</p>
+</blockquote>
+<p>(</p>
+<blockquote>
+<p>WorkingTag , InOutType , InOutSeq , InOutSerl , InOutSubSerl ,</p>
+<p>DataKind , MessageType , Result , Status</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>N'A'</p>
+<p>, 10</p>
+<p>, InvoiceSeq</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, 0, 0, '', 0</p>
+<p>FROM #MESData</p>
+<p>--거래명세서출고</p>
+<p>EXEC _SWLGInOutDailyINSERT @CompanySeq = @CompanySeq,</p>
+<p>@Level = 1,</p>
+<p>@LanguageSeq = @LanguageSeq</p>
+</blockquote>
+<p>IF NOT EXISTS ( SELECT 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>-- 창고재고 집계</p>
+<p>EXEC dbo._SWLGWHStockUPDATE @CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999, @Results = '창고재고 집계시 오류발생하였습니다.'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>EXEC _SWLGInOutMinusCheck @CompanySeq, '#TLGInOutDailyBatch', @LanguageSeq</p>
+<p>-- 위에서 '-'재고 체크를 하여 오류가 발생 했으면 직접 return</p>
+<p>-- 구지 다음 단계까지 탈 이유가 없음, 속도 위하여</p>
+<p>IF EXISTS ( SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>EXEC _SWLGInOutLotMinusCheck @CompanySeq, '#TLGInOutDailyBatch', @LanguageSeq</p>
+<p>IF EXISTS ( SELECT TOP 1 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0 )</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #TLGInOutDailyBatch</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO ERR_PROC</p>
+<p>END</p>
+<p>END</p>
+<p>COMMIT TRAN</p>
+<p>RETURN</p>
+<p>ERR_PROC:</p>
+<p>-- Log Insert</p>
+<p>UPDATE mcm_TMESInvoiceProclog</p>
+<p>SET Status = @Status,</p>
+<p>Results = @Results,</p>
+<p>InvoiceSeq = @InvoiceSeq</p>
+<p>WHERE LogDateTime = @CurrDateTime</p>
+<p>--SELECT @Status AS Status, @Results AS Results</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @InvoiceSeq INT,</p>
+<p>@Status NVARCHAR(10), -- 상태값</p>
+<p>@Results NVARCHAR(250) -- 에러메세지</p>
+<p>--SELECT @InvoiceSeq = 0</p>
+<p>EXEC mcm_SSLInvoiceProc</p>
+<p>@WorkingTag = 'A'</p>
+<p>,@InvoiceSeq = 2823</p>
+<p>,@UserSeq = 27292</p>
+<p>,@Status = @Status OUTPUT</p>
+<p>,@Results = @Results OUTPUT</p>
+<p>SELECT @Status, @Results</p>
+<p>SELECT * FROM mcm_TMESInvoiceProclog</p>
+<p>SELECT * FROM _TSLInvoiceItem WHERE InvoiceSeq = 2823</p>
+<p>/*</p>
+<p>SELECT * FROM _TSLInvoice WHERE InvoiceNo = '202511300001'</p>
+<p>SELECT TOP 10 StkYM , * FROM _TLGLotStock ORDER BY 1 DESC</p>
+<p>SELECT TOP 10 InOutDate, * FROM _TLGInOutLotStock ORDER BY 1 DESC</p>
+<p>SELECT TOP 10 StkYM , * FROM _TLGWHStock ORDER BY 1 DESC</p>
+<p>SELECT TOP 10 InOutDate, * FROM _TLGInOutStock ORDER BY 1 DESC</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

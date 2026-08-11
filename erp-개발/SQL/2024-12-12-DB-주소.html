@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB 주소</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>DB 주소</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="db">DB 주소</h1>
+<p>select distinct client_net_address from sys.dm_exec_connections</p>
+<p>select * from sys.dm_exec_connections where client_net_address = '192.168.3.250'</p>
+<p>select * from sys.dm_exec_connections where client_net_address = '192.168.40.120'</p>
+<p>--</p>
+  </article>
+</div>
+</body>
+</html>

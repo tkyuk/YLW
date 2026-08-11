@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디에이 외주실적 - 외주정산처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>디에이 외주실적 - 외주정산처리</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">디에이 외주실적 - 외주정산처리</h1>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableName ='_TPJTSupplyContDelvItem'</p>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableName ='_TPJTResultExpenseItem'</p>
+<p>SELECT TOP 100 FromSeq,ToSeq,B.SMResrcType,C.SMResrcType</p>
+<p>FROM _TCOMSourceDaily AS A</p>
+<p>JOIN _TPJTSupplyContDelvItem AS B ON B.SupplyDelvSeq = A.FromSeq</p>
+<p>JOIN _TPJTResultExpenseItem AS C ON C.ExpenseSeq = A.ToSeq</p>
+<p>WHERE FromTableSeq = 62</p>
+<p>AND ToTableSeq = 63</p>
+<p>ORDER BY A.LastDateTime DESC</p>
+<p>SELECT SupplyDelvSumAmt,* FROM _TPJTSupplyContDelvItem WHERE SupplyDelvSeq = 5560</p>
+<p>SELECT ExpenseSumAmt,* FROM _TPJTResultExpenseItem WHERE ExpenseSeq = 5744</p>
+<p>SELECT * FROM _TPJTSupplyContDelivery</p>
+<p>WHERE SupplyDelvNo IN(</p>
+<p>'202401310047'</p>
+<p>,'202401310047'</p>
+<p>,'202401310047'</p>
+<p>,'202401310048'</p>
+<p>,'202401310049'</p>
+<p>,'202401310050'</p>
+<p>,'202401310051'</p>
+<p>,'202401310052'</p>
+<p>,'202401310053'</p>
+<p>,'202401310054'</p>
+<p>,'202401310055'</p>
+<p>,'202401310056'</p>
+<p>,'202401310057'</p>
+<p>,'202401310057'</p>
+<p>,'202401310057'</p>
+<p>,'202401310058'</p>
+<p>,'202401310059'</p>
+<p>,'202401180002'</p>
+<p>,'202401180003'</p>
+<p>,'202401310060'</p>
+<p>,'202401310062'</p>
+<p>,'202402210001'</p>
+<p>,'202401310063'</p>
+<p>,'202401310063'</p>
+<p>)</p>
+<p>SELECT A.SupplyDelvSumAmt, B.SupplyDelvDate,*</p>
+<p>FROM _TPJTSupplyContDelvItem AS A</p>
+<p>JOIN _TPJTSupplyContDelivery AS B ON B.SupplyDelvSeq = A.SupplyDelvSeq</p>
+<p>WHERE A.SupplyDelvSeq IN (</p>
+<p>5564 ,5565 ,5566 ,5567 ,5568 ,5569 ,5570 ,5571 ,5572</p>
+<p>,5573 ,5574 ,5575 ,5577 ,5578 ,5579 ,5584 ,5586 ,5587 ,5588</p>
+<p>)</p>
+<p>-- 원천키 없는건</p>
+<p>SELECT * FROM _TPJTResultExpenseItem WHERE ProgFromSeq = 0</p>
+<p>SELECT * FROM _TPJTResultExpenseItem WHERE ProgFromSeq IN (</p>
+<p>5564 ,5565 ,5566 ,5567 ,5568 ,5569 ,5570 ,5571 ,5572</p>
+<p>,5573 ,5574 ,5575 ,5577 ,5578 ,5579 ,5584 ,5586 ,5587 ,5588</p>
+<p>)</p>
+<p>--</p>
+<p>SELECT B.ExpenseDate,*</p>
+<p>FROM _TPJTResultExpenseItem AS A</p>
+<p>JOIN _TPJTResultExpenseM AS B ON B.ExpenseSeq = A.ExpenseSeq</p>
+<p>WHERE ExpenseDate = '20240131'</p>
+<p>ORDER BY 1 DESC</p>
+<p>SELECT B.ExpenseDate,A.ExpenseSumAmt,C.SupplyDelvDomSumAmt,*</p>
+<p>FROM _TPJTResultExpenseItem AS A</p>
+<p>JOIN _TPJTResultExpenseM AS B ON B.ExpenseSeq = A.ExpenseSeq</p>
+<p>JOIN _TPJTSupplyContDelvItem AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.SupplyDelvSeq = A.ProgFromSeq</p>
+<p>AND C.SupplyDelvSerl = A.ProgFromSerl</p>
+<p>WHERE ExpenseDate = '20240131'</p>
+<p>ORDER BY 1 DESC</p>
+<p>SELECT top 100</p>
+<p>CompanySeq</p>
+<p>,PJTSeq</p>
+<p>,SMResrcType</p>
+<p>,Remark</p>
+<p>FROM _TPJTResultExpenseItem</p>
+  </article>
+</div>
+</body>
+</html>

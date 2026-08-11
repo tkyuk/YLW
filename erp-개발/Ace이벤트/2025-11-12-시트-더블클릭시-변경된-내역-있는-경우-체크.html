@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 더블클릭시 변경된 내역 있는 경우 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 더블클릭시 변경된 내역 있는 경우 체크</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트 더블클릭시 변경된 내역 있는 경우 체크</h1>
+<p>local chkRow, chkAUD, chkCfm, WorkingTag, rtnType</p>
+<p>chkAUD = 0</p>
+<p>chkCfm = 0</p>
+<p>chkRow = 0</p>
+<p>chkSemi = 0</p>
+<p>Err = 0</p>
+<p>if SS1.WorkingTag ~= '' then</p>
+<p>msg = GetMessage('1035', GetDictionary(326), '', '', '', '', '', '', '', '', '')</p>
+<blockquote>
+<p>Err = 1</p>
+</blockquote>
+<p>end</p>
+<p>if Err == 1 then</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

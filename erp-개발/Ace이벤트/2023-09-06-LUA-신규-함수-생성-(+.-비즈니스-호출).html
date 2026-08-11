@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUA 신규 함수 생성 (+. 비즈니스 호출)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>LUA 신규 함수 생성 (+. 비즈니스 호출)</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="lua">LUA 신규 함수 생성 (+. 비즈니스 호출)</h1>
+<p>FrmAAccStateMakeSlip_opas (전표일괄생성_opas) (Genuine)</p>
+<p>function fnAccDrAccAfterInfo_opas(ObjectSS, IntSRow, IntERow, StrCCtrSeq, StrCostDeptSeq, StrDrAccSeq, StrColRemSeq, StrColUMCostType, StrColCostTypeName, StrColMCodeHelpConst, StrColMCodeHelpParam)</p>
+<p>local ds, Qty, UnitSTDQty, lExRate, CustSeq, CurrSeq</p>
+<p>local columnSchema</p>
+<p>local addData</p>
+<p>StrCol = ObjectSS.ActiveColumnName</p>
+<p>columnSchema = '{WorkingTag, string}{IDX_NO, int}{Status, int}{DataSeq, int}{Selected, int}{TABLE_NAME, string}'</p>
+<p>..'{CCtrSeq, int}'</p>
+<p>..'{CostDeptSeq, int}'</p>
+<p>..'{DrAccSeq, int}'</p>
+<blockquote></blockquote>
+<p>ds = CreateDataSet(ds,'DataBlock2', columnSchema)</p>
+<p>for iRow = IntSRow, IntERow, 1 do</p>
+<p>addData = 'A'..CNST_SP..tostring(iRow)..CNST_SP..'0'..CNST_SP..tostring(iRow)..CNST_SP..'1'..CNST_SP..'DataBlock2'..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrCostDeptSeq)..CNST_SP</p>
+<blockquote>
+<p>..CellText(ObjectSS, iRow, StrCCtrSeq)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrDrAccSeq)</p>
+</blockquote>
+<p>AddDataRow(ds, 'DataBlock2', addData)</p>
+<p>end</p>
+<p>rtnDs = ExecuteService(15920058, 3, ds, rtnDs, 'SQLWF')</p>
+<p>if (rtnDs == nil) then</p>
+<p>else</p>
+<p>for row=0, GetDataBlock(rtnDs, 'DataBlock2').Rows.Count-1, 1 do</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColRemSeq, GetDataSetValue(rtnDs, 'DataBlock2', 'RemSeq', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColUMCostType, GetDataSetValue(rtnDs, 'DataBlock2', 'UMCostType', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColCostTypeName, GetDataSetValue(rtnDs, 'DataBlock2', 'CostTypeName', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColMCodeHelpConst, GetDataSetValue(rtnDs, 'DataBlock2', 'MCodeHelpConst', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColMCodeHelpParam, GetDataSetValue(rtnDs, 'DataBlock2', 'MCodeHelpParam', row))</p>
+<blockquote>
+<p>if CellText(ObjectSS, IntSRow + row, 'MCodeHelpConst') == '' or CellText(ObjectSS, IntSRow + row, 'MCodeHelpConst') == '0' then</p>
+<p>ObjectSS.ActiveColumnName = 'RemVal'</p>
+<p>ObjectSS.ActiveCellReadOnly = true</p>
+<p>else</p>
+<p>ObjectSS.ActiveColumnName = 'RemVal'</p>
+<p>ObjectSS.ActiveCellReadOnly = false        </p>
+<p>end         </p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>ObjectSS.ActiveColumnName = StrCol</p>
+<p>end</p>
+<p>local ActCol, EndRow</p>
+<p>ActCol = SS1.ActiveColumnName</p>
+<p>EndRow = SS1.ActiveRow + SS1.CodeHelpSelectedRows - 1</p>
+<p>if SS1.ActiveRow &gt; EndRow then</p>
+<blockquote>
+<p>EndRow = SS1.ActiveRow</p>
+</blockquote>
+<p>end</p>
+<p>fnAccDrAccAfterInfo_opas(SS1, SS1.ActiveRow, EndRow, 'CCtrSeq', 'CostDeptSeq', 'DrAccSeq', 'RemSeq', 'UMCostType', 'CostTypeName', 'MCodeHelpConst', 'MCodeHelpParam')</p>
+  </article>
+</div>
+</body>
+</html>

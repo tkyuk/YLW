@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수출, 수입 추가정보정의</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>수출, 수입 추가정보정의</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">수출, 수입 추가정보정의</h1>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>,@LanguageSeq INT = 1</p>
+<p>,@DefineUnitSeq INT = 8212001 -- 수출 / 수입 = 8212002</p>
+<p>SELECT -- A.Title,</p>
+<p>CASE WHEN ISNULL(A.WordSeq,0) = 0 THEN ISNULL(A.Title, '') ELSE ISNULL(Dic.Word,'') END AS Title,</p>
+<p>A.TitleSerl,</p>
+<p>A.CodeHelpConst,</p>
+<p>A.IsEss,</p>
+<p>A.SMInputType AS SMInputType,</p>
+<p>A.CodeHelpParams,</p>
+<p>'',</p>
+<p>A.MaskAndCaption,</p>
+<p>A.QrySort,</p>
+<p>A.IsCodeHelpTitle,</p>
+<p>A.IsFix,</p>
+<blockquote>
+<p>A.DecLen</p>
+</blockquote>
+<p>FROM _TCOMUserDefine AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCADictionary AS Dic WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND Dic.LanguageSeq = @LanguageSeq</p>
+<p>AND A.WordSeq = Dic.WordSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.TableName = '_TSLExpImpInfo'</p>
+<p>AND A.DefineUnitSeq = @DefineUnitSeq</p>
+<p>ORDER BY A.QrySort</p>
+<p><span class="mark">거래처 기본정보 입력화면 : 거래처별수출입기본정보설정</span></p>
+<p><img alt="" src="assets/수출,-수입-추가정보정의/image144.png" /></p>
+<p><span class="mark">화면명 : 수출입 정보설정</span></p>
+<p><img alt="" src="assets/수출,-수입-추가정보정의/image145.png" /></p>
+  </article>
+</div>
+</body>
+</html>

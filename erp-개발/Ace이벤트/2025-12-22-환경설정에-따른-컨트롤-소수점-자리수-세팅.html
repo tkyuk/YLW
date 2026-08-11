@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환경설정에 따른 컨트롤 소수점 자리수 세팅</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>환경설정에 따른 컨트롤 소수점 자리수 세팅</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">환경설정에 따른 컨트롤 소수점 자리수 세팅</h1>
+<p>if cmbSMPriceKindName.Value == '8011001' then</p>
+<p>fltPriceKind.Caption = GetDictionary(1082)</p>
+<blockquote>
+<p>fltPriceKind.DecLength = 1</p>
+</blockquote>
+<p>elseif cmbSMPriceKindName.Value == '8011002' then</p>
+<p>fltPriceKind.Caption = GetDictionary(10523)</p>
+<blockquote>
+<p>fltPriceKind.DecLength = tonumber(GetPgmEnv('COMEnv', 10))</p>
+</blockquote>
+<p>else</p>
+<p>fltPriceKind.Caption = GetDictionary(18590)</p>
+<blockquote>
+<p>fltPriceKind.DecLength = tonumber(GetPgmEnv('COMEnv', 10))</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

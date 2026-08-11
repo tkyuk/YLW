@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맨 마지막 페이지에 한번만 나와야할 때 (테일 밴드)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>맨 마지막 페이지에 한번만 나와야할 때 (테일 밴드)</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">맨 마지막 페이지에 한번만 나와야할 때 (테일 밴드)</h1>
+<p><img alt="" src="assets/맨-마지막-페이지에-한번만-나와야할-때-(테일-밴드)/image53.png" /></p>
+<p><img alt="" src="assets/맨-마지막-페이지에-한번만-나와야할-때-(테일-밴드)/image54.png" /></p>
+<p>테일 밴드 사용</p>
+<ul>
+<li>
+<p>주의사항 : 테일 밴드 자체에 적용이 안되기 때문에, 셀 모두에 적용 시켜야한다 (빈 항목도 포함)</p>
+</li>
+<li>
+<p>OnEndBind에 써야함</p>
+</li>
+</ul>
+<p><img alt="" src="assets/맨-마지막-페이지에-한번만-나와야할-때-(테일-밴드)/image55.png" /></p>
+<p>// OnEndBind에서 사용</p>
+<p>var objPage = ReportTemplate.GetCurrentPage();</p>
+<p>var PageInfo = objPage.GetPageIndex() + 1 ; // 현재페이지</p>
+<p>var LastPage = objPage.GetPageCount(); // 마지막페이지</p>
+<p>if (LastPage &gt; PageInfo ) // 마지막페이지 전까지는 숨기기</p>
+<p>{</p>
+<p>This.SetVisible(false); // 숨기기 false</p>
+<p>}</p>
+<blockquote></blockquote>
+  </article>
+</div>
+</body>
+</html>

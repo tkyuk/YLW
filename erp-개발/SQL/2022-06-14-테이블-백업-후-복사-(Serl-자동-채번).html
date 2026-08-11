@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테이블 백업 후 복사 (Serl 자동 채번)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>테이블 백업 후 복사 (Serl 자동 채번)</h1>
+    <div class="meta">
+      <span class="note-date">2022-06-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="serl">테이블 백업 후 복사 (Serl 자동 채번)</h1>
+<ol>
+<li>백업 테이블 생성 (기존 테이블 삭제)</li>
+</ol>
+<p>SELECT * INTO mcnv_TYWGroupCalendar_back FROM mcnv_TYWGroupCalendar</p>
+<p>SELECT * INTO mcnv_TYWGroupToShiftReg_back FROM mcnv_TYWGroupToShiftReg</p>
+<p>2.</p>
+<p>SSPPARAM mcnv_TYWGroupToShiftReg</p>
+<blockquote>
+<p>(테이블 컬럼 확인)</p>
+</blockquote>
+<p>insert into mcnv_TYWGroupCalendar(CompanySeq, Serl, WkGroupSeq, WkDate, DayType, Remark, LastUserSeq, LastDateTime)</p>
+<p>SELECT CompanySeq, ROW_NUMBER() OVER(ORDER BY WkGroupSeq, WkDate) Serl, WkGroupSeq, WkDate, DayType, Remark, LastUserSeq, LastDateTime</p>
+<p>FROM mcnv_TYWGroupCalendar_back</p>
+<p>INSERT INTO mcnv_TYWGroupToShiftReg(CompanySeq, Serl, WkTypeSeq, WkGroupSeq, FrDate, ToDate, Remark, LastUserSeq, LastDateTime)</p>
+<p>SELECT CompanySeq, ROW_NUMBER() OVER(ORDER BY WkTypeSeq, WkGroupSeq, FrDate) Serl, WkTypeSeq, WkGroupSeq, FrDate, ToDate, Remark, LastUserSeq, LastDateTime</p>
+<p>FROM mcnv_TYWGroupToShiftReg_back</p>
+<p>SELECT * from _TCOMCreateSeqMax WHERE TableName = 'mcnv_TYWGroupCalendar'</p>
+<blockquote>
+<p>=&gt; Common 에서 확인</p>
+<p><img alt="" src="assets/테이블-백업-후-복사-(Serl-자동-채번)/image5.png" /></p>
+<p>이 방식으로 했기 때문에 따로 건들게 없었음</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대분류 - 소분류</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>대분류 - 소분류</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">대분류 - 소분류</h1>
+<p>SELECT * FROM TDAMajor -- 대분류</p>
+<p>SELECT * FROM TDAMinor -- 소분류</p>
+<p>SELECT * FROM TCTCodeHelpMajor -- 코드헬프</p>
+<p>-- 테이블안에 추가정보가 다 있다 (단점 : 최대 12개)</p>
+<p>-- Major = Header1~12</p>
+<p>-- Minor = Item 1~12</p>
+<p>-- GNI에서는 소스타입이 있다 =&gt; E, C, T</p>
+<p>-- SourceType (거의 E사용)</p>
+<p>-- E - 사용자정의코드 MinorCd를 키 값으로 조인</p>
+<p>-- C - 시스템정의코드 ITEM1을 키 값으로 조인 (MinorCd말고 ITEM1을 키값으로 가져옴)</p>
+<p>-- T =&gt; 다른 테이블에서 들어오는 것</p>
+<p>-- SourceType = C인 경우</p>
+<p>-- 1. 대분류의 소분류 중에 코드헬프를 쓰는 소분류는 대분류를 조회 했을 때 HelpKind 부분에 값이 있다 (HelpKind 3,4,5,6,7 = 453)</p>
+<p>SELECT MajorCd, MajorNm, HelpKind3, HelpKind4, HelpKind5 FROM TDAMajor WHERE MajorCd LIKE '099%'</p>
+<p>-- 2. 소분류 - 코드헬프를 쓰는 Item에 코드헬프의 JoinTable값이 있다</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd LIKE '099%' -- Item 3,4,5,6,7 =&gt; 1120102 / 4110302 / 4210102 / 1120302 / 4110102 / 4210302</p>
+<p>-- 3. 코드헬프 소분류 조회 시 키값 = 대분류(HelpKind) / JoinTable = 소분류(Item) 넣어서 조회</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd LIKE '453%' AND JoinTable = '1120102'</p>
+<p>-- 대분류(HelpKind) =&gt; 사용할 코드헬프의 키값</p>
+<p>-- 소분류(Item) =&gt; 사용할 코드헬프의 JoinTable값</p>
+<p>-- SourceType = T인 경우</p>
+<p>-- =&gt; 다른 테이블에서 들어오는 것</p>
+<p>-- =&gt; 다른 등록화면 SP에서 추가입력</p>
+<p>-- =&gt; 코드헬프 못 씀 / 대분류등록에서도 볼 수 없다</p>
+<p>-- T 예시 (057)</p>
+<p>-- TDAMajor : (SourceType = T, MajorNm = 단위) ==&gt; 단위 테이블에서 값을 가져온다 (단위 테이블 = TDAUnit)</p>
+<p>-- TDAMinor</p>
+<p>-- JoiniTable =&gt; UnitCd ==&gt; 실제 테이블 (단위테이블)의 키 값(UnitCd)</p>
+<p>-- MinorNm =&gt; UnitNm ==&gt; 실제 테이블 (단위테이블)의 이름 (UnitNm)</p>
+<p>-- MinorNm을 선택하면 JoinTable (테이블 키값)이 들어옴</p>
+<p>-- 단위 대분류</p>
+<p>SELECT * FROM TDAMajor WHERE MajorCd like '057%'</p>
+<p>-- 단위 소분류</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd like '057%'</p>
+<p>-- 단위 테이블</p>
+<p>SELECT * FROM TDAUnit</p>
+<p>-- 밑의 과정이 단위 소분류와 같다</p>
+<p>SELECT *</p>
+<p>FROM TDAMinor as a</p>
+<p>JOIN TDAUnit as b</p>
+<p>on a.JoinTable = b.UnitCd</p>
+<p>WHERE MinorCd like '057%'</p>
+<hr />
+<p>--대분류 조회 및 추가</p>
+<p>--(마스타 및 운영관리) 마스터등록 = 공통마스터 = 대분류등록</p>
+<p>--* 대분류 추가 (ex. Q39)</p>
+<p>--여유칸이 없으면 DB에서 넣어줘야한다</p>
+<p>--(대분류)코드 값을 지정해야함 / 숫자로만 된거 =&gt; 시스템에서 만들어져 있는거</p>
+<p>--EX. 새로 만들 때 Q38 =&gt; Q39으로 만들면된다</p>
+<p>--만들기전에 검색해야함</p>
+<p>SELECT * FROM TDAMajor WHERE MajorCd like 'Q%'</p>
+<p>--추가 검색 유의 사항</p>
+<p>SELECT * FROM TCTCodeHelpMajor WHERE MajorCd LIKE 'Q%'</p>
+<p>-- 조회화면 TDAMAJOR에서는 없던 QGC / QGT가 나옴</p>
+<p>-- =&gt; 이 값들은 만들 때 피해줘야한다</p>
+<p>-- 제일 마지막꺼 복사</p>
+<p>-- MajorCd : Q38 -&gt; Q39</p>
+<p>-- SysType : 밑에서 설명</p>
+<p>-- MajorNm : T-교육</p>
+<p>-- SourceType : E (만든거니까 사용자정의코드인 E사용)</p>
+<p>-- RegDate,AddDate : 오늘 날짜로 수정</p>
+<p>-- 소분류 추가</p>
+<p>-- 소분류 title =&gt; 추가정보 느낌</p>
+<p>-- 소분류 등록에서 안보임 =&gt; SysType를 1로 바꿔줘야 보임 (TDAMajor의 두 번째 컬럼)</p>
+<p>-- 각 자리마다 페이지를 가지고 있다</p>
+<p>-- (모듈을 알 수 없으므로,</p>
+<p>-- 1. 모든 자리를 1로 바꾸거나 2. 연관된 데이터 참조)</p>
+<p>-- 소분류등록에서 값을 입력하면 ITEM1~ 차례대로 써진다</p>
+<p>SELECT * FROM TDAMinor WHERE MinorCd LIKE 'Q39%'</p>
+<p><img alt="" src="assets/대분류-소분류/image73.png" /></p>
+<p><img alt="" src="assets/대분류-소분류/image74.png" /></p>
+<p>MajorCd = 40</p>
+<p>MajorNm = 품목분류1</p>
+<p>Header =&gt; 소분류 Title명</p>
+<p>HelpKind =&gt; 코드 헬프 (콤보박스, 코드도움 사용할 경우 값이 있다)</p>
+<blockquote>
+<p>HelpKind3 = 99 =&gt; 코드도움유형 = ‘재고자산분류’</p>
+</blockquote>
+<p><img alt="" src="assets/대분류-소분류/image75.png" /></p>
+<p>[마스타 및 운영관리] - [마스터등록] - [대분류등록]</p>
+<p><img alt="" src="assets/대분류-소분류/image76.png" /></p>
+<p><img alt="" src="assets/대분류-소분류/image77.png" /></p>
+<p>099 =&gt; 대분류</p>
+<p>453 =&gt; 코드헬프</p>
+<p><img alt="" src="assets/대분류-소분류/image78.png" /></p>
+<p>453 + 1120102</p>
+  </article>
+</div>
+</body>
+</html>

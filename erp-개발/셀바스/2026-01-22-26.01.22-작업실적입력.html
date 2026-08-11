@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26.01.22 작업실적입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>26.01.22 작업실적입력</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="260122">26.01.22 작업실적입력</h1>
+<p>svs_SWPDSFCWorkReportGoodInAutoSave</p>
+<p>--==========================================</p>
+<p>* svs_TPDSFCWorkReportSerial</p>
+<p>* svs_TPDSFCWorkReportSerialOption</p>
+<p>svs_SWPDSFCWorkReportQuery</p>
+<p>svs_SWPDSFCWorkReportSubQuery</p>
+<p>svs_SWPDSFCWorkReportSerialSave</p>
+<p>svs_SWPDSFCWorkReportSerialCheck</p>
+<p>--==========================================</p>
+<p>-- 미 수정 건</p>
+<p>svs_SWPDSFCWorkReportSave</p>
+<p>svs_SWPDSFCWorkReportCheck (보류)</p>
+<p>svs_SWPDSFCWorkReportSerialSave</p>
+<p>SELECT * FROM svs_TPDSFCWorkReportSerial WHERE SerialNo LIKE '0122%'</p>
+<p>SELECT * FROM _TLGSerialMaster WHERE SerialNo LIKE '0122%'</p>
+<p>SELECT * FROM svs_TLGSerialMaster WHERE SerialNo LIKE '0122%'</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE SerialNo LIKE '0122%'</p>
+<p>SELECT * FROM #BIZ_OUT_DataBlock8</p>
+<p>중간 테이블 마이그레이션</p>
+<p>BEGIN TRAN</p>
+<p>INSERT INTO svs_TPDSFCWorkReportSerial</p>
+<p>(</p>
+<p>CompanySeq ,WorkReportSeq ,SerialNo ,SerialSeq ,ItemSeq ,FW1Ver ,FW2Ver ,FW3Ver ,CellNo ,</p>
+<p>Remark ,OutDate ,WarrantySD ,WarrantyPeriod,WarrantyED ,CustomerName ,CustomerDept ,CustomerEmp ,UMRegion ,</p>
+<p>Address ,CPNo ,TelNo ,FaxNo ,Email1 ,Email2 ,AddInfo1 ,AddInfo2 ,CustSeq ,</p>
+<p>WorkDate ,PgmSeq ,RegUserSeq ,RegDateTime ,LastUserSeq ,LastDateTime</p>
+<p>)</p>
+<p>SELECT E.CompanySeq AS CompanySeq</p>
+<p>,C.WorkReportSeq AS WorkReportSeq</p>
+<p>,E.SerialNo AS SerialNo</p>
+<p>,E.SerialSeq AS SerialSeq</p>
+<p>,D.ItemSeq AS ItemSeq</p>
+<p>,E.FW1Ver AS FW1Ver</p>
+<p>,E.FW2Ver AS FW2Ver</p>
+<p>,E.FW3Ver AS FW3Ver</p>
+<p>,E.CellNo AS CellNo</p>
+<p>,E.Remark AS Remark</p>
+<p>,E.OutDate AS OutDate</p>
+<p>,E.WarrantySD AS WarrantySD</p>
+<p>,E.WarrantyPeriod AS WarrantyPeriod</p>
+<p>,E.WarrantyED AS WarrantyED</p>
+<p>,E.CustomerName AS CustomerName</p>
+<p>,E.CustomerDept AS CustomerDept</p>
+<p>,E.CustomerEmp AS CustomerEmp</p>
+<p>,E.UMRegion AS UMRegion</p>
+<p>,E.Address AS Address</p>
+<p>,E.CPNo AS CPNo</p>
+<p>,E.TelNo AS TelNo</p>
+<p>,E.FaxNo AS FaxNo</p>
+<p>,E.Email1 AS Email1</p>
+<p>,E.Email2 AS Email2</p>
+<p>,E.AddInfo1 AS AddInfo1</p>
+<p>,E.AddInfo2 AS AddInfo2</p>
+<p>,D.CustSeq AS CustSeq</p>
+<p>,E.WorkDate AS WorkDate</p>
+<p>,9999 AS PgmSeq</p>
+<p>,1 AS RegUserSeq</p>
+<p>,GETDATE() AS RegDateTime</p>
+<p>,1 AS LastUserSeq</p>
+<p>,GETDATE() AS LastDateTime</p>
+<p>FROM _TLGInOutSerialSub AS A</p>
+<p>JOIN _TPDSFCGoodIn AS B ON B.GoodInSeq = A.InOutSeq</p>
+<p>JOIN _TPDSFCWorkReport AS C ON C.WorkReportSeq = B.WorkReportSeq</p>
+<p>JOIN _TLGSerialMaster AS D ON D.SerialNo = A.SerialNo</p>
+<p>JOIN svs_TLGSerialMaster AS E ON E.SerialNo = A.SerialNo</p>
+<p>WHERE A.InOutType = 140</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마이그레이션 테이블 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>마이그레이션 테이블 생성</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">마이그레이션 테이블 생성</h1>
+<p>IF EXISTS (SELECT * FROM SYSOBJECTS WHERE Name = 'svs_TSIASServiceHist' AND xtype = 'U' )</p>
+<p>DROP TABLE svs_TSIASServiceHist</p>
+<p>CREATE TABLE svs_TSIASServiceHist</p>
+<p>(</p>
+<p>Seq INT NOT NULL,</p>
+<p>ReceiptDeptName NVARCHAR(100) NOT NULL,</p>
+<p>ReceiptDate NCHAR(8) NOT NULL,</p>
+<p>ProcDate NCHAR(8) NOT NULL,</p>
+<p>ReceiptEmpName NVARCHAR(100) NOT NULL,</p>
+<p>ProcEmpName NVARCHAR(100) NOT NULL,</p>
+<p>CustomerName NVARCHAR(100) NOT NULL,</p>
+<p>ItemNo NVARCHAR(200) NOT NULL,</p>
+<p>ItemName NVARCHAR(200) NOT NULL,</p>
+<p>Spec NVARCHAR(200) NOT NULL,</p>
+<p>BizUnitName NVARCHAR(100) NOT NULL,</p>
+<p>SerialNo NVARCHAR(100) NOT NULL,</p>
+<p>ServiceNo NVARCHAR(100) NOT NULL,</p>
+<p>ReceiptDesc NVARCHAR(MAX) NOT NULL,</p>
+<p>Reason NVARCHAR(MAX) NOT NULL,</p>
+<p>ProcDesc NVARCHAR(MAX) NOT NULL,</p>
+<p>ServiceStatus NVARCHAR(100) NOT NULL,</p>
+<p>OutDate NCHAR(8) NOT NULL,</p>
+<p>LaborChargeType DECIMAL(19,5) NOT NULL,</p>
+<p>LaborAmt DECIMAL(19,5) NOT NULL,</p>
+<p>PartChargeType NVARCHAR(100) NOT NULL,</p>
+<p>PartAmt DECIMAL(19,5) NOT NULL,</p>
+<p>Remark NVARCHAR(MAX) NOT NULL,</p>
+<p>CONSTRAINT PKsvs_TSIASServiceHist PRIMARY KEY CLUSTERED (Seq ASC)</p>
+<p>)</p>
+<p>CREATE INDEX IX_svs_TSIASServiceHist_ReceiptDate ON svs_TSIASServiceHist (ReceiptDate)</p>
+<p>CREATE INDEX IX_svs_TSIASServiceHist_SerialNo ON svs_TSIASServiceHist (SerialNo)</p>
+<p>CREATE INDEX IX_svs_TSIASServiceHist_ServiceNo ON svs_TSIASServiceHist (ServiceNo)</p>
+<p>CREATE INDEX IX_svs_TSIASServiceHist_CustomerName ON svs_TSIASServiceHist (CustomerName)</p>
+  </article>
+</div>
+</body>
+</html>

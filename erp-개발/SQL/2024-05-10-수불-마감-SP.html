@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수불 마감 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>수불 마감 SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">수불 마감 SP</h1>
+<p>-- 수불 마감</p>
+<p>CREATE TABLE #TLGClosingCheck</p>
+<p>(</p>
+<p>IDX_NO INT ,</p>
+<p>InOutYM NCHAR(6) ,</p>
+<p>ItemSeq INT ,</p>
+<p>WHSeq INT ,</p>
+<p>MessageType INT ,</p>
+<p>Status INT ,</p>
+<p>Result NVARCHAR(255)</p>
+<p>)</p>
+<p>INSERT INTO #TLGClosingCheck</p>
+<p>(</p>
+<p>IDX_NO, InOutYM, ItemSeq, WHSeq,</p>
+<p>MessageType, Status, Result</p>
+<p>)</p>
+<p>SELECT A.IDX_NO, LEFT(A.DelvDate,6), A.ItemSeq, A.WHSeq,</p>
+<p>0 AS MessageType, 0 AS Status, '' AS Result</p>
+<p>FROM #TDelvItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC _SWLGClosingCheck @CompanySeq, @LanguageSeq</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result,</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #TDelvItem AS A</p>
+<p>JOIN #TLGClosingCheck AS B WITH(NOLOCK) ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.Status \&lt;&gt; 0</p>
+<p>DROP TABLE #TLGClosingCheck</p>
+  </article>
+</div>
+</body>
+</html>

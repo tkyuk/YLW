@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창고재고수량 맞추기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>창고재고수량 맞추기</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">창고재고수량 맞추기</h1>
+<p>창고재고수량을 맞추려면 수불, 수불집계테이블을 수정해야 합니다.</p>
+<p>해당 제품이 Lot관리 품목으로 보아</p>
+<p>_TLGInOutStock</p>
+<p>_TLGWHStock</p>
+<p>_TLGInOutLotStock</p>
+<p>_TLGLotStock</p>
+<p>테이블 데이터를 수정해야합니다.</p>
+<p>(_TLGInOutStock, _TLGInOutLotStock 수불테이블의 입출고수량 합과</p>
+<p>_TLGWHStock, _TLGLotStock 집계테이블의 입출고수량이 동일하게 맞춰야합니다.)</p>
+<p>[자재직접출고입력_ssp] 화면에서 생성된 데이터와 연결된</p>
+<p>_TLGInOutStock, _TLGWHStock, _TLGInOutLotStock, _TLGLotStock 테이블의 데이터를 수정하거나</p>
+<p>누락된 데이터와 연결된 데이터가 없으면 화면 기준으로 4개 테이블 데이터를 생성하여 처리 부탁드립니다.</p>
+<p>select top 10 * from _TLGInOutLotStock where itemseq = 1002111 and inoutym ='202507'</p>
+<p>select top 10 * from _TLGLotStock         where itemseq = 1002111 and StkYM ='202507'</p>
+<p>select top 10 * from _TLGInOutLotStock where itemseq = 1002111 and inoutym ='202507'</p>
+<p>select top 10 * from _TLGLotStock          where itemseq = 1002111 and StkYM ='202507'</p>
+<p>--select top 10 * from _TLGWHStock where itemseq = 1002111 and StkYM ='202507'</p>
+<p>--select top 10 * from _TLGInOutStock where itemseq = 1002111 and inoutym ='202507'</p>
+<p>--select top 10 * from _TLGInOutStock         where itemseq = 1002111 and inoutym ='202507'</p>
+<p>--select top 10 * from _TLGWHStock         where itemseq = 1002111 and StkYM ='202507'</p>
+  </article>
+</div>
+</body>
+</html>

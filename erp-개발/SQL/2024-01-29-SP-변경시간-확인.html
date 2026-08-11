@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP 변경시간 확인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SP 변경시간 확인</h1>
+    <div class="meta">
+      <span class="note-date">2024-01-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">SP 변경시간 확인</h1>
+<p>-- SP 변경시간 확인</p>
+<p>SELECT [name], create_date, modify_date</p>
+<p>FROM sys.procedures</p>
+<p>WHERE name = 'mcnk_SWEBDelvReqItemBarCodeSave'</p>
+<p>ORDER BY 3 DESC</p>
+  </article>
+</div>
+</body>
+</html>

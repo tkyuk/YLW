@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>최근단가 가져오기 (ex. 구매품의)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>최근단가 가져오기 (ex. 구매품의)</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ex">최근단가 가져오기 (ex. 구매품의)</h1>
+<p>-- 두 번째 내용이 표준 _SPUGetDelvPrice SP 참고하여 작성</p>
+<p>-- (임시테이블 INPUT 에도 동일하게 OUTPUT 컬럼 찍어줘야함</p>
+<p>DROP PROC dat_SPUBaseGetQutoPrice</p>
+<p>GO</p>
+<p>CREATE PROC dat_SPUBaseGetQutoPrice</p>
+<p>@ServiceSeq INT = 0 ,</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 1 ,</p>
+<p>@LanguageSeq INT = 1 ,</p>
+<p>@UserSeq INT = 0 ,</p>
+<p>@PgmSeq INT = 0 ,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @Count INT,</p>
+<p>@Seq INT,</p>
+<p>@MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@GetPriceType INT,</p>
+<p>@MaxRow                 INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>--CREATE TABLE #TMP_MAXPrice(</p>
+<p>-- CompanySeq INT ,</p>
+<p>-- ItemSeq INT ,</p>
+<p>-- CurrSeq INT ,</p>
+<p>-- Price DECIMAL(19,5)</p>
+<p>--)</p>
+<p>--INSERT INTO #TMP_MAXPrice</p>
+<p>-- SELECT DISTINCT A.CompanySeq, A.ItemSeq, A.CurrSeq, A.Price</p>
+<p>-- FROM _TPUORDApprovalReqItem AS A WITH(NOLOCK)</p>
+<p>-- INNER JOIN (</p>
+<p>-- SELECT A.CompanySeq, A.ItemSeq, MAX(A.ApproReqSeq) AS ApproReqSeq,MAX(A.ApproReqSerl) AS ApproReqSerl</p>
+<p>-- FROM _TPUORDApprovalReqItem AS A WITH(NOLOCK)</p>
+<p>-- WHERE A.ItemSeq IN (SELECT DISTINCT ItemSeq FROM #BIZ_IN_DataBlock2)</p>
+<p>-- GROUP BY A.CompanySeq, A.ItemSeq</p>
+<p>-- )</p>
+<p>-- AS C ON A.CompanySeq = C.CompanySeq</p>
+<p>-- AND A.ItemSeq = C.ItemSeq</p>
+<p>-- AND A.ApproReqSeq = C.ApproReqSeq</p>
+<p>-- AND A.ApproReqSerl = C.ApproReqSerl</p>
+<p>-- SELECT A1.CurrSeq AS CurrSeq,</p>
+<p>-- B.CurrName AS CurrName ,</p>
+<p>-- A1.Price AS QutoPrice,</p>
+<p>-- A1.ItemSeq AS ItemSeq</p>
+<p>-- FROM #BIZ_IN_DataBlock2 AS A</p>
+<p>-- LEFT OUTER JOIN #TMP_MAXPrice AS A1 ON A1.ItemSeq = A.ItemSeq                                -- 17.09.05 hjlim 수정 (JOIN -&gt; LEFT OUTER JOIN)</p>
+<blockquote>
+<p>--                                                                 AND A1.CompanySeq = @CompanySeq</p>
+</blockquote>
+<p>-- LEFT OUTER JOIN _TDACurr AS B ON B.CompanySeq = A1.CompanySeq</p>
+<p>-- AND B.CurrSeq = A1.CurrSeq</p>
+<blockquote>
+<p>BEGIN</p>
+<p>SELECT @MaxRow = MAX(IDX_NO) FROM #BIZ_IN_DataBlock2</p>
+<p>SELECT @Count = 1</p>
+<p>WHILE ( 1 = 1)</p>
+<p>BEGIN</p>
+<p>IF @Count &gt; @MaxRow BREAK</p>
+<p>UPDATE #BIZ_IN_DataBlock2</p>
+<p>SET QutoPrice = B.Price ,</p>
+</blockquote>
+<p>CurrSeq = B.CurrSeq,</p>
+<p>CurrName = D.CurrName</p>
+<blockquote>
+<p>FROM #BIZ_IN_DataBlock2         AS A</p>
+<p>JOIN _TPUORDApprovalReqItem AS B WITH(NOLOCK) ON A.ItemSeq = B.ItemSeq</p>
+<p>JOIN _TPUORDApprovalReq         AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ApproReqSeq = C.ApproReqSeq</p>
+<p>JOIN _TDACurr          AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.CurrSeq = B.CurrSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.IDX_NO = @Count</p>
+<p>AND C.ApproReqNo IN (SELECT TOP 1 ISNULL(MAX(B.ApproReqNo), 0)</p>
+</blockquote>
+<p>FROM _TPUORDApprovalReqItem AS A</p>
+<blockquote>
+<p>JOIN _TPUORDApprovalReq         AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ApproReqSeq = B.ApproReqSeq</p>
+<p>JOIN #BIZ_IN_DataBlock2 AS C ON A.ItemSeq        = C.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND C.IDX_NO = @Count</p>
+<p>AND A.Price \&lt;&gt; 0)</p>
+<p>SELECT @Count = @Count + 1</p>
+<p>END</p>
+<p>END</p>
+</blockquote>
+<p>SELECT * FROM #BIZ_IN_DataBlock2</p>
+<p>RETURN</p>
+<p>_SPUGetDelvPrice</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다이나믹 SP 하드코딩 =\> 사전</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>다이나믹 SP 하드코딩 =\> 사전</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">다이나믹 SP 하드코딩 =&gt; 사전</h1>
+<p>0413</p>
+<ul>
+<li>하드코딩 (mcnk_SWMRPProdPlanMatItemPreStkQueryTEST)</li>
+</ul>
+<p>'투입예정' AS TitleName2</p>
+<p>'입고예정' AS TitleName2</p>
+<p>'과부족' AS TitleName2</p>
+<ul>
+<li>
+<p>사전 사용 (mcnk_SWMRPProdPlanMatItemPreStkQuery)</p>
+</li>
+<li>
+<p>DECLARE 부분 추가</p>
+</li>
+</ul>
+<blockquote>
+<p>@Word_Input NVARCHAR(30), -- 투입예정</p>
+<p>@Word_In NVARCHAR(30), -- 입고예정</p>
+<p>@Word_Over NVARCHAR(30) -- 과부족</p>
+</blockquote>
+<ul>
+<li>바로 밑에 실행문 추가</li>
+</ul>
+<blockquote>
+<p>EXEC dbo._SWCOMGetDictionary @LanguageSeq, 15000319 , @Word_Input OUTPUT -- 구매납품</p>
+<p>IF @Word_Input IS NULL SELECT @Word_Input = N'투입예정'</p>
+<p>EXEC dbo._SWCOMGetDictionary @LanguageSeq, 32310 , @Word_In OUTPUT -- 입고예정</p>
+<p>IF @Word_In IS NULL SELECT @Word_In = N'입고예정'</p>
+<p>EXEC dbo._SWCOMGetDictionary @LanguageSeq, 25595 , @Word_Over OUTPUT --과부족</p>
+<p>IF @Word_Over IS NULL SELECT @Word_Over = N'과부족'</p>
+</blockquote>
+<ol start="3">
+<li>원래 있던 부분 수정</li>
+</ol>
+<blockquote>
+<p>@Word_Input AS TitleName2</p>
+<p>@Word_In AS TitleName2</p>
+<p>@Word_Over AS TitleName2</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

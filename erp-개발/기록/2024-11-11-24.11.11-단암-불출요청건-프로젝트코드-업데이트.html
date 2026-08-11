@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.11.11 단암 불출요청건 프로젝트코드 업데이트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.11.11 단암 불출요청건 프로젝트코드 업데이트</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241111">24.11.11 단암 불출요청건 프로젝트코드 업데이트</h1>
+<p>SELECT DISTINCT M.OutReqSeq,M.OUTREQNO, R.PJTSEQ,Q.PJTNO</p>
+<p>FROM _TPDMMOutReqM AS M</p>
+<p>JOIN _TPDMMOutReqItem AS R WITH(NOLOCK) ON M.CompanySeq = R.CompanySeq</p>
+<p>AND M.OutReqSeq = R.OutReqSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS Q WITH(NOLOCK) ON R.CompanySeq = Q.CompanySeq</p>
+<p>AND R.PJTSeq = Q.PJTSeq</p>
+<p>WHERE M.OUTREQNO IN('202410300025','202410300032','202410310032')</p>
+<p>AND R.PJTSEQ = 15362</p>
+<p>SELECT * FROM _TPJTProject WHERE PJTNO = 'GA210605AS002' -- 15362</p>
+<p>SELECT * FROM _TPJTProject WHERE PJTNO = 'GA210605AS001' -- 15273</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE _TPDMMOutReqItem</p>
+<p>SET PJTSeq = 15273</p>
+<p>FROM _TPDMMOutReqItem</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND OutReqSeq IN (54085,54092,54130)</p>
+<p>AND PJTSeq = 15362</p>
+<p>SELECT DISTINCT PJTSeq FROM _TPDMMOutReqItem WHERE OutReqSeq IN (54085,54092,54130)</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

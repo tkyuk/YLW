@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>추가정보정의</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>추가정보정의</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">추가정보정의</h1>
+<p>SELECT * FROM _TDAUMinor WHERE MajorSeq = 2101110</p>
+<p>-- 사용자정의코드로 찾기 -&gt; ValueSeq =&gt; 테이블 내부 키값</p>
+<p>SELECT ValueSeq,* FROM _TDAUMinorValue WHERE MajorSeq = 2101110</p>
+<p>-- DefineUnitSeq = MajorSeq / CodeHelpConst =&gt; 테이블 확인 가능</p>
+<p>SELECT DefineUnitSeq, CodeHelpConst,* FROM _TCOMUserDefine WHERE DefineUnitSeq = 2101110</p>
+<p>SELECT CodeHelpSeq,CodeHelpTitle, TableName,* FROM _TCACodeHelpData WHERE CodeHelpSeq = 10006</p>
+<p>SELECT * FROM _TDAWH WHERE WHSeq IN(1027,6)</p>
+  </article>
+</div>
+</body>
+</html>

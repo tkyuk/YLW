@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>체크 SP를 통해 임시테이블 값 변경할 경우</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>체크 SP를 통해 임시테이블 값 변경할 경우</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">체크 SP를 통해 임시테이블 값 변경할 경우</h1>
+<p>저장 시 INPUT이 아니라 OUTPUT으로 받아와야 한다</p>
+<p>제뉴인의 경우 데이터서비스에 저장, 체크 나뉘어져있으므로 화살표 방향 체크</p>
+<p>ex. 체크 sp 를 통해 IsLot 변경</p>
+<p>CHEKC \&lt;-</p>
+<p>SAVE \&lt;-&gt;</p>
+<p>이렇게 되어 있었기 때문에 변경된 IsLot 가 반영 안되고 그대로 Save에 원래 값이 들어감</p>
+<p>Check \&lt;-&gt; 양방향으로 바꾸어야한다</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>싸이맥스 25.05.16 mes 연동 건 생성 확인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>싸이맥스 25.05.16 mes 연동 건 생성 확인</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250516-mes">싸이맥스 25.05.16 mes 연동 건 생성 확인</h1>
+<p>select distinct MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250507-000829'</p>
+<p>union select distinct MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000615'</p>
+<p>union select distinct MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000616'</p>
+<p>union select distinct MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000617'</p>
+<p>union select distinct MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250513-002235'</p>
+<p>union select distinct MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250514-001320'</p>
+<p>SELECT A.POSeq,A.POSerl,C.LastDateTime, E.LastDateTime, D.DelvNo, F.DelvInNo, C.PgmSeq</p>
+<p>FROM _TPUORDPOItem AS A</p>
+<p>JOIN _TPUDelvItem AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ProgFromSeq = A.POSeq</p>
+<p>AND C.ProgFromSerl = A.POSerl</p>
+<p>AND C.ProgFromTableSeq = 13</p>
+<p>JOIN _TPUDelv AS D ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.DelvSeq = C.DelvSeq</p>
+<p>JOIN _TPUDelvInItem AS E ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.ProgFromSeq = C.DelvSeq</p>
+<p>AND E.ProgFromSerl = C.DelvSerl</p>
+<p>AND E.ProgFromTableSeq = 10</p>
+<p>JOIN _TPUDelvIn AS F ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.DelvInSeq = E.DelvInSeq</p>
+<p>WHERE</p>
+<p>(A.POSeq = 636931 AND A.POSerl = 1 )</p>
+<p>or (A.POSeq = 636931 AND A.POSerl = 2 )</p>
+<p>or (A.POSeq = 636931 AND A.POSerl = 3 )</p>
+<p>or (A.POSeq = 636938 AND A.POSerl = 1 )</p>
+<p>or (A.POSeq = 636949 AND A.POSerl = 1 )</p>
+<p>or (A.POSeq = 641804 AND A.POSerl = 51)</p>
+<p>-- 9        구매입고</p>
+<p>-- 10        구매납품</p>
+<p>-- 13        구매발주(수입Order)</p>
+  </article>
+</div>
+</body>
+</html>

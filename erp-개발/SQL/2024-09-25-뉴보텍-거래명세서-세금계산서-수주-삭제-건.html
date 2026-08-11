@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뉴보텍 거래명세서 -\> 세금계산서 수주 삭제 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>뉴보텍 거래명세서 -\> 세금계산서 수주 삭제 건</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">뉴보텍 거래명세서 -&gt; 세금계산서 수주 삭제 건</h1>
+<p>DROP PROCEDURE nvt_SSLInvoiceOrderJumpQuery_TTEST</p>
+<p>GO</p>
+<p>CREATE PROCEDURE nvt_SSLInvoiceOrderJumpQuery_TTEST</p>
+<p>@xmlDocument NVARCHAR(MAX),</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,-- 서비스등록한것 Seq가 넘어온다.</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@InvoiceSeq INT,</p>
+<p>@TotCurAmt DECIMAL(19,5),</p>
+<p>@TotVAT DECIMAL(19,5),</p>
+<p>@TotAmt DECIMAL(19,5),</p>
+<p>@LineKind NCHAR(1),</p>
+<p>@IsUsedCustEmp NCHAR(1),</p>
+<p>@OrderSerl INT</p>
+<p>-- 서비스 마스타 등록 생성</p>
+<p>CREATE TABLE #TSLInvoice (WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TSLInvoice'</p>
+<p>/**********************************************************************************************************************************************/</p>
+<p>-- 마스터 정보를 조회(이부분은 거래명세서 기준으로 마스터를 조회함)</p>
+<p>/**********************************************************************************************************************************************/</p>
+<p>SELECT @InvoiceSeq = MIN(B.InvoiceSeq)</p>
+<p>FROM #TSLInvoice AS B</p>
+<p>/***********************************************************************************************************************************************/</p>
+<p>-- 거래명세서비고진행 환경설정 가져오기 : 체크시 거래명세서에서 세금계산서진행시 비고를 넘기지 않는다.</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq, 8046, @UserSeq, @@PROCID, @LineKind OUTPUT</p>
+<p>/***********************************************************************************************************************************************/</p>
+<p>-- 영업담당 사용여부 환경설정 가져오기 : 거래명세서 -&gt; 세금계산서 점프 시, 영업담당 사용여부를 체크하여,</p>
+<p>-- 사용일 경우, 청구처의 영업담당자로 설정해준다.</p>
+<p>-- 수정자 : 이성덕 2011년 11월 8일</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq, 8001, @UserSeq, @@PROCID, @IsUsedCustEmp OUTPUT</p>
+<p>SELECT @IsUsedCustEmp = '0' -- 청구처의 영업담당자가 아닌 거래처의 영업담당자를 지정함.(뉴보텍 요청 2015.12.21)</p>
+<p>SELECT @TotCurAmt = SUM(CurAmt),</p>
+<p>@TotVAT = SUM(CurVAT),</p>
+<p>@TotAmt = ISNULL(SUM(CurAmt), 0) + ISNULL(SUM(CurVAT), 0)</p>
+<p>FROM _TSLInvoiceItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND InvoiceSeq = @InvoiceSeq</p>
+<p>SELECT A.InvoiceSeq AS InvoiceSeq, --내부번호</p>
+<p>B.BizUnitName AS BizUnitName, --사업부문</p>
+<p>A.BizUnit AS BizUnit, --사업부문코드</p>
+<p>A.InvoiceNo AS InvoiceNo, --거래명세서번호</p>
+<p>A.InvoiceDate AS InvoiceDate, --거래명세서일</p>
+<p>G.MinorName AS SMExpKindName, --수출구분</p>
+<p>A.SMExpKind AS SMExpKind, --수출구분코드</p>
+<p>H.MinorName AS UMOutKindName, --출고구분</p>
+<p>--CASE ISNULL(A1.ValueSeq, 0) WHEN 0 THEN 8020001 ELSE A1.ValueSeq END AS UMOutKind, --출고구분코드</p>
+<p>A.UMOutKind AS UMOutKind, --출고구분코드</p>
+<p>-- C.DeptName AS DeptName, --부서</p>
+<p>-- A.DeptSeq AS DeptSeq, --부서코드</p>
+<p>-- D.EmpName AS EmpName, --담당자</p>
+<p>-- A.EmpSeq AS EmpSeq, --담당자코드</p>
+<p>CASE @WorkingTag WHEN 'R' THEN C.DeptName</p>
+<p>ELSE CASE WHEN @IsUsedCustEmp = '1'</p>
+<p>THEN CASE WHEN ISNULL(R.UpperCustSeq,0) = 0</p>
+<p>THEN ISNULL(C.DeptName,'')</p>
+<p>ELSE ISNULL(T.DeptName,'') END</p>
+<p>ELSE ISNULL(C.DeptName,'') END END AS DeptName, --부서</p>
+<p>CASE @WorkingTag WHEN 'R' THEN A.DeptSeq</p>
+<p>ELSE CASE WHEN @IsUsedCustEmp = '1'</p>
+<p>THEN CASE WHEN ISNULL(R.UpperCustSeq,0) = 0</p>
+<p>THEN ISNULL(A.DeptSeq,0)</p>
+<p>ELSE ISNULL(F.DeptSeq,0) END</p>
+<p>ELSE ISNULL(A.DeptSeq,0) END END AS DeptSeq, --부서코드</p>
+<p>CASE @WorkingTag WHEN 'R' THEN D.EmpName</p>
+<p>ELSE CASE WHEN @IsUsedCustEmp = '1'</p>
+<p>THEN CASE WHEN ISNULL(R.UpperCustSeq,0) = 0</p>
+<p>THEN ISNULL(D.EmpName,'')</p>
+<p>ELSE ISNULL(S.EmpName,'') END</p>
+<p>ELSE ISNULL(D.EmpName,'') END END AS EmpName, --담당자</p>
+<p>CASE @WorkingTag WHEN 'R' THEN A.EmpSeq</p>
+<p>ELSE CASE WHEN @IsUsedCustEmp = '1'</p>
+<p>THEN CASE WHEN ISNULL(R.UpperCustSeq,0) = 0</p>
+<p>THEN ISNULL(A.EmpSeq,0)</p>
+<p>ELSE ISNULL(F.EmpSeq,0) END</p>
+<p>ELSE ISNULL(A.EmpSeq,0) END END AS EmpSeq, --담당자코드</p>
+<p>-- 거래명세서 -&gt; 매출 일경우는 거래처를 청구처로 조회해주고 거래명세서 -&gt; 반품 일 경우(WorkingTag = 'R' )는 해당 거래처 그대로 넘겨준다.</p>
+<p>CASE @WorkingTag WHEN 'R' THEN E.CustName</p>
+<p>ELSE CASE WHEN ISNULL(R.UpperCustSeq,0) = 0 THEN ISNULL(E.CustName,'') ELSE ISNULL(O.CustName,'') END END AS CustName, --거래처</p>
+<p>CASE @WorkingTag WHEN 'R' THEN A.CustSeq</p>
+<p>ELSE CASE WHEN ISNULL(R.UpperCustSeq,0) = 0 THEN ISNULL(A.CustSeq,0) ELSE ISNULL(R.UpperCustSeq,0) END END AS CustSeq, --거래처코드</p>
+<p>E.CustNo AS CustNo, --거래처번호</p>
+<p>I.CustName AS BKCustName, --중개인</p>
+<p>A.BKCustSeq AS BKCustSeq, --중개인코드</p>
+<p>J.CustName AS AGCustName, --대리점</p>
+<p>A.AGCustSeq AS AGCustSeq, --대리점코드</p>
+<p>'' AS DVPlaceName, --납품처</p>
+<p>0 AS DVPlaceSeq, --납품처코드</p>
+<p>L.CurrName AS CurrName, --통화</p>
+<p>A.CurrSeq AS CurrSeq, --통화코드</p>
+<p>A.ExRate AS ExRate, --환율</p>
+<p>A.IsOverCredit AS IsOverCredit, --여신초과</p>
+<p>A.IsMinAmt AS IsMinAmt, --금액미달</p>
+<p>A.IsStockSales AS IsStockSales, --판매후 보관</p>
+<p>CASE @LineKind WHEN '1' THEN '' ELSE A.Remark END AS Remark, --비고</p>
+<p>A.Memo AS Memo, --메모</p>
+<p>'' AS ArrivalDate, --도착일자</p>
+<p>'' AS ArrivalTime, --도착시간</p>
+<p>@TotCurAmt AS TotCurAmt, --원화판매가액계</p>
+<p>@TotVAT AS TotVat, --부가세계</p>
+<p>@TotAmt AS TotAmt, --총액</p>
+<p>M.ValueText AS IsSalesWith,</p>
+<p>A.IsStockSales AS IsStockSales,</p>
+<p>'' AS IsDelvCfm,</p>
+<p>0 AS SalesSeq,--ISNULL(U.SalesSeq,0) AS SalesSeq,</p>
+<p>ISNULL(RC.ReceiptCustSeq, 0) AS ReceiptCustSeq, -- 수금처내부코드</p>
+<p>ISNULL(RN.CustName , '') AS ReceiptCustName -- 수금처 :: 20140407 박성호 추가</p>
+<p>FROM _TSLInvoice AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.BizUnit = B.BizUnit</p>
+<p>LEFT OUTER JOIN _TDADept AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DeptSeq = C.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.CustSeq = E.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS L WITH(NOLOCK) ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.CurrSeq = L.CurrSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS G WITH(NOLOCK) ON A.CompanySeq = G.CompanySeq</p>
+<p>AND A.SMExpKind = G.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON A.CompanySeq = H.CompanySeq</p>
+<p>AND UMOutKind = H.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.BKCustSeq = I.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS J WITH(NOLOCK) ON A.CompanySeq = J.CompanySeq</p>
+<p>AND A.AGCustSeq = J.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS M WITH(NOLOCK) ON H.CompanySeq = M.CompanySeq</p>
+<p>AND H.MinorSeq = M.MinorSeq</p>
+<p>AND M.Serl = 2001</p>
+<p>--LEFT OUTER JOIN (SELECT FromSeq, MIN(ToSeq) AS SalesSeq</p>
+<p>-- FROM _TCOMSourceDaily WITH (NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND FromTableSeq = 18</p>
+<p>-- AND ToTableSeq = 20</p>
+<p>-- AND FromSeq = @InvoiceSeq</p>
+<p>-- GROUP BY FromSeq) AS U ON A.InvoiceSeq = U.FromSeq</p>
+<p>LEFT OUTER JOIN _TDACustGroup AS R WITH (NOLOCK) ON A.CompanySeq = R.CompanySeq</p>
+<p>AND A.CustSeq = R.CustSeq</p>
+<p>AND R.UMCustGroup = 8014002</p>
+<p>LEFT OUTER JOIN _TSLCustSalesEmp AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND R.UpperCustSeq = F.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS S WITH(NOLOCK) ON A.CompanySeq = S.CompanySeq</p>
+<p>AND F.EmpSeq = S.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS T WITH(NOLOCK) ON A.CompanySeq = T.CompanySeq</p>
+<p>AND F.DeptSeq = T.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS O WITH (NOLOCK) ON O.CompanySeq = @CompanySeq</p>
+<p>AND R.UpperCustSeq = O.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACustSalesReceiptCond AS RC WITH(NOLOCK) ON A.CompanySeq = RC.CompanySeq</p>
+<p>AND A.CustSeq = RC.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS RN WITH(NOLOCK) ON RC.CompanySeq = RN.CompanySeq</p>
+<p>AND RC.ReceiptCustSeq = RN.CustSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.InvoiceSeq = @InvoiceSeq</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>-- 아이템을 조회(이부분은 수주를 기준으로 가지고옴.)</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>-- 수주 원천을 가지고 옴.</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>-- 원천테이블</p>
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 원천 데이터 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #TSourceTable</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>InvoiceSeq INT,</p>
+<p>InvoiceSerl INT,</p>
+<p>InvoiceDate NVARCHAR(8)</p>
+<p>)</p>
+<p>CREATE TABLE #SCOMSourceDailyJumpQuery</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>FromTableSeq INT,</p>
+<p>ToTableSeq INT,</p>
+<p>FromSeq INT,</p>
+<p>FromSerl INT,</p>
+<p>FromSubSerl INT,</p>
+<p>FromQty DECIMAL(19, 5),</p>
+<p>FromSTDQty DECIMAL(19, 5),</p>
+<p>FromAmt DECIMAL(19, 5),</p>
+<p>FromVAT DECIMAL(19, 5),</p>
+<p>ToQty DECIMAL(19, 5),</p>
+<p>ToSTDQty DECIMAL(19, 5),</p>
+<p>ToAmt DECIMAL(19, 5),</p>
+<p>ToVAT DECIMAL(19, 5),</p>
+<p>ToExists INT,</p>
+<p>PrevFromTableSeq INT,</p>
+<p>DomAmt DECIMAL(19, 5),</p>
+<p>DomVAT DECIMAL(19, 5),</p>
+<p>ToPrice DECIMAL(19, 5),</p>
+<p>ToAmtTotal DECIMAL(19, 5),</p>
+<p>DomAmtTotal DECIMAL(19, 5),</p>
+<p>ParamFromSeq INT,</p>
+<p>ParamFromSerl INT,</p>
+<p>ParamFromSubSerl INT,</p>
+<p>Dummy1 NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TSourceTable</p>
+<p>(</p>
+<p>InvoiceSeq,</p>
+<p>InvoiceSerl,</p>
+<p>InvoiceDate</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>B.InvoiceSeq,</p>
+<p>B.InvoiceSerl,</p>
+<p>C.InvoiceDate</p>
+<p>FROM #TSLInvoice AS A</p>
+<p>JOIN _TSLInvoiceItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.InvoiceSeq = B.InvoiceSeq</p>
+<p>AND (A.InvoiceSerl IS NULL OR A.InvoiceSerl = B.InvoiceSerl)</p>
+<p>LEFT OUTER JOIN _TSLInvoice AS C ON B.CompanySeq = C.CompanYSeq AND B.InvoiceSeq = C.InvoiceSeq</p>
+<p>-- 원천을 찾아옴.</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TSLOrderItem'</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TSLInvoiceItem', '#TSourceTable','InvoiceSeq', 'InvoiceSerl',''</p>
+<p>SELECT A.IDX_NO,</p>
+<p>B.Seq AS OrderSeq,</p>
+<p>B.Serl AS OrderSerl,</p>
+<p>B.SubSerl AS OrderSubSerl,</p>
+<p>A.InvoiceSeq,</p>
+<p>A.InvoiceSerl,</p>
+<p>A.InvoiceDate</p>
+<p>INTO #TSLOrderItem</p>
+<p>FROM #TSourceTable AS A</p>
+<p>JOIN #TCOMSourceTracking AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>--진행을 찾아옴.</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMProgressTracking</p>
+<p>( IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5) ,</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>--거래명세서에서 수주원천을 찾아옴</p>
+<p>SELECT DISTINCT</p>
+<p>IDENTITY(INT, 1,1) IDX_NO,</p>
+<p>B.Seq AS OrderSeq,</p>
+<p>B.Serl AS OrderSerl</p>
+<p>INTO #TInvoiceOrder</p>
+<p>FROM #TSourceTable AS A</p>
+<p>JOIN #TCOMSourceTracking AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 1,'_TSLInvoiceItem'</p>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 2,'nvt_TSLOrderBillRelation'</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TSLOrderItem', '#TInvoiceOrder', 'OrderSeq', 'OrderSerl', ''</p>
+<p>/******************************************************************************/</p>
+<p>CREATE TABLE #TOrderBill</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>PlusYnQty DECIMAL(19,5),</p>
+<p>PlusYnSTDQty DECIMAL(19,5),</p>
+<p>PlusYnAmt DECIMAL(19,5),</p>
+<p>PlusYnVAT DECIMAL(19,5),</p>
+<p>OriQty DECIMAL(19,5),</p>
+<p>OriSTDQty DECIMAL(19,5),</p>
+<p>OriAmt DECIMAL(19,5),</p>
+<p>OriVAT DECIMAL(19,5),</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>STDQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE INDEX IX_#TOrderBill ON #TOrderBill (IDX_NO)</p>
+<p>CREATE TABLE #TOrderInvoicePre</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDX_Serl INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>PlusYnQty DECIMAL(19,5),</p>
+<p>PlusYnSTDQty DECIMAL(19,5),</p>
+<p>PlusYnAmt DECIMAL(19,5),</p>
+<p>PlusYnVAT DECIMAL(19,5),</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>STDQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE INDEX IX_#TOrderInvoicePre ON #TOrderInvoicePre (IDX_NO, IDX_Serl)</p>
+<p>-- 세금계신서 진행을 수주기준으로 SUM</p>
+<p>INSERT INTO #TOrderBill(IDX_NO, PlusYnQty, PlusYnSTDQty, PlusYnAmt, PlusYnVAT,</p>
+<p>OriQty, OriSTDQty, OriAmt, OriVAT, Qty, STDQty, Amt, VAT)</p>
+<p>SELECT A.IDX_NO,</p>
+<p>CASE WHEN (SUM(A.Qty) ) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnQty,</p>
+<p>CASE WHEN (SUM(A.STDQty)) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnSTDQty,</p>
+<p>CASE WHEN (SUM(A.Amt) ) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnAmt,</p>
+<p>CASE WHEN (SUM(A.VAT) ) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnVAT,</p>
+<p>(SUM(A.Qty) ) AS OriQty,</p>
+<p>(SUM(A.STDQty)) AS OriSTDQty,</p>
+<p>(SUM(A.Amt) ) AS OriAmt,</p>
+<p>(SUM(A.VAT) ) AS OriVAT,</p>
+<p>(SUM(A.Qty) ) AS Qty,</p>
+<p>(SUM(A.STDQty)) AS STDQty,</p>
+<p>(SUM(A.Amt) ) AS Amt,</p>
+<p>(SUM(A.VAT) ) AS VAT</p>
+<p>FROM #TCOMProgressTracking AS A</p>
+<p>WHERE A.IDOrder = 2</p>
+<p>GROUP BY A.IDX_NO</p>
+<p>-- 모든 거래명세서 건건히 정리</p>
+<p>INSERT INTO #TOrderInvoicePre(IDX_NO, IDX_Serl, Seq, Serl, PlusYnQty, PlusYnSTDQty, PlusYnAmt, PlusYnVAT,</p>
+<p>Qty, STDQty, Amt, VAT)</p>
+<p>SELECT A.IDX_NO,</p>
+<p>ROW_NUMBER() OVER(PARTITION BY A.IDX_NO ORDER BY A.IDX_NO, C.InvoiceDate, A.Seq, A.Serl, A.SubSerl) AS IDX_Serl,</p>
+<p>A.Seq,</p>
+<p>A.Serl,</p>
+<p>CASE WHEN ((A.Qty) ) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnQty,</p>
+<p>CASE WHEN ((A.STDQty)) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnSTDQty,</p>
+<p>CASE WHEN ((A.Amt) ) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnAmt,</p>
+<p>CASE WHEN ((A.VAT) ) \&lt; 0 THEN -1 ELSE 1 END AS PlusYnVAT,</p>
+<p>(A.Qty ) AS Qty ,</p>
+<p>(A.STDQty) AS STDQty ,</p>
+<p>(A.Amt ) AS Amt ,</p>
+<p>(A.VAT ) AS VAT</p>
+<p>FROM #TCOMProgressTracking AS A</p>
+<p>JOIN _TSLInvoice AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.Seq = C.InvoiceSeq</p>
+<p>WHERE A.IDOrder = 1</p>
+<p>ORDER BY IDX_NO, Seq, Serl</p>
+<p>CREATE TABLE #TInvoiceBillFIFO</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDX_Serl INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>BillProgQty DECIMAL(19,5),</p>
+<p>BillProgSTDQty DECIMAL(19,5),</p>
+<p>BillProgAmt DECIMAL(19,5),</p>
+<p>BillProgVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE INDEX IX_#TInvoiceBillFIFO ON #TInvoiceBillFIFO (IDX_NO, IDX_Serl)</p>
+<p>DECLARE @IDX_NO INT,</p>
+<p>@IDX_Serl INT</p>
+<p>SELECT @IDX_NO = 0, @IDX_Serl = 0 -- 초기화</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@IDX_NO = A.IDX_NO,</p>
+<p>@IDX_Serl = 0</p>
+<p>FROM #TOrderBill AS A</p>
+<p>WHERE A.IDX_NO &gt; @IDX_NO</p>
+<p>ORDER BY A.IDX_NO</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@IDX_Serl = A.IDX_Serl</p>
+<p>FROM #TOrderInvoicePre AS A</p>
+<p>WHERE A.IDX_NO = @IDX_NO</p>
+<p>AND A.IDX_Serl &gt; @IDX_Serl</p>
+<p>ORDER BY A.IDX_Serl</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>INSERT INTO #TInvoiceBillFIFO</p>
+<p>(</p>
+<p>IDX_NO, IDX_Serl, Seq, Serl, BillProgQty, BillProgSTDQty, BillProgAmt, BillProgVAT</p>
+<p>)</p>
+<p>SELECT A.IDX_NO, A.IDX_Serl, A.Seq, A.Serl,</p>
+<p>CASE WHEN A.PlusYnQty + B.PlusYnQty = 0 THEN 0 ELSE CASE WHEN ABS(A.Qty ) \&lt; ABS(B.Qty ) THEN A.Qty ELSE B.Qty END END AS Qty ,</p>
+<p>CASE WHEN A.PlusYnSTDQty + B.PlusYnSTDQty = 0 THEN 0 ELSE CASE WHEN ABS(A.STDQty) \&lt; ABS(B.STDQty) THEN A.STDQty ELSE B.STDQty END END AS STDQty,</p>
+<p>CASE WHEN A.PlusYnAmt + B.PlusYnAmt = 0 THEN 0 ELSE CASE WHEN ABS(A.Amt ) \&lt; ABS(B.Amt ) THEN A.Amt ELSE B.Amt END END AS Amt ,</p>
+<p>CASE WHEN A.PlusYnVAT + B.PlusYnVAT = 0 THEN 0 ELSE CASE WHEN ABS(A.VAT ) \&lt; ABS(B.VAT ) THEN A.VAT ELSE B.VAT END END AS VAT</p>
+<p>FROM #TOrderInvoicePre AS A</p>
+<p>JOIN #TOrderBill AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.IDX_NO = @IDX_NO</p>
+<p>AND A.IDX_Serl = @IDX_Serl</p>
+<p>UPDATE B</p>
+<p>SET Qty = B.Qty - A.Qty ,</p>
+<p>STDQty = B.STDQty - A.STDQty,</p>
+<p>Amt = B.Amt - A.Amt ,</p>
+<p>VAT = B.VAT - A.VAT</p>
+<p>FROM #TOrderInvoicePre AS A</p>
+<p>JOIN #TOrderBill AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.IDX_NO = @IDX_NO</p>
+<p>AND A.IDX_Serl = @IDX_Serl</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TOrderBill WHERE IDX_NO = @IDX_NO AND PlusYnQty \&lt;&gt; CASE WHEN Qty \&lt;= 0 THEN -1 ELSE 1 END)</p>
+<p>BEGIN</p>
+<p>BREAK</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>INSERT INTO #SCOMSourceDailyJumpQuery</p>
+<p>SELECT A.IDX_NO AS IDX_NO,</p>
+<p>19 AS FromTableSeq,</p>
+<p>2000002 AS ToTableSeq,</p>
+<p>A.OrderSeq AS FromSeq,</p>
+<p>A.OrderSerl AS FromSerl,</p>
+<p>A.OrderSubSerl AS FromSubSerl,</p>
+<p>B.Qty AS FromQty,</p>
+<p>B.STDQty AS FromSTDQty,</p>
+<p>B.CurAmt AS FromAmt,</p>
+<p>B.CurVAT AS FromVAT,</p>
+<p>C.Qty - ISNULL(Z1.BillProgQty,0) AS ToQty,</p>
+<p>C.STDQty - ISNULL(Z1.BillProgSTDQty,0) AS ToSTDQty,</p>
+<p>C.CurAmt - ISNULL(Z1.BillProgAmt,0) AS ToAmt,</p>
+<p>C.CurVAT - ISNULL(Z1.BillProgVAT,0) AS ToVAT,</p>
+<p>1 AS ToExists,</p>
+<p>0 AS PrevFromTableSeq,</p>
+<p>C.DomAmt - ISNULL(Z1.BillProgAmt,0) AS DomAmt,</p>
+<p>C.DomVAT - ISNULL(Z1.BillProgVAT,0) AS DomVAT,</p>
+<p>C.Price AS ToPrice,</p>
+<p>(C.CurAmt - ISNULL(Z1.BillProgAmt,0)) + (C.CurVAT - ISNULL(Z1.BillProgVAT,0)) AS ToAmtTotal,</p>
+<p>(C.DomAmt - ISNULL(Z1.BillProgAmt,0)) + (C.DomVAT - ISNULL(Z1.BillProgVAT,0)) AS DomAmtTotal,</p>
+<p>A.OrderSeq AS ParamFromSeq,</p>
+<p>A.OrderSerl AS ParamFromSerl,</p>
+<p>A.OrderSubSerl AS ParamFromSubSerl,</p>
+<p>C.Dummy1</p>
+<p>FROM #TSLOrderItem AS A</p>
+<p>JOIN _TSLOrderItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = B.OrderSeq</p>
+<p>AND A.OrderSerl = B.OrderSerl</p>
+<p>AND A.OrderSubSerl = B.OrderSubSerl</p>
+<p>LEFT OUTER JOIN #TInvoiceBillFIFO AS Z1 ON A.InvoiceSeq = Z1.Seq</p>
+<p>AND A.InvoiceSerl = Z1.Serl</p>
+<p>JOIN _TSLInvoiceItem AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.InvoiceSeq = C.InvoiceSeq</p>
+<p>AND A.InvoiceSerl = C.InvoiceSerl</p>
+<p>WHERE 1=1</p>
+<p>AND C.Qty - ISNULL(Z1.BillProgQty,0) \&lt;&gt; 0</p>
+<p>SELECT LastDateTime,ProgFromSeq,ProgFromSerl,ProgFromTableSeq,* FROM _TSLInvoiceItem WHERE InvoiceSeq = 219668 AND InvoiceSerl IN (5,6)</p>
+<p>SELECT LastDateTime,ProgFromSeq,ProgFromSerl,ProgFromTableSeq,* FROM nvt_TSLDVReqCar WHERE CarSeq IN(877206,877207)</p>
+<p>SELECT LastDateTime,ProgFromSeq,ProgFromSerl,ProgFromTableSeq,* FROM _TSLDVReqItem WHERE DVReqSeq = 216621 AND DVReqSerl IN (5,6) -- 생성 2024-08-19 09:06:30.243</p>
+<p>-- 수주입력_nvt</p>
+<p>SELECT LastDateTime,ProgFromSeq,ProgFromSerl,ProgFromTableSeq,* FROM _TSLOrderItem WHERE OrderSeq = 82174 AND OrderSerl IN (13,27) -- 생성 2024-04-16 09:12:13.467</p>
+<p>SELECT LastDateTime,ProgFromSeq,ProgFromSerl,ProgFromTableSeq,* FROM _TSLOrderItemLog WHERE OrderSeq = 82174 AND OrderSerl IN (27) -- 삭제 2024-08-19 09:34:27.153</p>
+<p>SELECT * FROM _TCAUser WHERE UserSeq = 205</p>
+<p>select * from _TCOMSourceDaily WHERE FromSeq = 82174 AND FromTableSeq = 19 AND FromSerl = 27 ORDER BY FromSerl -- 2024-08-19 09:06:30.353</p>
+<p>select * from _TCAPgm where Caption like '수주입력%nvt'</p>
+<p>--SELECT * FROM _TSLOrder WHERE OrderSeq = 82174</p>
+<p>--SELECT * FROM _TSLOrderItemLog WHERE OrderSeq = 82174 AND OrderSerl = 27</p>
+<p>--SELECT * FROM _TCAPgm WHERE PgmSeq = 87920006</p>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableSeq= 19</p>
+<p>RETURN</p>
+<p>SELECT B.OrderSeq AS OrderSeq, --거래명세서번호</p>
+<p>B.OrderSerl AS OrderSerl, --거래명세서순번</p>
+<p>C.ItemName AS ItemName, --품명</p>
+<p>B.ItemSeq AS ItemSeq, --품목코드</p>
+<p>C.ItemNo AS ItemNo, --품번</p>
+<p>C.Spec AS Spec, --규격</p>
+<p>B.ItemPrice AS ItemPrice, --품목단가</p>
+<p>B.CustPrice AS CustPrice, --회사단가</p>
+<p>D.UnitName AS UnitName, --판매단위</p>
+<p>B.UnitSeq AS UnitSeq, --판매단위코드</p>
+<p>ISNULL(A1.ToQty, 0) AS Qty, --수량</p>
+<p>B.IsInclusedVAT AS IsInclusedVAT, --부가세포함</p>
+<p>ISNULL(B.VATRate, 0) AS VATRate, --부가세율</p>
+<p>ISNULL(A1.ToAmt, 0) AS CurAmt, --판매금액</p>
+<p>ISNULL(A1.ToVAT, 0) AS CurVAT, --부가세액</p>
+<p>(ISNULL(A1.ToAmt, 0) + ISNULL(A1.ToVAT, 0)) AS TotAmt, --합계금액</p>
+<p>ISNULL(A1.DomAmt, 0) AS DomAmt, --원화판매금액</p>
+<p>ISNULL(A1.DomVAT, 0) AS DomVAT, --원화부가세액</p>
+<p>(ISNULL(A1.DomAmt, 0) + ISNULL(A1.DomVAT, 0)) AS TotDomAmt, --원화판매금액계</p>
+<p>A1.ToPrice AS Price, -- 명세서 단가 201704 ss</p>
+<p>--CONVERT(DECIMAL(19, 5), (</p>
+<p>--CASE WHEN B.Price IS NOT NULL</p>
+<p>-- THEN B.Price</p>
+<p>-- ELSE (CASE WHEN ISNULL(B.Qty,0) = 0 THEN 0 ELSE (CASE WHEN B.IsInclusedVAT = '1' THEN (ISNULL(A1.ToAmt,0) + ISNULL(A1.ToVAT,0)) / ISNULL(A1.ToQty,0)</p>
+<p>-- ELSE ISNULL(A1.ToAmt,0) / ISNULL(A1.ToQty,0) END) END) END )</p>
+<p>-- ) AS Price, -- 판매단가</p>
+<p>CASE WHEN ISNULL(B.ItemSeq,0) = 0 THEN '0' ELSE (SELECT ISNULL(IsQtyChange,'0') FROM _TDAItemStock WITH (NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND ItemSeq = B.ItemSeq) END AS IsQtyChange, -- 기준단위수량변경</p>
+<p>A1.ToAmtTotal AS CurAmtTotal, --판매금액계</p>
+<p>A1.DomAmtTotal AS DomAmtTotal, --원화판매금액계</p>
+<p>E.UnitName AS STDUnitName, --기준단위</p>
+<p>B.STDUnitSeq AS STDUnitSeq, --기준단위코드</p>
+<p>ISNULL(A1.ToSTDQty, 0) AS STDQty, --기준단위수량</p>
+<p>F.WHName AS WHName, --창고</p>
+<p>B.WHSeq AS WHSeq, --창고코드</p>
+<p>B.Remark AS Remark, --비고</p>
+<p>B.UMEtcOutKind AS UMEtcOutKind, --기타입출고코드</p>
+<p>H.MinorName AS UMEtcOutKindName,--기타입출고</p>
+<p>0 AS TrustCustSeq,</p>
+<p>'' AS TrustCustName,</p>
+<p>B.LotNo AS LotNo,</p>
+<p>B.SerialNo AS SerialNo,</p>
+<p>CASE WHEN J.SMExpKind = '8009001' THEN</p>
+<p>( CASE WHEN ISNULL(L.ValueText, '0') = '1' AND ISNULL(M.AccSeq, 0) \&lt;&gt; 0 THEN ISNULL(M.AccSeq, 0) ELSE S.AccSeq END )</p>
+<p>ELSE</p>
+<p>( CASE WHEN ISNULL(L.ValueText, '0') = '1' AND ISNULL(N.AccSeq, 0) \&lt;&gt; 0 THEN ISNULL(N.AccSeq, 0) ELSE S.AccSeq END )</p>
+<p>END AS AccSeq,</p>
+<p>CASE WHEN ISNULL(L.ValueText, '0') = '1' THEN (CASE WHEN ISNULL(M.AccSeq, 0) = 0 THEN ISNULL((SELECT AccName FROM _TDAAccount WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND AccSeq = S.AccSeq),'')</p>
+<p>ELSE ISNULL((SELECT AccName FROM _TDAAccount WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND AccSeq = (CASE WHEN J.SMExpKind = '8009001' THEN ISNULL(M.AccSeq, 0) ELSE ISNULL(N.AccSeq, 0) END)),'') END)</p>
+<p>ELSE ISNULL((SELECT AccName FROM _TDAAccount WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND AccSeq = S.AccSeq),'') END AS AccName ,</p>
+<p>B.PJTSeq AS PJTSeq,</p>
+<p>B.WBSSeq AS WBSSeq,</p>
+<p>P.PJTName AS PJTName,</p>
+<p>P.PJTNo AS PJTNo,</p>
+<p>P.SMSalesReceipt AS SMSalesReceipt,</p>
+<p>W.WBSName AS WBSName,</p>
+<p>A.InvoiceDate AS OrderDate,</p>
+<p>J.OrderNo AS OrderNo,</p>
+<p>J.CustSeq AS CustSeq,</p>
+<p>J.DeptSeq AS DeptSeq,</p>
+<p>J.EmpSeq AS EmpSeq,</p>
+<p>B.CCtrSeq AS CCtrSeq, --활동센터코드</p>
+<p>ISNULL((SELECT CCtrName FROM _TDACCtr WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND CCtrSeq = B.CCtrSeq), '') AS CCtrName, --활동센터명</p>
+<p>A.IDX_NO AS IDX_NO,</p>
+<p>A1.Dummy1,</p>
+<p>B.Dummy2,</p>
+<p>B.Dummy3,</p>
+<p>B.Dummy4,</p>
+<p>B.Dummy5,</p>
+<p>B.Dummy6,</p>
+<p>B.Dummy7,</p>
+<p>B.Dummy8,</p>
+<p>B.Dummy9,</p>
+<p>B.Dummy10,</p>
+<p>0 AS RetroactivityQty, -- 수량(단가소급) :: 20140502 박성호 추가</p>
+<p>A1.FromTableSeq,</p>
+<p>A1.ToTableSeq,</p>
+<p>A1.FromSeq,</p>
+<p>A1.FromSerl,</p>
+<p>A1.FromSubSerl,</p>
+<p>A1.FromQty,</p>
+<p>A1.FromSTDQty,</p>
+<p>A1.FromAmt,</p>
+<p>A1.FromVAT,</p>
+<p>A1.ToQty,</p>
+<p>A1.ToSTDQty,</p>
+<p>A1.ToAmt,</p>
+<p>A1.ToVAT,</p>
+<p>A1.ToExists,</p>
+<p>A1.PrevFromTableSeq,</p>
+<p>A1.DomAmt,</p>
+<p>A1.DomVAT,</p>
+<p>A1.ToPrice,</p>
+<p>A1.ToAmtTotal,</p>
+<p>A1.DomAmtTotal,</p>
+<p>A1.ParamFromSeq,</p>
+<p>A1.ParamFromSerl,</p>
+<p>A1.ParamFromSubSerl,</p>
+<p>B.IsInclusedVAT,</p>
+<p>ISNULL(O.CommRate, 0) AS CommRate , -- 수수료율 추가 20200302 KHKANG</p>
+<p>ISNULL(A1.ToAmt, 0) * ISNULL(O.CommRate, 0) / 100 AS CurCommAmt , -- 수수료금액 추가 20200302 KHKANG</p>
+<p>ISNULL(A1.ToVAT, 0) * ISNULL(O.CommRate, 0) / 100 AS CurCommVAT , -- 수수료부가세 추가 20200302 KHKANG</p>
+<p>(A1.ToAmt + A1.ToVAT) * ISNULL(O.CommRate, 0) / 100 AS CurCommAmtTotal, -- 수수료금액계 추가 20200302 KHKANG</p>
+<p>ISNULL(A1.DomAmt, 0) * ISNULL(O.CommRate, 0) / 100 AS DomCommAmt , -- 수수료원화금액 추가 20200302 KHKANG</p>
+<p>ISNULL(A1.DomVAT, 0) * ISNULL(O.CommRate, 0) / 100 AS DomCommVAT , -- 수수료원화부가세 추가 20200302 KHKANG</p>
+<p>(A1.DomAmt + A1.DomVAT) * ISNULL(O.CommRate, 0) / 100 AS DomCommAmtTotal -- 수수료원화금액계 추가 20200302 KHKANG</p>
+<p>FROM #TSLOrderItem AS A</p>
+<p>JOIN #SCOMSourceDailyJumpQuery AS A1 ON A.IDX_NO = A1.IDX_NO</p>
+<p>JOIN _TSLOrderItem AS B WITH(NOLOCK) ON A.OrderSeq = B.OrderSeq</p>
+<p>AND A.OrderSerl = B.OrderSerl</p>
+<p>JOIN _TSLOrder AS J WITH(NOLOCK) ON J.CompanySeq = @CompanySeq</p>
+<p>AND B.OrderSeq = J.OrderSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS J1 WITH(NOLOCK) ON J.CompanySeq = J1.CompanySeq</p>
+<p>AND J.UMOrderKind = J1.MinorSeq</p>
+<p>AND J1.Serl = 2001</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.UnitSeq = D.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS E WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.STDUnitSeq = E.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS F WITH(NOLOCK) ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.WHSeq = F.WHSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON B.CompanySeq = H.CompanySeq</p>
+<p>AND B.UMEtcOutKind = H.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDASMinorValue AS K WITH(NOLOCK) ON K.CompanySeq = @CompanySeq</p>
+<p>AND J.SMExpKind = K.MinorSeq</p>
+<p>AND K.Serl = 1004</p>
+<p>LEFT OUTER JOIN _TDAItemAssetAcc AS S WITH(NOLOCK) ON C.CompanySeq = S.CompanySeq</p>
+<p>AND C.AssetSeq = S.AssetSeq</p>
+<p>AND K.ValueSeq = S.AssetAccKindSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS P WITH(NOLOCK) ON B.CompanySeq = P.CompanySeq</p>
+<p>AND B.PJTSeq = P.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTWBS AS W WITH(NOLOCK) ON B.CompanySeq = W.CompanySeq</p>
+<p>AND B.PJTSeq = W.PJTSeq</p>
+<p>AND B.WBSSeq = W.WBSSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS L WITH(NOLOCK) ON L.CompanySeq = @CompanySeq</p>
+<p>AND CASE ISNULL(J1.ValueSeq, 0) WHEN 0 THEN 8020001 ELSE J1.ValueSeq END = L.MinorSeq</p>
+<p>AND L.Serl = 2002</p>
+<p>LEFT OUTER JOIN _TDAItemAssetAcc AS M WITH(NOLOCK) ON M.CompanySeq = @CompanySeq</p>
+<p>AND C.AssetSeq = M.AssetSeq</p>
+<p>AND M.AssetAccKindSeq = 13</p>
+<p>LEFT OUTER JOIN _TDAItemAssetAcc AS N WITH(NOLOCK) ON N.CompanySeq = @CompanySeq</p>
+<p>AND C.AssetSeq = N.AssetSeq</p>
+<p>AND N.AssetAccKindSeq = 26 --로컬반품계정</p>
+<p>LEFT OUTER JOIN nvt_TSLOrderItem AS O WITH(NOLOCK) ON B.CompanySeq = O.CompanySeq</p>
+<p>AND B.OrderSeq = O.OrderSeq</p>
+<p>AND B.OrderSerl = O.OrderSerl</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>ORDER BY A.InvoiceSeq</p>
+<p>SELECT '111',*</p>
+<p>FROM #TSLOrderItem AS A</p>
+<p>-- JOIN #SCOMSourceDailyJumpQuery AS A1 ON A.IDX_NO = A1.IDX_NO</p>
+<p>-- JOIN _TSLOrderItem AS B WITH(NOLOCK) ON A.OrderSeq = B.OrderSeq</p>
+<p>-- AND A.OrderSerl = B.OrderSerl</p>
+<p>-- JOIN _TSLOrder AS J WITH(NOLOCK) ON J.CompanySeq = @CompanySeq</p>
+<p>-- AND B.OrderSeq = J.OrderSeq</p>
+<p>-- LEFT OUTER JOIN _TDAUMinorValue AS J1 WITH(NOLOCK) ON J.CompanySeq = J1.CompanySeq</p>
+<p>-- AND J.UMOrderKind = J1.MinorSeq</p>
+<p>-- AND J1.Serl = 2001</p>
+<p>-- JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>-- AND B.ItemSeq = C.ItemSeq</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>-- 아이템을 조회(이부분은 수주를 기준으로 가지고옴.)</p>
+<p>/***************************************************************************************************************************************/</p>
+<p>SELECT DISTINCT</p>
+<p>A.OrderSeq,</p>
+<p>A.InvoiceSeq</p>
+<p>INTO #TSLOrderAGCust</p>
+<p>FROM #TSLOrderItem AS A</p>
+<p>SELECT DISTINCT</p>
+<p>ISNULL(B.CustName ,C.CustName) AS AGCustName,</p>
+<p>ISNULL(A.AGCustSeq,D.AGCustSeq) AS AGCustSeq</p>
+<p>FROM #TSLOrderAGCust AS X</p>
+<p>JOIN _TSLOrder AS O WITH (NOLOCK) ON O.CompanySeq = @CompanySeq</p>
+<p>AND X.OrderSeq = O.OrderSeq</p>
+<p>LEFT OUTER JOIN NVT_TSLOrderAGCust AS A WITH (NOLOCK) ON O.CompanySeq = A.CompanySeq</p>
+<p>AND O.OrderSeq = A.OrderSeq</p>
+<p>LEFT OUTER JOIN NVT_TSLInvoiceAGCust AS D WITH (NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND X.InvoiceSeq = D.InvoiceSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS B WITH (NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.AGCustSeq = B.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH (NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.AGCustSeq = C.CustSeq</p>
+<p>WHERE O.CompanySeq = @CompanySeq</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>exec nvt_SSLInvoiceOrderJumpQuery_TTEST @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag /&gt;</p>
+<p>\&lt;IDX_NO&gt;7\&lt;/IDX_NO&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;Selected&gt;0\&lt;/Selected&gt;</p>
+<p>\&lt;InvoiceSeq&gt;219668\&lt;/InvoiceSeq&gt;</p>
+<p>\&lt;InvoiceSerl&gt;6\&lt;/InvoiceSerl&gt;</p>
+<p>\&lt;OrderSerl /&gt;</p>
+<p>\&lt;PreRemainYn&gt;0\&lt;/PreRemainYn&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;FromPgmSeq&gt;87920018\&lt;/FromPgmSeq&gt;</p>
+<p>\&lt;ToPgmSeq&gt;87920021\&lt;/ToPgmSeq&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=87920105,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=87920018</p>
+  </article>
+</div>
+</body>
+</html>

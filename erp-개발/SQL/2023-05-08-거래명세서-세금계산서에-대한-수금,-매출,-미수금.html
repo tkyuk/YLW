@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래명세서 / 세금계산서에 대한 수금, 매출, 미수금</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래명세서 / 세금계산서에 대한 수금, 매출, 미수금</h1>
+    <div class="meta">
+      <span class="note-date">2023-05-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래명세서 / 세금계산서에 대한 수금, 매출, 미수금</h1>
+<p>CREATE PROC emk_SWSLPlanSalesCollectSumListQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>-- 조회조건</p>
+<p>DECLARE @DateMMFr NCHAR(6),</p>
+<p>@SalesYM NCHAR(6), -- 기준월</p>
+<p>@EnvValue INT, -- 환경설정 소수점 자리수</p>
+<p>@SalesKind INT, -- 매출기준</p>
+<p>@EmpSeq INT, -- 사원명</p>
+<p>@PreDateMMFr NCHAR(6), -- 전년도 1월</p>
+<p>@PostDateMMFr NCHAR(6) -- 전년도 12월</p>
+<p>-- 조회조건 변수에 넣기</p>
+<p>SELECT @SalesYM = ISNULL(SalesYM ,''), -- 기준년도</p>
+<p>@SalesKind = ISNULL(SalesKind, 0), -- 매출기준</p>
+<p>@EmpSeq = ISNULL(EmpSeq , 0) -- 사원명</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>-- 기준월 없으면 현재일</p>
+<p>IF @SalesYM = '' SELECT @SalesYM = LEFT(CONVERT(NCHAR(6),GETDATE(),112),4)</p>
+<p>SELECT @DateMMFr = LEFT(@SalesYM,4) + '01', -- 당해년도 1월</p>
+<p>@PreDateMMFr = CONVERT(NCHAR(4),DATEADD(Y , -1, LEFT(@SalesYM,4)+'0101'),112) + '01', -- 전년도 1월</p>
+<p>@PostDateMMFr = CONVERT(NCHAR(8),DATEADD(DAY, -1, LEFT(@SalesYM,4)+'0101'),112) -- 전년도 12월</p>
+<p>-- 최종결과 Temp테이블</p>
+<p>CREATE TABLE #ResultReceipt</p>
+<p>(</p>
+<p>EmpSeq INT, -- 담당자코드</p>
+<p>CustSeq INT, -- 매출업체코드</p>
+<p>ReceiptAmt01 DECIMAL(19,5), -- 수금 1월</p>
+<p>ReceiptAmt02 DECIMAL(19,5), -- 수금 2월</p>
+<p>ReceiptAmt03 DECIMAL(19,5), -- 수금 3월</p>
+<p>ReceiptAmt04 DECIMAL(19,5), -- 수금 4월</p>
+<p>ReceiptAmt05 DECIMAL(19,5), -- 수금 5월</p>
+<p>ReceiptAmt06 DECIMAL(19,5), -- 수금 6월</p>
+<p>ReceiptAmt07 DECIMAL(19,5), -- 수금 7월</p>
+<p>ReceiptAmt08 DECIMAL(19,5), -- 수금 8월</p>
+<p>ReceiptAmt09 DECIMAL(19,5), -- 수금 9월</p>
+<p>ReceiptAmt10 DECIMAL(19,5), -- 수금 10월</p>
+<p>ReceiptAmt11 DECIMAL(19,5), -- 수금 11월</p>
+<p>ReceiptAmt12 DECIMAL(19,5), -- 수금 12월</p>
+<p>PreMiAmt DECIMAL(19,5), -- 이월 미수금</p>
+<p>SalesAmt DECIMAL(19,5), -- 매출액</p>
+<p>ReceiptAmt DECIMAL(19,5), -- 수금액</p>
+<p>MiAmt DECIMAL(19,5) -- 미수금</p>
+<p>)</p>
+<p>-- 전년도 이월미수금 구하기 위한 임시테이블 생성 (이월미수금 = 매출액 - 수금액)</p>
+<p>CREATE TABLE #Tmp_PreMiAmt</p>
+<p>(</p>
+<p>EmpSeq INT, -- 담당자코드</p>
+<p>CustSeq INT, -- 매출업체코드</p>
+<p>SalesAmt DECIMAL(19,5), -- 매출액</p>
+<p>ReceiptAmt DECIMAL(19,5) -- 수금액</p>
+<p>)</p>
+<p>-- @SalesKind = 2 거래명세서 / @SalesKind = 3 세금계산서</p>
+<p>IF @SalesKind = 2 -- 거래명세서</p>
+<p>BEGIN</p>
+<p>--========================================================</p>
+<p>-- 이월 미수금 구하기 시작(전년도 매출액 합계 - 수금액 합계)</p>
+<p>--========================================================</p>
+<p>-- 1. 전년도 매출액</p>
+<p>INSERT INTO #Tmp_PreMiAmt</p>
+<p>(EmpSeq,CustSeq, SalesAmt)</p>
+<p>SELECT A.EmpSeq, A.CustSeq, ISNULL(SUM(ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0)),0)</p>
+<p>FROM _TSLCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN @PreDateMMFr AND @PostDateMMFr</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 1 -- 매출액</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>-- 2. 전년도 수금액</p>
+<p>INSERT INTO #Tmp_PreMiAmt</p>
+<p>(EmpSeq,CustSeq, ReceiptAmt)</p>
+<p>SELECT A.EmpSeq, A.CustSeq, ISNULL(SUM(ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0)),0)</p>
+<p>FROM _TSLCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN @PreDateMMFr AND @PostDateMMFr</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 2 -- 수금액</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>--========================================================</p>
+<p>-- 이월 미수금 종료</p>
+<p>--========================================================</p>
+<p>-- 최종 결과 테이블 수금액 INSERT</p>
+<p>INSERT INTO #ResultReceipt</p>
+<p>(EmpSeq,CustSeq,</p>
+<p>ReceiptAmt01,ReceiptAmt02,ReceiptAmt03,ReceiptAmt04,ReceiptAmt05,ReceiptAmt06,</p>
+<p>ReceiptAmt07,ReceiptAmt08,ReceiptAmt09,ReceiptAmt10,ReceiptAmt11,ReceiptAmt12)</p>
+<p>SELECT A.EmpSeq, A.CustSeq,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '01' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt01,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '02' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt02,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '03' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt03,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '04' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt04,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '05' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt05,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '06' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt06,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '07' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt07,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '08' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt08,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '09' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt09,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '10' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt10,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '11' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt11,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '12' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt12</p>
+<p>FROM _TSLCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN LEFT(@DateMMFr, 6) AND LEFT(@SalesYM,6)</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 2</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>-- 최종 결과 테이블 매출액 INSERT</p>
+<p>INSERT INTO #ResultReceipt</p>
+<p>(EmpSeq,CustSeq,SalesAmt)</p>
+<p>SELECT A.EmpSeq, A.CustSeq, ISNULL(SUM(ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0)),0)</p>
+<p>FROM _TSLCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN LEFT(@DateMMFr, 6) AND LEFT(@SalesYM,6)</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 1</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>END</p>
+<p>ELSE -- 세금계산서 (거래명세서와 동일한 로직)</p>
+<p>BEGIN</p>
+<p>-- 이월 미수금 구하기 전년도 매출액 합계 - 수금액 합계</p>
+<p>INSERT INTO #Tmp_PreMiAmt</p>
+<p>(EmpSeq,CustSeq, SalesAmt)</p>
+<p>SELECT A.EmpSeq, A.CustSeq, ISNULL(SUM(ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0)),0)</p>
+<p>FROM _TSLBillCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN @PreDateMMFr AND @PostDateMMFr</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 1 -- 매출액</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>INSERT INTO #Tmp_PreMiAmt</p>
+<p>(EmpSeq,CustSeq, ReceiptAmt)</p>
+<p>SELECT A.EmpSeq, A.CustSeq, ISNULL(SUM(ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0)),0)</p>
+<p>FROM _TSLBillCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN @PreDateMMFr AND @PostDateMMFr</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 2 -- 수금액</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>INSERT INTO #ResultReceipt</p>
+<p>(EmpSeq,CustSeq,</p>
+<p>ReceiptAmt01,ReceiptAmt02,ReceiptAmt03,ReceiptAmt04,ReceiptAmt05,ReceiptAmt06,</p>
+<p>ReceiptAmt07,ReceiptAmt08,ReceiptAmt09,ReceiptAmt10,ReceiptAmt11,ReceiptAmt12)</p>
+<p>SELECT A.EmpSeq, A.CustSeq,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '01' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt01,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '02' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt02,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '03' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt03,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '04' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt04,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '05' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt05,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '06' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt06,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '07' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt07,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '08' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt08,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '09' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt09,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '10' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt10,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '11' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt11,</p>
+<p>ISNULL(SUM(CASE WHEN RIGHT(A.SumYM,2) = '12' THEN ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0) END),0) AS ReceiptAmt12</p>
+<p>FROM _TSLBillCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN LEFT(@DateMMFr, 6) AND LEFT(@SalesYM,6)</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 2</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>INSERT INTO #ResultReceipt</p>
+<p>(EmpSeq,CustSeq,SalesAmt)</p>
+<p>SELECT A.EmpSeq, A.CustSeq, ISNULL(SUM(ISNULL(A.CurAmt,0) + ISNULL(A.CurVat,0)),0)</p>
+<p>FROM _TSLBillCreditSum AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SumYM BETWEEN LEFT(@DateMMFr, 6) AND LEFT(@SalesYM,6)</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = A.EmpSeq)</p>
+<p>AND A.SumType = 1</p>
+<p>GROUP BY A.EmpSeq, A.CustSeq</p>
+<p>END</p>
+<p>-- 작년 이월 미수금 최종 임시테이블 생성</p>
+<p>CREATE TABLE #PreMiAmt</p>
+<p>(</p>
+<p>EmpSeq INT, -- 담당자코드</p>
+<p>CustSeq INT, -- 매출업체코드</p>
+<p>MiAmt DECIMAL(19,5) -- 미수금 (매출액-수금액)</p>
+<p>--SalesAmt DECIMAL(19,5), -- 매출액</p>
+<p>--ReceiptAmt DECIMAL(19,5) -- 수금액</p>
+<p>)</p>
+<p>INSERT INTO #PreMiAmt</p>
+<p>SELECT EmpSeq ,</p>
+<p>CustSeq,</p>
+<p>ISNULL(ISNULL(SUM(SalesAmt),0) - ISNULL(SUM(ReceiptAmt),0),0) AS MiAmt</p>
+<p>FROM #Tmp_PreMiAmt</p>
+<p>GROUP BY EmpSeq, CustSeq</p>
+<p>-- 최종 테이블 '이월 미수금' 구하기 : 전년도의 미수금</p>
+<p>UPDATE #ResultReceipt</p>
+<p>SET PreMiAmt = ISNULL(B.MiAmt,0)</p>
+<p>FROM #ResultReceipt AS A</p>
+<p>LEFT OUTER JOIN #PreMiAmt AS B ON B.EmpSeq = A.EmpSeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>-- 최종 테이블 '수금액' 구하기 : 당해년도 1~12월 수금 합계</p>
+<p>UPDATE #ResultReceipt</p>
+<p>SET ReceiptAmt = ISNULL(ReceiptAmt01,0) + ISNULL(ReceiptAmt02,0) + ISNULL(ReceiptAmt03,0) + ISNULL(ReceiptAmt04,0) + ISNULL(ReceiptAmt05,0) + ISNULL(ReceiptAmt06,0) +</p>
+<p>ISNULL(ReceiptAmt07,0) + ISNULL(ReceiptAmt08,0) + ISNULL(ReceiptAmt09,0) + ISNULL(ReceiptAmt10,0) + ISNULL(ReceiptAmt11,0) + ISNULL(ReceiptAmt12,0)</p>
+<p>-- 최종 테이블 '미수금' 구하기 : 이월 미수금 + 매출액 - 수금액</p>
+<p>UPDATE #ResultReceipt</p>
+<p>SET MiAmt = ISNULL(PreMiAmt,0) + ISNULL(SalesAmt,0) - ISNULL(ReceiptAmt,0)</p>
+<p>SELECT B.Empid AS Empid , -- 사원번호</p>
+<p>B.EmpName AS EmpName , -- 담당</p>
+<p>A.EmpSeq AS EmpSeq , -- 담당자코드</p>
+<p>A.CustSeq AS CustSeq , -- 매출업체코드</p>
+<p>C.CustName AS CustName , -- 매출업체명</p>
+<p>C.BizNo AS BizNo , -- 사업자번호</p>
+<p>SUM(ReceiptAmt01) AS ReceiptAmt01, -- 수금 1월</p>
+<p>SUM(ReceiptAmt02) AS ReceiptAmt02, -- 수금 2월</p>
+<p>SUM(ReceiptAmt03) AS ReceiptAmt03, -- 수금 3월</p>
+<p>SUM(ReceiptAmt04) AS ReceiptAmt04, -- 수금 4월</p>
+<p>SUM(ReceiptAmt05) AS ReceiptAmt05, -- 수금 5월</p>
+<p>SUM(ReceiptAmt06) AS ReceiptAmt06, -- 수금 6월</p>
+<p>SUM(ReceiptAmt07) AS ReceiptAmt07, -- 수금 7월</p>
+<p>SUM(ReceiptAmt08) AS ReceiptAmt08, -- 수금 8월</p>
+<p>SUM(ReceiptAmt09) AS ReceiptAmt09, -- 수금 9월</p>
+<p>SUM(ReceiptAmt10) AS ReceiptAmt10, -- 수금 10월</p>
+<p>SUM(ReceiptAmt11) AS ReceiptAmt11, -- 수금 11월</p>
+<p>SUM(ReceiptAmt12) AS ReceiptAmt12, -- 수금 12월</p>
+<p>SUM(PreMiAmt ) AS PreMiAmt , -- 이월 미수금</p>
+<p>SUM(SalesAmt ) AS SalesAmt , -- 매출액</p>
+<p>SUM(ReceiptAmt ) AS ReceiptAmt , -- 수금액</p>
+<p>SUM(MiAmt ) AS MiAmt -- 미수금</p>
+<p>FROM #ResultReceipt AS A</p>
+<p>LEFT OUTER JOIN _TDAEmp AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.EmpSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.CustSeq = A.CustSeq</p>
+<p>WHERE ISNULL(A.EmpSeq ,0) \&lt;&gt; 0</p>
+<p>AND ISNULL(A.CustSeq,0) \&lt;&gt; 0</p>
+<p>GROUP BY B.Empid, B.EmpName, A.EmpSeq, A.CustSeq, C.CustName, C.BizNo</p>
+<p>RETURN</p>
+<p>--GO</p>
+<p>--BEGIN TRAN</p>
+<p>--DECLARE @CONST_#BIZ_IN_DataBlock1 INT-- , @CONST_#BIZ_OUT_DataBlock1 INT--SELECT @CONST_#BIZ_IN_DataBlock1 = 0-- , @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>--IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>--BEGIN</p>
+<p>-- CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>-- (</p>
+<p>-- WorkingTag NCHAR(1)</p>
+<p>-- , IDX_NO INT</p>
+<p>-- , DataSeq INT</p>
+<p>-- , Selected INT</p>
+<p>-- , MessageType INT</p>
+<p>-- , Status INT</p>
+<p>-- , Result NVARCHAR(255)</p>
+<p>-- , ROW_IDX INT</p>
+<p>-- , IsChangedMst NCHAR(1)</p>
+<p>-- , TABLE_NAME NVARCHAR(255)</p>
+<p>-- , SalesYM NCHAR(6), EmpSeq INT, SalesKind INT</p>
+<p>-- )</p>
+<p>-- SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>--END</p>
+<p>--IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>--BEGIN</p>
+<p>-- CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>-- (</p>
+<p>-- WorkingTag NCHAR(1)</p>
+<p>-- , IDX_NO INT</p>
+<p>-- , DataSeq INT</p>
+<p>-- , Selected INT</p>
+<p>-- , MessageType INT</p>
+<p>-- , Status INT</p>
+<p>-- , Result NVARCHAR(255)</p>
+<p>-- , ROW_IDX INT</p>
+<p>-- , IsChangedMst NCHAR(1)</p>
+<p>-- , TABLE_NAME NVARCHAR(255)</p>
+<p>-- , SalesYM NCHAR(6), EmpSeq INT, SalesKind INT, Empid NVARCHAR(100), EmpName NVARCHAR(100), CustSeq INT, CustName NVARCHAR(100), BizNo NVARCHAR(100), ReceiptAmt01 DECIMAL(19, 5), ReceiptAmt02 DECIMAL(19, 5), ReceiptAmt03 DECIMAL(19, 5), ReceiptAmt04 DECIMAL(19, 5), ReceiptAmt05 DECIMAL(19, 5), ReceiptAmt06 DECIMAL(19, 5), ReceiptAmt07 DECIMAL(19, 5), ReceiptAmt08 DECIMAL(19, 5), ReceiptAmt09 DECIMAL(19, 5), ReceiptAmt10 DECIMAL(19, 5), ReceiptAmt11 DECIMAL(19, 5), ReceiptAmt12 DECIMAL(19, 5), PreMiAmt DECIMAL(19, 5), SalesAmt DECIMAL(19, 5), ReceiptAmt DECIMAL(19, 5), MiAmt DECIMAL(19, 5)-- ) -- SET @CONST_#BIZ_OUT_DataBlock1 = 1--END--DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>-- , @INPUT_ERROR_SEVERITY INT</p>
+<p>-- , @INPUT_ERROR_STATE INT</p>
+<p>-- , @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>--INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, SalesYM, EmpSeq, SalesKind) --SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'0', N'DataBlock1', N'202205', N'571', N'3'--IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--DECLARE @HasError NCHAR(1)-- , @UseTransaction NCHAR(1)-- -- 내부 SP용 파라메터-- , @ServiceSeq INT-- , @MethodSeq INT-- , @WorkingTag NVARCHAR(10)-- , @CompanySeq INT-- , @LanguageSeq INT-- , @UserSeq INT-- , @PgmSeq INT-- , @IsTransaction BIT--SET @HasError = N'0'--SET @UseTransaction = N'0'--BEGIN TRY--SET @ServiceSeq = 101820099----SET @MethodSeq = 1--SET @WorkingTag = N''--SET @CompanySeq = 1--SET @LanguageSeq = 1--SET @UserSeq = 27292--SET @PgmSeq = 101820094--SET @IsTransaction = 0---- ExecuteOrder : 1 : Start--EXEC emk_SWSLPlanSalesCollectSumListQuery-- @ServiceSeq-- , @WorkingTag-- , @CompanySeq-- , @LanguageSeq-- , @UserSeq-- , @PgmSeq-- , @IsTransaction</p>
+<p>--IF @@ERROR \&lt;&gt; 0 --BEGIN-- SET @HasError = N'1'-- GOTO GOTO_END--END---- ExecuteOrder : 1 : End--GOTO_END:</p>
+<p>--END TRY</p>
+<p>--BEGIN CATCH</p>
+<p>---- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>-- IF @UseTransaction = N'1'</p>
+<p>-- ROLLBACK TRAN</p>
+<p>-- DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>-- , @ERROR_SEVERITY INT</p>
+<p>-- , @ERROR_STATE INT</p>
+<p>-- , @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>-- SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>-- , @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>-- , @ERROR_STATE = ERROR_STATE()</p>
+<p>-- , @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>-- RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>-- RETURN</p>
+<p>--END CATCH</p>
+<p>---- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>--IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>-- ROLLBACK TRAN</p>
+<p>--DROP TABLE #BIZ_IN_DataBlock1--DROP TABLE #BIZ_OUT_DataBlock1--ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

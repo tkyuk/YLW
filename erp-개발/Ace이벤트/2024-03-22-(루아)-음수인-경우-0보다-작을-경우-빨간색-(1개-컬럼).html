@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(루아) 음수인 경우 / 0보다 작을 경우 빨간색 (1개 컬럼)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(루아) 음수인 경우 / 0보다 작을 경우 빨간색 (1개 컬럼)</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="0-1">(루아) 음수인 경우 / 0보다 작을 경우 빨간색 (1개 컬럼)</h1>
+<p>local row, EndItemQty</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'EndItemQty'</p>
+<p>EndItemQty = CellText(SS1, row, 'EndItemQty')</p>
+<p>if tonumber(EndItemQty) \&lt; 0 then</p>
+<p>SS1.ActiveCellForeColor = -65536 -- 빨강</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

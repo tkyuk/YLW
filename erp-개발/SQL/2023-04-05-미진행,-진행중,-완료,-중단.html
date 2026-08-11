@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>미진행, 진행중, 완료, 중단</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>미진행, 진행중, 완료, 중단</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">미진행, 진행중, 완료, 중단</h1>
+<p>DROP PROC djb_SWSLOrderCfmReqQuery</p>
+<p>GO</p>
+<p>CREATE PROC djb_SWSLOrderCfmReqQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @BizUnit INT , -- 사업단위</p>
+<p>@ReqDateFr NCHAR(8) , -- 요청일자Fr</p>
+<p>@ReqDateTo NCHAR(8) , -- 요청일자To</p>
+<p>@DeptSeq INT , -- 부서</p>
+<p>@EmpSeq INT , -- 담당자</p>
+<p>@ItemName NVARCHAR(100), -- 품명</p>
+<p>@ItemNo NVARCHAR(100), -- 품번</p>
+<p>@CustItemName NVARCHAR(100), -- 거래처품명</p>
+<p>@CustSeq INT , -- 거래처코드</p>
+<p>@UpperCustSeq INT , -- 청구처코드</p>
+<p>@ProgressSeq INT , -- 확인여부</p>
+<p>@SMIsCfm INT , -- 수주여부</p>
+<p>@IsPUCfm INT -- 생산요청여부 추가 23.04.05 SJPARK</p>
+<p>SELECT @BizUnit = ISNULL(BizUnit , 0),</p>
+<p>@ReqDateFr = ISNULL(ReqDateFr ,''),</p>
+<p>@ReqDateTo = ISNULL(ReqDateTo ,''),</p>
+<p>@DeptSeq = ISNULL(DeptSeq , 0),</p>
+<p>@EmpSeq = ISNULL(EmpSeq , 0),</p>
+<p>@ItemName = ISNULL(ItemName ,''),</p>
+<p>@ItemNo = ISNULL(ItemNo ,''),</p>
+<p>@CustItemName = ISNULL(CustItemName,''),</p>
+<p>@UpperCustSeq = ISNULL(UpperCustSeq, 0),</p>
+<p>@CustSeq = ISNULL(CustSeq , 0),</p>
+<p>@ProgressSeq = ISNULL(ProgressSeq , 0),</p>
+<p>@SMIsCfm = ISNULL(SMIsCfm , 0),</p>
+<p>@IsPUCfm = ISNULL(IsPUCfm , 0)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>IF @ReqDateTo = '' SELECT @ReqDateTo = '99991231'</p>
+<p>-- 기생산여부 임시테이블 (생산실적테이블에 등록된 품목 찾아오기)</p>
+<p>CREATE TABLE #TMP_WorkReport</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>IsYN NCHAR(1)</p>
+<p>)</p>
+<p>INSERT INTO #TMP_WorkReport</p>
+<p>SELECT DISTINCT A.ItemSeq, '1'</p>
+<p>FROM djb_TSLOrderCfmReq AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDSFCWorkReport AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.GoodItemSeq = A.ItemSeq</p>
+<p>SELECT ISNULL(B.BizUnitName ,'') AS BizUnitName ,-- 사업단위</p>
+<p>ISNULL(A.BizUnit , 0) AS BizUnit ,-- 사업단위코드</p>
+<p>ISNULL(A.ReqDate ,'') AS ReqDate ,-- 요청일자</p>
+<p>ISNULL(A.DVDate ,'') AS DVDate ,-- 출고일자</p>
+<p>ISNULL(P.CustName ,'') AS RequestCustName ,-- 청구처</p>
+<p>ISNULL(O.UpperCustSeq , 0) AS RequestCustSeq ,-- 청구처코드</p>
+<p>ISNULL(C.CustName ,'') AS CustName ,-- 거래처</p>
+<p>ISNULL(C.CustNo ,'') AS CustNo ,-- 거래처번호</p>
+<p>ISNULL(A.CustSeq , 0) AS CustSeq ,-- 거래처코드</p>
+<p>ISNULL(E.DeptName ,'') AS DeptName ,-- 부서</p>
+<p>ISNULL(A.DeptSeq , 0) AS DeptSeq ,-- 부서코드</p>
+<p>ISNULL(D.EmpName ,'') AS EmpName ,-- 담당자</p>
+<p>ISNULL(A.EmpSeq , 0) AS EmpSeq ,-- 담당자코드</p>
+<p>ISNULL(F.MinorName ,'') AS SMExpKindName ,-- 수출구분</p>
+<p>ISNULL(A.SMExpKind , 0) AS SMExpKind ,-- 수출구분코드</p>
+<p>ISNULL(F1.ValueText , 0) AS IsSMExpKind ,-- 내수/수출구분</p>
+<p>ISNULL(G.MinorName ,'') AS UMOrderKindName ,-- 수주구분</p>
+<p>ISNULL(A.UMOrderKind , 0) AS UMOrderKind ,-- 수주구분코드</p>
+<p>ISNULL(H.ItemNo ,'') AS ItemNo ,-- 품번</p>
+<p>ISNULL(H.ItemName ,'') AS ItemName ,-- 품명</p>
+<p>ISNULL(H.Spec ,'') AS Spec ,-- 규격</p>
+<p>ISNULL(A.ItemSeq , 0) AS ItemSeq ,-- 품목내부코드</p>
+<blockquote>
+<p>CASE WHEN ISNULL(N.CustItemName, '') = '' THEN N2.CustItemName</p>
+</blockquote>
+<p>ELSE N.CustItemName END AS CustItemName,</p>
+<p>CASE WHEN ISNULL(N.CustItemNo, '') = '' THEN N2.CustItemNo</p>
+<p>ELSE N.CustItemNo END AS CustItemNo,</p>
+<p>ISNULL(I.UnitName ,'') AS UnitName ,-- 단위</p>
+<p>ISNULL(A.UnitSeq , 0) AS UnitSeq ,-- 단위코드</p>
+<p>ISNULL(A.Qty , 0) AS Qty ,-- 수량</p>
+<p>ISNULL(J.CurrName ,'') AS CurrName ,-- 화폐단위</p>
+<p>ISNULL(A.CurrSeq , 0) AS CurrSeq ,-- 화폐단위코드</p>
+<p>ISNULL(A.CurPrice , 0) AS Price ,-- 단가</p>
+<p>ISNULL(A.Remark ,'') AS Remark ,-- 비고</p>
+<p>ISNULL(A.Dummy1 ,'') AS Dummy1 ,-- Packing비고</p>
+<p>ISNULL(A.Dummy2 ,'') AS Dummy2 ,-- 배송비고</p>
+<p>ISNULL(A.Dummy3 ,'') AS Dummy3 ,-- 비고3</p>
+<p>ISNULL(A.Dummy4 ,'') AS Dummy4 ,-- 비고4</p>
+<p>ISNULL(A.Dummy5 ,'') AS Dummy5 ,-- 비고5</p>
+<p>ISNULL(A.Dummy6 ,'') AS Dummy6 ,-- 비고6</p>
+<p>ISNULL(A.Dummy7 , 0) AS Dummy7 ,-- 비고7</p>
+<p>ISNULL(A.Dummy8 , 0) AS Dummy8 ,-- 비고8</p>
+<p>ISNULL(A.Dummy9 , 0) AS Dummy9 ,-- 비고9</p>
+<p>ISNULL(A.Dummy10 , 0) AS Dummy10 ,-- 비고10</p>
+<p>ISNULL(A.IsCfm ,'') AS IsCfm ,-- 확인</p>
+<p>ISNULL(A.CfmRemark ,'') AS CfmRemark ,-- 확인비고</p>
+<p>A.CfmDate AS CfmDate ,-- 확인일자</p>
+<p>ISNULL(U1.UserName ,'') AS CfmUserName ,-- 확인자</p>
+<p>ISNULL(A.CfmUserSeq , 0) AS CfmUserSeq ,-- 확인자코드</p>
+<p>ISNULL(A.IsStop ,'') AS IsStop ,-- 중단여부</p>
+<p>A.StopDate AS StopDate ,-- 중단일</p>
+<p>ISNULL(U2.UserName ,'') AS StopUserName ,-- 중단자</p>
+<p>ISNULL(A.StopUserSeq , 0) AS StopUserSeq ,-- 중단자코드</p>
+<p>ISNULL(R.OrderQty , 0) AS OrderQty ,-- 수주수량</p>
+<p>ISNULL(A.Qty,0) - ISNULL(R.OrderQty,0) AS NotQty ,-- 미진행수량</p>
+<p>A.RegDateTime AS RegDateTime ,-- 등록일자</p>
+<p>ISNULL(U3.UserName ,'') AS RegUserName ,-- 등록자</p>
+<p>ISNULL(A.RegUserSeq , 0) AS RegUserSeq ,-- 등록자코드</p>
+<p>A.LastDateTime AS LastDateTime ,-- 수정일자</p>
+<p>ISNULL(U4.UserName ,'') AS LastUserName ,-- 수정자</p>
+<p>ISNULL(A.LastUserSeq , 0) AS LastUserSeq ,-- 수정자코드</p>
+<p>ISNULL(A.ReqSeq , 0) AS ReqSeq ,-- 내부코드</p>
+<p>ISNULL(Q.UnitName ,'') AS STDUnitName ,-- 재고단위</p>
+<p>ISNULL(A.STDUnitSeq , 0) AS STDUnitSeq ,-- 재고단위코드</p>
+<p>ISNULL(A.STDQty , 0) AS STDQty ,-- 재고단위수량</p>
+<p>ISNULL(S.IsYN ,'') AS IsWorkReport ,-- 기생산여부 ( 품목기준 생산실적등록여부 )</p>
+<p>ISNULL(A.IsInclusedVAT ,'') AS IsInclusedVAT ,-- 부가세포함 -- 23.03.02 SJPARK</p>
+<p>ISNULL(A.VATRate , 0) AS VATRate ,-- 부가세율 -- 23.03.02 SJPARK</p>
+<p>ISNULL(T.DVReqQty , 0) AS DVReqQty ,-- 출하의뢰수량</p>
+<p>ISNULL(U.ProdReqQty , 0) AS ProdReqQty -- 생산의뢰수량</p>
+<p>FROM djb_TSLOrderCfmReq AS A</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND B.BizUnit = A.BizUnit</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND C.CustSeq = A.CustSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAEmp AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND D.EmpSeq = A.EmpSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDADept AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND E.DeptSeq = A.DeptSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDASMinor AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND F.MinorSeq = A.SMExpKind</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDASMinorValue AS F1 WITH(NOLOCK) ON F1.CompanySeq = F.CompanySeq</p>
+<p>AND F1.MinorSeq = F.MinorSeq</p>
+<p>AND F1.Serl = 1001</p>
+<p>AND F.MajorSeq = 8009</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND G.MinorSeq = A.UMOrderKind</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItem AS H WITH(NOLOCK) ON H.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND H.ItemSeq = A.ItemSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUnit AS I WITH(NOLOCK) ON I.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND I.UnitSeq = A.UnitSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDACurr AS J WITH(NOLOCK) ON J.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND J.CurrSeq = A.CurrSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAEmp AS K WITH(NOLOCK) ON K.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND K.EmpSeq = A.CfmUserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAEmp AS L WITH(NOLOCK) ON L.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND L.EmpSeq = A.StopUserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAEmp AS M WITH(NOLOCK) ON M.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND M.EmpSeq = A.RegUserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TSLCustItem         AS N WITH(NOLOCK) ON N.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND N.ItemSeq         = A.ItemSeq</p>
+<p>AND N.CustSeq         = A.CustSeq</p>
+<p>AND N.UnitSeq         = A.UnitSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TSLCustItem AS N2 WITH(NOLOCK) ON A.CompanySeq = N2.CompanySeq</p>
+<p>AND A.ItemSeq         = N2.ItemSeq</p>
+<p>AND A.CustSeq         = N2.CustSeq</p>
+<p>AND N2.UnitSeq = 0</p>
+<p>LEFT OUTER JOIN _TDACustGroup AS O WITH(NOLOCK) ON O.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND O.CustSeq = A.CustSeq</p>
+</blockquote>
+<p>AND O.UMCustGroup = 8014002</p>
+<p>LEFT OUTER JOIN _TDACust AS P WITH(NOLOCK) ON P.CompanySeq = O.CompanySeq</p>
+<blockquote>
+<p>AND P.CustSeq = O.UpperCustSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUnit AS Q WITH(NOLOCK) ON Q.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND Q.UnitSeq = A.STDUnitSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TCAUser AS U1 WITH(NOLOCK) ON U1.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND U1.UserSeq = A.CfmUserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TCAUser AS U2 WITH(NOLOCK) ON U2.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND U2.UserSeq = A.StopUserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TCAUser AS U3 WITH(NOLOCK) ON U3.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND U3.UserSeq = A.RegUserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TCAUser AS U4 WITH(NOLOCK) ON U4.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND U4.UserSeq = A.LastUserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN #TMP_WorkReport AS S WITH(NOLOCK) ON @CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND S.ItemSeq = A.ItemSeq</p>
+</blockquote>
+<p>OUTER APPLY (SELECT SUM(Z.ToQty) AS OrderQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.ReqSeq</p>
+<p>--AND Z.FromSerl = A.</p>
+<p>AND Z.FromTableSeq = 15000063 -- 출고가능확인요청_djb</p>
+<p>AND Z.ToTableSeq = 19 -- 수주</p>
+<p>) AS R</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToQty) AS DVReqQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.ReqSeq</p>
+<p>--AND Z.FromSerl = A.</p>
+<p>AND Z.FromTableSeq = 15000063 -- 출고가능확인요청_djb</p>
+<p>AND Z.ToTableSeq = 16 -- 출하의뢰</p>
+<p>) AS T</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToQty) AS ProdReqQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.ReqSeq</p>
+<p>--AND Z.FromSerl = A.</p>
+<p>AND Z.FromTableSeq = 15000063 -- 출고가능확인요청_djb</p>
+<p>AND Z.ToTableSeq = 1 -- 생산의뢰</p>
+<p>) AS U</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ((@BizUnit = 0) OR (@BizUnit = A.BizUnit ))</p>
+<p>AND ((@ReqDateFr = '') OR (A.ReqDate &gt;= @ReqDateFr ))</p>
+<p>AND ((@ReqDateTo = '') OR (A.ReqDate \&lt;= @ReqDateTo ))</p>
+<p>AND ((@DeptSeq = 0) OR (@DeptSeq = A.DeptSeq ))</p>
+<p>AND ((@EmpSeq = 0) OR (@EmpSeq = A.EmpSeq ))</p>
+<p>AND ((@ItemName = '') OR (H.ItemName LIKE @ItemName + '%'))</p>
+<p>AND ((@ItemNo = '') OR (H.ItemNo LIKE @ItemNo + '%'))</p>
+<p>AND ((@CustItemName = '') OR (N.CustItemName LIKE @CustItemName + '%'))</p>
+<p>AND ((@CustSeq = 0) OR (@CustSeq = A.CustSeq ))</p>
+<p>AND ((@UpperCustSeq = 0) OR (@UpperCustSeq = O.UpperCustSeq))</p>
+<p>AND (@ProgressSeq = 0 OR -- 공백 / 요청 / 확인</p>
+<p>(@ProgressSeq = 1 AND A.IsCfm \&lt;&gt; '1') OR</p>
+<p>(@ProgressSeq = 2 AND A.IsCfm = '1'))</p>
+<p>AND (@SMIsCfm = 0 OR -- 공백 / 미진행 / 진행중 / 완료/ 중단</p>
+<p>(@SMIsCfm = 6052001 AND R.OrderQty IS NULL) OR</p>
+<p>(@SMIsCfm = 6052002 AND ISNULL(A.Qty,0) - ISNULL(R.OrderQty,0) &gt; 0 AND R.OrderQty&gt;0) OR</p>
+<p>(@SMIsCfm = 6052003 AND ISNULL(A.Qty,0) - ISNULL(R.OrderQty,0) = 0) OR</p>
+<p>(@SMIsCfm = 6052004 AND A.IsStop = 1))</p>
+<p>AND (@IsPUCfm = 0 OR -- 공백 / 미진행 / 진행중 / 완료</p>
+<p>(@IsPUCfm = 1 AND U.ProdReqQty IS NULL) OR</p>
+<p>(@IsPUCfm = 2 AND ISNULL(A.Qty,0) - ISNULL(U.ProdReqQty,0) &gt; 0 AND U.ProdReqQty&gt;0) OR</p>
+<p>(@IsPUCfm = 3 AND ISNULL(A.Qty,0) - ISNULL(U.ProdReqQty,0) = 0) )</p>
+<p>--SELECT * FROM _TDASMinor WHERE MajorSeq = 6052</p>
+<p>ORDER BY A.ReqSeq</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\_/ CHARINDEX</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\_/ CHARINDEX</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_-charindex">_/ CHARINDEX</h1>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>INSERT #Item (ItemSeq)</p>
+<p>SELECT SUBSTRING(@GoodItemSeq, @Tmp, CHARINDEX('_/', @GoodItemSeq, @Tmp) - @Tmp)</p>
+<p>SELECT @Tmp = CHARINDEX('_/', @GoodItemSeq, @Tmp) + 2</p>
+<p>IF @Tmp &gt; LEN(@GoodItemSeq)</p>
+<p>BREAK</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

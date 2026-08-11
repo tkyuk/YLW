@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여러행 붙여넣기 시 계산 유의사항</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>여러행 붙여넣기 시 계산 유의사항</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">여러행 붙여넣기 시 계산 유의사항</h1>
+<p>sscnt</p>
+<p>local Dummy7, Dummy8, Dummy9, Dummy10, Power</p>
+<p>Power = math.pow(10, 5)</p>
+<p>EndRow = SS1.ActiveRow + SS1.CodeHelpSelectedRows - 1</p>
+<p>if SS1.ActiveRow &gt; EndRow then</p>
+<blockquote>
+<p>EndRow = SS1.ActiveRow</p>
+</blockquote>
+<p>end</p>
+<p>for row = SS1.ActiveRow, EndRow, 1 do</p>
+<blockquote>
+<p>if SS1.ActiveColumnName == 'Dummy8' or SS1.ActiveColumnName == 'Dummy9' then</p>
+<p>Dummy7 = tonumber(CellText(SS1, row, 'Dummy7' ))        </p>
+<p>Dummy8 = tonumber(CellText(SS1, row, 'Dummy8' ))        </p>
+<p>Dummy9 = tonumber(CellText(SS1, row, 'Dummy9' ))</p>
+<p>Dummy10 = math.floor(Dummy7 * Dummy8 * Dummy9 / 1000 * Power + 0.5) / Power</p>
+<p>SetText(SS1, row, 'Dummy10' , Dummy10)</p>
+<p>end        </p>
+</blockquote>
+<p>end</p>
+<p>mtl</p>
+<p>local A_UnitQty, W_UnitQty, B_UnitQty, ConvQty, UnitSeq, W_UnitSeq, Qty, row</p>
+<p>--EndRow = SS1.ActiveRow + SS1.CodeHelpSelectedRows - 1</p>
+<p>--</p>
+<p>--if SS1.ActiveRow &gt; EndRow then</p>
+<p>--        EndRow = SS1.ActiveRow</p>
+<p>--end</p>
+<p>--</p>
+<p>for row = SS1.ActiveRow, SS1.DataRowCnt - 1 do</p>
+<p>--        if SS1.ActiveColumnName == 'B_UnitQty' or SS1.ActiveColumnName == 'A_UnitQty' or SS1.ActiveColumnName == 'W_UnitQty' then</p>
+<blockquote>
+<p>A_UnitQty = tonumber(CellText(SS1, row, 'A_UnitQty'))</p>
+<p>W_UnitQty = tonumber(CellText(SS1, row, 'W_UnitQty'))</p>
+<p>B_UnitQty = tonumber(CellText(SS1, row, 'B_UnitQty'))</p>
+<p>ConvQty = tonumber(CellText(SS1, row, 'ConvQty'))</p>
+<p>UnitSeq = tonumber(CellText(SS1, row, 'UnitSeq'))</p>
+<p>W_UnitSeq = tonumber(CellText(SS1, row, 'W_UnitSeq'))</p>
+<p>Qty = tonumber(CellText(SS1, row, 'Qty'))</p>
+<p>W_UnitQty = A_UnitQty * B_UnitQty * ConvQty                                </p>
+<p>if UnitSeq == W_UnitSeq then                                                 </p>
+<p>Qty = W_UnitQty                                                </p>
+<p>else                                                                                </p>
+<p>Qty = A_UnitQty * B_UnitQty                                                </p>
+<p>end                                </p>
+<p>SetText(SS1, row, 'W_UnitQty', W_UnitQty)        </p>
+<p>SetText(SS1, row, 'Qty', Qty)        </p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveColumnName = 'Qty'</p>
+<p>SS1.CodeHelpSelectedRows = 1</p>
+<p>RunPgmMethod('TestCnt')</p>
+</blockquote>
+<p>--        end</p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'Qty'</p>
+<p>RunPgmMethod('CalcSS1')</p>
+  </article>
+</div>
+</body>
+</html>

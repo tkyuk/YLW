@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개발툴 시트 속성 정의</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>개발툴 시트 속성 정의</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">개발툴 시트 속성 정의</h1>
+<table>
+<thead>
+<tr>
+<th><strong>Property</strong></th>
+<th><strong>형식</strong></th>
+<th><strong>설명</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ActionCount</strong></td>
+<td get_="get;" set_="set;">int ActionCount</td>
+<td> 스크립트에서ActionType을통해Sheet에Action을할때, Row의증감(+/-) 단위입니다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>기본값은1입니다.</td>
+</tr>
+<tr>
+<td><strong>ActionType</strong></td>
+<td get_="get;" set_="set;">string ActionType</td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>1.     ActionType_SetNumber = 1,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>StartRow==-1 &amp;&amp; EndRow == -1 인경우,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>선택된row가없는경우DataRowCnt까지자동채번,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>선택된row가있는경우선택된row만자동채번</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예)</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.ActiveColumnName = ‘EventNo’</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.StartRow=1</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.EndRow = SS1.DataRowCnt</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.NumberStartValue=1</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.ActionType = ‘ActionType_SetNumber’</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>2.     ActionType_DeleteRow = 2,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>Row 삭제</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>             예) 3번Row에서10개를삭제하는경우</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.StartRow = 3</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.ActionCount=10</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.ActionType = ‘ActionType_InsertRow’</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>3.     ActionType_DeleteCol = 3,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>Col삭제</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>4.     ActionType_InsertRow = 4,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>Row추가</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>5.     ActionType_InsertCol = 5,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>Col추가</td>
+</tr>
+<tr>
+<td><strong>ActiveCellBackColor</strong></td>
+<td get_="get;" set_="set;">int ActiveCellBackColor</td>
+<td>ActiveCell의BackColor를설정</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>(투명도,red, green, blue)</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>argb변환은</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td><a href="file://svr_net/ksystem/개발관련/DevTools/argbConv.exe">\svr_net\ksystem\개발관련\DevTools\argbConv.exe를 사용하여 integer값을 만들면 된다.</a></td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellBackColor = 1233 // argb(1,1,1,1)</td>
+</tr>
+<tr>
+<td><strong>ActiveCellDecimalPlaces</strong></td>
+<td get_="get;" set_="set;">int ActiveCellDecimalPlaces</td>
+<td>ActiveCell의소수점자리수를설정한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellDecimalPlaces = 3</td>
+</tr>
+<tr>
+<td><strong>ActiveCellFontName</strong></td>
+<td get_="get;" set_="set;">string ActiveCellFontName</td>
+<td>  ActiveCell의Font Name를설정</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellFontName = "굴림"</td>
+</tr>
+<tr>
+<td><strong>ActiveCellFontSize</strong></td>
+<td get_="get;" set_="set;">int ActiveCellFontSize</td>
+<td>  ActiveCell의Font size를설정</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellFontSize = 20</td>
+</tr>
+<tr>
+<td><strong>ActiveCellForeColor</strong></td>
+<td get_="get;" set_="set;">int ActiveCellForeColor</td>
+<td>  ActiveCell의ForeColor를설정</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>(투명도,red, green, blue)</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>argb변환은</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td><a href="file://svr_net/ksystem/개발관련/DevTools/argbConv.exe">\svr_net\ksystem\개발관련\DevTools\argbConv.exe를 사용하여 integer값을 만들면 된다.</a></td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellForeColor = 1233 // argb(1,1,1,1)</td>
+</tr>
+<tr>
+<td><strong>ActiveCellHorizontalAlignment</strong></td>
+<td get_="get;" set_="set;">int ActiveCellHorizontalAlignment</td>
+<td>ActiveCell의가로정렬</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enLeft = 0,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enRight = 1,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enCenter = 2,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enStretch = 3  </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellHorizontalAlignment = 1 // right로설정</td>
+</tr>
+<tr>
+<td><strong>ActiveCellHyperLink</strong></td>
+<td get_="get;" set_="set;">string ActiveCellHyperLink</td>
+<td>ActiveCell이HyperLink cell인경우에해당url정보를string으로입력한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예)SS1.ActiveCellHyperLink</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>= '<a href="http://dev.ksystem.co.kr/aaaa.html">http://dev.ksystem.co.kr/aaaa.html</a>'</td>
+</tr>
+<tr>
+<td><strong>ActiveCellMaxLength</strong></td>
+<td get_="get;" set_="set;">int ActiveCellMaxLength</td>
+<td>ActiveCell의MaxLength를get;set;</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예)</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>   - SS1.ActiveRow = 1</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>    - SS1.ActiveColumnName = 'CustCd' // DataFieldName값</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>    - SS1.ActiveCellMaxLength = 15</td>
+</tr>
+<tr>
+<td><strong>ActiveCellMultiline</strong></td>
+<td get_="get;" set_="set;">bool ActiveCellMultiline</td>
+<td>ActiveCell의멀티라인속성을설정</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellMultiline = true</td>
+</tr>
+<tr>
+<td><strong>ActiveCellReadOnly</strong></td>
+<td get_="get;" set_="set;">bool ActiveCellReadOnly</td>
+<td>ActiveCell을읽기전용cell로설정또는취소한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.ActiveCellReadOnly = true// 읽지전용으로설정</td>
+</tr>
+<tr>
+<td><strong>ActiveCellShowSeparator</strong></td>
+<td get_="get;" set_="set;">bool ActiveCellShowSeparator</td>
+<td>ActiveCell이숫자cell인경우","값을설정한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellShowSeparator = true</td>
+</tr>
+<tr>
+<td><strong>ActiveCellText</strong></td>
+<td get_="get;" set_="set;">string ActiveCellText</td>
+<td>ActiveCell의Text 값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellText = '11111111'</td>
+</tr>
+<tr>
+<td><strong>ActiveCellType</strong></td>
+<td get_="get;" set_="set;">string ActiveCellType</td>
+<td>ActiveCell의cell 속성을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enText',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enFloat',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCodeHelp',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enMask',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCheck',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enButton',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDate',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateMonth',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateDay',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateYear',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateYearMonth',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateTime',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCurrency',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enHyperLink',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enPassword',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enTextMulti',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enWord',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCheckBoxSelect',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enTime',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enLabel'</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>SS1.ActiveCellType = 'enCodeHelp' // codehelp로변경</td>
+</tr>
+<tr>
+<td><strong>ActiveCellValue</strong></td>
+<td get_="get;" set_="set;">string ActiveCellValue</td>
+<td>ActiveCell의Value값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellValue = '121212'</td>
+</tr>
+<tr>
+<td><strong>ActiveCellVerticalAlignment</strong></td>
+<td get_="get;" set_="set;">int ActiveCellVerticalAlignment</td>
+<td>ActiveCell의세로정렬</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enTop = 0,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enBottom = 1, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enCenter = 2,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>enStretch = 3</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ActiveCellVerticalAlignment = 1 // Top로설정</td>
+</tr>
+<tr>
+<td><strong>ActiveCol</strong></td>
+<td get_="get;" set_="set;">int ActiveCol</td>
+<td>Active상태의Col 번호를리턴(Click한경우Active 상태로전환)</td>
+</tr>
+<tr>
+<td><strong>ActiveColumnKey</strong></td>
+<td get_="get;">string ActiveColumnKey</td>
+<td> dynamic시트에서헤더키값을가져옵니다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>1.     ActiveCol 지정</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>2.     가져올키값이있는헤더Row 지정</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예를들어, SS1.HeaderRowIndex = 1</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>HeaderRow는맨윗줄이0입니다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>  3.  SS1.ActiveColumnKey 로 값을 가져옵니다.</td>
+</tr>
+<tr>
+<td><strong>ActiveColumnName</strong></td>
+<td get_="get;" set_="set;">string ActiveColumnName</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ActiveColumnVisible</strong></td>
+<td get_="get;" set_="set;">bool ActiveColumnVisible</td>
+<td> Active 상태의Col의Visible 속성을 변경합니다</td>
+</tr>
+<tr>
+<td><strong>ActiveRow</strong></td>
+<td get_="get;" set_="set;">int ActiveRow</td>
+<td>Active상태의Row 번호를리턴(Click한경우Active 상태로전환)</td>
+</tr>
+<tr>
+<td><strong>ActiveRowString</strong></td>
+<td get_="get;" set_="set;">string ActiveRowString</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ActiveRowVisible</strong></td>
+<td get_="get;" set_="set;">bool ActiveRowVisible</td>
+<td> Active 상태의 Row의Visible 속성을 변경합니다.</td>
+</tr>
+<tr>
+<td><strong>AddRowsCount</strong></td>
+<td get_="get;" set_="set;">int AddRowsCount</td>
+<td>자동추가되는row의수</td>
+</tr>
+<tr>
+<td><strong>AutoResize</strong></td>
+<td get_="get;" set_="set;">bool AutoResize</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>BaseControl</strong></td>
+<td get_="get;">object BaseControl</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Caption</strong></td>
+<td get_="get;" set_="set;">string Caption</td>
+<td> 시트제목, 화면상에표시는되지않으며,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>Excel 내보내기를 할 경우 문서 상단 Title로 표시됩니다.</td>
+</tr>
+<tr>
+<td><strong>ChangedColumnName</strong></td>
+<td get_="get;" set_="set;">string ChangedColumnName</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ChangeRowCount</strong></td>
+<td get_="get;">int ChangeRowCount</td>
+<td>변경된row의수</td>
+</tr>
+<tr>
+<td><strong>Clear</strong></td>
+<td get_="get;" set_="set;">bool Clear</td>
+<td>시트clear</td>
+</tr>
+<tr>
+<td><strong>ClickCol</strong></td>
+<td get_="get;" set_="set;">int ClickCol</td>
+<td>마우스클릭한col</td>
+</tr>
+<tr>
+<td><strong>ClickRow</strong></td>
+<td get_="get;" set_="set;">int ClickRow</td>
+<td>마우스클릭한row</td>
+</tr>
+<tr>
+<td><strong>CodeHelpDblClick</strong></td>
+<td get_="get;" set_="set;">bool CodeHelpDblClick</td>
+<td>CodeHelp를실행하기위해시트를Dbl click한경우값이true가된다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) if SS1.CodeHelpDblClick == true then</td>
+</tr>
+<tr>
+<td><strong>CodeHelpParams</strong></td>
+<td get_="get;" set_="set;">object CodeHelpParams</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>CodeHelpSelectedRows</strong></td>
+<td get_="get;" set_="set;">int CodeHelpSelectedRows</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>CodeHelpSeq</strong></td>
+<td get_="get;" set_="set;">string CodeHelpSeq</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ColumnBackColor</strong></td>
+<td get_="get;" set_="set;">int ColumnBackColor</td>
+<td>Column의BackColor을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>(투명도,red, green, blue)</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>argb변환은</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td><a href="file://svr_net/ksystem/개발관련/DevTools/argbConv.exe">\svr_net\ksystem\개발관련\DevTools\argbConv.exe를 사용하여 integer값을 만들면 된다.</a></td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnBackColor = 1233 // argb(1,1,1,1)</td>
+</tr>
+<tr>
+<td><strong>ColumnCellType</strong></td>
+<td get_="get;" set_="set;">string ColumnCellType</td>
+<td>Column의Col 속성을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enText',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enFloat',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCodeHelp',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enMask',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCheck',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enButton',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDate',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateMonth',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateDay',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateYear',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateYearMonth',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enDateTime',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCurrency',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enHyperLink',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enPassword',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enTextMulti',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enWord',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enCheckBoxSelect',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enTime',</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>'enLabel'</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>    - SS1.ActiveColumnName = 'CustName' // DataFieldName값</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>    - SS1.ColumnCellType = 'enCodeHelp' // codehelp로변경</td>
+</tr>
+<tr>
+<td><strong>ColumnCodeHelp</strong></td>
+<td get_="get;" set_="set;">string ColumnCodeHelp</td>
+<td>Column의CodeHelp상수값을  변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnCodeHelp = '312'</td>
+</tr>
+<tr>
+<td><strong>ColumnCodeHelpDefault</strong></td>
+<td get_="get;" set_="set;">string ColumnCodeHelpDefault</td>
+<td>Column의CodeHelp 기본값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnCodeHelpDefault = 'xxxxx'</td>
+</tr>
+<tr>
+<td><strong>ColumnCodeHelpParams</strong></td>
+<td get_="get;" set_="set;">string ColumnCodeHelpParams</td>
+<td>Column의CodeHelp Params 값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>   - CodeHelp option값</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>   - | 으로구분한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>   - 4개까지사용할수있다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnCodeHelpParams = '19001||||'</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>     SS1.ColumnCodeHelpParams = txtAccUnit.TextCd ..'|||'</td>
+</tr>
+<tr>
+<td><strong>ColumnControlKey</strong></td>
+<td get_="get;" set_="set;">string ColumnControlKey</td>
+<td>Column의ControlKey값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnControlKey = 'DIS'</td>
+</tr>
+<tr>
+<td><strong>ColumnDataBlock</strong></td>
+<td get_="get;" set_="set;">string ColumnDataBlock</td>
+<td>데이터가속한DataBlock명</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnDataBlock = 'DataBlock1'</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ColumnDataFieldCd</strong></td>
+<td get_="get;" set_="set;">string ColumnDataFieldCd</td>
+<td>Column의DataFieldCd을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnDataFieldCd = 'CustCd'</td>
+</tr>
+<tr>
+<td><strong>ColumnDataFieldName</strong></td>
+<td get_="get;" set_="set;">string ColumnDataFieldName</td>
+<td>Column의DataFieldName을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnDataFieldName = 'CustName'</td>
+</tr>
+<tr>
+<td><strong>ColumnDataKey</strong></td>
+<td get_="get;" set_="set;">string ColumnDataKey</td>
+<td>Column의DataKey을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnDataKey = 'Query'</td>
+</tr>
+<tr>
+<td><strong>ColumnDeclength</strong></td>
+<td get_="get;" set_="set;">int ColumnDeclength</td>
+<td>Column의소수점이하자리수를변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnDeclength = 3</td>
+</tr>
+<tr>
+<td><strong>ColumnDefault</strong></td>
+<td get_="get;" set_="set;">string ColumnDefault</td>
+<td>Column의기본값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnDefault = 'CNST_DEPT'</td>
+</tr>
+<tr>
+<td><strong>ColumnForeColor</strong></td>
+<td get_="get;" set_="set;">int ColumnForeColor</td>
+<td>Column의ForeColor을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>(투명도,red, green, blue)</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>argb변환은</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td><a href="file://svr_net/ksystem/개발관련/DevTools/argbConv.exe">\svr_net\ksystem\개발관련\DevTools\argbConv.exe를 사용하여 integer값을 만들면 된다.</a></td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnForeColor = 1233 // argb(1,1,1,1)</td>
+</tr>
+<tr>
+<td><strong>ColumnFormula</strong></td>
+<td get_="get;" set_="set;">string ColumnFormula</td>
+<td>Column의Formula값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnFormula = 'SUM(A1:A10)'</td>
+</tr>
+<tr>
+<td><strong>ColumnHeaderRowCount</strong></td>
+<td get_="get;" set_="set;">int ColumnHeaderRowCount</td>
+<td> 시트의헤더행수</td>
+</tr>
+<tr>
+<td><strong>ColumnHeaderRowIndex</strong></td>
+<td get_="get;" set_="set;">int ColumnHeaderRowIndex</td>
+<td> 시트헤더의Row index 선택. 첫번째행이0</td>
+</tr>
+<tr>
+<td><strong>ColumnHeaderRowsHeight</strong></td>
+<td set_="set;">int ColumnHeaderRowsHeight</td>
+<td> 시트헤더의높이</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> 시트헤더가여러행일경우, 전체행에대해높이를지정,</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> DefColumnHeaderHeight도함께변경합니다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> 참고: 헤더높이최소값= 26</td>
+</tr>
+<tr>
+<td><strong>ColumnHeaderText</strong></td>
+<td get_="get;" set_="set;">string ColumnHeaderText</td>
+<td> 시트헤더Text, ColumnHeaderRowIndex, ActiveCol 지정후읽어온다.</td>
+</tr>
+<tr>
+<td><strong>ColumnHeaderVisible</strong></td>
+<td get_="get;" set_="set;">bool ColumnHeaderVisible</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ColumnIsCombo</strong></td>
+<td get_="get;" set_="set;">bool ColumnIsCombo</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ColumnIsComboAndTotal</strong></td>
+<td get_="get;" set_="set;">bool ColumnIsComboAndTotal</td>
+<td>Column이Combo또는Option인경우Total 항목을자동추가한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnIsComboAndTotal = true</td>
+</tr>
+<tr>
+<td><strong>ColumnMaskAndCaption</strong></td>
+<td get_="get;" set_="set;">string ColumnMaskAndCaption</td>
+<td>Column이Mask Control의경우Mask값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>Column이Button또는Check인경우Caption값을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnMaskAndCaption = '####-##-###'</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>     SS1.ColumnMaskAndCaption = '미리보기'</td>
+</tr>
+<tr>
+<td><strong>ColumnMaxlength</strong></td>
+<td get_="get;" set_="set;">int ColumnMaxlength</td>
+<td>Column의입력자리수를변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnMaxlength = 200</td>
+</tr>
+<tr>
+<td><strong>ColumnRandomValue</strong></td>
+<td get_="get;">string ColumnRandomValue</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ColumnTitle</strong></td>
+<td get_="get;" set_="set;">string ColumnTitle</td>
+<td>Column의제목을변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnTitle = '거래처'// 주) lua에서는한글사용이안된다.</td>
+</tr>
+<tr>
+<td><strong>ColumnUseOldValue</strong></td>
+<td get_="get;" set_="set;">bool ColumnUseOldValue</td>
+<td>Column의Old Key사용여부를변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnUseOldValue = true</td>
+</tr>
+<tr>
+<td><strong>ColumnWidth</strong></td>
+<td get_="get;" set_="set;">float ColumnWidth</td>
+<td>Column의넓이를변경한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.ColumnWidth = 100</td>
+</tr>
+<tr>
+<td><strong>CompanySeq</strong></td>
+<td get_="get;" set_="set;">int CompanySeq</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ConnInfo</strong></td>
+<td get_="get;" set_="set;">string ConnInfo</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ControlKey</strong></td>
+<td get_="get;" set_="set;">string ControlKey</td>
+<td> 컨트롤속성</td>
+</tr>
+<tr>
+<td><strong>ControlName</strong></td>
+<td get_="get;" set_="set;">string ControlName</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>CryptKey</strong></td>
+<td get_="get;" set_="set;">string CryptKey</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>CtlEvtRows</strong></td>
+<td get_="get;" set_="set;">DataRow[] CtlEvtRows</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Cursor</strong></td>
+<td get_="get;" set_="set;">Cursor Cursor</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>DataBlock</strong></td>
+<td get_="get;" set_="set;">string DataBlock</td>
+<td> 데이터가속한DataBlock명</td>
+</tr>
+<tr>
+<td><strong>DataField</strong></td>
+<td get_="get;" set_="set;">string DataField</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>DataRowCnt</strong></td>
+<td get_="get;">int DataRowCnt</td>
+<td>빈Row를제외한총데이터건수</td>
+</tr>
+<tr>
+<td><strong>DblClickCol</strong></td>
+<td get_="get;" set_="set;">int DblClickCol</td>
+<td>마우스dblclick한col</td>
+</tr>
+<tr>
+<td><strong>DblClickColOld</strong></td>
+<td get_="get;" set_="set;">int DblClickColOld</td>
+<td>이전마우스dblclick한col</td>
+</tr>
+<tr>
+<td><strong>DblClickDataChangedCheck</strong></td>
+<td get_="get;" set_="set;">int DblClickDataChangedCheck</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>DblClickRow</strong></td>
+<td get_="get;" set_="set;">int DblClickRow</td>
+<td>마우스dblclick한row</td>
+</tr>
+<tr>
+<td><strong>DblClickRowOld</strong></td>
+<td get_="get;" set_="set;">int DblClickRowOld</td>
+<td>이전마우스dblclick한row</td>
+</tr>
+<tr>
+<td><strong>DefColumnHeaderHeight</strong></td>
+<td get_="get;" set_="set;">int DefColumnHeaderHeight</td>
+<td> 기본헤더높이.</td>
+</tr>
+<tr>
+<td><strong>DefRowHeaderHeight</strong></td>
+<td get_="get;" set_="set;">int DefRowHeaderHeight</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>EndCol</strong></td>
+<td get_="get;" set_="set;">int EndCol</td>
+<td> 시트에서block으로영역선택시마지막Col 위치정보</td>
+</tr>
+<tr>
+<td><strong>EndRow</strong></td>
+<td get_="get;" set_="set;">int EndRow</td>
+<td> 시트에서block으로영역선택시마지막 Row 위치정보 </td>
+</tr>
+<tr>
+<td><strong>EnterKeyMode</strong></td>
+<td set_="set;">int EnterKeyMode</td>
+<td> enter Key를클릭시0 : Edit Mode, 1 : Next Column, 2 : Next Rows, 3 : NextRowFirstColumn</td>
+</tr>
+<tr>
+<td><strong>ErrorCount</strong></td>
+<td get_="get;">int ErrorCount</td>
+<td>처리결과를변영한후오류수를return한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) if SS1.ErrorCount &gt; 0 then</td>
+</tr>
+<tr>
+<td><strong>ESecu</strong></td>
+<td get_="get;" set_="set;">bool ESecu</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>EventTypeSeq</strong></td>
+<td get_="get;" set_="set;">bool[] EventTypeSeq</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>GetCuttingCount</strong></td>
+<td get_="get;">int GetCuttingCount</td>
+<td>cutting한row의수</td>
+</tr>
+<tr>
+<td><strong>HeaderRowIndex</strong></td>
+<td get_="get;" set_="set;">int HeaderRowIndex</td>
+<td> 다이나믹시트에서멀티헤더를쓸경우, Header 행을선택. index는윗줄이0</td>
+</tr>
+<tr>
+<td><strong>HomeDir</strong></td>
+<td get_="get;" set_="set;">string HomeDir</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ImeMode</strong></td>
+<td get_="get;" set_="set;">ImeMode ImeMode</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsBlockMode</strong></td>
+<td get_="get;" set_="set;">bool IsBlockMode</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsChanged</strong></td>
+<td get_="get;">bool IsChanged</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsClipBoardSetLeaveCell</strong></td>
+<td get_="get;" set_="set;">bool IsClipBoardSetLeaveCell</td>
+<td>값이 true이면 clipboard로 붙여넣기를 할때 cell별로 LeaveCell을 강제로 발생시킨다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> 예) 전표프로그램과같이하나의column에Cell별로Control 속성(CodeHelp, float, mask)이다른경우</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>      cell의속성변경을leavecell에lua로코딩한다. </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>      clipboard로붙여데이터를넣는경우에는기본적으로는LeaveCell Evnet가발생되지않기때문에</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>      이속성을이용하여강제로leavecell을발생시키면됩니다.</td>
+</tr>
+<tr>
+<td><strong>IsCodeHelpCancelEvent</strong></td>
+<td get_="get;" set_="set;">bool IsCodeHelpCancelEvent</td>
+<td>codehelp event를 취소한다. CodeHelpBefore event에 코딩하면 됩니다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsColumnDragDropSkip</strong></td>
+<td get_="get;" set_="set;">bool IsColumnDragDropSkip</td>
+<td> 마우스를이용하여컬럼순서를조정하는기능을사용하지않고Skip(기본False)</td>
+</tr>
+<tr>
+<td><strong>IsColumnHeader</strong></td>
+<td get_="get;" set_="set;">bool IsColumnHeader</td>
+<td> Column Header 클릭여부</td>
+</tr>
+<tr>
+<td><strong>IsColumnSortingSkip</strong></td>
+<td get_="get;" set_="set;">bool IsColumnSortingSkip</td>
+<td> 마우스오른쪽버튼클릭을통해Sort 실행시, 해당값이true일경우, 소트하지않고skip</td>
+</tr>
+<tr>
+<td><strong>IsControlKey</strong></td>
+<td get_="get;" set_="set;">bool IsControlKey</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsDblClickRow</strong></td>
+<td get_="get;" set_="set;">bool IsDblClickRow</td>
+<td>DblClick 시트사용여부: true 이면사용</td>
+</tr>
+<tr>
+<td><strong>IsDebug</strong></td>
+<td get_="get;" set_="set;">bool IsDebug</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsEditEnterMode</strong></td>
+<td get_="get;" set_="set;">bool IsEditEnterMode</td>
+<td> true일경우, 시트에서엔터키입력시에다음줄로넘어감.(기본값: false 탭이동)</td>
+</tr>
+<tr>
+<td><strong>IsFormDateChanged</strong></td>
+<td get_="get;" set_="set;">bool IsFormDateChanged</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsGroup</strong></td>
+<td get_="get;" set_="set;">bool IsGroup</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsHiddenContextMenu</strong></td>
+<td get_="get;" set_="set;">bool IsHiddenContextMenu</td>
+<td> true일경우, 시트에서마우스오른쪽클릭한경우, Context Menu를보이지않는다.</td>
+</tr>
+<tr>
+<td><strong>IsmenuErrorMessageViewVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuErrorMessageViewVisible</td>
+<td> Context메뉴에서"오류메세지보기" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuHiddenColumnViewVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuHiddenColumnViewVisible</td>
+<td> Context메뉴에서"숨김항목보기" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuItemCopyVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuItemCopyVisible</td>
+<td> Context메뉴에서"복사" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuItemCutVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuItemCutVisible</td>
+<td> Context메뉴에서"잘라내기" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuItemPasteVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuItemPasteVisible</td>
+<td> Context메뉴에서"붙여넣기" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuItemSortVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuItemSortVisible</td>
+<td> Context메뉴에서"정렬" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuNumberIncrementVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuNumberIncrementVisible</td>
+<td> Context메뉴에서"자동증가" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuNumberInsertVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuNumberInsertVisible</td>
+<td> Context메뉴에서"반복삽입" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuRowInsertVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuRowInsertVisible</td>
+<td> Context메뉴에서"항목추가" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuSelectAllVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuSelectAllVisible</td>
+<td> Context메뉴에서"전체선택" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuSendToExcelVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuSendToExcelVisible</td>
+<td> Context메뉴에서"Excel로전송하기" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuSheetSettingInitializeVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuSheetSettingInitializeVisible</td>
+<td> Context메뉴에서"시트초기화" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuSheetSettingVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuSheetSettingVisible</td>
+<td> Context메뉴에서"시트설정" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsmenuSumVisible</strong></td>
+<td get_="get;" set_="set;">bool IsmenuSumVisible</td>
+<td> Context메뉴에서"합계" 메뉴Visible 여부</td>
+</tr>
+<tr>
+<td><strong>IsRowHeader</strong></td>
+<td get_="get;" set_="set;">bool IsRowHeader</td>
+<td>RowHeader 클릭여부</td>
+</tr>
+<tr>
+<td><strong>IsRowHeaderNotChange</strong></td>
+<td get_="get;" set_="set;">bool IsRowHeaderNotChange</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsSelectedRow</strong></td>
+<td get_="get;">bool IsSelectedRow</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsSheetLoaded</strong></td>
+<td get_="get;" set_="set;">bool IsSheetLoaded</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsShiftKey</strong></td>
+<td get_="get;" set_="set;">bool IsShiftKey</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>IsTabStop</strong></td>
+<td get_="get;" set_="set;">bool IsTabStop</td>
+<td>탭키를사용하여해당컨트롤로이동할지여부</td>
+</tr>
+<tr>
+<td><strong>IsEditEnterMode</strong></td>
+<td get_="get;" set_="set;">bool IsEditEnterMode</td>
+<td>  Enter 키시cell이동방법  true : down, false :  next</td>
+</tr>
+<tr>
+<td><strong>KeyCode</strong></td>
+<td get_="get;" set_="set;">int KeyCode</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Language</strong></td>
+<td get_="get;" set_="set;">int Language</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>LoginDate</strong></td>
+<td get_="get;" set_="set;">string LoginDate</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>MaxCols</strong></td>
+<td get_="get;" set_="set;">int MaxCols</td>
+<td>시트의총Col 수</td>
+</tr>
+<tr>
+<td><strong>MaxRows</strong></td>
+<td get_="get;" set_="set;">int MaxRows</td>
+<td> 시트의총Row 수(빈Row 포함)</td>
+</tr>
+<tr>
+<td><strong>MergeColumns</strong></td>
+<td get_="get;" set_="set;">string MergeColumns</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>MergeRows</strong></td>
+<td get_="get;" set_="set;">string MergeRows</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>MergeSheet</strong></td>
+<td set_="set;">bool MergeSheet</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>NemberStartValue</strong></td>
+<td get_="get;" set_="set;">int NemberStartValue</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>NewCol</strong></td>
+<td get_="get;">int NewCol</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>NewRow</strong></td>
+<td get_="get;">int NewRow</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>PgmId</strong></td>
+<td get_="get;" set_="set;">string PgmId</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>PgmName</strong></td>
+<td get_="get;" set_="set;">string PgmName</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>PgmSeq</strong></td>
+<td get_="get;" set_="set;">int PgmSeq</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>PropertyParams</strong></td>
+<td get_="get;" set_="set;">string PropertyParams</td>
+<td>디자인에서사용되는속성리스트</td>
+</tr>
+<tr>
+<td><strong>RemoteAddress</strong></td>
+<td get_="get;" set_="set;">string RemoteAddress</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>RightClickCol</strong></td>
+<td get_="get;" set_="set;">int RightClickCol</td>
+<td>right 클릭한col</td>
+</tr>
+<tr>
+<td><strong>RightClickRow</strong></td>
+<td get_="get;" set_="set;">int RightClickRow</td>
+<td>right 클릭한row</td>
+</tr>
+<tr>
+<td><strong>RowHeaderColumnsWidth</strong></td>
+<td set_="set;">int RowHeaderColumnsWidth</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>RowHeaderVisible</strong></td>
+<td get_="get;" set_="set;">bool RowHeaderVisible</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Secu</strong></td>
+<td get_="get;" set_="set;">string Secu</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>SelectedRowEnd</strong></td>
+<td get_="get;">int SelectedRowEnd</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>SelectedRowsSetText</strong></td>
+<td set_="set;">string SelectedRowsSetText</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>SelectedRowStart</strong></td>
+<td get_="get;">int SelectedRowStart</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>SelectRow</strong></td>
+<td get_="get;" set_="set;">int SelectRow</td>
+<td>row값을설정하면해당row가select된다.</td>
+</tr>
+<tr>
+<td><strong>SelectValue</strong></td>
+<td get_="get;" set_="set;">string SelectValue</td>
+<td>선택한cell의값을제공한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.SelectValue = '1000'</td>
+</tr>
+<tr>
+<td><strong>ServiceType</strong></td>
+<td get_="get;" set_="set;">emumServiceType ServiceType</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Sheet</strong></td>
+<td get_="get;">AKSpreadFarPoint Sheet</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>SheetFixCols</strong></td>
+<td get_="get;" set_="set;">int SheetFixCols</td>
+<td>멀티시트의경우고정Col수를입력한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.SheetFixCols = 2</td>
+</tr>
+<tr>
+<td><strong>SheetHeaderRows</strong></td>
+<td get_="get;" set_="set;">int SheetHeaderRows</td>
+<td>멀티시트를사용하는경우header row수를입력한다.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>예) SS1.SheetHeaderRows = 3</td>
+</tr>
+<tr>
+<td><strong>SheetTotalType</strong></td>
+<td get_="get;" set_="set;">int SheetTotalType</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>SheetType</strong></td>
+<td get_="get;" set_="set;">int SheetType</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ShowGroupHeader</strong></td>
+<td get_="get;" set_="set;">bool ShowGroupHeader</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ShowInsertionRow</strong></td>
+<td get_="get;" set_="set;">bool ShowInsertionRow</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>StartCol</strong></td>
+<td get_="get;" set_="set;">int StartCol</td>
+<td> 시트에서block으로영역선택시시작Col 위치정보</td>
+</tr>
+<tr>
+<td><strong>StartRow</strong></td>
+<td get_="get;" set_="set;">int StartRow</td>
+<td> 시트에서block으로영역선택시시작Row 위치정보</td>
+</tr>
+<tr>
+<td><strong>TabIndex</strong></td>
+<td get_="get;" set_="set;">int TabIndex</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>TabIndexBuf</strong></td>
+<td get_="get;" set_="set;">int TabIndexBuf</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>UserSeq</strong></td>
+<td get_="get;" set_="set;">int UserSeq</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>Visibility</strong></td>
+<td get_="get;" set_="set;">Visibility Visibility</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>WorkingTag</strong></td>
+<td get_="get;" set_="set;">string WorkingTag</td>
+<td> </td>
+</tr>
+<tr>
+<td><strong>ZoomFactor</strong></td>
+<td get_="get;" set_="set;">float ZoomFactor</td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+  </article>
+</div>
+</body>
+</html>

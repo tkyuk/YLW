@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>최종실행된 건들 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>최종실행된 건들 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">최종실행된 건들 조회</h1>
+<p>SELECT B.UserName,A.CrDateTime,*</p>
+<p>FROM OTCANoticeMessage AS A</p>
+<p>LEFT OUTER JOIN _TCAUser AS B ON B.UserSeq = A.RecvUserSeq</p>
+<p>JOIN (SELECT MAX(convert(varchar, CrDateTime, 120)) AS CrDateTime FROM OTCANoticeMessage) AS C ON C.CrDateTime=convert(varchar, A.CrDateTime, 120)</p>
+<p>ORDER BY MessageID DESC</p>
+  </article>
+</div>
+</body>
+</html>

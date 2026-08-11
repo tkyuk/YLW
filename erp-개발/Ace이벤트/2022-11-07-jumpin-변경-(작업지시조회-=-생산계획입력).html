@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>jumpin 변경 (작업지시조회 =\> 생산계획입력)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>jumpin 변경 (작업지시조회 =\> 생산계획입력)</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="jumpin">jumpin 변경 (작업지시조회 =&gt; 생산계획입력)</h1>
+<p>txtProdPlanEndDateTo.Value = ''</p>
+<p>txtProdPlanNo.Text = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'ProdPlanNo', 0)</p>
+<p>RunPgmMethod('Query')</p>
+<p>조회조건에 값을 넣어주고 조회 메소드</p>
+  </article>
+</div>
+</body>
+</html>

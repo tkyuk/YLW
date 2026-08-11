@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>신규인 경우 추가정보 시트 'A' 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>신규인 경우 추가정보 시트 'A' 변경</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="a">신규인 경우 추가정보 시트 'A' 변경</h1>
+<p>-- 20180321 신규일때만 추가정보시트의 WorkingTag를 'A'로 바꿔줌 성지원 추가 (INIT에서 하도록 수정)</p>
+<p>if (fltReceiptSeq.Text == '0' or fltReceiptSeq.Text == '' or fltReceiptSeq.Text == nil) then</p>
+<blockquote>
+<p>local Row1, MaxRow1</p>
+<p>Row1 = 0</p>
+<p>MaxRow1 = SS1.DataRowCnt</p>
+<p>while MaxRow1 &gt; Row1</p>
+<p>do</p>
+<p>SS1.ActiveRow = Row1</p>
+<p>SS1.WorkingTag = 'A'</p>
+<p>Row1 = Row1 + 1        </p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

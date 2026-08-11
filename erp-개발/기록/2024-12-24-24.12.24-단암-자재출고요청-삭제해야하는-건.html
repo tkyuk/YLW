@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.24 단암 자재출고요청 삭제해야하는 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.24 단암 자재출고요청 삭제해야하는 건</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241224">24.12.24 단암 자재출고요청 삭제해야하는 건</h1>
+<p>--SELECT * FROM _TPJTPROJECT WHERE PJTNO = 'GA210605AS001'</p>
+<p>--SELECT * FROM _TPJTBOM WHERE PJTSeq = 15273</p>
+<p>SELECT D.ItemNo,C.ItemNo,B.*</p>
+<p>FROM _TPJTBOM AS A</p>
+<p>JOIN _TPDMMOutReqItem AS B ON B.Companyseq = 1</p>
+<p>AND a.PJTSeq = B.PJTSeq</p>
+<p>AND A.Bomserl = B.WBSSeq</p>
+<p>LEFT OUTER JOIN _TDAITEM AS C ON C.Companyseq = 1</p>
+<p>AND A.ITEMSEQ = C.ITEMSEQ</p>
+<p>LEFT OUTER JOIN _TDAITEM AS D ON D.Companyseq = 1</p>
+<p>AND D.ITEMSEQ = B.ITEMSEQ</p>
+<p>WHERE A.PJTSeq = 15273</p>
+<p>AND (</p>
+<p>(BOMLEVEL = '1.02.1.03' AND C.ITEMNO = '1800010')</p>
+<p>OR (BOMLEVEL ='1.02.1.03' AND C.ITEMNO = '1800010')</p>
+<p>OR (BOMLEVEL ='1.02.1.05' AND C.ITEMNO = '1700036')</p>
+<p>OR (BOMLEVEL ='1.02.1.10' AND C.ITEMNO = '1100556')</p>
+<p>OR (BOMLEVEL ='1.02.1.19' AND C.ITEMNO = '1100277')</p>
+<p>OR (BOMLEVEL ='1.02.1.20' AND C.ITEMNO = '1100050')</p>
+<p>OR (BOMLEVEL ='1.02.1.21' AND C.ITEMNO = '1100996')</p>
+<p>OR (BOMLEVEL ='1.02.1.22' AND C.ITEMNO = '1700235')</p>
+<p>OR (BOMLEVEL ='1.02.1.25' AND C.ITEMNO = '1300088')</p>
+<p>OR (BOMLEVEL ='1.02.1.31' AND C.ITEMNO = '1301043')</p>
+<p>OR (BOMLEVEL ='1.02.1.37' AND C.ITEMNO = '1300196')</p>
+<p>OR (BOMLEVEL ='1.02.1.45' AND C.ITEMNO = '1201221')</p>
+<p>OR (BOMLEVEL ='1.02.1.49' AND C.ITEMNO = '1200718')</p>
+<p>OR (BOMLEVEL ='1.02.1.60' AND C.ITEMNO = '1300638')</p>
+<p>OR (BOMLEVEL ='1.02.1.62' AND C.ITEMNO = '1300442')</p>
+<p>OR (BOMLEVEL ='1.02.1.73' AND C.ITEMNO = '1200015')</p>
+<p>OR (BOMLEVEL ='1.02.1.76' AND C.ITEMNO = '1300106')</p>
+<p>)</p>
+<p>SELECT C.ItemNo,*</p>
+<p>FROM _TPDMMOutReqItem AS A</p>
+<p>JOIN _TDAITEM AS C ON C.Companyseq = 1</p>
+<p>AND a.ITEMSEQ = C.ITEMSEQ</p>
+<p>WHERE OutReqSeq = 54085</p>
+<p>AND OutReqItemSerl IN(</p>
+<p>1</p>
+<p>,3</p>
+<p>,4</p>
+<p>,6</p>
+<p>,83</p>
+<p>,85</p>
+<p>,80</p>
+<p>,72</p>
+<p>,67</p>
+<p>,65</p>
+<p>,57</p>
+<p>,53</p>
+<p>,39</p>
+<p>,43</p>
+<p>,30</p>
+<p>,15</p>
+<p>)</p>
+<p>SELECT *</p>
+<p>FROM _TPDMMOutReqM</p>
+<p>WHERE OutReqSeq = 54085</p>
+<p>프로젝트재료자원에서 해당 건 들 삭제가 안됨</p>
+<p>sp : danam_SPJTResrcBOMAddCheck</p>
+<p>=&gt; 자재출고요청 건이 존재</p>
+<p>=&gt; 자재출고요청에서 품목을 변경한 건들</p>
+<p><img alt="" src="assets/24.12.24-단암-자재출고요청-삭제해야하는-건/image123.png" /></p>
+  </article>
+</div>
+</body>
+</html>

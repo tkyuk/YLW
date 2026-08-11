@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOM 예시</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>BOM 예시</h1>
+    <div class="meta">
+      <span class="note-date">2023-05-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="bom">BOM 예시</h1>
+<p>\&lt;\&lt;WITH문 sample.sql&gt;&gt;</p>
+<p>CREATE TABLE #TDAGood</p>
+<p>(</p>
+<p>GoodSeq INT,</p>
+<p>GoodVer NVARCHAR(2),</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #TDAGood</p>
+<p>SELECT 799, '01', 2</p>
+<p>UNION</p>
+<p>SELECT 727, '00', 100</p>
+<p>;WITH CTS_TPDBOM(GoodSeq, GoodVer, ItemSeq, ItemVer, SubItemSeq, SubItemVer, NeedQty, Lvl) AS -- 재귀함수....</p>
+<p>(</p>
+<p>SELECT A.GoodSeq, A.GoodVer, B.ItemSeq, CONVERT(NVARCHAR(2), B.ItemBomRev), B.SubItemSeq, CONVERT(NVARCHAR(2), B.SubItemBomRev),</p>
+<p>CONVERT(DECIMAL(19, 5), CASE WHEN NeedQtyDenominator = 0 THEN 0 ELSE NeedQtyNumerator / NeedQtyDenominator END * A.Qty),</p>
+<p>CONVERT(INT, 1)</p>
+<p>FROM #TDAGood A</p>
+<p>JOIN _TPDBOM AS B ON B.ItemSeq = A.GoodSeq AND B.ItemBomRev = A.GoodVer</p>
+<p>UNION ALL</p>
+<p>SELECT A.GoodSeq, GoodVer, B.ItemSeq, CONVERT(NVARCHAR(2), B.ItemBomRev), B.SubItemSeq, CONVERT(NVARCHAR(2), B.SubItemBomRev),</p>
+<p>CONVERT(DECIMAL(19, 5), CASE WHEN NeedQtyDenominator = 0 THEN 0 ELSE NeedQtyNumerator / NeedQtyDenominator END * A.NeedQty),</p>
+<p>CONVERT(INT, Lvl + 1)</p>
+<p>FROM CTS_TPDBOM AS A</p>
+<p>JOIN _TPDBOM AS B ON B.ItemSeq = A.SubItemSeq AND B.ItemBomRev = A.SubItemVer</p>
+<p>)</p>
+<p>SELECT A.*,</p>
+<p>B.ItemName AS GoodName, B.AssetSeq AS GoodAsset, C.ItemName AS ItemName, C.AssetSeq AS ItemAsset, D.ItemName AS SubItemName, D.AssetSeq AS SubItemAsset</p>
+<p>INTO #CTS_TPDBOM</p>
+<p>FROM CTS_TPDBOM AS A</p>
+<p>JOIN _TDAItem AS B ON B.ItemSeq = A.GoodSeq</p>
+<p>JOIN _TDAItem AS C ON C.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItem AS D ON D.ItemSeq = A.SubItemSeq</p>
+<p>WHERE D.AssetSeq NOT IN (2,4)</p>
+<p>ORDER BY Lvl</p>
+<p>SELECT * FROM #CTS_TPDBOM</p>
+<p>DROP TABLE #CTS_TPDBOM</p>
+<p>DROP TABLE #TDAGood</p>
+  </article>
+</div>
+</body>
+</html>

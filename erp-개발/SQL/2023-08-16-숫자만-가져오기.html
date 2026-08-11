@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>숫자만 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>숫자만 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">숫자만 가져오기</h1>
+<p>DECLARE @intAlpha INT</p>
+<p>,@strAlphaNumeric VARCHAR(256)</p>
+<p>SELECT @strAlphaNumeric = 'FAF123HJKDFHKJSF456AFSFSD++AFSDFJKS3'</p>
+<p>SET @intAlpha = Patindex('%[^0-9]%', @strAlphaNumeric)</p>
+<p>BEGIN</p>
+<p>WHILE @intAlpha &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @strAlphaNumeric = Stuff(@strAlphaNumeric, @intAlpha, 1, '')</p>
+<p>SET @intAlpha = Patindex('%[^0-9]%', @strAlphaNumeric)</p>
+<p>END</p>
+<p>END</p>
+<p>SELECT Isnull(@strAlphaNumeric, 0)</p>
+  </article>
+</div>
+</body>
+</html>

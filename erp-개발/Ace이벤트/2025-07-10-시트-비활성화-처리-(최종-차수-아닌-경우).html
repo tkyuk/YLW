@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 비활성화 처리 (최종 차수 아닌 경우)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 비활성화 처리 (최종 차수 아닌 경우)</h1>
+    <div class="meta">
+      <span class="note-date">2025-07-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트 비활성화 처리 (최종 차수 아닌 경우)</h1>
+<p>if CellText(SSRev, SSRev.DblClickRow, 'EndDate') ~= '99991231' then</p>
+<blockquote>
+<p>GetToolbar('Save').EventArgs.Visible = true</p>
+<p>GetToolbar('Cut').EventArgs.Visible = true</p>
+<p>SS1.ControlKey = ''</p>
+</blockquote>
+<p>SS1.IsmenuRowInsertVisible = true</p>
+<p>SS1.AddRowsCount = 10</p>
+<p>SS2.IsmenuRowInsertVisible = true</p>
+<p>SS2.AddRowsCount = 5</p>
+<p>SS3.IsmenuRowInsertVisible = true</p>
+<p>SS3.AddRowsCount = 3</p>
+<p>else</p>
+<blockquote>
+<p>GetToolbar('Save').EventArgs.Visible = false</p>
+<p>GetToolbar('Cut').EventArgs.Visible = false</p>
+</blockquote>
+<p>SS1.IsmenuRowInsertVisible = false</p>
+<p>SS1.AddRowsCount = 0</p>
+<p>SS2.IsmenuRowInsertVisible = false</p>
+<p>SS2.AddRowsCount = 0</p>
+<p>SS3.IsmenuRowInsertVisible = false</p>
+<p>SS3.AddRowsCount = 0</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

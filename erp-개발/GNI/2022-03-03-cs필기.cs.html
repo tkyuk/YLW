@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\<\<cs필기.cs\>\></title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\<\<cs필기.cs\>\></h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="cscs">\&lt;\&lt;cs필기.cs&gt;&gt;</h1>
+<p>using System;</p>
+<p>using System.Collections;</p>
+<p>using System.ComponentModel;</p>
+<p>using System.Data;</p>
+<p>using System.Data.Common;</p>
+<p>using System.Data.SqlClient;</p>
+<p>using System.Drawing;</p>
+<p>using System.Text;</p>
+<p>using System.Web;</p>
+<p>using System.Web.SessionState;</p>
+<p>using System.Web.UI;</p>
+<p>using System.Web.UI.WebControls;</p>
+<p>using System.Web.UI.HtmlControls;</p>
+<p>using Ylw.Common;</p>
+<p>using sjpark.Sales;</p>
+<p>namespace sjpark.Sales</p>
+<p>{</p>
+<blockquote>
+<p>///\&lt;summary&gt;</p>
+<p>/// Class 명 : FrmSASalesOrder_02_sjpark</p>
+<p>/// Class 내용 : 주문등록</p>
+<p>/// 작 성 자 : 권기석</p>
+<p>/// 최초작성일 : 2003년 11월 01일</p>
+<p>/// 최종수정자 :</p>
+<p>/// 최종수정일 :</p>
+<p>///</p>
+<p>/// Services : 컴포넌트에 사용되는 서비스명들을 기술</p>
+<p>/// - :</p>
+<p>///\&lt;/summary&gt;</p>
+<p>public class FrmSASalesOrder_02_sjpark : System.Web.UI.Page</p>
+<p>{</p>
+<p>// Page의 상태관리(PgmID, Caption, IsOpen, ..)와 권한관리등의 공통적인 역활을 ..)</p>
+<p>protected PageFramework _page = new PageFramework(0);</p>
+<p>protected Ylw.Common.ConstVariable _vari = new Ylw.Common.ConstVariable();</p>
+<p>protected Ylw.Common.KEditText cttxtPgmID;</p>
+<p>protected Ylw.Common.KEditText txtOtherSerl;</p>
+<p>protected Ylw.Common.KEditText txtRemark;</p>
+<p>protected Ylw.Common.KHtmlButton cmdWhNm;</p>
+<p>protected Ylw.Common.KHtmlButton cmdRev;</p>
+<p>protected Ylw.Common.KHtmlButton cmdAmdQ;</p>
+<p>protected Ylw.Common.KEditOption optExpClss;</p>
+<p>protected Ylw.Common.KHtmlButton cmdPay;</p>
+<p>protected Ylw.Common.KHtmlButton cmdStockList;</p>
+<p>protected Ylw.Common.KHtmlButton cmdEstProfit;</p>
+<p>protected Ylw.Common.KHtmlButton cmdChkAvailStock;</p>
+<p>protected Ylw.Common.KHtmlButton cmdPriceChange;</p>
+<p>protected Ylw.Common.KSheet ylwsh;</p>
+<p>protected Ylw.Common.KEditText txtRev;</p>
+<p>protected Ylw.Common.KEditCheck ChkFixYn;</p>
+<p>protected Ylw.Common.KEditCheck chkShortAmtYn;</p>
+<p>protected Ylw.Common.KEditCombo cmbProgressType;</p>
+<p>protected Ylw.Common.KEditFloat fltTotTaxAmt;</p>
+<p>protected Ylw.Common.KEditCheck chkCredit;</p>
+<p>protected Ylw.Common.KEditText txtCurrNm;</p>
+<p>protected Ylw.Common.KEditFloat fltTotSupplyAmt;</p>
+<p>protected Ylw.Common.KEditFloat fltTotalAmt;</p>
+<p>protected Ylw.Common.KEditCombo cmbOrderType;</p>
+<p>protected Ylw.Common.KEditText txtFixEmpNo;</p>
+<p>protected Ylw.Common.KEditFloat fltExRate;</p>
+<p>protected Ylw.Common.KEditText txtGiveCond;</p>
+<p>protected Ylw.Common.KEditFloat fltDCRate;</p>
+<p>protected Ylw.Common.KEditFloat fltSjparkFrom;</p>
+<p>protected Ylw.Common.KEditFloat fltSjparkTo;</p>
+<p>protected Ylw.Common.KEditText txtPay;</p>
+<p>protected Ylw.Common.KEditDate datOrderDt;</p>
+<p>protected Ylw.Common.KEditCombo cmbAccUnit;</p>
+<p>protected Ylw.Common.KEditText txtOrderNo;</p>
+<p>protected Ylw.Common.KEditText txtDeptNm;</p>
+<p>protected Ylw.Common.KEditText txtEmpNm;</p>
+<p>protected Ylw.Common.KEditText txtCustNm;</p>
+<p>protected Ylw.Common.KEditDate datFixDate;</p>
+<p>protected Ylw.Common.KEditText txtCust2Nm;</p>
+<p>protected Ylw.Common.KEditDate datContractDate;</p>
+<p>protected Ylw.Common.KEditText txtPONo;</p>
+<p>protected Ylw.Common.KEditText txtQuotNo;</p>
+<p>protected Ylw.Common.KEditDate datDelvDate;</p>
+<p>protected Ylw.Common.KEditText txtCustomerNo;</p>
+<p>protected Ylw.Common.KEditText txtPayment;</p>
+<p>protected Ylw.Common.KEditLabel Label3;</p>
+<p>protected Ylw.Common.KEditText nttxtCaption;</p>
+<p>protected Ylw.Common.KEditLabel lblNoOption;</p>
+<p>protected Ylw.Common.KEditLabel lblOption;</p>
+<p>protected Ylw.Common.KEditText txtOtherNo;</p>
+<p>protected Ylw.Common.KEditText txtPlanNm;</p>
+<p>protected Ylw.Common.KEditText txtOtherRev;</p>
+<p>protected System.Web.UI.HtmlControls.HtmlInputHidden hidSalesCommon;</p>
+<p>protected string vntConfirmOkSecu;</p>
+<p>protected System.Web.UI.HtmlControls.HtmlForm Form1;</p>
+<p>protected Ylw.Common.KHtmlButton btnItemGrpSel;</p>
+<p>protected string vntConfirmCanSecu;</p>
+<p>protected string vntOtherNo;</p>
+<p>protected string mvntRevKey;</p>
+<p>protected Ylw.Common.KEditCombo cmbProType;</p>
+<p>protected Ylw.Common.KEditText txtCustDelvWay;</p>
+<p>protected Ylw.Common.KEditCheck chkEarlyShipYn;</p>
+<p>protected Ylw.Common.KEditCombo cmbStkCenter;</p>
+<p>protected Ylw.Common.KEditCheck chkDirectShipYn;</p>
+<p>protected Ylw.Common.KEditCheck chkDirectDelvYn;</p>
+<p>protected string mvntSerlKey;</p>
+<p>protected string mstrGroupWareIP        = "";</p>
+<p>protected string mstrUserId                        = "";</p>
+<p>protected string mstrReportId                = "";</p>
+<p>protected string mstrVersion                = "";</p>
+<p>protected Ylw.Common.KHtmlButton CmdStkCenter;</p>
+<p>protected Ylw.Common.KEditText txtSourceType;</p>
+<p>protected Ylw.Common.KHtmlButton btnSaleOrder02Cfm;</p>
+<p>protected Ylw.Common.KHtmlButton btnSaleOrder02Cancel;</p>
+<p>protected Ylw.Common.KHtmlButton btnSaleOrder02Status;</p>
+<p>protected string mstrURL                        = "";</p>
+<p>#region Page_Load</p>
+<p>private void Page_Load(object sender, System.EventArgs e)</p>
+<p>{        </p>
+<p>try</p>
+<p>{</p>
+<p>_page.Init(this);                        // 메뉴, Jump, History에서 실행한 경우에 각각 처리 초기화 작업을 수행한다.</p>
+<p>if (this.IsPostBack)</p>
+<p>{</p>
+<p>GetViewState();                                        // ViewState에 저장된 폼에대한 정보를 load한다.        </p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>if (SetInfoForPage() == false)                // Page을 초기에 실행시에 프로그램의 권한과 각종 정보를 DB에서 가져온다.</p>
+<p>{</p>
+<p>return;</p>
+<p>}</p>
+<p>SetToolBar(); // Toolbar의 enabled속성을 설정한다.</p>
+<p>}</p>
+<p>if (_page.Mode != "JumpOut")</p>
+<p>{</p>
+<p>_page.InitControls(this); // control정보를 초기화한다.</p>
+<p>if (_page.InitMode == true)</p>
+<p>{</p>
+<p>SetComboAndVar();                // Combo값과 기타 변수값을 초기화한다.</p>
+<p>}</p>
+<p>Action();//</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>JumpOut();</p>
+<p>}</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>// 새로운 예외를 발생</p>
+<p>_page.Mode = "ERROR";</p>
+<p>_page.ErrorMessage = err.Message;</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>if (_page.Mode != "JumpOut")</p>
+<p>SetViewState();                                                // ViewState에 폼에대한 정보를 저장한다.</p>
+<p>}</p>
+<p>}</p>
+<p>#endregion</p>
+<p>/*</p>
+<p>setview - 처음 열때</p>
+<p>getview - 이전에 열렸던 부분</p>
+<p>getview에 추가하면 setview에도 추가하면 된다</p>
+<p>*/</p>
+<p>#region ViewState</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Page에 대한 정보를 ViewState에저 가져온다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>private void GetViewState()</p>
+<p>{</p>
+<p>_page.GetViewState(this, this.ViewState);                                                // ViewState에 저장된 폼에대한 정보를 가져온다.</p>
+<p>_vari.D_WONCURR                                = this.ViewState["D_WONCURR"].ToString();</p>
+<p>_vari.S_CONFIRMSAORDER                = this.ViewState["S_CONFIRMSAORDER"].ToString();</p>
+<p>_vari.D_SITEINI                                = this.ViewState["D_SITEINI"].ToString();</p>
+<p>_vari.S_SOYEOSHIN                        = this.ViewState["S_SOYEOSHIN"].ToString();</p>
+<p>_vari.S_VatRound                        = this.ViewState["S_VatRound"].ToString();</p>
+<p>_vari.S_SALESBASEPRICE                = this.ViewState["S_SALESBASEPRICE"].ToString();</p>
+<p>_vari.S_SALESOPTION                        = this.ViewState["S_SALESOPTION"].ToString();</p>
+<p>_vari.S_SALESRATE                        = this.ViewState["S_SALESRATE"].ToString();</p>
+<p>_vari.D_VATINCLUDE                        = this.ViewState["D_VATINCLUDE"].ToString();</p>
+<p>_vari.S_MINPRICEMSG                        = this.ViewState["S_MINPRICEMSG"].ToString();</p>
+<p>_vari.D_SERVERLANGUAGE = this.ViewState["D_SERVERLANGUAGE"].ToString();</p>
+<p>vntConfirmOkSecu                        = this.ViewState["vntConfirmOkSecu"].ToString();</p>
+<p>vntConfirmCanSecu                        = this.ViewState["vntConfirmCanSecu"].ToString();</p>
+<p>// 그룹웨어 (20060110.SHMIN)</p>
+<p>_vari.A_GROUPWARESASalesOrder        = this.ViewState["A_GROUPWARESASalesOrder"].ToString();</p>
+<p>mstrGroupWareIP                                = this.ViewState["mstrGroupWareIP"].ToString();</p>
+<p>mstrUserId                                        = this.ViewState["mstrUserId"].ToString();</p>
+<p>mstrReportId                                = this.ViewState["mstrReportId"].ToString();</p>
+<p>mstrVersion                                        = this.ViewState["mstrVersion"].ToString();</p>
+<p>mstrURL                                                = this.ViewState["mstrURL"].ToString();</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Page에 대한 정보를 ViewState에 저장한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>// @@코드헬프처럼 선언되어있는 것들을 this.~ 부분에 담아줌</p>
+<p>private void SetViewState()</p>
+<p>{</p>
+<p>_page.SetViewState(this, this.ViewState);                                                // ViewState에 폼에대한 정보를 저장한다.</p>
+<p>this.ViewState["D_WONCURR"]                                = _vari.D_WONCURR;</p>
+<p>this.ViewState["S_CONFIRMSAORDER"]                = _vari.S_CONFIRMSAORDER;</p>
+<p>this.ViewState["D_SITEINI"]                                = _vari.D_SITEINI;</p>
+<p>this.ViewState["S_SOYEOSHIN"]                        = _vari.S_SOYEOSHIN;</p>
+</blockquote>
+<p>this.ViewState["S_VatRound"]                        = _vari.S_VatRound;</p>
+<blockquote>
+<p>this.ViewState["S_SALESBASEPRICE"]                = _vari.S_SALESBASEPRICE;</p>
+<p>this.ViewState["S_SALESOPTION"]                        = _vari.S_SALESOPTION;</p>
+<p>this.ViewState["S_SALESRATE"]                        = _vari.S_SALESRATE;</p>
+<p>this.ViewState["D_VATINCLUDE"]                        = _vari.D_VATINCLUDE;</p>
+<p>this.ViewState["S_MINPRICEMSG"]                        = _vari.S_MINPRICEMSG;</p>
+<p>this.ViewState["D_SERVERLANGUAGE"] = _vari.D_SERVERLANGUAGE;</p>
+<p>this.ViewState["vntConfirmOkSecu"]                = vntConfirmOkSecu;</p>
+<p>this.ViewState["vntConfirmCanSecu"]                = vntConfirmCanSecu;</p>
+<p>// 그룹웨어 (20060110.SHMIN)</p>
+<p>this.ViewState["A_GROUPWARESASalesOrder"]        = _vari.A_GROUPWARESASalesOrder;</p>
+<p>this.ViewState["mstrGroupWareIP"]                = mstrGroupWareIP;</p>
+<p>this.ViewState["mstrUserId"]                        = mstrUserId;</p>
+<p>this.ViewState["mstrReportId"]                        = mstrReportId;</p>
+<p>this.ViewState["mstrVersion"]                        = mstrVersion;</p>
+<p>this.ViewState["mstrURL"]                                = mstrURL;</p>
+<p>}</p>
+<p>#endregion</p>
+<p>#region Declaration</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Toolbar의 사용유무를 정의한다.</p>
+<p>/// 1: 사용, 0:사용안함</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>// @@settoolbar - 1이면 보임 (툴바)</p>
+<p>private void SetToolBar()</p>
+<p>{</p>
+<p>_page.SetToolBar("ID_NewPage", "1");</p>
+<p>_page.SetToolBar("ID_Query", "1");</p>
+<p>_page.SetToolBar("ID_Save", "1");</p>
+<p>_page.SetToolBar("ID_SaveAs", "1");</p>
+<p>_page.SetToolBar("ID_Delete", "1");</p>
+<p>_page.SetToolBar("ID_Cut", "1");</p>
+<p>_page.SetToolBar("ID_MoveFirst", "1");</p>
+<p>_page.SetToolBar("ID_MovePrevious", "1");</p>
+<p>_page.SetToolBar("ID_MoveNext", "1");</p>
+<p>_page.SetToolBar("ID_MoveLast", "1");</p>
+<p>//@@맨 끝으로 이동 (0이라 비활성화 되어있다)</p>
+<p>_page.SetToolBar("ID_MovePagePrevious", "0");</p>
+<p>_page.SetToolBar("ID_MovePageNext", "0");</p>
+<p>_page.SetToolBar("ID_Print", "1");</p>
+<p>_page.SetToolBar("ID_Excel", "1");</p>
+<p>_page.SetToolBar("ID_Chart", "0");</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Page에 대한 권한과 각종 정보를 DB에서 가져온다.</p>
+<p>/// Combo초기화 작업.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool SetInfoForPage()</p>
+<p>{</p>
+<p>DataSet        dsData=null;</p>
+<p>try</p>
+<p>{</p>
+<p>// @@digformnms =&gt; 다이얼로그 화면 명칭들 나와있음</p>
+<p>string[] arrDlgFormNms = {"DlgSAItemStock", "DlgSAItemStock2", "DlgSAEstProfit","DlgSASOAmdDlg","DlgAAGetExRate","DlgSBDelvCust","DlgSAItemGrpDlg","DlgSAOption", "dlgPMItemSearch"};</p>
+<p>// 폼을 초기에 실행시에 프로그램의 권한과 각종 정보를 DB에서 가져온다.</p>
+<p>if (_page.GetPageInfo(this, arrDlgFormNms) == false)</p>
+<p>{</p>
+<p>return false;</p>
+<p>}</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>if (dsData != null) dsData.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Combo의 값과, 기타 상수를 초기화작업을 수행한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool SetComboAndVar()</p>
+<p>{</p>
+<p>DataSet        dsData=null;</p>
+<p>DataSet ds=null;</p>
+<p>try</p>
+<p>{</p>
+<p>//@@ 위에서부터 0,1,2,3,4,5,6 차례대로 담긴다</p>
+<p>/*</p>
+<p>콤보는 통제값보다 앞에 입력</p>
+<p>_page.addcombo</p>
+<p>_page.addvariable</p>
+<p>*/</p>
+<p>_page.AddCombo(ConstHelp.S_AccUnit, "", "", "", "", "", "");</p>
+<p>_page.AddCombo(ConstHelp.S_SOTYPE, "", "", "", "", "", "");</p>
+<p>_page.AddCombo(ConstHelp.S_ProgressType, "", "", "", "", "", "");</p>
+<p>_page.AddCombo(ConstHelp.S_StkCenter, "", "", "", "", "", "");</p>
+<p>_page.AddCombo(ConstHelp.S_SALESOPTION,"ExpClss1","1","","","","");        //옵션값 수출구분 1:내수 3:local(선LC) 2:local(후LC) 4:직수출</p>
+<p>_page.AddCombo(ConstHelp.S_PROTYPE, "", "", "", "", "", "");        //재고관리구분</p>
+<p>_page.AddCombo("S66", "", "", "", "", "", "");        //단가구분 (2004.10.31)</p>
+<p>//통제 값 Setting</p>
+<p>//@@ 통제값 = 환경설정값 (ex. 원화소수점 자리수) (variable 폴더에 다 나와있음)</p>
+<p>//@@ ex. 007009 =&gt; 007 + 009</p>
+<p>//@@          TDAControl + TDAControlSub</p>
+<p>//@@ 위에랑 이어져서 숫자센다 6에서 끝났으므로 7부터 시작</p>
+<p>_page.AddVariable(_vari.D_WONCURR);                                        //기준원화화폐</p>
+<p>_page.AddVariable(_vari.S_CONFIRMSAORDER);                        //주문확정 사용</p>
+<p>_page.AddVariable(_vari.D_SITEINI);                                        //사이트이니셜</p>
+<p>_page.AddVariable(_vari.S_SOYEOSHIN);                                //여신</p>
+<p>_page.AddVariable(_vari.S_SALESBASEPRICE);                        //판매기준단가사용(옵션 0:사용안함, 1:사용함, 2 :품목마다 다름)</p>
+<p>_page.AddVariable(_vari.S_SALESOPTION);                                //옵션사용(체크박스 0:사용안함, 1:사용함)</p>
+<p>_page.AddVariable(_vari.S_SALESRATE);                                //할인율사용여부(체크박스 0:사용안함, 1:사용함)</p>
+<p>_page.AddVariable(_vari.D_VATINCLUDE);                                //부가세포함여부</p>
+<p>_page.AddVariable(_vari.S_VatRound); //부가세 절사 반올림 여부</p>
+<p>_page.AddVariable(_vari.S_MINPRICEMSG); //최저 판매가 경고</p>
+<p>_page.AddVariable(_vari.D_SERVERLANGUAGE);                //서버 언어 통제값</p>
+<p>_page.AddVariable(_vari.A_GROUPWARESASalesOrder);                // 그룹웨어사용여부</p>
+<p>dsData = _page.GetCombo();</p>
+<p>//@@setCombo (이 컨트롤의 콤보, 몇번째 테이블 , true=addtotalrow (빈칸있는거)</p>
+<p>_page.SetCombo(cmbAccUnit, dsData.Tables[0], false, true);</p>
+<p>//_page.SetCombo(cmbOrderType, dsData.Tables[1], true, true);</p>
+<p>_page.SetCombo(cmbOrderType, _page.GetDataBySp("SSAGetOrderType '0',"+ _page.LanguageID).Tables[0], true, true);        // 주문구분(수출:1,국내:0)</p>
+<p>_page.SetCombo(cmbProgressType, dsData.Tables[2], false, true);</p>
+<p>_page.SetComboSheet("Form1.ylwsh", dsData.Tables[2],"msProgClss","SS_ALLROWS", true, true);</p>
+<p>_page.SetCombo(cmbStkCenter, dsData.Tables[3], true, true);</p>
+<p>_page.SetComboSheet("Form1.ylwsh", dsData.Tables[3],"msStkCenter","SS_ALLROWS", true, true);</p>
+<p>_page.SetOption(optExpClss, dsData.Tables[4]);</p>
+<p>_page.SetCombo(cmbProType, dsData.Tables[5], false, true);        //일반,수탁,위탁</p>
+<p>_page.SetComboSheet("Form1.ylwsh", dsData.Tables[6],"msPriceDiv","SS_ALLROWS", false, true);        //단가구분(2004.10.31)</p>
+<p>_vari.D_WONCURR                                = dsData.Tables[7].Rows[0][0].ToString().Trim();</p>
+<p>_vari.S_CONFIRMSAORDER                = dsData.Tables[8].Rows[0][0].ToString().Trim();</p>
+<p>_vari.D_SITEINI                                = dsData.Tables[9].Rows[0][0].ToString().Trim();</p>
+<p>_vari.S_SOYEOSHIN                        = dsData.Tables[10].Rows[0][0].ToString().Trim();</p>
+<p>_vari.S_SALESBASEPRICE                = dsData.Tables[11].Rows[0][0].ToString().Trim();</p>
+<p>_vari.S_SALESOPTION                        = dsData.Tables[12].Rows[0][0].ToString().Trim();</p>
+<p>_vari.S_SALESRATE                        = dsData.Tables[13].Rows[0][0].ToString().Trim();</p>
+<p>_vari.D_VATINCLUDE                        = dsData.Tables[14].Rows[0][0].ToString().Trim();</p>
+<p>_vari.S_VatRound          = dsData.Tables[15].Rows[0][0].ToString().Trim();</p>
+<p>_vari.S_MINPRICEMSG          = dsData.Tables[16].Rows[0][0].ToString().Trim();</p>
+<p>_vari.D_SERVERLANGUAGE = dsData.Tables[17].Rows[0][0].ToString().Trim();</p>
+<p>_vari.A_GROUPWARESASalesOrder = dsData.Tables[18].Rows[0][0].ToString().Trim();</p>
+<p>optExpClss.Value = "1";</p>
+<p>//영업공통 dll YlwCommonSales.clsCommonSales에서 기존의 mclass 정보가지고 가기,, 부가세 절사 반올림 여부 추가 20050330 BY kskwon</p>
+<p>this.hidSalesCommon.Value = Session["GoodsWonCost"].ToString() + BaseFramework.CNST_SP + Session["GoodsWonAmt"].ToString() +</p>
+<p>BaseFramework.CNST_SP + Session["GoodsForCost"].ToString() + BaseFramework.CNST_SP + Session["GoodsForAmt"].ToString() +</p>
+<p>BaseFramework.CNST_SP + _vari.D_WONCURR + BaseFramework.CNST_SP + _vari.S_VatRound;</p>
+<p>//Float 자릿수 Setting</p>
+<p>fltExRate.Declength                        = int.Parse(Session["CurrQty"].ToString());</p>
+<p>fltTotalAmt.Declength                = int.Parse(Session["GoodsForAmt"].ToString());</p>
+<p>fltTotSupplyAmt.Declength        = int.Parse(Session["GoodsForAmt"].ToString());</p>
+<p>fltTotTaxAmt.Declength                = int.Parse(Session["GoodsForAmt"].ToString());</p>
+<p>bool Secu = false;</p>
+<p>Secu = _page.GetActionSecu("BtnSASalesOrder", _page.UserID, "A");</p>
+<p>if (Secu == false)</p>
+<p>vntConfirmOkSecu = "0";</p>
+<p>else</p>
+<p>vntConfirmOkSecu = "1";</p>
+<p>Secu = _page.GetActionSecu("BtnSASalesOrder", _page.UserID, "D");</p>
+<p>if (Secu == false)</p>
+<p>vntConfirmCanSecu = "0";</p>
+<p>else</p>
+<p>vntConfirmCanSecu = "1";</p>
+<p>//옵션등록(초기)에서 'Local사용여부'에 따라.</p>
+<p>if (_page.GetDataBySp("SDAControlSubQry 'Q',0").Tables[0].Rows[0]["R001354"].ToString().Trim() == "1")</p>
+<p>{</p>
+<p>this.optExpClss.ControlKey = "";</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>this.optExpClss.ControlKey = "HID;";</p>
+<p>}</p>
+<p>if (_vari.S_SALESRATE == "1")</p>
+<p>{</p>
+<p>this.fltDCRate.ControlKey = "";</p>
+<p>this.Label3.ControlKey = "";</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>this.fltDCRate.ControlKey = "HID";</p>
+<p>this.Label3.ControlKey = "HID";</p>
+<p>}</p>
+<p>// 한국에서는 납품일을 필수가 아니도록 함(사용하던 업체가 있어서) --&gt; 한국아닌 나라에서는 필수값으로 하도록 변경(폼세부가 안먹어서)</p>
+<p>if (_vari.D_SERVERLANGUAGE != "0" )</p>
+<p>{</p>
+<p>this.datDelvDate.ControlKey = "NON;";</p>
+<p>}</p>
+</blockquote>
+<p>//                                else</p>
+<p>//                                {</p>
+<p>//                                        this.datDelvDate.ControlKey = "";</p>
+<p>//                                }</p>
+<blockquote>
+<p>// 전자결재</p>
+<p>// @@전자결제 =&gt; 고정 / 그냥 가져다가 쓰면 된다</p>
+<p>ds = _page.GetDataBySp("SDAGetGroupWareInfo '" + _page.EmpID + "','" + _page.PgmID + "'");</p>
+<p>mstrGroupWareIP = ds.Tables[0].Rows[0][0].ToString();</p>
+<p>mstrUserId                = ds.Tables[0].Rows[0][1].ToString();</p>
+<p>mstrReportId        = ds.Tables[0].Rows[0][2].ToString();</p>
+<p>mstrVersion                = ds.Tables[0].Rows[0][3].ToString();</p>
+<p>mstrURL                        = ds.Tables[0].Rows[0][4].ToString();</p>
+<p>if (dsData.Tables[18].Rows[0][0].ToString().Trim() != "1")</p>
+<p>{</p>
+<p>this.btnSaleOrder02Cancel.Visible = false;</p>
+<p>this.btnSaleOrder02Cfm.Visible = false;</p>
+<p>this.btnSaleOrder02Status.Visible = false;</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>if (ds.Tables[0].Rows[0][3].ToString().Trim() == "3")</p>
+<p>{</p>
+<p>this.btnSaleOrder02Cancel.Visible = false;</p>
+<p>this.btnSaleOrder02Cfm.Visible = true;</p>
+<p>this.btnSaleOrder02Status.Visible = true;</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>this.btnSaleOrder02Cancel.Visible = true;</p>
+<p>this.btnSaleOrder02Cfm.Visible = true;</p>
+<p>this.btnSaleOrder02Status.Visible = false;</p>
+<p>}</p>
+<p>}</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>if (dsData != null) dsData.Dispose();</p>
+<p>if (ds != null) dsData.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>private bool SetComboStkCenter(string strAccUnit) // 출고사업장에 따라 출고 창고 Setting</p>
+<p>{</p>
+<p>DataSet        dsData=null;</p>
+<p>try</p>
+<p>{</p>
+<p>cmbStkCenter.Items.Clear();</p>
+<p>_page.SetCombo(cmbStkCenter, _page.GetDataBySp("SDAGetCmbVal 'S60', '" + strAccUnit + "'" ).Tables[0], false, true);</p>
+<p>_page.SetComboSheet("Form1.ylwsh", _page.GetDataBySp("SDAGetCmbVal 'S60', '" + strAccUnit + "'" ).Tables[0],"msStkCenter","SS_ALLROWS", false, true);</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>if (dsData != null) dsData.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Client에서 PostBack된경우 strMode별로 신규, 저장, 조회등의 작업을 수행 한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strMode"&gt;신규(NewPage), 저장(Save), 조회(Query),..\&lt;/param&gt;</p>
+<p>/// \&lt;param name="strParam"&gt;Mode에 대한 세부 작업: 조회인 경우 Q, F, P, N, L, PP, PN,..\&lt;/param&gt;</p>
+<p>//@@private void action - 안건들이는게 좋다 (aspx로 이동)</p>
+<p>private void Action()</p>
+<p>{</p>
+<p>_page.ErrorMessage = "";</p>
+<p>switch(_page.Mode)</p>
+<p>{</p>
+<p>case "INIT":</p>
+<p>case "NewPage":</p>
+<p>if (NewPage()==false)</p>
+<p>{</p>
+<p>_page.IsOpen = false; // 신규모드로 설정한다.</p>
+<p>}</p>
+<p>break;</p>
+<p>case "Query":</p>
+<p>if (Query(_page.Param)==false)</p>
+<p>{</p>
+<p>}</p>
+<p>break;</p>
+<p>case "Save":</p>
+<p>if (Save(_page.Param)==false)</p>
+<p>{</p>
+<p>}</p>
+<p>break;</p>
+<p>case "Delete":</p>
+<p>if (Delete()==false)</p>
+<p>{</p>
+<p>}</p>
+<p>break;</p>
+<p>case "Cut":</p>
+<p>if (SaveSheet(_page.Param)==false)</p>
+<p>{</p>
+<p>}</p>
+<p>break;</p>
+<p>case "JumpIn":</p>
+<p>if (JumpIn()==false)</p>
+<p>{</p>
+<p>}</p>
+<p>break;</p>
+<p>case "JumpOut":</p>
+<p>if (JumpOut()==false)</p>
+<p>{</p>
+<p>}</p>
+<p>break;</p>
+<p>case "":</p>
+<p>_page.Mode = "Init";</p>
+<p>break;</p>
+<p>default:</p>
+<p>break;</p>
+<p>}</p>
+<p>if (_page.ErrorMessage != "")</p>
+<p>{</p>
+<p>_page.Mode = "ERROR"; // PostBack mode를 저장모드로 변경한다.</p>
+<p>}</p>
+<p>}</p>
+<p>#endregion</p>
+<p>#region Web Form Designer generated code</p>
+<p>override protected void OnInit(EventArgs e)</p>
+<p>{</p>
+<p>//</p>
+<p>// CODEGEN: 이 호출은 ASP.NET Web Form 디자이너에 필요합니다.</p>
+<p>//</p>
+<p>InitializeComponent();</p>
+<p>base.OnInit(e);</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 디자이너 지원에 필요한 메서드입니다.</p>
+<p>/// 이 메서드의 내용을 코드 편집기로 수정하지 마십시오.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>private void InitializeComponent()</p>
+<p>{</p>
+<p>this.Load += new System.EventHandler(this.Page_Load);</p>
+<p>}</p>
+<p>#endregion</p>
+<p>#region Init</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Page를 Clear하고 기본값을 설정한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>//@@private bool newpage = 초기설정</p>
+<p>//@@        isopen =&gt; 신규모드 설정 =&gt; 없으면 신규일 때 A인걸 수정하면 U로 바뀜</p>
+<p>//@@        isopen=true =&gt; U</p>
+<p>private bool NewPage()</p>
+<p>{</p>
+<p>_page.Mode = "NewPage";</p>
+<p>_page.Clear(this);</p>
+<p>_page.IsOpen = false;</p>
+<p>SetDefault();</p>
+<p>return true;</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Page를 Clear하고 기본값을 설정한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool SetDefault()</p>
+<p>{</p>
+<p>// 기본값들을 설정한다.</p>
+<p>cmbAccUnit.Value = _page.AccUnit;</p>
+<p>txtDeptNm.TextCode = _page.DeptCd;</p>
+<p>txtDeptNm.Text         = _page.DeptNm;</p>
+<p>txtEmpNm.TextCode = _page.EmpID;</p>
+<p>txtEmpNm.Text         = _page.EmpNm;</p>
+<p>this.datOrderDt.Text = _page.LoginDate;</p>
+<p>ChkFixYn.Value = "0";</p>
+<p>fltExRate.Value = 1;</p>
+</blockquote>
+<p>//                        this.txtCurrNm.Text = _vari.D_WONCURR;</p>
+<p>//                        this.txtCurrNm.TextCode = _vari.D_WONCURR;</p>
+<blockquote>
+<p>this.txtCurrNm.Text = _page.CurrNm;</p>
+<p>this.txtCurrNm.TextCode = _page.CurrCd;</p>
+<p>//@@setdaultvalue =&gt; 위에서 설정했던 것들이 적용됨</p>
+<p>//@@디자인 속성에서 말고 여기에서 설정</p>
+<p>_page.SetDefaultValue(this); // 기본값들을 설정한다.</p>
+<p>this.cmbProType.Value         = "0";</p>
+<p>SetComboStkCenter(cmbAccUnit.Value);</p>
+<p>return true;</p>
+<p>}</p>
+<p>#endregion</p>
+<p>#region Body</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 데이터를 조회한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;client의 Page_Param의 값이며.. Q, F, P, N, ..등의 값을 가진다.\&lt;/param&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool Query(string strWorkingTag)</p>
+<p>{</p>
+<p>//@@DataDBSales (=공통DB) // 이상한 DB로 나와있으면 참조에 있는 것들로 바꿔줌</p>
+<p>DataDBSales libDB = null;</p>
+<p>DataSet                dsData=null;</p>
+<p>_page.IsOpen = false;                                // 조회하기 전에 신규 모드로 설정한다.</p>
+<p>try</p>
+<p>{</p>
+<p>//@@ checkauthoritybefore =&gt; 권한 체크 (보통 부서로 한다)</p>
+<p>//@@                                                        권한체크안할거면 없어도 됨</p>
+<p>//@@                                          조직도 체크해서 하위조직만 체크할 때 이거를 쓴다</p>
+<p>if (_page.checkAuthorityBeforeOpen(this, this.txtDeptNm.TextCode, "") == false)</p>
+<p>{</p>
+<p>return false;</p>
+<p>}</p>
+<p>if (strWorkingTag == "")</p>
+<p>{</p>
+<p>strWorkingTag = "Q";</p>
+<p>}</p>
+<p>if (strWorkingTag == "Q" &amp;&amp; txtOrderNo.Text == "")</p>
+<p>{</p>
+<p>strWorkingTag = "B";</p>
+<p>}</p>
+<p>_page.clearParameters();</p>
+<p>_page.AddItem(strWorkingTag);</p>
+<p>_page.AddItem(cmbAccUnit.Value);</p>
+<p>_page.AddItem(txtOrderNo.Text);</p>
+<p>_page.AddItem(txtQuotNo.Text);</p>
+<p>_page.AddItem(txtPlanNm.TextCode);</p>
+<p>_page.AddItem(_page.EmpID.ToString());</p>
+<p>if (strWorkingTag == "QT" )</p>
+<p>{</p>
+<p>_page.AddItem(vntOtherNo);</p>
+<p>_page.AddItem(mvntRevKey);</p>
+<p>}</p>
+<p>else if (strWorkingTag == "QS" ) // 판매합동등록에서 점프시 송기연 추가 2006-07-25</p>
+<p>{</p>
+<p>_page.AddItem(vntOtherNo);</p>
+<p>_page.AddItem(txtOtherSerl.Text);</p>
+<p>}</p>
+<p>else if (strWorkingTag == "QP" ) // 판매합동등록에서 점프시 송기연 추가 2006-07-25</p>
+<p>{</p>
+<p>_page.AddItem(vntOtherNo);</p>
+<p>_page.AddItem(txtOtherSerl.Text);</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddItem("");</p>
+<p>}</p>
+<p>_page.AddItem(fltSjparkFrom.Text);</p>
+<p>_page.AddItem(fltSjparkTo.Text);</p>
+<p>_page.NewList();</p>
+<p>// COM+ 객체를 생성</p>
+<p>libDB = new DataDBSales(); //@@DataDBSales (=공통DB) // 이상한 DB로 나와있으면 참조에 있는 것들로 바꿔줌</p>
+<p>// 데이터를 조회한다.                                </p>
+<p>dsData = libDB.Query(_page.ConnInfo, "SSASalesOrderQry_sjpark", _page.ParametersList[0], _page.TimeOut);</p>
+<p>//@@ libdb.query 마스터와 아이템은 따로 조회하고 마지막에 조회타임아웃시간을 설정</p>
+<p>//@@ libdb.querymaster =&gt; 옛날 방식 =&gt; 바꿔줘야함</p>
+<p>//@@조회 후 messagecheckquery가 넘어온 값들에 대해 체크</p>
+<p>//@@ =false -&gt; 값이 이상한 경우 =&gt; 종료 / 정상이라면 밑에 else문 실행</p>
+<p>//@@ page.messagecheckquery =&gt; 첫줄확인해서 있는지 없는지 확인</p>
+<p>//@@                                                 =&gt; 없으면 =false이므로 별도로 동작 ㄴ</p>
+<p>if (_page.MessageCheckQuery(this, dsData.Tables[0]) == false)                         // EOF인 경우</p>
+<p>{</p>
+<p>return false;</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>//@@                                         [0][2] =&gt; 3번째 값이 에러일 때 처리 (0,1,2)</p>
+<p>if (dsData.Tables[0].Rows[0][2].ToString().Trim() == "#ERROR")</p>
+<p>{</p>
+<p>_page.Mode = "ERROR";</p>
+<p>_page.ErrorMessage = dsData.Tables[0].Rows[0][1].ToString();</p>
+<p>return false;</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>//@@ 에러가 아닌 경우</p>
+<p>_page.IsOpen = true;                                        // ERROR나 EOF가 아니면 조회모드로 설정한다.</p>
+<p>//@@ displaydatamaster =&gt; 넘어온 값들 넣어줌</p>
+<p>//@@ cs에서 완료 후 displaydatamaster를 타서 aspx로 보내고 aspx에서 결과값을 보여준다</p>
+<p>DisplayDataMaster(dsData.Tables[0]);        // 마스터 데이터 출력</p>
+<p>if (txtOrderNo.Text == "")                                // Jump해 올때는 IsOpen = false</p>
+<p>{</p>
+<p>_page.IsOpen = false;</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.IsOpen = true;</p>
+<p>}</p>
+<p>QuerySheet(strWorkingTag);                                // 쉬트 데이터 출력</p>
+<p>return true;</p>
+<p>}</p>
+<p>}</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>if (libDB != null) libDB.Dispose();</p>
+<p>if (dsData != null) dsData.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 데이터를 조회한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;client의 Page_Param의 값이며.. Q, F, P, N, ..등의 값을 가진다.\&lt;/param&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool QuerySheet(string strWorkingTag)</p>
+<p>{</p>
+<p>DataDBSales libDB = null;</p>
+<p>DataSet                dsData=null;</p>
+<p>try</p>
+<p>{</p>
+<p>_page.clearParameters();</p>
+<p>_page.AddItem(strWorkingTag);</p>
+<p>_page.AddItem(cmbAccUnit.Value);</p>
+<p>_page.AddItem(txtOrderNo.Text);</p>
+<p>if (strWorkingTag == "QT")</p>
+<p>{</p>
+<p>_page.AddItem(txtOtherNo.Text);</p>
+<p>_page.AddItem(txtOtherRev.Text);                                //WorkingTag에 따라 틀려짐(견적에서 jump할때)</p>
+<p>_page.AddItem(txtOtherSerl.Text);</p>
+<p>}</p>
+<p>else if (strWorkingTag == "QS") // 판매합동등록에서 점프시 송기연 추가 2006-07-25</p>
+<p>{</p>
+<p>_page.AddItem(txtOtherNo.Text);</p>
+<p>_page.AddItem(txtOtherRev.Text);                                </p>
+<p>_page.AddItem(txtOtherSerl.Text);</p>
+<p>}</p>
+<p>else if (strWorkingTag == "QP") // 영업활동등록에서 점프시 노영진 추가 2007-12-21</p>
+<p>{</p>
+<p>_page.AddItem(txtOtherNo.Text);</p>
+<p>_page.AddItem(txtPlanNm.TextCode);                                </p>
+<p>_page.AddItem(txtOtherSerl.Text);</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.AddItem(txtQuotNo.Text);</p>
+<p>_page.AddItem(txtPlanNm.TextCode);                                //WorkingTag에 따라 틀려짐(견적에서 jump할때)</p>
+<p>_page.AddItem("");</p>
+<p>}</p>
+<p>_page.AddItem(_page.LanguageID.ToString());</p>
+<p>_page.NewList();         </p>
+<p>// COM+ 객체를 생성</p>
+<p>libDB = new DataDBSales();</p>
+<p>// 데이터를 조회한다.</p>
+<p>dsData = libDB.Query(_page.ConnInfo, "SSASalesOrder2Qry_sjpark", _page.ParametersList[0], _page.TimeOut);</p>
+<p>if (strWorkingTag == "QT")</p>
+<p>{</p>
+<p>if (dsData.Tables[0].Rows[0][2].ToString() == "#ERROR")</p>
+<p>{</p>
+<p>_page.ShowMessage(_page.GetMessageString(dsData.Tables[0].Rows[0][0].ToString(), dsData.Tables[0].Rows[0][1].ToString()));</p>
+<p>return false;</p>
+<p>}</p>
+<p>}</p>
+<p>ylwsh.FillData(dsData.Tables[0]);        // 쉬트출력</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>if (libDB != null) libDB.Dispose();</p>
+<p>if (dsData != null) dsData.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 마스터 데이터를 조회한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="dtTable"&gt;\&lt;/param&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>///</p>
+<p>private bool DisplayDataMaster(DataTable dtTable)</p>
+<p>{</p>
+<p>this.cmbAccUnit.Value                 = dtTable.Rows[0]["AccUnit"].ToString();                        //사업장</p>
+<p>this.cmbAccUnit.TextOld                = dtTable.Rows[0]["AccUnitOld"].ToString();                        //사업장 Old</p>
+<p>SetComboStkCenter(cmbAccUnit.Value);</p>
+<p>this.datOrderDt.Text                 = dtTable.Rows[0]["OrderDate"].ToString();                        //주문일</p>
+<p>this.txtOrderNo.Text                 = dtTable.Rows[0]["OrderNo"].ToString();                        //주문번호</p>
+<p>this.txtDeptNm.TextCode         = dtTable.Rows[0]["DeptCd"].ToString();                                //부서명</p>
+<p>this.txtDeptNm.Text                 = dtTable.Rows[0]["DeptNm"].ToString();                                //부서명 이름</p>
+<p>this.txtEmpNm.TextCode                 = dtTable.Rows[0]["EmpId"].ToString();                                //담당자</p>
+<p>this.txtEmpNm.Text                         = dtTable.Rows[0]["EmpNm"].ToString();                                //담당자 이름</p>
+<p>this.txtCustNm.TextCode         = dtTable.Rows[0]["CustCd"].ToString();                                //거래처</p>
+<p>this.txtCustNm.Text                 = dtTable.Rows[0]["CustNm"].ToString();                                //거래처 이름</p>
+<p>this.txtCust2Nm.TextCode         = dtTable.Rows[0]["AgentCd"].ToString();                        //중개인</p>
+<p>this.txtCust2Nm.Text                 = dtTable.Rows[0]["AgentNm"].ToString();                        //중개인 이름</p>
+<p>this.txtPayment.Text                 = dtTable.Rows[0]["PayCond"].ToString(); //지불조건</p>
+<p>this.txtGiveCond.Text                 = dtTable.Rows[0]["GiveCond"].ToString(); //인도조건</p>
+<p>this.txtRemark.Text                 = dtTable.Rows[0]["Remark"].ToString(); //비고</p>
+<p>this.fltTotSupplyAmt.Text         = dtTable.Rows[0]["TotSupplyAmt"].ToString();                //공급가액계</p>
+<p>this.fltTotTaxAmt.Text                 = dtTable.Rows[0]["TotTaxAmt"].ToString(); //부가세계</p>
+<p>this.fltTotalAmt.Text                 = dtTable.Rows[0]["TotalAmt"].ToString(); //총액</p>
+<p>this.ChkFixYn.Value                 = dtTable.Rows[0]["FixYN"].ToString(); //확정</p>
+<p>this.cmbOrderType.Value         = dtTable.Rows[0]["OrderType"].ToString(); //주문구분</p>
+<p>this.cmbProgressType.Value        = dtTable.Rows[0]["ProgressType"].ToString();                //진행구분</p>
+<p>this.chkCredit.Value                 = dtTable.Rows[0]["Credit"].ToString(); //여신초과</p>
+<p>this.txtFixEmpNo.TextCode         = dtTable.Rows[0]["FixEmpId"].ToString();                        //확정자</p>
+<p>this.txtFixEmpNo.Text                 = dtTable.Rows[0]["FixEmpNm"].ToString(); //확정자 이름</p>
+<p>this.datFixDate.Text                 = dtTable.Rows[0]["FixDate"].ToString(); //확정일</p>
+<p>this.datContractDate.Text         = dtTable.Rows[0]["ContractDate"].ToString();                //계약일</p>
+<p>this.txtQuotNo.Text                 = dtTable.Rows[0]["QutoNo"].ToString(); //견적번호</p>
+<p>this.txtPONo.Text                         = dtTable.Rows[0]["PONo"].ToString(); //P/ONo</p>
+<p>this.txtCurrNm.TextCode         = dtTable.Rows[0]["CurrCd"].ToString();                                //화폐</p>
+<p>this.txtCurrNm.Text                 = dtTable.Rows[0]["CurrNm"].ToString(); //화폐 이름</p>
+<p>this.fltExRate.Text                 = dtTable.Rows[0]["ExRate"].ToString(); //환율</p>
+<p>this.datDelvDate.Text                 = dtTable.Rows[0]["DelvDate"].ToString(); //납기일</p>
+<p>this.datOrderDt.TextCode         = dtTable.Rows[0]["OrderDate"].ToString();                        //주문일Old</p>
+<p>this.chkShortAmtYn.Value         = dtTable.Rows[0]["ShortAmtYn"].ToString();                        //최저가 미만</p>
+<p>this.txtCustomerNo.Text         = dtTable.Rows[0]["CustomerNo"].ToString();                        //CustomerNo</p>
+<p>this.txtCustDelvWay.Text        = dtTable.Rows[0]["CustDelvWay"].ToString(); // 고객지정운송편</p>
+<p>this.chkEarlyShipYn.Value        = dtTable.Rows[0]["EarlyShipYn"].ToString(); // 납기전출하여부</p>
+<p>this.chkDirectShipYn.Value        = dtTable.Rows[0]["DirectShipYn"].ToString(); // 측시출하여부</p>
+<p>//Rev 관리</p>
+<p>this.txtRev.Text = dtTable.Rows[0]["SORev"].ToString();</p>
+<p>//Local</p>
+<p>this.optExpClss.Value = dtTable.Rows[0]["ExpClss"].ToString();</p>
+<p>this.chkDirectDelvYn.Value = dtTable.Rows[0]["DirectDelvYn"].ToString(); // 직송여부</p>
+<p>if (dtTable.Rows[0]["ProType"].ToString().Trim() == "")</p>
+<p>this.cmbProType.Value         = "0";</p>
+<p>else</p>
+<p>this.cmbProType.Value         = dtTable.Rows[0]["ProType"].ToString(); //재고관리구분</p>
+<p>return true;                        </p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 데이터를 저장한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;저장 세부 조건\&lt;/param&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool Save(string strWorkingTag)</p>
+<p>{</p>
+<p>// 마스터 저장에서 디테일까지 저장한다.</p>
+<p>if (strWorkingTag == "A")        // Save As 시</p>
+<p>{</p>
+<p>_page.IsOpen = false;</p>
+<p>this.txtRev.Text = "";</p>
+<p>this.txtRev.TextCode = "";</p>
+<p>this.txtRev.TextOld = "";</p>
+<p>return SaveMaster(strWorkingTag);</p>
+<p>}</p>
+<p>else if (strWorkingTag == "RV")</p>
+<p>{</p>
+<p>return SaveRev(strWorkingTag);</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>return SaveMaster(strWorkingTag);</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 마스터 데이터를 조회한다. : 아래와 같은 경우에는 마스터와 디테일을 같이 저장한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;\&lt;/param&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool SaveMaster(string strWorkingTag)</p>
+<p>{</p>
+<p>DataDBSales libDB = null;</p>
+<p>try</p>
+<p>{</p>
+<p>// 저장하기 전에 Check할 사항들을 ...</p>
+<p>if (_page.checkAuthorityBeforeSave(this, strWorkingTag, this.txtDeptNm.TextCode, "") == false)</p>
+<p>{</p>
+<p>return false;</p>
+<p>}</p>
+<p>if (strWorkingTag == "") // 저장 버튼을 선택한 경우</p>
+<p>{</p>
+<p>if (_page.IsOpen == true) strWorkingTag = "U"; // 수정</p>
+<p>else strWorkingTag = "A"; // 신규입력</p>
+<p>}</p>
+<p>// COM+ 객체를 생성</p>
+<p>libDB = new DataDBSales();</p>
+<p>string[] stringMaster = SaveMasterValue(strWorkingTag);</p>
+<p>DataSet dsMsg = new DataSet();</p>
+<p>dsMsg = libDB.Save(_page.ConnInfo, "SSASalesOrderSave_sjpark", stringMaster, _page.TimeOut);</p>
+<p>if (_page.MessageCheckSave(this, dsMsg.Tables[0]) == false)                         // EOF인 경우</p>
+<p>{</p>
+<p>return false;</p>
+<p>}</p>
+<p>if (dsMsg.Tables[0].Rows[0][0].ToString().ToUpper() == "OK") // 저장중에 Error 발생여부 확인</p>
+<p>{</p>
+<p>if (strWorkingTag == "D")</p>
+<p>{</p>
+<p>if (_vari.S_CONFIRMSAORDER != "1")</p>
+<p>{</p>
+<p>SaveProdReq(strWorkingTag);</p>
+<p>}</p>
+<p>NewPage();</p>
+<p>return true;</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.IsOpen = true;</p>
+<p>// return된 값을 Control에 설정한다.</p>
+<p>this.cmbAccUnit.TextOld = this.cmbAccUnit.Value;                                                        // Old 값....</p>
+<p>// @@txtOrderNo.Text = dsMsg.Tables =&gt; 마스터 키 값 뿌려줌</p>
+<p>// @@시트에 저장하기 전에 마스터 키값(주문번호)을 먼저 가져와서 시트에 저장</p>
+<p>this.txtOrderNo.Text = dsMsg.Tables[0].Rows[0][2].ToString();        // 신규로 생성된 주문번호</p>
+<p>this.datOrderDt.TextOld = this.datOrderDt.Text;</p>
+<p>if (ylwsh.Cell != null)</p>
+<p>{</p>
+<p>//@@ savesheet에서 txtorderno 키값을 가져와서 저장</p>
+<p>SaveSheet(strWorkingTag);</p>
+<p>}</p>
+<p>if (_vari.S_CONFIRMSAORDER != "1")</p>
+<p>{</p>
+<p>SaveProdReq(strWorkingTag);</p>
+<p>}</p>
+<p>}</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.ShowMessage(_page.GetMessageString(dsMsg.Tables[0].Rows[0][0].ToString(), dsMsg.Tables[0].Rows[0][1].ToString()));</p>
+<p>return false;</p>
+<p>}</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>//if (libDB != null) libDB.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>private bool SaveRev(string strWorkingTag)</p>
+<p>{</p>
+<p>DataDBSales libDB = null;</p>
+<p>try</p>
+<p>{</p>
+<p>// COM+ 객체를 생성</p>
+<p>libDB = new DataDBSales();</p>
+<p>string[] stringRevMaster = SaveRevValue(strWorkingTag);</p>
+<p>DataSet dsMsg = new DataSet();</p>
+<p>dsMsg = libDB.Save(_page.ConnInfo, "SSASalesOrderSaveRev_sjpark", stringRevMaster, _page.TimeOut);                                </p>
+<p>if (dsMsg.Tables[0].Rows[0][0].ToString().ToUpper() == "OK") // 저장중에 Error 발생여부 확인</p>
+<p>{</p>
+<p>// return된 값을 Control에 설정한다.</p>
+<p>//this.cmbAccUnit.Textold = cmbAccUnit.Text;</p>
+<p>this.txtOrderNo.Text = dsMsg.Tables[0].Rows[0][2].ToString();</p>
+<p>this.txtRev.Text = dsMsg.Tables[0].Rows[0][3].ToString();</p>
+</blockquote>
+<p>//                                        this.ChkFixYn.Value = "0";</p>
+<p>//                                        this.datFixDate.Text = "";</p>
+<p>//                                        this.txtFixEmpNo.Text = "";</p>
+<p>//                                        this.txtFixEmpNo.TextCode = "";</p>
+<blockquote>
+<p>return SaveMaster("U");</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.ShowMessage(_page.GetMessageString(dsMsg.Tables[0].Rows[0][0].ToString(), dsMsg.Tables[0].Rows[0][1].ToString()));</p>
+<p>return false;</p>
+<p>}</p>
+<p>//return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>//if (libDB != null) libDB.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>private bool DelRev(string strWorkingTag)</p>
+<p>{</p>
+<p>DataDBSales libDB = null;</p>
+<p>try</p>
+<p>{</p>
+<p>// COM+ 객체를 생성</p>
+<p>libDB = new DataDBSales();</p>
+<p>string[] stringRevMaster = SaveDelValue(strWorkingTag);</p>
+<p>DataSet dsMsg = new DataSet();</p>
+<p>dsMsg = libDB.Save(_page.ConnInfo, "SSASalesOrderSaveRev_sjpark", stringRevMaster, _page.TimeOut);</p>
+<p>if (dsMsg.Tables[0].Rows[0][0].ToString().ToUpper() == "OK") // 저장중에 Error 발생여부 확인</p>
+<p>{</p>
+<p>// return된 값을 Control에 설정한다.</p>
+<p>//this.cmbAccUnit.Textold = cmbAccUnit.Text;</p>
+<p>this.txtOrderNo.Text = dsMsg.Tables[0].Rows[0][2].ToString();</p>
+<p>this.txtRev.Text = dsMsg.Tables[0].Rows[0][3].ToString();</p>
+<p>this.ChkFixYn.Value = "0";</p>
+<p>this.datFixDate.Text = "";</p>
+<p>this.txtFixEmpNo.Text = "";</p>
+<p>this.txtFixEmpNo.TextCode = "";</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.ShowMessage(_page.GetMessageString(dsMsg.Tables[0].Rows[0][0].ToString(), dsMsg.Tables[0].Rows[0][1].ToString()));</p>
+<p>return false;</p>
+<p>}</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>//if (libDB != null) libDB.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 마스터 데이터를 조회한다. : 아래와 같은 경우에는 마스터와 디테일을 같이 저장한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;\&lt;/param&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool SaveSheet(string strWorkingTag)</p>
+<p>{</p>
+<p>DataDBSales libDB = null;</p>
+<p>try</p>
+<p>{</p>
+<p>// COM+ 객체를 생성</p>
+<p>libDB = new DataDBSales();</p>
+<p>string[] stringDetail = SaveSheetValue(strWorkingTag);</p>
+<p>DataSet dsMsg = new DataSet();</p>
+<p>//@@ 1.        Save 2. SaveMulti 3. Query 이 외에는 안쓴다 =&gt; 여기말고 다른거 나오면 수정해야함</p>
+<p>/*</p>
+<p>@@@SaveMulit : 멀티로 가져와서 한 줄씩 잘라서 사용</p>
+<p>_page.AddColItem</p>
+<p>한번에 가져오기 때문에 varchar(4000) 처럼 길다</p>
+<p>sp에서 while 써야함</p>
+<p>@@@Save : for문 사용</p>
+<p>_page.AddItem                </p>
+<p>*/</p>
+<p>dsMsg = libDB.SaveMulti(_page.ConnInfo, "SSASalesOrder2Save_02_sjpark", stringDetail,_page.TimeOut);</p>
+<p>ylwsh.FillMessage(_page.ConnInfo, dsMsg.Tables[0]);</p>
+<p>if (strWorkingTag == "RV" &amp;&amp; dsMsg.Tables[0].Rows[0][0].ToString().ToUpper() != "OK")</p>
+<p>{</p>
+<p>return DelRev(strWorkingTag);</p>
+<p>}</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>//if (libDB != null) libDB.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// DataSet에 마스터 데이터 1 Row를 추가한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;\&lt;/param&gt;</p>
+<p>/// \&lt;param name="dsOrder"&gt;\&lt;/param&gt;</p>
+<p>private string[] SaveMasterValue(string strWorkingTag)</p>
+<p>{</p>
+<p>try</p>
+<p>{</p>
+<p>_page.clearParameters();</p>
+<p>_page.AddItem(strWorkingTag);</p>
+<p>_page.AddItem(cmbAccUnit.Value);                        // 사업장</p>
+<p>_page.AddItem(cmbAccUnit.TextOld);                        // 사업장 Old Key</p>
+<p>_page.AddItem(datOrderDt.Text);                                // 주문일</p>
+<p>_page.AddItem(txtOrderNo.Text);                                // 주문번호</p>
+<p>_page.AddItem(txtOrderNo.TextOld);                        // 주문번호 Old Key</p>
+<p>_page.AddItem(txtDeptNm.TextCode);                        // 부서명</p>
+<p>_page.AddItem(txtEmpNm.TextCode);                        // 담당자</p>
+<p>_page.AddItem(txtCustNm.TextCode);                        // 거래처</p>
+<p>_page.AddItem(txtCust2Nm.TextCode);                        // 중개인</p>
+<p>_page.AddItem(txtPayment.Text);                                // 지불조건</p>
+<p>_page.AddItem(txtGiveCond.Text);                        // 인도조건</p>
+<p>_page.AddItem(txtRemark.Text);                                // 비고</p>
+<p>_page.AddItem(cmbOrderType.Value);                        // 주문구분</p>
+<p>_page.AddItem(datContractDate.Text);                // 계약일</p>
+<p>_page.AddItem(txtQuotNo.Text);                                // 견적번호</p>
+<p>_page.AddItem(txtPONo.Text);                                // P/ONo</p>
+<p>_page.AddItem(txtCurrNm.TextCode);                        // 화폐</p>
+<p>_page.AddItem(fltExRate.Text);                                // 환율</p>
+<p>_page.AddItem(_page.EmpID);                                        // 수정자</p>
+<p>_page.AddItem(chkCredit.Value);                                // 여신초과 여부</p>
+<p>_page.AddItem(chkShortAmtYn.Value);                        // 금액미달 여부</p>
+<p>_page.AddItem(datDelvDate.Text);                        // 납기일</p>
+<p>_page.AddItem(txtRev.Text);                                        // Rev번호</p>
+<p>_page.AddItem(optExpClss.Value);</p>
+<p>if (_vari.S_CONFIRMSAORDER == "1")</p>
+<p>{</p>
+<p>_page.AddItem(ChkFixYn.Value);                                // 확정</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.AddItem("0");</p>
+<p>}</p>
+<p>if (_vari.S_CONFIRMSAORDER == "1" &amp;&amp; ChkFixYn.Value == "1")</p>
+<p>{</p>
+<p>_page.AddItem(_page.LoginDate);                                // 확정</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.AddItem("");</p>
+<p>}</p>
+<p>_page.AddItem(txtPlanNm.TextCode);</p>
+<p>_page.AddItem(cmbProType.Value);</p>
+<p>_page.AddItem(txtCustDelvWay.Text);</p>
+<p>_page.AddItem(chkEarlyShipYn.Value);</p>
+<p>_page.AddItem(chkDirectShipYn.Value);</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddItem(this.chkDirectDelvYn.Value);</p>
+<p>_page.NewList();</p>
+<p>return _page.ParametersList;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>}</p>
+<p>}</p>
+<p>private string[] SaveRevValue(string strWorkingTag)</p>
+<p>{</p>
+<p>try</p>
+<p>{</p>
+<p>_page.clearParameters();</p>
+<p>_page.AddItem(txtOrderNo.Text);</p>
+<p>_page.NewList();</p>
+<p>return _page.ParametersList;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>}</p>
+<p>}</p>
+<p>private string[] SaveDelValue(string strWorkingTag)</p>
+<p>{</p>
+<p>try</p>
+<p>{</p>
+<p>_page.clearParameters();</p>
+<p>_page.AddItem(txtOrderNo.Text);</p>
+<p>_page.AddItem("D");</p>
+<p>_page.NewList();</p>
+<p>return _page.ParametersList;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// DataSet에 디테일 정보를 추가한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;\&lt;/param&gt;</p>
+<p>/// \&lt;param name="dsOrder"&gt;\&lt;/param&gt;</p>
+<p>//@@ savesheetvalue 할 때 orderno를 먼저 가져간다</p>
+<p>private string[] SaveSheetValue(string strWorkingTag)</p>
+<p>{</p>
+<p>// SHEET MS VALUE</p>
+<p>// 초기값 할당</p>
+<p>int msNo                 = 01;        </p>
+<p>//int msItemNo         = 02;</p>
+<p>//int msItemNm         = 03;</p>
+<p>//int msCustItemNm         = 04;</p>
+<p>//int msSize         = 05;</p>
+<p>//int msPriceUnitNm         = 06;</p>
+<p>int msUnitPrice         = 07;</p>
+<p>//int msUnitNm         = 08;</p>
+<p>int msPriceUnitQty = 09;</p>
+<p>int msBasicPrice         = 10;</p>
+<p>int msOption         = 11;</p>
+<p>int msOptionPrice         = 12;</p>
+<p>int msOriginPrice         = 13;</p>
+<p>int msDCRate         = 14;</p>
+<p>int msPrice         = 15;</p>
+<p>int msPriceDiv         = 16;</p>
+<p>int msQty                 = 17;</p>
+<p>int msAmt                 = 19;</p>
+<p>int msVat                 = 20;</p>
+<p>//int msSumAmt         = 20;</p>
+<p>int msKorPrice         = 22;</p>
+<p>int msKorAmt         = 23;</p>
+<p>int msVatClss         = 18;</p>
+<p>int msDelvDate         = 24;</p>
+<p>int msDelvHour         = 25;</p>
+<p>//int msDelvQty         = 26;</p>
+<p>int msSOSerl         = 27;</p>
+<p>//int msstkUnitNm         = 28;</p>
+<p>int msStkQty         = 29;</p>
+<p>int msControlNo         = 30;</p>
+<p>//int msDeliveryCustBtn = 31;</p>
+<p>//int msDeliveryCust = 32;</p>
+<p>int msStkUnitCd         = 33;</p>
+<p>int msItemCd         = 34;</p>
+<p>int msRemark         = 35;</p>
+<p>int msUnitCd         = 36;</p>
+<p>int msStdCost         = 37;</p>
+<p>int msTotCost         = 38;</p>
+<p>int msProgClss         = 39;</p>
+<p>int msVatRate         = 40;</p>
+<p>//int msAvailStock         = 41;</p>
+<p>int msQutoNo         = 42;</p>
+<p>int msQutoRev         = 43;</p>
+<p>int msQutoSerl         = 44;</p>
+<p>int msOldCustCd         = 45;</p>
+<p>int msOldDeptCd         = 46;</p>
+<p>int msOldEmpId         = 47;</p>
+<p>int msOldCurrCd         = 48;</p>
+<p>//int msCustomPrice         = 49;</p>
+<p>//int msStdSalesPrice = 50;</p>
+<p>//int msMinPrice         = 51;</p>
+<p>int msStkCenter         = 52;</p>
+<p>int msPriceUnitCd         = 53;</p>
+<p>int msDeliveryCustCd = 54;</p>
+<p>//int msCustItemNo         = 55;</p>
+<p>//int msCustItemSpec = 56;</p>
+<p>//int msCustItemUnit = 57;</p>
+<p>int msOverShipPermit = 58;</p>
+<p>int msRemark2         = 59;</p>
+<p>int mstest_sjpark = 60;</p>
+<p>// END Sheet ms</p>
+<p>try</p>
+<p>{</p>
+<p>_page.clearParameters();</p>
+<p>_page.AddColItem(ylwsh,0) ;</p>
+<p>_page.AddItem(cmbAccUnit.Value);</p>
+<p>_page.AddItem(txtOrderNo.Text);</p>
+<p>_page.AddColItem(ylwsh,msNo);                                                        //No                                4        </p>
+<p>_page.AddColItem(ylwsh,msOption);                                                //옵션                                5</p>
+<p>_page.AddColItem(ylwsh,msBasicPrice);                                        //기본단가                        6</p>
+<p>_page.AddColItem(ylwsh,msOptionPrice);                                        //옵션단가                        7</p>
+<p>_page.AddColItem(ylwsh,msOriginPrice);                                        //판매단가 8</p>
+<p>_page.AddColItem(ylwsh,msDCRate); //할인율 9</p>
+<p>_page.AddColItem(ylwsh,msPrice);                                                //할인판매단가 10</p>
+<p>_page.AddColItem(ylwsh,msVatClss);                                                //부가세포함 11</p>
+<p>_page.AddColItem(ylwsh,msQty);                                                        //수량 12</p>
+<p>_page.AddColItem(ylwsh,msVat);                                                        //부가세 13</p>
+<p>_page.AddColItem(ylwsh,msAmt);                                                        //판매가액 12</p>
+<p>_page.AddColItem(ylwsh,msDelvDate);                                                //납품기일</p>
+<p>_page.AddColItem(ylwsh,msKorPrice);                                                //원화판매단가</p>
+<p>_page.AddColItem(ylwsh,msKorAmt);                                                //원화판매가액</p>
+<p>_page.AddColItem(ylwsh,msSOSerl);                                                //주문순번</p>
+<p>_page.AddColItem(ylwsh,msStkQty);                                                //재고단위수량</p>
+<p>_page.AddColItem(ylwsh,msControlNo);                                        //관리번호</p>
+<p>_page.AddColItem(ylwsh,msDeliveryCustCd); //납품처</p>
+<p>_page.AddColItem(ylwsh,msStkUnitCd);                                        //재고단위코드</p>
+<p>_page.AddColItem(ylwsh,msItemCd);                                                //품목코드</p>
+<p>_page.AddColItem(ylwsh,msUnitCd);                                                //단위코드</p>
+<p>_page.AddColItem(ylwsh,msStdCost);                                                //표준원가</p>
+<p>_page.AddColItem(ylwsh,msTotCost);                                                //총원가</p>
+<p>_page.AddColItem(ylwsh,msRemark);                                                //비고</p>
+<p>_page.AddItem(_page.EmpID.ToString());</p>
+<p>_page.AddColItem(ylwsh,msProgClss);                                                //진행구분</p>
+<p>_page.AddColItem(ylwsh,msQutoNo);                                                //견적번호</p>
+<p>_page.AddColItem(ylwsh,msQutoRev);                                                //견적차수</p>
+<p>_page.AddColItem(ylwsh,msQutoSerl);                                                //견적순번</p>
+<p>_page.AddColItem(ylwsh,msOldCustCd);                                        //OldCustCd                </p>
+<p>_page.AddColItem(ylwsh,msOldDeptCd);                                        //OldDeptCd</p>
+<p>_page.AddColItem(ylwsh,msOldEmpId);                                                //OldEmpId</p>
+<p>_page.AddColItem(ylwsh,msOldCurrCd);                                        //OldCurrCd</p>
+<p>_page.AddItem(txtCustNm.TextCode);</p>
+<p>_page.AddItem(txtDeptNm.TextCode);</p>
+<p>_page.AddItem(txtEmpNm.TextCode);</p>
+<p>_page.AddItem(txtCurrNm.TextCode);</p>
+<p>_page.AddItem(datOrderDt.Text);</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddItem(optExpClss.Value);</p>
+<p>_page.AddColItem(ylwsh,msStkCenter);                                        //물류센터</p>
+<p>_page.AddColItem(ylwsh,msPriceUnitCd);                                        //단가기준단위코드</p>
+<p>_page.AddColItem(ylwsh,msUnitPrice);</p>
+<p>_page.AddColItem(ylwsh,msPriceUnitQty);                                        //단가기준단위수량</p>
+<p>_page.AddColItem(ylwsh,msDelvHour);</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddColItem(ylwsh, msVatRate);</p>
+<p>_page.AddColItem(ylwsh, msOverShipPermit);</p>
+<p>_page.AddItem("");        //output</p>
+<p>_page.AddItem("");        //output</p>
+<p>_page.AddColItem(ylwsh, msPriceDiv);                                //단가구분 (2004.10.31)</p>
+<p>_page.AddItem(txtSourceType.Text);                                //소스구분(견적 1, 판매합동 2) 송기연 추가 2007-07-25</p>
+<p>_page.AddColItem(ylwsh,msRemark2);                                                //비고2</p>
+<p>_page.AddColItem(ylwsh,mstest_sjpark);</p>
+<p>_page.NewList();</p>
+<p>return _page.ParametersList;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 생산의뢰 데이터를 생성, 수정, 삭제한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;\&lt;/param&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool SaveProdReq(string strWorkingTag)</p>
+<p>{</p>
+<p>DataDBSales libDB = null;</p>
+<p>try</p>
+<p>{</p>
+<p>// 저장하기 전에 Check할 사항들을 ...</p>
+<p>if (_page.checkAuthorityBeforeSave(this, strWorkingTag, this.txtDeptNm.TextCode, "") == false)</p>
+<p>{</p>
+<p>return false;</p>
+<p>}</p>
+<p>if (strWorkingTag == "") // 저장 버튼을 선택한 경우</p>
+<p>{</p>
+<p>if (_page.IsOpen == true) strWorkingTag = "U"; // 수정</p>
+<p>else strWorkingTag = "A"; // 신규입력</p>
+<p>}</p>
+<p>// COM+ 객체를 생성</p>
+<p>libDB = new DataDBSales();</p>
+<p>string[] stringMaster2 = SaveProdReqValue(strWorkingTag);</p>
+<p>DataSet dsMsg = new DataSet();</p>
+<p>dsMsg = libDB.Save(_page.ConnInfo, "SATPPReqMSave", stringMaster2,_page.TimeOut);</p>
+<p>if (_page.MessageCheckSave(this, dsMsg.Tables[0]) == false)                         // EOF인 경우</p>
+<p>{</p>
+<p>return false;</p>
+<p>}</p>
+<p>if (dsMsg.Tables[0].Rows[0][0].ToString().ToUpper() == "OK") // 저장중에 Error 발생여부 확인</p>
+<p>{</p>
+<p>//                                        if (strWorkingTag == "D")</p>
+<p>//                                        {</p>
+<p>//                                                NewPage();</p>
+<p>//                                                return true;</p>
+<p>//                                        }</p>
+<p>//                                        else</p>
+<p>//                                        {</p>
+<p>//                                                _page.IsOpen = true;</p>
+<p>// return된 값을 Control에 설정한다.</p>
+<p>//                                                this.cmbAccUnit.TextOld = this.cmbAccUnit.Value;                                                        // Old 값....</p>
+<p>//                                                this.txtOrderNo.Text = dsMsg.Tables[0].Rows[0][2].ToString();        // 신규로 생성된 주문번호</p>
+<p>//                                                this.datOrderDt.TextOld = this.datOrderDt.Text;</p>
+<p>//                                        }</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>_page.ShowMessage(_page.GetMessageString(dsMsg.Tables[0].Rows[0][0].ToString(), dsMsg.Tables[0].Rows[0][1].ToString()));</p>
+<p>return false;</p>
+<p>}</p>
+<p>return true;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>//if (libDB != null) libDB.Dispose();</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// DataSet에 생산의뢰용 데이터 1 Row를 추가한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;param name="strWorkingTag"&gt;\&lt;/param&gt;</p>
+<p>/// \&lt;param name="dsOrder"&gt;\&lt;/param&gt;</p>
+<p>private string[] SaveProdReqValue(string strWorkingTag)</p>
+<p>{</p>
+<p>try</p>
+<p>{</p>
+<p>_page.clearParameters();</p>
+<p>_page.AddItem(strWorkingTag);</p>
+<p>_page.AddItem(txtOrderNo.Text);                                // 주문번호</p>
+<p>_page.AddItem(_page.EmpID);                                // 로그인 아이디</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddItem("");</p>
+<p>_page.AddItem("");</p>
+<p>_page.NewList();</p>
+<p>return _page.ParametersList;</p>
+<p>}</p>
+<p>catch (Exception err)</p>
+<p>{</p>
+<p>throw new Exception(err.Message);</p>
+<p>}</p>
+<p>finally</p>
+<p>{</p>
+<p>}</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// 데이터를 삭제한다.</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool Delete()</p>
+<p>{</p>
+<p>bool bulReturn=false;</p>
+<p>bulReturn = Save("D");</p>
+<p>if (bulReturn == true)</p>
+<p>{</p>
+<p>bulReturn = NewPage();</p>
+<p>}</p>
+<p>return bulReturn;</p>
+<p>}</p>
+<p>#endregion</p>
+<p>#region Jump</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Jump Out하는 경우</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>private bool JumpOut()</p>
+<p>{</p>
+<p>// _page.JumpMsg += Add Jump Msg ..</p>
+<p>// _page.HistoryInfo += Add History Info ..</p>
+<p>_page.JumpOut(this); // Jump하는 page를 open한다.</p>
+<p>return true;</p>
+<p>}</p>
+<p>/// \&lt;summary&gt;</p>
+<p>/// Jump In하는 경우</p>
+<p>/// \&lt;/summary&gt;</p>
+<p>/// \&lt;returns&gt;\&lt;/returns&gt;</p>
+<p>//@@ JumpIn</p>
+<p>private bool JumpIn()</p>
+<p>{</p>
+<p>//@@ StringArray - 넘어온 값들을 잘라줌</p>
+<p>string[][] stringArray = _page.SplitToArray(_page.JumpMsg, BaseFramework.CNST_JUMP_SP, BaseFramework.CNST_JUMP_SP_LF);</p>
+<p>string[] arrPgmId = stringArray[1][1].Split("_".ToCharArray());</p>
+<p>/*@@</p>
+<p>[1][1] 폼아이디 (넘어온 화면 명칭)</p>
+<p>[2][1]</p>
+<p>[3][1] 키값</p>
+<p>[4][1]</p>
+<p>[5][1] 플래그값 (N | Q )</p>
+<p>=&gt; NEW 인지 QUERY인지</p>
+<p>점프할 때 무슨동작할지</p>
+<p>조회모드인지 신규모드인지</p>
+<p>TRUE - 조회 =&gt; 화면 수정</p>
+<p>FALSE - 신규 - 키값을 공백으로 넣어줘야함</p>
+<p>_\~~ =&gt; 사이트 이니셜인것들 제외</p>
+<p>연결된 키값을 뿌려줌</p>
+<p>*/</p>
+<p>if (stringArray[5][1].ToString() == "N")</p>
+<p>{</p>
+<p>NewPage();</p>
+<p>return true;</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>switch (arrPgmId[0].ToString().ToUpper()) // PgmID : Jump한 프로그램</p>
+<p>{</p>
+<p>case "FRMSAQUOT" :                                                //견적</p>
+<p>for (int ii = 3; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>switch (stringArray[ii][0].ToUpper())        </p>
+<p>{</p>
+<p>case "QUTONOREV":</p>
+<p>txtQuotNo.Text =stringArray[ii][1];</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>txtSourceType.Text = "1"; //소스구분(견적 1, 판매합동 2) 송기연 추가 2007-07-25</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("QE");</p>
+<p>break;</p>
+<p>case "FRMSAQUOTLIST" :                                                //견적현황</p>
+<p>case "YLWA05046"         :                                                //견적품목현황</p>
+<p>int cnt = 0;</p>
+<p>int cntQutoRev = 0;</p>
+<p>int cntQutoSerl = 0;</p>
+<p>string QutoNo = "";</p>
+<p>string QutoRev = "";</p>
+<p>string QutoSerl = "";</p>
+<p>for (int ii = 3; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>switch (stringArray[ii][0].ToUpper())        </p>
+<p>{</p>
+<p>case "QUTONO":</p>
+<p>if (cnt == 0)</p>
+<p>QutoNo = stringArray[ii][1];</p>
+<p>else</p>
+<p>QutoNo = QutoNo + "_/" + stringArray[ii][1];</p>
+<p>cnt = cnt + 1;</p>
+<p>break;</p>
+<p>case "QUTOREV":</p>
+<p>if (cntQutoRev == 0)</p>
+<p>QutoRev = stringArray[ii][1];</p>
+<p>else</p>
+<p>QutoRev = QutoRev + "_/" + stringArray[ii][1];</p>
+<p>cntQutoRev = cntQutoRev + 1;</p>
+<p>break;</p>
+<p>case "QUTOSERL":</p>
+<p>if (cntQutoSerl == 0)</p>
+<p>QutoSerl = stringArray[ii][1];</p>
+<p>else</p>
+<p>QutoSerl = QutoSerl + "_/" + stringArray[ii][1];</p>
+<p>cntQutoSerl = cntQutoSerl + 1;</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>txtOtherNo.Text = QutoNo;</p>
+<p>txtOtherRev.Text = QutoRev;</p>
+<p>txtOtherSerl.Text = QutoSerl;</p>
+<p>vntOtherNo = QutoNo;</p>
+<p>mvntRevKey = QutoRev;</p>
+<p>mvntSerlKey = QutoSerl;</p>
+<p>txtSourceType.Text = "1"; //소스구분(견적 1, 판매합동 2) 송기연 추가 2007-07-25</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("QT");</p>
+<p>break;</p>
+<p>case "YLWA05006" :                                                //주문내역 거래명세서 진행</p>
+<p>case "YLWA05007" :        </p>
+<p>case "YLWA05906" :</p>
+<p>for (int ii = 3; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>switch (stringArray[ii][0].ToUpper())        </p>
+<p>{</p>
+<p>case "JUMPDATA":</p>
+<p>txtOrderNo.Text =stringArray[ii][1];</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("Q");</p>
+<p>break;</p>
+<p>case "YLWA05029" :                                                        //주문 미납현황</p>
+<p>case "FRMSASOITEMLIST" :                                                //주문 품목현황</p>
+<p>for (int ii = 3; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>switch (stringArray[ii][0].ToUpper())        </p>
+<p>{</p>
+<p>/*@@</p>
+<p>SONO</p>
+<p>==&gt; 조회모음의 키값을 설정하는 부분을 SONO로 해야 넘어왔을 때 처리가 가능</p>
+<p>==&gt; 넘겨주는 쪽에서 설정을 해야한다</p>
+<p>*/</p>
+<p>case "SONO":</p>
+<p>txtOrderNo.Text =stringArray[ii][1];</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("Q");</p>
+<p>break;</p>
+<p>case "FRMFASALESADD" :                                                //영업활동 등록</p>
+<p>case "YLWA21004" :                                                        //영업활동 현황</p>
+<p>case "YLWA21904" :                                                        //영업활동 현황</p>
+<p>for (int ii = 3; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>switch (stringArray[ii][0].ToUpper())        </p>
+<p>{</p>
+<p>case "PLANCD":</p>
+<p>txtPlanNm.TextCode =stringArray[ii][1];</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>vntOtherNo = txtPlanNm.TextCode;</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("QP");</p>
+<p>break;</p>
+<p>//case "YLWA21904" :</p>
+<p>//        _page.Mode = "Query";</p>
+<p>//        Query("T");</p>
+<p>//        break;</p>
+<p>case "FRMEAETCORDERREG" :</p>
+<p>case "FRMEAETCORDERUPLOAD" :</p>
+<p>case "FRMEAETCORDERUPLOADLIST":</p>
+<p>case "FRMEAREVORDERLIST" :</p>
+<p>case "FRMEAREVORDERREG" :</p>
+<p>for (int ii = 3; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>switch (stringArray[ii][0].ToUpper())        </p>
+<p>{</p>
+<p>case "REVNO":</p>
+<p>txtQuotNo.Text =stringArray[ii][1];</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>txtQuotNo.Caption = "수주번호";</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("RE");</p>
+<p>break;</p>
+<p>case "FRMARSALESJOINT" :                                                //판매합동등록</p>
+<p>case "YLWA04594" : //수책제품진행현황</p>
+<p>case "YLWA04591" : //수책/판매합동현황</p>
+<p>int cnt2 = 0;</p>
+<p>//int cntQutoRev = 0;</p>
+<p>int cntSerl = 0;</p>
+<p>string SalesJointNo = "";</p>
+<p>//string QutoRev = "";</p>
+<p>string Serl = "";</p>
+<p>for (int ii = 3; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>switch (stringArray[ii][0].ToUpper())        </p>
+<p>{</p>
+<p>case "SALESJOINTNO":</p>
+<p>if (cnt2 == 0)</p>
+<p>SalesJointNo = stringArray[ii][1];</p>
+<p>else</p>
+<p>SalesJointNo = SalesJointNo + "_/" + stringArray[ii][1];</p>
+<p>cnt2 = cnt2 + 1;</p>
+<p>break;</p>
+</blockquote>
+<p>//                                                                case "QUTOREV":</p>
+<p>//                                                                        if (cntQutoRev == 0)</p>
+<p>//                                                                                QutoRev = stringArray[ii][1];</p>
+<p>//                                                                        else</p>
+<p>//                                                                                QutoRev = QutoRev + "_/" + stringArray[ii][1];</p>
+<p>//</p>
+<p>//                                                                        cntQutoRev = cntQutoRev + 1;</p>
+<p>//                                                                        break;</p>
+<blockquote>
+<p>case "SERL":</p>
+<p>if (cntSerl == 0)</p>
+<p>Serl = stringArray[ii][1];</p>
+<p>else</p>
+<p>Serl = Serl + "_/" + stringArray[ii][1];</p>
+<p>cntSerl = cntSerl + 1;</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>txtOtherNo.Text = SalesJointNo;</p>
+<p>//txtOtherRev.Text = QutoRev;</p>
+<p>txtOtherSerl.Text = Serl;</p>
+<p>vntOtherNo = SalesJointNo;</p>
+<p>//mvntRevKey = QutoRev;</p>
+<p>mvntSerlKey = Serl;</p>
+<p>txtSourceType.Text = "2"; //소스구분(견적 1, 판매합동 2) 송기연 추가 2007-07-25</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("QS");</p>
+<p>break;</p>
+<p>default:</p>
+<p>string strSp1 = "_/";</p>
+<p>string strSp2 = "#";</p>
+<p>string strSp3 = "&amp;";</p>
+<p>string strCode = "";</p>
+<p>for (int ii = 5; ii \&lt; stringArray.Length-1; ii++)</p>
+<p>{                                </p>
+<p>if (stringArray[ii][1] != "")</p>
+<p>{</p>
+<p>if (stringArray[ii][1].IndexOf(strSp1,0) &gt;0 &amp;&amp;</p>
+<p>stringArray[ii][1].IndexOf(strSp2,0) &gt;0 &amp;&amp;</p>
+<p>stringArray[ii][1].IndexOf(strSp3,0) &gt;0 )</p>
+<p>{</p>
+<p>String[][] szSheetData = _page.SplitToArray(stringArray[ii][1], strSp2, strSp3);</p>
+<p>for (int i = 0; i \&lt; szSheetData.Length-1; i++)</p>
+<p>{</p>
+<p>int intDeli = szSheetData[i][1].IndexOf(strSp1, 0) ;</p>
+<p>if (intDeli &gt; 0)</p>
+<p>{</p>
+<p>strCode = _page.Mid(szSheetData[i][1].Trim(), 0, intDeli);</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>strCode = szSheetData[i][1].Trim();</p>
+<p>}</p>
+<p>switch (szSheetData[i][0].ToString().ToUpper())</p>
+<p>{</p>
+<p>case "JUMPDATA":</p>
+<p>txtOrderNo.Text = strCode.Trim();</p>
+<p>break;</p>
+<p>case "SONO":</p>
+<p>txtOrderNo.Text = strCode.Trim();</p>
+<p>break;</p>
+<p>}</p>
+<p>}</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>switch (stringArray[ii][0].ToString().ToUpper())</p>
+<p>{</p>
+<p>case "JUMPDATA":</p>
+<p>txtOrderNo.Text = stringArray[ii][1].Trim();</p>
+<p>break;</p>
+<p>case "SONO":</p>
+<p>txtOrderNo.Text = stringArray[ii][1].Trim();</p>
+<p>break;</p>
+<p>}</p>
+<p>}                                                                </p>
+<p>}</p>
+<p>}</p>
+<p>_page.Mode = "Query";</p>
+<p>Query("Q");</p>
+<p>break;</p>
+<p>}</p>
+<p>if (stringArray[5][1].ToString() == "I")</p>
+<p>{</p>
+<p>txtOrderNo.Text = "";</p>
+<p>_page.IsOpen = false;</p>
+<p>}</p>
+<p>}</p>
+<p>return true;</p>
+<p>}</p>
+<p>#endregion</p>
+<p>}</p>
+</blockquote>
+<p>}</p>
+  </article>
+</div>
+</body>
+</html>

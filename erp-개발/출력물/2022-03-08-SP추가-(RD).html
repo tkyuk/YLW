@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP추가 (RD)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SP추가 (RD)</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp-rd">SP추가 (RD)</h1>
+<ul>
+<li>폼화면의 경우 sp명이 균일하지 않음</li>
+</ul>
+<ol>
+<li>aspx 수정</li>
+</ol>
+<ul>
+<li>ReportPrint()에서 확인</li>
+</ul>
+<ol>
+<li>
+<p>SSPOrderPrt.mrd =&gt; SSPOrderPrt_sjpark.mrd 로 변경</p>
+</li>
+<li>
+<p>+. 쿼리도 확인 가능</p>
+</li>
+</ol>
+<p><img alt="" src="assets/SP추가-(RD)/image24.png" /></p>
+<blockquote></blockquote>
+<ol start="2">
+<li>
+<p>SP명 찾기</p>
+<ol>
+<li>
+<p>출력물 실행 =&gt; 실행문에서 확인 (안뜰경우 b방법)</p>
+</li>
+<li>
+<p>SSPOrderPrt가 포함된 쿼리 찾기 (3.0Editior) 데이터베이스 - 쿼리정의)</p>
+</li>
+<li>
+<p>파라미터 복사 해놓기</p>
+</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/SP추가-(RD)/image25.png" /></p>
+</blockquote>
+<ol start="3">
+<li>
+<p>SSPOrderPrtQry SP =&gt;SSPOrderPrtQry_sjpark로 새로 만들기</p>
+</li>
+<li>
+<p>표준에서 컬럼 (test_sjpark) 추가할 경우 =&gt; 마지막에 추가 (이미 테이블이 join되어 있기 때문에 추가만 하면된다 (alias 필수)</p>
+</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/SP추가-(RD)/image26.png" /></p>
+</blockquote>
+<ol start="5">
+<li>복사했던 파라미터 붙여넣기</li>
+</ol>
+<p><img alt="" src="assets/SP추가-(RD)/image27.png" /></p>
+  </article>
+</div>
+</body>
+</html>

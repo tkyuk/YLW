@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>입력행 기준 밑에 행 WorkingTag 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>입력행 기준 밑에 행 WorkingTag 변경</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="workingtag">입력행 기준 밑에 행 WorkingTag 변경</h1>
+<p>local i, YM, PreRemainQty,RemainQty</p>
+<p>YM = tonumber(string.sub(CellText(SS1, SS1.ActiveRow, 'YM'), 5, 6))</p>
+<p>PreRemainQty = fltPreRemainQty.Value</p>
+<p>RemainQty = 0</p>
+<p>for row = 0, SS1.DataRowCnt -1 do</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'RemainQty'</p>
+<p>SS1.ActiveRow = row</p>
+<p>if row == 0 then</p>
+<p>RemainQty = tonumber(PreRemainQty) - tonumber(CellText(SS1, SS1.ActiveRow, 'PUQty'))</p>
+<p>else</p>
+<p>RemainQty = tonumber(CellText(SS1, SS1.ActiveRow-1, 'RemainQty')) - tonumber(CellText(SS1, SS1.ActiveRow, 'PUQty'))</p>
+<p>end                </p>
+<p>SetText(SS1, SS1.ActiveRow, 'RemainQty', RemainQty)</p>
+<p>if row +1 &gt; YM then</p>
+<p>if SS1.WorkingTag ~= 'A' then -- A가 아닌 경우 U로 변경 (A는 바뀌어도 A이기 때문)</p>
+<p>SS1.WorkingTag = 'U'</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

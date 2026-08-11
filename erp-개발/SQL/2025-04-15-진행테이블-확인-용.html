@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진행테이블 확인 용</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>진행테이블 확인 용</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">진행테이블 확인 용</h1>
+<p>--_TCOMSourceDailyTrace</p>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableName = '_TSLSalesItem'</p>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableName = '_TPJTSLBillItem'</p>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableName LIKE '_TPJT%'</p>
+<p>SELECT DISTINCT B.ProgTableKorName,C.ProgTableKorName,A.FromTableSeq,A.ToTableSeq</p>
+<p>FROM _TCOMSourceDailyTrace AS A</p>
+<p>JOIN _TCOMProgTable AS B ON B.ProgTableSeq = A.FromTableSeq</p>
+<p>JOIN _TCOMProgTable AS C ON C.ProgTableSeq = A.ToTableSeq</p>
+<p>WHERE A.FromTableSeq = 55</p>
+<p>SELECT * FROM _TPJTProjectItemBillCond -- 55</p>
+<p>SELECT * FROM _TCOMSourceDailyTrace WHERE FromTableSeq = 55</p>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableSeq = 55</p>
+<p>SELECT * FROM _TCOMProgTable WHERE ProgTableSeq = 54</p>
+<p>SELECT * FROM _TPJTProjectItemBillCond WHERE PJTSeq = 527</p>
+<p>SELECT * FROM _TPJTSLBillItem WHERE BillSeq = 1182</p>
+<p>SELECT TOP 10 * FROM _TCOMSourceDailyTrace ORDER BY LastDateTime DESC</p>
+  </article>
+</div>
+</body>
+</html>

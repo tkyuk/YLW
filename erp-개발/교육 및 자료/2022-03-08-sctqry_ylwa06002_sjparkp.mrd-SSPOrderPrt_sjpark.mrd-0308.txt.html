@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\<\<sctqry_ylwa06002_sjparkp.mrd\>\>\<\<SSPOrderPrt_sjpark.mrd\>\>\<\<0308.txt\>\></title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\<\<sctqry_ylwa06002_sjparkp.mrd\>\>\<\<SSPOrderPrt_sjpark.mrd\>\>\<\<0308.txt\>\></h1>
+    <div class="meta">
+      <span class="note-date">2022-03-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#교육 및 자료</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sctqry_ylwa06002_sjparkpmrdssporderprt_sjparkmrd0308txt">\&lt;\&lt;sctqry_ylwa06002_sjparkp.mrd&gt;&gt;\&lt;\&lt;SSPOrderPrt_sjpark.mrd&gt;&gt;\&lt;\&lt;0308.txt&gt;&gt;</h1>
+<p>출력물 =&gt; 결국 조회 모음</p>
+<p>dataset 하나를 보내서 조회를 함</p>
+<p>OZ 제뉴인 에이스에서 쏴주는 데이터를 받아서 씀 (XML)</p>
+<p>받은 변수들을 가공해서 사용</p>
+<hr />
+<p>데이터베이스에 지가 접속해서 지가 SP를 실행을해서 값을 받아옴</p>
+<p>만약 OZ에서 컬럼을 추가하려면 화면,서비스,SP 다바꿔야함</p>
+<p>RD는 본인이 접속하기 때문에 SP, 출력물만 바꾸면됨</p>
+<p>일단 수정하려면 경로를 알아야함</p>
+<p>MTS서버 - K SYSTEM에서 출력물 이름이 뭔지 다 알아아함</p>
+<p>왜 뜨냐 -&gt; 확인해야할게 떠있음</p>
+<blockquote>
+<p>1.출력물 이름</p>
+<p>1-1. 조회모음에 달린 출력물 (SP명에서 끝에 P)</p>
+<p>ex. SCTQry_ylwa12345_mgp.mrd (확장자 mrd)</p>
+<p>1-2. 폼화면에 달린 출력물</p>
+<p>ex. 정해진게 없다 (들어가서 확인을 꼭 해야함)</p>
+<p>2. /rv 부터 끝까지 =&gt; 복사 붙여넣기 해놓음</p>
+<p>조회모음 파라미터 (실행문)</p>
+<p>sp를 실행하려면 파라미터가 필요하기 때문에 파라미터를 가져간다</p>
+<p>데이터가 없습니다 =&gt; 데이터가 없기 때문 (선택을 안해서)</p>
+</blockquote>
+<p>출력물에서 반복되지 않는 부분 title</p>
+<blockquote>
+<p>반복되는 부분 data</p>
+</blockquote>
+<p>header, footer가 있고 그 안에 데이터가 있는 느낌</p>
+<p>rd는 데이터베이스에 직접 접속</p>
+<p>*sp</p>
+<p>print_proc</p>
+<p>select</p>
+<p>alias 써줘야함</p>
+<p>--</p>
+<p>새로 하나 추가하려면 sp마지막에 추가해야함</p>
+<p>영어가 깨질 수 있으므로 대체로 '맑은 고딕'</p>
+<p>영어는 Calibri =&gt; 영어의 기본 글씨체</p>
+<p>Title =&gt; 제목</p>
+<p>데이터헤더 = 컬럼명</p>
+<p>파란줄 = 데이터가 아래로 계속 쌓인다는걸 의미</p>
+<p>검은줄 = 중복이 안됨 (그냥 하나만 나옴)</p>
+<p>옆에 빨간줄 =&gt; 선 굵기 조절</p>
+<p>일자 밑에도 파란줄인데 왜 중복이 안되나</p>
+<p>데이터셋 연결 =&gt; 요약 연결</p>
+<p>3월 계 =&gt; 파란줄 ==&gt; 4,5월\~~ 도 있기 때문</p>
+<p>==&gt; 계의 파란줄이 일자 밑에 있는걸로 보임</p>
+<p>우클릭 = 개체크기맞춤</p>
+<p>Ctrl Z 가 한번 밖에 안됨</p>
+<p>=======</p>
+<p>수정 시</p>
+<p>SP 컬럼 추가 =&gt; 쿼리 정의</p>
+<p>조회모음 =&gt; 출력물 부를 때 (조회모음sp명 + p) =&gt; 데이터베이스 접속, 쿼리정의( 출력물sp는 사용자가 마음대로 정해준다 )</p>
+<p>파라미터 값입력 =&gt; 실행문 복붙 (/rv~) ==&gt; 결과물 똑같이 나옴</p>
+<blockquote>
+<p>=&gt; 결과물 보면서 수정</p>
+</blockquote>
+<p>===========================</p>
+<p>===========================</p>
+<p>* 출력물 만들기</p>
+<p>1. 경로 알기 (수정할 때도 필요함)</p>
+<p>D - Ksystem.Net</p>
+<p>D:\Ksystem.NET\Common\FileDownload</p>
+<p>닷넷버전, 스마트버전 두개가 있음</p>
+<p>닷넷 =&gt; report (3.0으로 작성한 애들)</p>
+<p>스마트 =&gt; reportnet (5.0)</p>
+<p>실행문 안뜨면 저장눌러서 sp명 확인</p>
+<p>소스새ㅐ로만들기 추가 sql서버</p>
+<p>sys sys 61.250.183.1 - (사용자~) sysware1! - 기본 neterp</p>
+<p>SP와 상관없이 먼저 에디터에서 출력물 켜도 된다</p>
+<p>맞추기 - 크기고정 (출력물은 안늘림)</p>
+<p>폰트크기고정</p>
+<p>SP수정</p>
+<p>출력물</p>
+<p>데이터베이스 접속</p>
+<p>쿼리정의 (변수 추가, 노가다~)</p>
+<p>1. 데이터를 고치는 것</p>
+<p>2. 출력물을 고치는 것 (EX. 위치 변경, 폰트 변경 / 데이터베이스 접속도 안해도 된다)</p>
+<p>소스세이프에서 고칠 파일을 먼저 확인</p>
+<p>체크아웃</p>
+<p>실제 서버에서 파일의 경로를 들어가봄</p>
+<p>날짜</p>
+<p>실행 =&gt; SP명 확인</p>
+<p>*출력물</p>
+<p>맞추기 - 본문객체속성 =&gt; 모든 장에서 보이기 / 첫 장에서만</p>
+<p>보이기</p>
+<p>두번째장부터 위치조정 =&gt; 위에 사라진게 있으면 자동으로 올라가서 위치 조정</p>
+<p>1. 고객사 MTS 서버를 간다</p>
+<p>2. 해당 경로에 있는 출력물 파일을 로컬 (내 PC)로 가져온다</p>
+<p>3. ERP에서 출력물을 실행해본다 (출력물이름, 파라미터 확인용)</p>
+<p>4. 가져온 출력물을 고친다</p>
+<p>4.1 =&gt; 출력물 디자인만 고칠 경우 : 데이터베이스 접속해서 SP 수정, 쿼리정의 부분도 수정</p>
+<p>4.2 =&gt; 데이터도 고칠경우 -&gt; DB 접속해서 SP 수정, 쿼리 정의 부분도 수정</p>
+<p>5. 소스세이프에 버전관리 잘하고 고객사 MTS 서버 해당경로에 출력물 넣기 DB에 SP 카탈하기(drop, create)</p>
+<p>*실서버 버전, 소스세이프 버전, 내가 고치는 버전 *</p>
+<p>소스세이프 -&gt; 리포트 -&gt; 파일 체크아웃 -&gt;</p>
+<p>실제서버 report 폴더에 있는지 확인 + 날짜가 뭐가 더 최신인지 보고 실서버꺼 가지고오고 실서버 파일이 더 최근꺼면</p>
+<p>덮어씌우고 체크인 하고 다시 체크아웃해서 파일 수정</p>
+<p>3.0 / 5.0 다른점</p>
+<p>5.0 =&gt; XML이 정의되어 있다면 데이터베이스에 접속안하고 만들 수 있다</p>
+<p>===================================</p>
+<p>aspx =&gt; ReportPrint() 함수가 있음</p>
+<blockquote>
+<p>=&gt; SSPOrderPrt_sjpark.mrd =&gt; 1번서버에서 가져오기</p>
+<p>1. 합계금액 옆에 test_sjpark</p>
+<p>2. sum 값추가</p>
+</blockquote>
+<p>*</p>
+<p>데이터는 테이블에서 긁어온다</p>
+<p>화면에서 긁어오면 최신꺼가 반영안되기 때문</p>
+<p>\&lt;\&lt;SCTQry_ylwa06002_0307.sql&gt;&gt;\&lt;\&lt;SCTQry_ylwa05006_ksystem_sjpark.sql&gt;&gt;\&lt;\&lt;SCTQry_ylwa06002_sjpark.sql&gt;&gt;</p>
+  </article>
+</div>
+</body>
+</html>

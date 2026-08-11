@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>추가정보정의 / 코드도움설정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>추가정보정의 / 코드도움설정</h1>
+    <div class="meta">
+      <span class="note-date">2022-06-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">추가정보정의 / 코드도움설정</h1>
+<p><img alt="" src="assets/추가정보정의-코드도움설정/image30.png" /></p>
+<p>거래처종류등록 및 코드도움설정</p>
+<p>사용자정의코드 패치</p>
+<p>(시군, 시면)</p>
+<p>=&gt; 1번에서 테스트 하기전에 데이터 없는 상태로 실서버에 먼저 패치</p>
+<p>그 후에 TEST 소분류 넣어서 TEST</p>
+<p>===========================================================================</p>
+<p>추가정보정의 테이블 INSERT</p>
+<p>INSERT INTO _TCOMUserDefine</p>
+<p>SELECT '1','_TDACust','2004','1000004','시면','0','19999','2140133','1027003','','4','0','','0','27292','2022-06-21 13:42:09.603','0','0' UNION</p>
+<p>SELECT '1','_TDACust','2004','1000005','OB팀','0','0','','1027006','','5','0','','0','27292','2022-06-21 13:42:09.603','0','0' UNION</p>
+<p>SELECT '1','_TDACust','2004','1000006','스타파트너','0','0','','1027006','','6','0','','0','27292','2022-06-21 13:42:09.603','0','0' UNION</p>
+<p>SELECT '1','_TDACust','2004','1000007','수요자코드','0','0','','1027006','','7','0','','0','27292','2022-06-21 13:42:09.603','0','0' UNION</p>
+<p>SELECT '1','_TDACust','2004','1000008','환코드','0','0','','1027001','','8','0','','0','27292','2022-06-21 13:42:09.603','0','0'</p>
+<p>=&gt; 실서버 ERP 추가정보정의에서 해도 되지만 그러면 Serl이 안 맞기 때문에</p>
+<p>직접 DB에서 INSERT 해주는 방식으로 해야한다</p>
+<p>===========================================================================</p>
+<p>_TDACustHelpGroup</p>
+<p><img alt="" src="assets/추가정보정의-코드도움설정/image31.png" /></p>
+<p>===========================================================================</p>
+<p>===========================================================================</p>
+<p>SELECT * FROM _TDACustClass WHERE UMajorCustClass = 8001 -- 기타정보</p>
+<p>select * FROM _TCOMUserdefine where tablename = '_TDACust' -- 모든 추가정보정의 테이블</p>
+<p>select * FROM _TDACustUserDefine WHERE MngSerl = 8001 -- 거래처 추가정보정의 테이블</p>
+<p>SELECT *FROM _TCOMUserDefine</p>
+<p>WHERE TableName = '_tdaumAJOR' AND DefineUnitSeq = 8004</p>
+  </article>
+</div>
+</body>
+</html>

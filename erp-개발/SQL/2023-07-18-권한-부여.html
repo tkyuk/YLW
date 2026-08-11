@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>권한 부여</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>권한 부여</h1>
+    <div class="meta">
+      <span class="note-date">2023-07-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">권한 부여</h1>
+<p>DROP PROC mcnk_SSYSUserGrant</p>
+<p>GO</p>
+<p>CREATE PROC mcnk_SSYSUserGrant</p>
+<p>AS</p>
+<p>SET NOCOUNT ON;</p>
+<p>/*</p>
+<p>SELECT B.Name AS UserName, C.Name AS ObjectName, A.Permission_Name AS PermissionName,</p>
+<p>'UNION SELECT '+</p>
+<p>N'''' + B.Name COLLATE Korean_Wansung_CS_AS + N''' AS UserName, ' +</p>
+<p>N'''' + C.Name COLLATE Korean_Wansung_CS_AS + N''' AS ObjectName, ' +</p>
+<p>N'''' + A.Permission_Name COLLATE Korean_Wansung_CS_AS + N''' AS PermissionName' AS [InsertData],</p>
+<p>A.state_desc COLLATE Korean_Wansung_CS_AS + ' '</p>
+<p>+ A.permission_name COLLATE Korean_Wansung_CS_AS + ' ON OBJECT::'</p>
+<p>+ C.name COLLATE Korean_Wansung_CS_AS + ' TO '</p>
+<p>+ B.name COLLATE Korean_Wansung_CS_AS as GRANT_SQL</p>
+<p>FROM sys.database_permissions AS A</p>
+<p>JOIN sys.database_principals AS B ON B.Principal_ID = A.Grantee_Principal_ID</p>
+<p>JOIN sys.objects AS C ON C.Object_ID = A.Major_ID</p>
+<p>WHERE A.Class = 1</p>
+<p>AND B.Type = 'S'</p>
+<p>AND A.state_desc = 'GRANT'</p>
+<p>AND B.Name NOT IN ('public', 'guest')</p>
+<p>AND B.Name = 'i2l_mes'</p>
+<p>ORDER BY B.Name, C.Name, A.Permission_Name</p>
+<p>*/</p>
+<p>DECLARE @IDX_NO INT,</p>
+<p>@Sql NVARCHAR(1000),</p>
+<p>@UserName NVARCHAR(100),</p>
+<p>@ObjectName NVARCHAR(100),</p>
+<p>@PermissionName NVARCHAR(100)</p>
+<p>CREATE TABLE #TSYSUserGrant</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1, 1),</p>
+<p>UserName NVARCHAR(100),</p>
+<p>ObjectName NVARCHAR(100),</p>
+<p>PermissionName NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TSYSUserGrant(UserName, ObjectName, PermissionName)</p>
+<p>SELECT 'plm' AS UserName, 'mcnk_TPLMBaseAlterItem' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'plm' AS UserName, 'mcnk_TPLMBaseAlterItem' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>UNION SELECT 'plm' AS UserName, 'mcnk_TPLMBaseAlterItem' AS ObjectName, 'INSERT' AS PermissionName</p>
+<p>UNION SELECT 'plm' AS UserName, 'mcnk_VPDBaseAlterItem' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>SELECT @IDX_NO = 0</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@IDX_NO = A.IDX_NO,</p>
+<p>@UserName = '',</p>
+<p>@ObjectName = '',</p>
+<p>@PermissionName = ''</p>
+<p>FROM #TSYSUserGrant AS A</p>
+<p>WHERE A.IDX_NO &gt; @IDX_NO</p>
+<p>ORDER BY A.IDX_NO ASC</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>SELECT @UserName = A.UserName,</p>
+<p>@ObjectName = A.ObjectName,</p>
+<p>@PermissionName = A.PermissionName</p>
+<p>FROM #TSYSUserGrant AS A</p>
+<p>WHERE A.IDX_NO = @IDX_NO</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM sys.database_principals AS B WITH(NOLOCK) WHERE B.Name = @UserName)</p>
+<p>AND EXISTS(SELECT TOP 1 1 FROM sys.objects AS C WITH(NOLOCK) WHERE C.Name = @ObjectName)</p>
+<p>BEGIN</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1</p>
+<p>FROM sys.database_permissions AS A WITH(NOLOCK)</p>
+<p>JOIN sys.database_principals AS B WITH(NOLOCK) ON B.Principal_ID = A.Grantee_Principal_ID</p>
+<p>JOIN sys.objects AS C WITH(NOLOCK) ON C.Object_ID = A.Major_ID</p>
+<p>WHERE A.Permission_Name = @PermissionName</p>
+<p>AND B.Name = @UserName</p>
+<p>AND C.Name = @ObjectName</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @Sql = N'GRANT ' + @PermissionName + N' ON OBJECT::' + @ObjectName + N' TO ' + @UserName</p>
+<p>EXEC sp_executeSql @Sql</p>
+<p>PRINT @Sql</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>DROP TABLE #TSYSUserGrant</p>
+<p>RETURN</p>
+<p>--GO</p>
+<p>--EXEC mcnk_SSYSUserGrant</p>
+<p>주석처리 된 부분으로 권한 조회 가능</p>
+<p>테이블 Alter 는 상관 없지만 Drop 시 권한 지워지기 때문에 같이 넣어줘야함</p>
+<p><img alt="" src="assets/권한-부여/image18.png" /><img alt="" src="assets/권한-부여/image19.png" /></p>
+  </article>
+</div>
+</body>
+</html>

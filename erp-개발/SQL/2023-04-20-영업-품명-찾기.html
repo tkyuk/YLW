@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영업 품명 찾기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>영업 품명 찾기</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">영업 품명 찾기</h1>
+<p>SELECT TOP 100 PERCENT C.ItemSeq</p>
+<p>FROM _TDAItem AS C WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN emk_TSLWasteInfo AS I ON C.ItemSeq = I.ItemSeq</p>
+<p>WHERE @CompanySeq = C.CompanySeq</p>
+<p>AND (I.GCustSeq = @CustSeq OR I.GCustSeq IS NULL)</p>
+<p>AND C.AssetSeq In (SELECT AssetSeq FROM _TDAItemAssetCodeHelp WITH(NOLOCK) WHERE CompanySeq = @CompanySeq And ItemCodeHelpSeq = 2)</p>
+<p>ORDER BY C.ItemName</p>
+  </article>
+</div>
+</body>
+</html>

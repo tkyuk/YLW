@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022-10-19-현재고-조회하는-시점-기준-사업부내-모든-창고의-재고-수량</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2022-10-19-현재고-조회하는-시점-기준-사업부내-모든-창고의-재고-수량</h1>
+    <div class="meta">
+      
+      
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">현재고 : 조회하는 시점 기준 사업부내 모든 창고의 재고 수량</h1>
+<p>-- 임시 테이블 생성</p>
+<p>CREATE TABLE #GetInOutItem (ItemSeq INT)</p>
+<p>CREATE TABLE #GetInOutStock</p>
+<p>(</p>
+<p>BizUnit INT ,</p>
+<p>WHSeq INT ,</p>
+<p>MainWHSeq INT ,</p>
+<p>ItemSeq INT ,</p>
+<p>UnitSeq INT ,</p>
+<p>PrevQty DECIMAL(19, 5),</p>
+<p>InQty DECIMAL(19, 5),</p>
+<p>OutQty DECIMAL(19, 5),</p>
+<p>StockQty DECIMAL(19, 5),</p>
+<p>STDPrevQty DECIMAL(19, 5),</p>
+<p>STDInQty DECIMAL(19, 5),</p>
+<p>STDOutQty DECIMAL(19, 5),</p>
+<p>STDStockQty DECIMAL(19, 5),</p>
+<p>StockAmt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>-- 대상 품목 수집</p>
+<p>INSERT INTO #GetInOutItem (ItemSeq)</p>
+<p>SELECT A.ItemSeq</p>
+<p>FROM #Fix AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.AssetSeq = B.AssetSeq</p>
+<p>WHERE C.IsQty \&lt;&gt; '1'</p>
+<p>-- 재고조회</p>
+<p>EXEC _SWLGGetInOutStock @CompanySeq = @CompanySeq,</p>
+<p>@BizUnit = @BizUnit ,</p>
+<p>@DateFr = @FoProdDate,</p>
+<p>@DateTo = @FoProdDate,</p>
+<p>@WHSeq = 0 ,</p>
+<p>@SMWHKind = 0 ,</p>
+<p>@IsSubDisplay = '1' ,</p>
+<p>@IsOnlyStock = '1' ,</p>
+<p>@IsStockAmt = '0' ,</p>
+<p>@StockAmtType = 0 ,</p>
+<p>@UnitType = 1 ,</p>
+<p>@ConvUnitSeq = 0 ,</p>
+<p>@QryType = 'S' ,</p>
+<p>@IsTrustCust = ''</p>
+<p>-- 창고상관없이 품목별로 집계</p>
+<p>SELECT ItemSeq, SUM(StockQty) AS StkQty</p>
+<p>INTO #StkQty</p>
+<p>FROM #GetInOutStock</p>
+<p>GROUP BY ItemSeq</p>
+<p>-- 현재고</p>
+<p>UPDATE A</p>
+<p>SET StkQty = ISNULL(B.StkQty, 0)</p>
+<p>FROM #Fix AS A</p>
+<p>LEFT OUTER JOIN #StkQty AS B ON A.ItemSeq = B.ItemSeq</p>
+  </article>
+</div>
+</body>
+</html>

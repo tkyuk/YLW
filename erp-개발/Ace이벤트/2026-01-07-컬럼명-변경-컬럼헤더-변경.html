@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컬럼명 변경 / 컬럼헤더 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>컬럼명 변경 / 컬럼헤더 변경</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">컬럼명 변경 / 컬럼헤더 변경</h1>
+<p>-- 컬럼명 변경 OrgAmt</p>
+<p>-- NIA -&gt; 기관부담금</p>
+<p>-- KEAD -&gt; 지원금</p>
+<p>SS1.ActiveColumnName = 'OrgAmt'</p>
+<p>SS1.ColumnHeaderRowIndex = 0</p>
+<p>if chkIsNIA.Text == '1' then</p>
+<blockquote>
+<p>SS1.ColumnHeaderText = '기관부담금'</p>
+</blockquote>
+<p>else        </p>
+<blockquote>
+<p>SS1.ColumnHeaderText = '지원금'</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

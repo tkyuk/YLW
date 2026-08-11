@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리항목 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>관리항목 조회</h1>
+    <div class="meta">
+      <span class="note-date">2026-02-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">관리항목 조회</h1>
+<p>SELECT z.AccName,</p>
+<p>B.RemName, B.RemSeq, B.CodeHelpSeq, B.CodeHelpParams,</p>
+<p>CASE B.SMInputType</p>
+<p>WHEN 4016001 THEN 'enText'</p>
+<p>WHEN 4016002 THEN 'enCodeHelp'</p>
+<p>WHEN 4016003 THEN 'enFloat'</p>
+<p>WHEN 4016004 THEN 'enFloat'</p>
+<p>WHEN 4016005 THEN 'enDate'</p>
+<p>WHEN 4016006 THEN 'enText'</p>
+<p>WHEN 4016007 THEN 'enFloat'</p>
+<p>WHEN 4016008 THEN 'enFloat'</p>
+<p>ELSE 'enText'</p>
+<p>END AS CellType -- 입력형태</p>
+<p>, B.SMInputType AS SMInputType_Qry -- 입력형태(코드값)</p>
+<p>FROM _TDAAccount as z</p>
+<p>join _TDAAccountSub AS A WITH (NOLOCK) on a.AccSeq = z.AccSeq</p>
+<p>INNER JOIN _VDAAccountRem B WITH (NOLOCK)</p>
+<p>ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.RemSeq = B.RemSeq</p>
+<p>AND B.LanguageSeq = 1</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>--AND A.AccSeq = @Param1</p>
+<p>ORDER BY 1</p>
+  </article>
+</div>
+</body>
+</html>

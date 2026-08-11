@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>최종수정자, 최종등록자, 수정일, 등록일 저장 SP UPDATE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>최종수정자, 최종등록자, 수정일, 등록일 저장 SP UPDATE</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp-update">최종수정자, 최종등록자, 수정일, 등록일 저장 SP UPDATE</h1>
+<p>DROP PROCEDURE rot_SDAOilPriceSave</p>
+<p>GO</p>
+<p>CREATE PROCEDURE rot_SDAOilPriceSave</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @TableColumns NVARCHAR(4000)</p>
+<p>SELECT @TableColumns = dbo._FGetColumnsForLog('rot_TDAOilPrice')</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'rot_TDAOilPrice', -- 원테이블명</p>
+<p>'#BIZ_OUT_DataBlock1', -- 템프테이블명</p>
+<p>'StdYYMM, UMOilTypeSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@TableColumns,</p>
+<p>'', @PgmSeq</p>
+<p>-- 신규일 때는 X 수정시에 들어간다</p>
+<p>-- DELETE</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'D' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>DELETE rot_TDAOilPrice</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN rot_TDAOilPrice AS B ON A.StdYYMMOld = B.StdYYMM</p>
+<p>AND A.UMOilTypeSeqOld = B.UMOilTypeSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.WorkingTag = 'D'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>---- Update</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'U' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>UPDATE rot_TDAOilPrice</p>
+<p>SET StdYYMM = A.StdYYMM ,</p>
+<p>UMOilTypeSeq = A.UMOilTypeSeq ,</p>
+<p>StdPrice = A.StdPrice ,</p>
+<p>Remark = ISNULL(A.Remark ,''),</p>
+<p>FuelRate = ISNULL(A.FuelRate, 0),</p>
+<p>LastDateTime = GETDATE() ,</p>
+<p>LastUserSeq = @UserSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN rot_TDAOilPrice AS B ON A.StdYYMMOld = B.StdYYMM</p>
+<p>AND A.UMOilTypeSeqOld = B.UMOilTypeSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>-- INSERT</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'A' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>INSERT INTO rot_TDAOilPrice</p>
+<p>(</p>
+<p>CompanySeq ,</p>
+<p>StdYYMM ,</p>
+<p>UMOilTypeSeq ,</p>
+<p>StdPrice ,</p>
+<p>Remark ,</p>
+<p>FuelRate ,</p>
+<p>RegUserSeq ,</p>
+<p>RegDateTime ,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,</p>
+<p>A.StdYYMM ,</p>
+<p>A.UMOilTypeSeq ,</p>
+<p>A.StdPrice ,</p>
+<p>ISNULL(A.Remark ,''),</p>
+<p>ISNULL(A.FuelRate, 0),</p>
+<p>@UserSeq ,</p>
+<p>GETDATE() ,</p>
+<p>@UserSeq ,</p>
+<p>GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET StdYYMMOld = StdYYMM,</p>
+<p>UMOilTypeSeqOld = UMOilTypeSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>UPDATE A</p>
+<p>SET RegUserName = ISNULL(C.UserName,N''),</p>
+<p>RegDateTime = B.RegDateTime</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN rot_TDAOilPrice AS B WITH(NOLOCK) ON A.StdYYMM = B.StdYYMM</p>
+<p>AND A.UMOilTypeSeq = B.UMOilTypeSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS C WITH(NOLOCK) ON B.RegUserSeq = C.UserSeq</p>
+<p>WHERE A.WorkingTag IN (N'A')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>UPDATE A</p>
+<p>SET LastUserName = ISNULL(C.UserName,N''),</p>
+<p>LastDateTime = B.LastDateTime</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN rot_TDAOilPrice AS B WITH(NOLOCK) ON A.StdYYMM = B.StdYYMM</p>
+<p>AND A.UMOilTypeSeq = B.UMOilTypeSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS C WITH(NOLOCK) ON B.LastUserSeq = C.UserSeq</p>
+<p>WHERE A.WorkingTag IN (N'A',N'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>RETURN</p>
+<p>UPDATE A</p>
+<p>SET RegUserName = ISNULL(C.UserName,N''),</p>
+<p>RegDateTime = B.RegDateTime</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN rot_TDAOilPrice AS B WITH(NOLOCK) ON A.StdYYMM = B.StdYYMM</p>
+<p>AND A.UMOilTypeSeq = B.UMOilTypeSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS C WITH(NOLOCK) ON B.RegUserSeq = C.UserSeq</p>
+<p>WHERE A.WorkingTag IN (N'A')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>UPDATE A</p>
+<p>SET LastUserName = ISNULL(C.UserName,N''),</p>
+<p>LastDateTime = B.LastDateTime</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN rot_TDAOilPrice AS B WITH(NOLOCK) ON A.StdYYMM = B.StdYYMM</p>
+<p>AND A.UMOilTypeSeq = B.UMOilTypeSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS C WITH(NOLOCK) ON B.LastUserSeq = C.UserSeq</p>
+<p>WHERE A.WorkingTag IN (N'A',N'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+  </article>
+</div>
+</body>
+</html>

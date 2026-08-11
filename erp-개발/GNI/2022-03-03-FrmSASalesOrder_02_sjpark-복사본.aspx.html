@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\<\<FrmSASalesOrder_02_sjpark - 복사본.aspx\>\></title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\<\<FrmSASalesOrder_02_sjpark - 복사본.aspx\>\></h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="frmsasalesorder_02_sjpark-aspx">\&lt;\&lt;FrmSASalesOrder_02_sjpark - 복사본.aspx&gt;&gt;</h1>
+<p>aspx</p>
+<p>* 처음 3줄 </p>
+<p><img alt="" src="assets/FrmSASalesOrder_02_sjpark-복사본.aspx/image69.png" /></p>
+<p>- Codebehind =&gt; 이름 변경</p>
+<p>- Inherits (aspx의) 경로 =&gt; sjpark - Sales - ~.aspx</p>
+<p>\&lt;HTML&gt; 부분 (처음부터 끝까지 이긴함)</p>
+<p>1. 화면의 컨트롤(마스터) 부분 (속성 정하기)</p>
+<blockquote>
+<p>\&lt;변수&gt;값123\&lt;/변수&gt; =&gt; 여러 개로 구성되어있음</p>
+<p>+. (58번 서버) csproj에서 수정하면 더 편하다</p>
+</blockquote>
+<p>2. 변수</p>
+<p><img alt="" src="assets/FrmSASalesOrder_02_sjpark-복사본.aspx/image70.png" /></p>
+<p>시트에 필요한 변수 작성 (EX. No, 판매구분 등등)</p>
+<blockquote>
+<p>(마스터 부분은 id가 있기 때문에 변수 설정이 필요 없다)</p>
+</blockquote>
+<p>양식 : ms~</p>
+<blockquote>
+<p>고객사 : 컬럼 추가해주세요~</p>
+<p>=&gt; ms~ 추가</p>
+</blockquote>
+<p>3. Function (함수) (Ace의 툴바)</p>
+<p><img alt="" src="assets/FrmSASalesOrder_02_sjpark-복사본.aspx/image71.png" /></p>
+<blockquote>
+<p>aspx =&gt; 화면에 보여주는 부분이므로 =&gt; JumpOut</p>
+<p>화면에 있는 데이터를 긁어가서 점프하기 때문에</p>
+<p>cs =&gt; JumpIn 다른 화면이 준 데이터를 보여줌</p>
+</blockquote>
+<p>4. Page_Load() (제일 중요 / 거의 이거만 고침)</p>
+<p><img alt="" src="assets/FrmSASalesOrder_02_sjpark-복사본.aspx/image72.png" /></p>
+<p>순서가 중요 =&gt; 60 =&gt; 전체 컬럼 갯수</p>
+<p>G&amp;I 의 가장 큰 특징 중 하나가 특징대로 출력한다는 점이다</p>
+<blockquote>
+<p>Ace에서는 컬럼 추가 시 위치는 별도로 지정 안해도 되지만</p>
+<p>G&amp;I는 순서가 정해져 있기 때문에 중간에 추가하면</p>
+<p>다시 일일히 뒤로 내려야한다</p>
+</blockquote>
+<p>5. 코드도움 함수 (Sub txt\~\~~_CodeHelp(IsDblClick)</p>
+<blockquote>
+<p>코드도움 추가하려면 이걸 하나 추가하면 된다</p>
+</blockquote>
+<p>6. Private Sub ylwsh_Change(Col, Row)</p>
+<blockquote>
+<p>====</p>
+<p>영림원 시트</p>
+<p>사용자가 시트를 바꿀 때</p>
+<p>ex. 수량, 판매단가 쓰면 자동으로 판매금액 나오는 것</p>
+<hr />
+<p>조회 누르면 - function_query 이벤트 실행</p>
+<p>pageMode = Query</p>
+<p>PageParam.value - 페이지 받은거 넣음</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

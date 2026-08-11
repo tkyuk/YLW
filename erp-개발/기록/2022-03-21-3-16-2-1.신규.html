@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3/16 - 2-1.신규</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>3/16 - 2-1.신규</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="316-2-1">3/16 - 2-1.신규</h1>
+<table>
+<thead>
+<tr>
+<th>신규</th>
+<th>폐기요청자재등록_mcnk 개발</th>
+<th>FrmWLGBadQtyReg_mcnk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><img alt="" src="assets/3-16-2-1.신규/image8.png" /></p>
+<p><img alt="" src="assets/3-16-2-1.신규/image9.png" /></p>
+<table>
+<thead>
+<tr>
+<th>사업단위</th>
+<th>사업단위_WBS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>외주현장창고</td>
+<td>창고_WBS</td>
+</tr>
+<tr>
+<td>자재명</td>
+<td>자재 품명_WBS</td>
+</tr>
+<tr>
+<td>자재번호</td>
+<td>자재 품번_WBS</td>
+</tr>
+<tr>
+<td>규격</td>
+<td>자재 규격_WBS</td>
+</tr>
+<tr>
+<td>통화</td>
+<td>통화_WBS</td>
+</tr>
+</tbody>
+</table>
+<p>외주현장창고 - 창고_WBS</p>
+<p>자재</p>
+<p><img alt="" src="assets/3-16-2-1.신규/image10.png" /></p>
+<p><img alt="" src="assets/3-16-2-1.신규/image11.png" /></p>
+<p><img alt="" src="assets/3-16-2-1.신규/image12.png" /></p>
+<ol start="2">
+<li>이벤트 메소드 (수량 * 단가 = 판매금액)</li>
+</ol>
+<blockquote>
+<p>local Amt, Qty, Price</p>
+<p>Qty = tonumber(CellText(SS1, SS1.ActiveRow, 'Qty'))</p>
+<p>Price = tonumber(CellText(SS1, SS1.ActiveRow, 'Price'))</p>
+<p>Amt = Qty * Price</p>
+<p>SetText(SS1, SS1.ActiveRow, 'Amt', Amt)        </p>
+<p><img alt="" src="assets/3-16-2-1.신규/image13.png" /></p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

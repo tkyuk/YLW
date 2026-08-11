@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIS처리 및 다시 NON처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>DIS처리 및 다시 NON처리</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="dis-non">DIS처리 및 다시 NON처리</h1>
+<p>명칭.ControlKey = 'NON;' ==&gt; 신규, 삭제 시 사용</p>
+<p>명칭.ControlKey = 'DIS;NON;' =&gt;&gt; 조회, 저장 시 사용</p>
+<p>txtBizUnitName1.ControlKey = 'NON;'</p>
+<p>datStdYM.ControlKey = 'NON;'</p>
+<p>txtWHName.ControlKey = 'NON;'</p>
+<p>-- 링크드화면 (체계사업)인 경우 콤보 3건 저장 가능</p>
+<p>LinkPgm = _base.LinkCreateID</p>
+<p>if LinkPgm ~= '' then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMBizHeadQuarterName'         </p>
+<p>SS1.ColumnControlKey = ''</p>
+<p>SS1.ActiveColumnName = 'UMHeadQuarterName'         </p>
+<p>SS1.ColumnControlKey = ''</p>
+<p>SS1.ActiveColumnName = 'UMBizSectorName'         </p>
+<p>SS1.ColumnControlKey = ''</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMBizHeadQuarterName'         </p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'UMHeadQuarterName'         </p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'UMBizSectorName'         </p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+</blockquote>
+<p>end</p>
+<p>FrmWSLSalesOutCompResults_mcnv</p>
+<p>출하계획대비실적조회_mcnv</p>
+<p>집계기준에 따른 시트 여러개 DIS, HID 처리</p>
+<p>local UmQryTypeName</p>
+<p>if(cmbUmQryTypeName.Value == '2140123001') then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMFactoryUnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'ItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'ItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'Spec'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>SS1.ActiveColumnName = 'UnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+</blockquote>
+<p>elseif (cmbUmQryTypeName.Value == '2140123002') then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMFactoryUnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'ItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'ItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'Spec'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'        </p>
+<p>SS1.ActiveColumnName = 'UnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'        </p>
+</blockquote>
+<p>elseif (cmbUmQryTypeName.Value == '2140123003') then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMFactoryUnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'ItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'ItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'Spec'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'        </p>
+<p>SS1.ActiveColumnName = 'UnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'        </p>
+</blockquote>
+<p>elseif (cmbUmQryTypeName.Value == '2140123004') then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMFactoryUnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'ItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'ItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'Spec'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'        </p>
+<p>SS1.ActiveColumnName = 'UnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'                </p>
+</blockquote>
+<p>elseif (cmbUmQryTypeName.Value == '2140123005') then</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMFactoryUnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'ItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'ItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'Spec'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>SS1.ActiveColumnName = 'UnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'                </p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMFactoryUnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'ItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'ItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'Spec'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'CustItemName'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'</p>
+<p>SS1.ActiveColumnName = 'CustItemNo'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID'        </p>
+<p>SS1.ActiveColumnName = 'UnitName'</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배열 생성 / 선택된 행 기준 반복</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>배열 생성 / 선택된 행 기준 반복</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">배열 생성 / 선택된 행 기준 반복</h1>
+<p>-- ### 변수 초기화 (수정된 부분) ###</p>
+<p>-- # 연산자 사용을 피하기 위해 배열의 크기를 직접 관리할 카운터 변수를 추가합니다.</p>
+<p>local seenItems, duplicateItemsForCheck, duplicateListArray, hasDuplicates, duplicateListCounter</p>
+<p>seenItems = {}</p>
+<p>duplicateItemsForCheck = {}</p>
+<p>duplicateListArray = {}</p>
+<p>hasDuplicates = false</p>
+<p>duplicateListCounter = 0 -- 중복 목록 배열의 크기를 저장할 변수</p>
+<p>-- ### 시트(SS)의 모든 행을 순회 ###</p>
+<p>for row = 0, SS.DataRowCnt - 1 do</p>
+<p>if CellText(SS, row, 'SelPrice') == '1' then</p>
+<p>local itemSeq = CellText(SS, row, 'ItemSeq')</p>
+<p>local itemNo = CellText(SS, row, 'ItemNo')</p>
+<p>if itemSeq ~= nil and itemSeq ~= '' then</p>
+<p>if seenItems[itemSeq] then</p>
+<p>hasDuplicates = true</p>
+<p>if duplicateItemsForCheck[itemNo] == nil then</p>
+<p>-- ### 수정된 부분 1: 카운터를 사용하여 배열에 항목 추가 ###</p>
+<p>duplicateListCounter = duplicateListCounter + 1</p>
+<p>duplicateListArray[duplicateListCounter] = itemNo</p>
+<p>duplicateItemsForCheck[itemNo] = true</p>
+<p>end</p>
+<p>else</p>
+<p>seenItems[itemSeq] = true</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>-- ### 결과 처리 ###</p>
+<p>if hasDuplicates then</p>
+<p>local duplicateListString = ""</p>
+<p>-- ### 수정된 부분 2: # 연산자 대신 카운터 변수 사용 ###</p>
+<p>for i = 1, duplicateListCounter do</p>
+<p>if i &gt; 1 then</p>
+<p>duplicateListString = duplicateListString .. ", "</p>
+<p>end</p>
+<p>duplicateListString = duplicateListString .. duplicateListArray[i]</p>
+<p>end</p>
+<p>local message = "동일한 자재번호 " .. duplicateListString .. " 가 선택되었습니다."</p>
+<p>MessageBoxShow(message, "중복 오류")</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>-- 1. 체크된 행의 정보를 저장할 테이블(배열)을 생성합니다.</p>
+<p>local sourceData = {}</p>
+<p>local sourceCounter = 0</p>
+<p>for row = 0, SS.DataRowCnt - 1 do</p>
+<p>if CellText(SS, row, 'SelPrice') == '1' then</p>
+<p>sourceCounter = sourceCounter + 1</p>
+<p>-- 각 행의 정보를 하나의 작은 테이블로 묶어서 저장합니다.</p>
+<p>sourceData[sourceCounter] = {</p>
+<p>itemSeq = CellText(SS, row, 'ItemSeq'),</p>
+<p>price = CellText(SS, row, 'Price'),</p>
+<p>domPrice = CellText(SS, row, 'DOMPrice'),</p>
+<p>dummy9 = CellText(SS, row, 'Dummy9'),</p>
+<p>dummy10 = CellText(SS, row, 'Dummy10')</p>
+<p>}</p>
+<p>end</p>
+<p>end</p>
+<p>-- 2. 시트 전체를 다시 순회하며, 저장된 원본 데이터를 기준으로 값을 업데이트합니다.</p>
+<p>for row = 0, SS.DataRowCnt - 1 do</p>
+<p>local targetItemSeq = CellText(SS, row, 'ItemSeq')</p>
+<p>-- 현재 행의 ItemSeq가 유효한 경우에만 비교를 수행합니다.</p>
+<p>if targetItemSeq ~= nil and targetItemSeq ~= '' and CellText(SS, row, 'SelPrice') ~= '1' then</p>
+<p>-- 3. 원본 데이터 배열을 순회하며 일치하는 ItemSeq를 찾습니다.</p>
+<p>for i = 1, sourceCounter do</p>
+<p>local setdata = sourceData[i]</p>
+<p>if setdata.itemSeq == targetItemSeq then</p>
+<p>-- ItemSeq가 일치하면 값을 SetText 합니다.</p>
+<p>SetText(SS, row, 'Price', setdata.price)</p>
+<p>SetText(SS, row, 'DOMPrice', setdata.domPrice)</p>
+<p>SetText(SS, row, 'Dummy9', setdata.dummy9)</p>
+<p>SetText(SS, row, 'Dummy10', setdata.dummy10)</p>
+<p>if SS.WorkingTag ~= 'A' then</p>
+<p>SS.WorkingTag = 'U'</p>
+<p>end</p>
+<p>SS.ActiveRow = row</p>
+<p>SS.ActiveColumnName = 'Price'</p>
+<blockquote>
+<p>SS.CodeHelpSelectedRows = 0</p>
+</blockquote>
+<p>RunPgmMethod('NewCalcAmt')</p>
+<p>-- 일치하는 데이터를 찾았으므로, 이 행에 대한 원본 데이터 검색을 중단합니다.</p>
+<p>break</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

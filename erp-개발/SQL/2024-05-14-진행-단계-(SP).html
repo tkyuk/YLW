@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진행 단계 (SP)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>진행 단계 (SP)</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">진행 단계 (SP)</h1>
+<ol>
+<li>테이블 : #PROG_IN_DataBlock1</li>
+</ol>
+<p><img alt="" src="assets/진행-단계-(SP)/image29.png" /></p>
+<p><img alt="" src="assets/진행-단계-(SP)/image30.png" /></p>
+<ol start="2">
+<li>태이블 : #TCOMSourceDailyJump (1 -&gt; 2)</li>
+</ol>
+<p><img alt="" src="assets/진행-단계-(SP)/image31.png" /></p>
+<p>_SWCOMSourceDailyJumpQuery</p>
+<ol>
+<li>
+<p>확정 사용하는 경우 확정 되었는지 체크</p>
+<ol>
+<li>환경설정 미체크시 (프로젝트) 구매요청 -&gt; 구매견적의뢰 JUMP시 확정체크하지 않도록 추가</li>
+</ol>
+</li>
+<li>
+<p>#SCOMSourceDailyJumpQuery 데이터 넣기'</p>
+<ol>
+<li>_TCOMProgTable 에서 @FromTableSeq를 통해 해당 실테이블 값을 넣는다'</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/진행-단계-(SP)/image32.png" /></p>
+</blockquote>
+<ol start="3">
+<li>
+<p>_TCOMProgRelativeTables 에서 @FromTableSeq, @ToTableSeq 에 맞는 관계 데이터 가져옴</p>
+</li>
+<li>
+<p>최종적으로 #TCOMSourceDailyJumpQueryResult 테이블에 넣음</p>
+</li>
+</ol>
+<p>진행 조회 SP (ex. apro_SWPUORDApprovalReqJumpQuery)</p>
+<ol>
+<li>#BIZ_OUT_DataBlock1 에 INSERT</li>
+</ol>
+<p>진행 체크 SP (ex. _SWPUORDApprovalReqJumpCheck)</p>
+<ol>
+<li>#BIZ_OUT_DataBlock1 로 체크 (저장 체크 sp 와 비슷하다)</li>
+</ol>
+  </article>
+</div>
+</body>
+</html>

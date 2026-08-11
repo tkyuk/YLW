@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기준월 -\> 월초, 월말 입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>기준월 -\> 월초, 월말 입력</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">기준월 -&gt; 월초, 월말 입력</h1>
+<p>local Date</p>
+<p>if txtInputMonth.Value ~= '' then</p>
+<blockquote>
+<p>Date = DateAdd('Day',-1,DateAdd('Month',1,txtInputMonth.Value .. '01'))</p>
+<p>txtInputDate.Value = txtInputMonth.Value ..'01'</p>
+<p>txtInputDateTo.Value = Date</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

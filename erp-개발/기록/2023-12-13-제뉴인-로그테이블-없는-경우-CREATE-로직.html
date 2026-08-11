@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 로그테이블 없는 경우 CREATE 로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 로그테이블 없는 경우 CREATE 로직</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="create">제뉴인 로그테이블 없는 경우 CREATE 로직</h1>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects where Name = 'dat_TPJTBgtSaveForWorkDailyLog' AND xtype = 'U' )</p>
+<p>BEGIN</p>
+<p>CREATE TABLE dat_TPJTBgtSaveForWorkDailyLog</p>
+<p>(</p>
+<p>Seq                INT IDENTITY         NOT NULL,</p>
+<p>CompanySeq                INT          NULL,</p>
+<p>WorkingTag                NVARCHAR(10)          NULL,</p>
+<p>LogDate                DATETIME          NULL,</p>
+<p>WorkSeq                INT          NULL,</p>
+<p>UserSeq                INT          NULL,</p>
+<p>PgmSeq                INT          NULL,</p>
+<p>Status                INT          NULL,</p>
+<p>Result                NVARCHAR(250)          NULL,</p>
+<p>CONSTRAINT PKdat_TPJTBgtSaveForWorkDailyLog PRIMARY KEY CLUSTERED (Seq ASC)</p>
+<p>)</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

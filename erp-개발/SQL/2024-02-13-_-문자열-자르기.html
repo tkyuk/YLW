@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\_/ 문자열 자르기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\_/ 문자열 자르기</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_">_/ 문자열 자르기</h1>
+<p>DECLARE @TmpItemSeq NVARCHAR(MAX)</p>
+<p>SELECT @TmpItemSeq = @ItemSeq</p>
+<p>IF (ISNULL(@TmpItemSeq, '') \&lt;&gt; '')</p>
+<p>BEGIN</p>
+<p>IF SUBSTRING(@TmpItemSeq, LEN(@TmpItemSeq)-1, LEN(@TmpItemSeq)) \&lt;&gt; '_/'</p>
+<p>BEGIN</p>
+<p>SELECT @TmpItemSeq = @TmpItemSeq + '_/'</p>
+<p>END</p>
+<p>CREATE TABLE #TempItemTable</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #TempItemTable</p>
+<p>SELECT A.IDX_NO, A.Code</p>
+<p>FROM _FCOMSplit(@TmpItemSeq,'_/') AS A</p>
+<p>END</p>
+<p><span class="mark">-- 앞에 공백 포함</span></p>
+<p>INSERT INTO #MESData(WorkReportSeq, ItemSeq, InputQty, WHSeq, UnitSeq, LotNo)</p>
+<p>SELECT @WorkReportSeq, A.Code, C.Code, B.Code, D.Code, E.value</p>
+<p>FROM _FCOMSplit(@ItemSeq, '_/') AS A</p>
+<p>JOIN _FCOMSplit(@WHSeq , '_/') AS B ON A.IDX_No = B.IDX_No</p>
+<p>JOIN _FCOMSplit(@InputQty, '_/') AS C ON A.IDX_No = C.IDX_No</p>
+<p>JOIN _FCOMSplit(@UnitSeq , '_/') AS D ON A.IDX_No = D.IDX_No</p>
+<p>JOIN _FCOMStrSplitOne(@LotNo , '_/') AS E ON A.IDX_No = E.idx</p>
+  </article>
+</div>
+</body>
+</html>

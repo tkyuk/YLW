@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창고 구하기 (구매, 외주)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>창고 구하기 (구매, 외주)</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">창고 구하기 (구매, 외주)</h1>
+<p>구매</p>
+<p>외주</p>
+<p>-- 창고 찾아오기.</p>
+<p>UPDATE A</p>
+<p>SET WHSeq = CASE WHEN ISNULL(A.WHSeq, 0) \&lt;&gt; 0 THEN A.WHSeq</p>
+<p>WHEN ISNULL(B.WHSeq, 0) \&lt;&gt; 0 THEN B.WHSeq</p>
+<p>WHEN ISNULL(C.WHSeq, 0) \&lt;&gt; 0 THEN C.WHSeq</p>
+<p>WHEN ISNULL(D.WHSeq, 0) \&lt;&gt; 0 THEN D.WHSeq</p>
+<p>WHEN ISNULL(E.WHSeq, 0) \&lt;&gt; 0 THEN E.WHSeq</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>FROM #TDelvItem AS A</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.WHSeq</p>
+<p>FROM _TPUReqDeptBasicWH AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.DeptSeq = A.DeptSeq</p>
+<p>ORDER BY Z.Seq DESC</p>
+<p>) AS B -- 1.부서별 납품창고</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.WHSeq</p>
+<p>FROM _TDAWHItem AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.ItemSeq = A.ItemSeq</p>
+<p>ORDER BY Z.WHSeq DESC</p>
+<p>) AS C -- 2.창고별관리품목</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.WHSeq</p>
+<p>FROM _TPUDelvItem AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPUDelv AS Y WITH(NOLOCK) ON Z.CompanySeq = Y.CompanySeq</p>
+<p>AND Z.DelvSeq = Y.DelvSeq</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(Y.IsReturn, '0') \&lt;&gt; '1' -- 반품건 제외</p>
+<p>AND Z.ItemSeq = A.ItemSeq</p>
+<p>AND Y.BizUnit = A.BizUnit</p>
+<p>ORDER BY Y.DelvDate DESC, Y.DelvNo DESC, Z.DelvSeq DESC, Z.DelvSerl DESC</p>
+<p>) AS D -- 3.이전 품목별 납품창고</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.WHSeq</p>
+<p>FROM _TDAWH AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.SMWHKind = 8002026</p>
+<p>AND Z.BizUnit = A.BizUnit</p>
+<p>ORDER BY Z.WHSeq DESC</p>
+<p>) AS E -- 4. 위의 창고도 모두 없을 경우, 사업단위 창고</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.POType = 1 -- 구매</p>
+<p>AND ISNULL(A.WHSeq, 0) = 0 -- 창고 코드가 없다면!</p>
+<p>-- 창고 찾아오기.</p>
+<p>UPDATE A</p>
+<p>SET WHSeq = CASE WHEN ISNULL(A.WHSeq, 0) \&lt;&gt; 0 THEN A.WHSeq</p>
+<p>WHEN ISNULL(B.WHSeq, 0) \&lt;&gt; 0 THEN B.WHSeq</p>
+<p>WHEN ISNULL(C.WHSeq, 0) \&lt;&gt; 0 THEN C.WHSeq</p>
+<p>WHEN ISNULL(D.WHSeq, 0) \&lt;&gt; 0 THEN D.WHSeq</p>
+<p>WHEN ISNULL(E.WHSeq, 0) \&lt;&gt; 0 THEN E.WHSeq</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>FROM #TDelvItem AS A</p>
+<p>OUTER APPLY(SELECT TOP 1 Y.DelvWHSeq AS WHSeq</p>
+<p>FROM _TPDSFCWorkOrder AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPDBaseWorkCenter AS Y WITH(NOLOCK) ON Y.CompanySeq = Z.CompanySeq</p>
+<p>AND Y.WorkCenterSeq = Z.WorkCenterSeq</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.WorkOrderSeq = A.WorkOrderSeq</p>
+<p>AND Z.WorkOrderSerl = A.WorkOrderSerl</p>
+<p>ORDER BY Z.WorkCenterSeq DESC</p>
+<p>) AS B -- 1.작업지시 워크센터의 창고</p>
+<p>OUTER APPLY(SELECT TOP 1 X.DelvWHSeq AS WHSeq</p>
+<p>FROM _TPDROUItemProc AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPDROUItemProcWC AS Y WITH(NOLOCK) ON Y.CompanySeq = Z.CompanySeq</p>
+<p>AND Y.BizUnit = Z.BizUnit</p>
+<p>AND Y.ItemSeq = Z.ItemSeq</p>
+<p>AND Y.ProcRev = Z.ProcRev</p>
+<p>AND Y.ProcSeq = Z.ProcSeq</p>
+<p>JOIN _TPDBaseWorkCenter AS X WITH(NOLOCK) ON X.CompanySeq = Y.CompanySeq</p>
+<p>AND X.WorkCenterSeq = Y.WorkCenterSeq</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.BizUnit = A.BizUnit</p>
+<p>AND Z.ItemSeq = A.ItemSeq</p>
+<p>AND Z.ProcRev = A.ProcRev</p>
+<p>ORDER BY Y.Ranking ASC, Y.ProcSeq DESC, Y.Serl DESC</p>
+<p>) AS C -- 2.제품별 공정별 워크센터의 창고</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.WHSeq</p>
+<p>FROM _TDAWHItem AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.ItemSeq = A.ItemSeq</p>
+<p>ORDER BY Z.WHSeq DESC</p>
+<p>) AS D -- 3.창고별관리품목</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.WHSeq</p>
+<p>FROM _TDAWH AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.SMWHKind = 8002026</p>
+<p>AND Z.BizUnit = A.BizUnit</p>
+<p>ORDER BY Z.WHSeq DESC</p>
+<p>) AS E -- 4. 위의 창고도 모두 없을 경우, 사업단위 창고</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.POType = 2 -- 외주</p>
+<p>AND ISNULL(A.WHSeq, 0) = 0 -- 창고 코드가 없다면!</p>
+  </article>
+</div>
+</body>
+</html>

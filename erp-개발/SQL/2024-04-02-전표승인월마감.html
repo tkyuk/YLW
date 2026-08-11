@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전표승인월마감</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>전표승인월마감</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">전표승인월마감</h1>
+<p>emk_SWACMRMontlyReportConfirmSave</p>
+<p>DECLARE @ClosingSeq INT,</p>
+<p>@AccYM NCHAR(6)</p>
+<p>--@StartDate NCHAR(8),</p>
+<p>--@EndDate NCHAR(8)</p>
+<p>SELECT @ClosingSeq = 1146</p>
+<p>SELECT @AccYM = ISNULL(A.AccYM, '')</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>-- [회계업무]전표월마감 테이블에 데이터가 있으면 UPDATE</p>
+<p>UPDATE A</p>
+<p>SET IsClose = ISNULL(B.IsCfm, '0')</p>
+<p>FROM _TCOMClosingYM AS A</p>
+<p>-- 이태욱(2202): DtlUnitSeq 제외하고 조인</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ClosingYM = @AccYM</p>
+<p>AND A.ClosingSeq = @ClosingSeq --마감업무코드</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1</p>
+<p>FROM _TCOMClosingYM AS A WITH(NOLOCK)</p>
+<p>WHERE A.ClosingYM = @AccYM</p>
+<p>AND A.ClosingSeq = @ClosingSeq --마감업무코드</p>
+<p>AND A.CompanySeq = @CompanySeq)</p>
+<p>BEGIN</p>
+<p>-- [회계업무]전표월마감 테이블에 데이터가 없으면 INSERT</p>
+<p>INSERT INTO _TCOMClosingYM (CompanySeq, ClosingSeq , ClosingYM, UnitSeq, DtlUnitSeq,</p>
+<p>IsClose , LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq, @ClosingSeq, @AccYM, B.AccUnit, C.SlipUnit,</p>
+<p>ISNULL(A.IsCfm, '0'), @UserSeq, GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN _TDAAccUnit AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TACSlipUnit AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

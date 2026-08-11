@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조회 1.</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>조회 1.</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="1">조회 1.</h1>
+<blockquote>
+<p>CS 버전 웹버전 둘다 비밀번호 1111</p>
+<p>마스터 현황 (주문현황)</p>
+<p>아이템 현황 (품목현황)</p>
+<p>한세트씩 조회가 존재한다</p>
+<p>이외에 별도로 진행현황 같은것들도 존재한다</p>
+<p>수주 == 주문</p>
+<p>FrmW(웹)SLOrderList</p>
+<p>Caption-W 4글자까지 대략 60정도를 준다</p>
+<p>NOS =&gt; 저장필수 NON + SAVE</p>
+<p>NOQ =&gt; 조회필수</p>
+<p>=&gt; NON + QRY</p>
+<p>QRY =&gt; ‘변경 하시겠습니까?’ 메시지 안 뜸</p>
+<p>수주입력,거래명세서를 참고하면 대부분 다 있음</p>
+<p>DateFr DateTo</p>
+<p>YMFD YMLD</p>
+<p>조회조건의 대부분의 조건을 시트에 보여준다</p>
+<p>사업단위를 필수조건 값으로 할 경우 시트에서는 제외해도 됨</p>
+<p>조회는 DataBlock을 마스터 아이템 둘다 DataBlock1로 써도 됨</p>
+<p>모든 시트값들을 DIS를 넣어준다</p>
+<p>제뉴인=&gt; 비즈니스 서비스 안에 데이터서비스 안에 SP가 있음</p>
+<p>에이스=&gt; 비즈니스 서비스</p>
+<p>메소드유형 - R조회 SP</p>
+<p>툴바에 있는 이벤트 속성에서 "변경여부확인“</p>
+<p>=&gt; 주문입력 시에는 넣어줘야함 NotNullCheck를 체크해야 NOQ NOS가 작동함</p>
+<p>이벤트 자동생성후 VISIBLE 체크 풀기</p>
+<p>Name 은 사이즈 100 날짜는 8 SEQ는 int</p>
+<p><img alt="" src="assets/조회-1/image57.png" /></p>
+<p>화살표는 왼쪽(최초 input Data)</p>
+<p>IF @OrderDateTo = '' SELECT @OrderDateTo = '99991231'</p>
+<p>안 넣으면 오류 나는 sql 버전이 있어서 넣자!</p>
+<p>AND(@OrderNo = '' OR A.OrderNo LIKE @OrderNo + '%')</p>
+<p>품목같은 경우는 앞에도 '%' + 를 붙여준다</p>
+<p>AND(@CustSeq = 0 OR A.CustSeq = @CustSeq)</p>
+<p>ERP 대부분은 품목으로 움직임(필수) 따라서 품목은 inner JOIN을 걸어주고 나머지 값들은 LEFT OUTER JOIN</p>
+<p>_T TABLE</p>
+<p>_S SP</p>
+<p>+ DA 마스터(공용)</p>
+<p>_V VIEW</p>
+<p>Order By A.OrderDate A.OrderNo</p>
+<p>JUMP =&gt; 액티브 로우 선택 후 툴바</p>
+<p><img alt="" src="assets/조회-1/image58.png" /></p>
+<p>툴바 추가 이벤트유형 O-JUMPOUT DataKey JumpSjpark 연결할 화면 이름</p>
+<p><img alt="" src="assets/조회-1/image59.png" /></p>
+<p><img alt="" src="assets/조회-1/image60.png" /></p>
+<p>메소드 추가 Jump Out G SS1 Active Row</p>
+<p>ACE는 받는 쪽에서는 따로 안하지만</p>
+<p>제뉴인은 받는 쪽에서도 JUMP IN 을 해줘야 함</p>
+<p>JUMPIN S -&gt; T RunPgmMethod('Query') 이게 디폴트 점프인이고</p>
+<p>어디서 들어오는지에 따라 툴바에 추가 해서 하는 것은 VISIBLE을 꺼줌</p>
+<p>더블클릭은 MethodType =&gt; E-처리 T JumpOut('JumpSjpark')</p>
+<p><img alt="" src="assets/조회-1/image61.png" /></p>
+<p><img alt="" src="assets/조회-1/image62.png" /></p>
+<p><img alt="" src="assets/조회-1/image63.png" /></p>
+<p><img alt="" src="assets/조회-1/image64.png" /></p>
+<p><img alt="" src="assets/조회-1/image65.png" /></p>
+<p>========================================</p>
+<p><img alt="" src="assets/조회-1/image66.png" /></p>
+<p><img alt="" src="assets/조회-1/image67.png" /></p>
+<p>품목현황</p>
+<p>FrmWSLOderItemList_sjpark</p>
+<p>주문품목조회_sjpark</p>
+<p>화면정보불러오기 할때 자동저장이니까 조심하기</p>
+<p>코드도움 _WBS _VEN 이 ACE 꺼 안붙어있는거는 제뉴인꺼임</p>
+<p>조회에서 코드도움 자동으로 리턴받는거 빼주기 조회기 때문에 원하는 것만 넣어주려고</p>
+<p>환경설정 값을 수량 단가 판매금액에 Default값으로 넣어준것 환경설정 값을 바꾸면 알아서 적용</p>
+<p>테이블 정보에서 LENGTH 가 1000 이면 서비스 구성에서는 500을 넣어주면됨</p>
+<p>OrderItem, _TDAItem 테이블은 inner join으로 처리해도 충분하다</p>
+<p>Order by 위에꺼 + OrderSerl</p>
+<p>Total 컬럼 추가하기</p>
+<p>Text로 된 항목 컨트롤키에 TOT</p>
+<p>수량, 판매금액 컨트롤키에 SUM</p>
+<p>등록에서의 조회는 임시테이블을 JOIN해도 되지만</p>
+<p>조회에서의 조회는 임시테이블을 변수에 담아서 처리하는것이</p>
+<p>존재하지 않을 경우가 쉽다</p>
+<p>_TDAUMinor ==&gt; 유저가 수정할 수 있는 테이블에 U 가 붙음</p>
+<p>MinorSeq</p>
+<p>UmOrderKind</p>
+<p>_TDASMinor ==&gt; 유저가 수정할 수 없음 S(ystem) =&gt; 하드코딩 가능</p>
+<p>SmOrderKind</p>
+</blockquote>
+<ul>
+<li>SP</li>
+</ul>
+<blockquote>
+<p>한 쪽에만 있으면 가비지 데이터 이기 때문에</p>
+<p>OrderItem은 left가 아니라 그냥 join</p>
+<p>품목도</p>
+<p>================================================</p>
+<p>================================================</p>
+</blockquote>
+<ul>
+<li>
+<p>Total 값 추가</p>
+</li>
+<li>
+<p>textbox 항목뒤에 txt (컨트롤키에) (주문번호)</p>
+</li>
+</ul>
+<blockquote>
+<p>보여줄 애들한테 SUM</p>
+<p>단가는 스킵</p>
+<p>수량, 판매금액에 SUM</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

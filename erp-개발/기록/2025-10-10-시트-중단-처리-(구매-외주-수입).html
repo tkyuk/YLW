@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 중단 처리 (구매 외주 수입)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 중단 처리 (구매 외주 수입)</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트 중단 처리 (구매 외주 수입)</h1>
+<p>CREATE PROCEDURE das_SWPUPDOSPUIImpORDListStop</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>CREATE TABLE #TCOMStop</p>
+<p>(</p>
+<p>IDX_NO INT</p>
+<p>, StopSeq INT</p>
+<p>, StopSerl INT</p>
+<p>, StopSubSerl INT</p>
+<p>, IsStop NCHAR(1)</p>
+<p>, UMStopReason INT</p>
+<p>, StopReason NVARCHAR(500)</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, DataSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #TCOMStop(IDX_NO, StopSeq, StopSerl, StopSubSerl, IsStop, UMStopReason, StopReason, Result, MessageType, Status, DataSeq)</p>
+<p>SELECT IDX_NO, POSeq, POSerl, 0, IsStop, 0, StopReason, NULL, NULL, 0, DataSeq</p>
+<p>FROM #BIZ_OUT_DATABLOCK1</p>
+<p>WHERE Status = 0</p>
+<p>DECLARE @POType INT</p>
+<p>SELECT @POType = POType</p>
+<p>FROM #BIZ_OUT_DATABLOCK1</p>
+<p>SELECT @PgmSeq = CASE @POType WHEN 1 THEN 128410249</p>
+<p>WHEN 2 THEN 128410324</p>
+<p>WHEN 3 THEN 128410060 END</p>
+<p>DECLARE @Columns NVARCHAR(200),</p>
+<p>@MessageType INT ,</p>
+<p>@Status INT ,</p>
+<p>@Results NVARCHAR(250),</p>
+<p>@StopSeq INT ,</p>
+<p>@EmpSeq INT ,</p>
+<p>@IsMasterStop NCHAR(1) ,</p>
+<p>@StopDate NCHAR(8) ,</p>
+<p>@SQL NVARCHAR(MAX),</p>
+<p>@JumpMapEnv INT                 ,</p>
+<blockquote>
+<p>@EnvValue79         NVARCHAR(2000)</p>
+</blockquote>
+<p>CREATE TABLE #SCOMStopHIST (</p>
+<p>CompanySeq INT,</p>
+<p>TableSeq INT,</p>
+<p>StopSeq INT,</p>
+<p>StopSerl INT,</p>
+<p>StopSubSerl INT,</p>
+<p>HistSerl INT)</p>
+<p>CREATE TABLE #SCOMStopWorkData (</p>
+<p>CompanySeq INT ,</p>
+<p>TableSeq INT ,</p>
+<p>StopSeq INT ,</p>
+<p>StopSerl INT ,</p>
+<p>StopSubSerl INT ,</p>
+<p>IsStop NCHAR(1) ,</p>
+<p>StopDate NCHAR(8) ,</p>
+<p>StopEmpSeq INT ,</p>
+<p>UMStopReason INT ,</p>
+<p>StopReason NVARCHAR(500),</p>
+<p>IsMasterStop NCHAR(1) ,</p>
+<p>LastDateTime DATETIME ,</p>
+<p>Status INT )</p>
+<p>CREATE TABLE #SCOMStopProgress (</p>
+<p>CompanySeq INT ,</p>
+<p>TableSeq INT ,</p>
+<p>StopSeq INT ,</p>
+<p>StopSerl INT ,</p>
+<p>StopSubSerl INT ,</p>
+<p>ToTableSeq INT ,</p>
+<p>ToSeq INT ,</p>
+<p>ToSerl INT ,</p>
+<p>ToSubSerl INT ,</p>
+<p>ToQty DECIMAL(19, 5),</p>
+<p>ToStdQty DECIMAL(19, 5),</p>
+<p>ToAmt DECIMAL(19, 5),</p>
+<p>ToVAT DECIMAL(19, 5),</p>
+<p>ToDOMAmt DECIMAL(19, 5),</p>
+<p>ToDOMVAT DECIMAL(19, 5))</p>
+<blockquote>
+<p>CREATE TABLE #Tmp_IsComplete (        </p>
+<p>StopSeq                INT,</p>
+<p>StopSerl        INT,</p>
+<p>StopSubSerl INT,</p>
+<p>IsComplete NCHAR(1))</p>
+</blockquote>
+<p>CREATE TABLE #TMP_PrevCheckSP(</p>
+<p>StopPrevCheckSPSerl INT,</p>
+<p>StopPrevCheckSPName NVARCHAR(100))</p>
+<p>SELECT @StopDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>--SELECT @StopDate = StopDate</p>
+<p>-- FROM #BIZ_OUT_DataBlock1</p>
+<p>--IF ISNULL(@StopEmpSeq,0) = 0</p>
+<p>--BEGIN</p>
+<p>-- SELECT @StopEmpSeq = ISNULL(A.EmpSeq, 0)</p>
+<p>-- FROM _TCAUser AS A WITH(NOLOCK)</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.UserSeq = @UserSeq</p>
+<p>--END</p>
+<p>SELECT @EmpSeq = ISNULL(A.EmpSeq, 0)</p>
+<p>FROM _TCAUser AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.UserSeq = @UserSeq</p>
+<p>SELECT @StopSeq = TableSeq ,</p>
+<p>@IsMasterStop = IsMasterStop,</p>
+<p>@JumpMapEnv = SMCompleteCheck</p>
+<p>FROM _TCOMStopPGM WITH(NOLOCK)</p>
+<p>WHERE PGMSeq = @PGMSeq</p>
+<p>UPDATE #TCOMStop</p>
+<p>SET StopSeq = ISNULL(A.StopSeq , 0 ),</p>
+<p>StopSerl = ISNULL(A.StopSerl , 0 ),</p>
+<p>StopSubSerl = ISNULL(A.StopSubSerl , 0 ),</p>
+<p>UMStopReason = ISNULL(A.UMStopReason, 0 ),</p>
+<p>StopReason = ISNULL(A.StopReason , ''),</p>
+<p>IsStop = CASE ISNULL(A.IsStop, '0') WHEN '' THEN '0' ELSE A.IsStop END</p>
+<p>FROM #TCOMStop AS A</p>
+<p>/*************** 2021.08.31 사전 체크 SP START ********************/</p>
+<p>INSERT #TMP_PrevCheckSP</p>
+<p>SELECT C.StopPrevCheckSPSerl, C.StopPrevCheckSPName</p>
+<p>FROM _TCOMStopPrevCheckSP C WITH(NOLOCK)</p>
+<p>WHERE C.CompanySeq = @CompanySeq AND C.TableSeq = @StopSeq</p>
+<p>AND C.IsNotUsed \&lt;&gt; '1'</p>
+<p>DECLARE @StopPrevCheckSPSerl INT, @StopPrevCheckSPName NVARCHAR(200)</p>
+<p>SELECT @StopPrevCheckSPSerl = 0</p>
+<p>WHILE( 1 = 1 )</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1 @StopPrevCheckSPSerl = StopPrevCheckSPSerl,</p>
+<p>@StopPrevCheckSPName = StopPrevCheckSPName</p>
+<p>FROM #TMP_PrevCheckSP</p>
+<p>WHERE StopPrevCheckSPSerl &gt; @StopPrevCheckSPSerl</p>
+<p>ORDER BY StopPrevCheckSPSerl</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>IF NOT EXISTS (SELECT * FROM sysobjects WHERE id = OBJECT_ID(@StopPrevCheckSPName, N'P'))</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT ,</p>
+<p>@Status OUTPUT ,</p>
+<p>@Results OUTPUT ,</p>
+<p>2210 , --         @1에 @2이(가) 존재하지 않습니다..(SELECT * FROM _TCAMessageLanguage WHERE Message like '%존재%')</p>
+<p>@LanguageSeq ,</p>
+<p>62989, N'업무DB', --</p>
+<p>21815, N'사전체크SP' --</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TCOMStop AS A</p>
+<p>RETURN</p>
+<p>END</p>
+<p>EXEC @StopPrevCheckSPName @CompanySeq, @StopSeq, @UserSeq, @LanguageSeq, @PgmSeq</p>
+<p>IF @@Error \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>/*************** 2021.08.31 사전 체크 SP END ********************/</p>
+<blockquote>
+<p>/*************** 중단권한 체크 시작*******************************/</p>
+<p>-- 2023.08.24 장동건 : 환경설정 체크 시 중단권한체크 실시</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 79, @UserSeq, @@PROCID, @EnvValue79 OUTPUT</p>
+<p>IF ISNULL(@EnvValue79, '') = N'1'</p>
+<p>BEGIN</p>
+<p>EXEC _SWCOMStopSecuCheck @CompanySeq, @StopSeq, @UserSeq, @LanguageSeq</p>
+<p>END</p>
+<p>/*************** 중단권한 체크 끝*********************************/</p>
+</blockquote>
+<p>-- #SCOMStopWorkData에 데이터 넣기</p>
+<p>IF @IsMasterStop = '1'</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = 'INSERT #SCOMStopWorkData</p>
+<p>SELECT @CompanySeq, @StopSeq, ' +</p>
+<p>'B.' + ProgTableSeqColumn + ',' +</p>
+<p>CASE ProgTableSerlColumn WHEN '' THEN '0' ELSE 'B.' + ProgTableSerlColumn END + ',' +</p>
+<p>CASE ProgTableSubSerlColumn WHEN '' THEN '0' ELSE 'B.' + ProgTableSubSerlColumn END + ',</p>
+<p>A.IsStop, @StopDate, @EmpSeq, A.UMStopReason, A.StopReason, @IsMasterStop, GetDate(), A.Status</p>
+<p>FROM #TCOMStop A JOIN ' + ProgTableName + ' B ON A.StopSeq = B.' + ProgTableSeqColumn + '</p>
+<p>WHERE B.CompanySeq = @CompanySeq '</p>
+<p>FROM _TCOMProgTable</p>
+<p>WHERE ProgTableSeq = @StopSeq</p>
+<p>EXEC SP_EXECUTESQL @SQL, N'@CompanySeq INT, @StopSeq INT, @StopDate NCHAR(8), @EmpSeq INT, @IsMasterStop NCHAR(1)',</p>
+<p>@CompanySeq, @StopSeq, @StopDate, @EmpSeq, @IsMasterStop</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT #SCOMStopWorkData</p>
+<p>SELECT @CompanySeq, @StopSeq, StopSeq, StopSerl, StopSubSerl,</p>
+<p>IsStop, @StopDate, @EmpSeq, UMStopReason, StopReason, @IsMasterStop, GetDate(), Status</p>
+<p>FROM #TCOMStop</p>
+<p>END</p>
+<p>-- 중복 중단 혹은 중단 취소 방지를 위하여 데이터 제거</p>
+<p>DELETE #SCOMStopWorkData</p>
+<p>FROM #SCOMStopWorkData AS A</p>
+<p>JOIN _TCOMStop AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.TableSeq</p>
+<p>AND A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>AND A.IsStop = B.IsStop</p>
+<blockquote>
+<p>INSERT INTO #Tmp_IsComplete(StopSeq, StopSerl, StopSubSerl, IsComplete)</p>
+<p>SELECT StopSeq, StopSerl, StopSubSerl, '0'</p>
+<p>FROM #SCOMStopWorkData</p>
+</blockquote>
+<p>-- History 저장</p>
+<p>-- HistSerl 구하기</p>
+<p>INSERT #SCOMStopHIST (CompanySeq, TableSeq, StopSeq, StopSerl, StopSubSerl, HistSerl)</p>
+<p>SELECT A.CompanySeq ,</p>
+<p>A.TableSeq ,</p>
+<p>A.StopSeq ,</p>
+<p>A.StopSerl ,</p>
+<p>A.StopSubSerl,</p>
+<blockquote>
+<p>ISNULL(MAX(B.HistSerl), 0) + 1</p>
+</blockquote>
+<p>FROM #SCOMStopWorkData AS A</p>
+<p>LEFT OUTER JOIN _TCOMStopHist AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.TableSeq</p>
+<p>AND A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>GROUP BY A.CompanySeq, A.TableSeq, A.StopSeq, A.StopSerl, A.StopSubSerl</p>
+<p>-- Hist Data 저장</p>
+<p>INSERT _TCOMStopHist</p>
+<p>(CompanySeq, TableSeq, StopSeq, StopSerl, StopSubSerl,</p>
+<p>HistSerl, IsStop, StopDate, StopEmpSeq, UMStopReason, StopReason,</p>
+<p>IsMasterStop, LastDateTime)</p>
+<p>SELECT A.CompanySeq, A.TableSeq,</p>
+<p>A.StopSeq, A.StopSerl, A.StopSubSerl, A.HistSerl,</p>
+<p>B.IsStop, B.StopDate, B.StopEmpSeq, B.UMStopReason, B.StopReason,</p>
+<p>B.IsMasterStop, B.LastDateTime</p>
+<p>FROM #SCOMStopHIST A JOIN _TCOMStop B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.TableSeq</p>
+<p>AND A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl= B.StopSubSerl</p>
+<p>------------------------ 중단</p>
+<blockquote>
+<p>-- 트랜관리</p>
+<p>--BEGIN TRAN</p>
+<p>BEGIN TRY</p>
+<p>IF EXISTS(SELECT * FROM #SCOMStopWorkData WHERE IsStop = '1' AND Status = 0)</p>
+<p>BEGIN</p>
+<p>-- 진행량 구하기</p>
+<p>INSERT #SCOMStopProgress</p>
+<p>SELECT A.CompanySeq, A.TableSeq, A.StopSeq, A.StopSerl, A.StopSubSerl,</p>
+<p>B.ToTableSeq, B.ToSeq, B.ToSerl, B.ToSubSerl,</p>
+<p>SUM(B.ADD_DEL * B.ToQty), SUM(B.ADD_DEL * B.ToStdQty),</p>
+<p>SUM(B.ADD_DEL * B.ToAmt), SUM(B.ADD_DEL * B.ToVAT),</p>
+<p>SUM(B.ADD_DEL * B.ToDOMAmt), SUM(B.ADD_DEL * B.ToDOMVAT)</p>
+<p>FROM #SCOMStopWorkData A</p>
+<p>JOIN _TCOMSourceDaily B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.FromTableSeq</p>
+<p>AND A.StopSeq = B.FromSeq</p>
+<p>AND A.StopSerl = B.FromSerl</p>
+<p>AND A.StopSubSerl = B.FromSubSerl</p>
+<p>WHERE A.IsStop = '1' AND A.Status = 0</p>
+<p>GROUP BY A.CompanySeq, A.TableSeq, A.StopSeq, A.StopSerl, A.StopSubSerl,</p>
+<p>B.ToTableSeq, B.ToSeq, B.ToSerl, B.ToSubSerl</p>
+<p>HAVING NOT(SUM(B.ADD_DEL * B.ToQty) = 0 AND SUM(B.ADD_DEL * B.ToStdQty) = 0 AND</p>
+<p>SUM(B.ADD_DEL * B.ToAmt) = 0 AND SUM(B.ADD_DEL * B.ToVAT) = 0 AND</p>
+<p>SUM(B.ADD_DEL * B.ToDOMAmt) = 0 AND SUM(B.ADD_DEL * B.ToDOMVAT) = 0)</p>
+<hr />
+<p>-- 진행 데이터 중단 체크 :: 20150831 박성호 (START)</p>
+<hr />
+<p>-- 0. 변수 및 진행 체크 테이블 생성 / 세팅</p>
+<p>DECLARE @TableName NVARCHAR(100),</p>
+<p>@MasterTableName NVARCHAR(100),</p>
+<p>@Seq NVARCHAR(100),</p>
+<p>@Serl NVARCHAR(100),</p>
+<p>@SubSerl NVARCHAR(100),</p>
+<p>@QtyCol NVARCHAR(100),</p>
+<p>@STDQtyCol NVARCHAR(100),</p>
+<p>@AmtCol NVARCHAR(100),</p>
+<p>@VATCol NVARCHAR(100),</p>
+<p>@JumpMap INT</p>
+<p>SELECT @TableName = A.ProgTableName ,</p>
+<p>@MasterTableName = A.ProgMasterTableName ,</p>
+<p>@Seq = A.ProgTableSeqColumn ,</p>
+<p>@Serl = A.ProgTableSerlColumn ,</p>
+<p>@SubSerl = A.ProgTableSubSerlColumn,</p>
+<p>@QtyCol = A.ProgTableQtyColumn ,</p>
+<p>@STDQtyCol = A.ProgTableSTDQtyColumn ,</p>
+<p>@AmtCol = A.ProgTableAmtColumn ,</p>
+<p>@VATCol = A.ProgTableVATColumn ,</p>
+<p>@JumpMapEnv = A.SMCompleteCheck ,</p>
+<p>@JumpMap = C.SMTableMap</p>
+<p>FROM _TCOMProgTable AS A WITH(NOLOCK)</p>
+<p>JOIN #SCOMStopProgress AS B ON B.TableSeq = A.ProgTableSeq</p>
+<p>JOIN _TCOMProgRelativeTables AS C WITH(NOLOCK)ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.FromTableSeq = B.TableSeq</p>
+<p>AND C.ToTableSeq = B.ToTableSeq</p>
+<p>CREATE TABLE #Tmp_StopItemProg (IDX_NO INT IDENTITY, CompleteCHECK INT)</p>
+<p>-- 수주중단의 경우, 타 프로세스의 진행이 다수 존재하는데,</p>
+<p>-- 해당 진행관계를 정의하는 데이터가 없어 임시로 영업진행으로 Fix :: 20200218 박성호</p>
+<p>IF EXISTS (SELECT 1 FROM #SCOMStopProgress WHERE TableSeq = 19)</p>
+<p>BEGIN</p>
+<p>SELECT @JumpMap = 1036001</p>
+<p>END</p>
+<p>-- 구매요청은 자재출고, 구매품의로 진행이 가능한데, 중단은 구매품의를 바라보고 하도록 구매진행으로 fix</p>
+<p>IF EXISTS (SELECT 1 FROM #SCOMStopProgress WHERE TableSeq = 12)</p>
+<p>BEGIN</p>
+<p>SELECT @JumpMap = 1036002</p>
+<p>END</p>
+<p>-- 1. 진행 체크 테이블 컬럼 생성 :: 해당 중단 원천 테이블 Key 컬럼 명칭</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + 'ALTER TABLE #Tmp_StopItemProg ADD ' + @Seq + ' INT' + NCHAR(13)</p>
+<p>SELECT @SQL = @SQL + 'ALTER TABLE #Tmp_StopItemProg ADD ' + @Serl + ' INT' + NCHAR(13)</p>
+<p>IF @SubSerl \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + 'ALTER TABLE #Tmp_StopItemProg ADD ' + @SubSerl + ' INT' + NCHAR(13)</p>
+<p>--PRINT @SQL</p>
+<p>EXEC SP_EXECUTESQL @SQL</p>
+<p>-- 2. 진행 체크 테이블 데이터 INSERT</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + 'INSERT INTO #Tmp_StopItemProg (' + @Seq + ', ' + @Serl</p>
+<p>IF @SubSerl \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = @SQL + ', ' + @SubSerl + ')' + NCHAR(13)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = @SQL + ')' + NCHAR(13)</p>
+<p>END</p>
+<p>SELECT @SQL = @SQL + 'SELECT StopSeq, StopSerl'</p>
+<p>IF @SubSerl \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = @SQL + ', StopSubSerl' + NCHAR(13)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = @SQL + NCHAR(13)</p>
+<p>END</p>
+<p>SELECT @SQL = @SQL + ' FROM #SCOMStopProgress'</p>
+<p>--PRINT @SQL</p>
+<p>EXEC SP_EXECUTESQL @SQL</p>
+<p>IF ISNULL(@JumpMapEnv,0) \&lt;&gt; 0</p>
+<p>SELECT @JumpMap = @JumpMapEnv</p>
+<p>-- 3. 진행 체크 테이블 진행상태 UPDATE</p>
+<p>EXEC _SWCOMProgStatus @CompanySeq, @TableName, @JumpMap, '#Tmp_StopItemProg', @Seq, @Serl, @SubSerl, '', '', '', '', '',</p>
+<p>'CompleteCHECK', 1, @QtyCol, @STDQtyCol, @AmtCol, @VATCol, @Seq, @Serl, @SubSerl, @MasterTableName, @PgmSeq</p>
+<p>-- 4. 중단 내부코드 컬럼 생성</p>
+<p>ALTER TABLE #Tmp_StopItemProg ADD StopSeq INT</p>
+<p>ALTER TABLE #Tmp_StopItemProg ADD StopSerl INT</p>
+<p>ALTER TABLE #Tmp_StopItemProg ADD StopSubSerl INT</p>
+<p>-- 5. 중단 원천 테이블 Key -&gt; 중단내부코드 UPDATE</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + 'UPDATE #Tmp_StopItemProg SET StopSeq = ' + @Seq + NCHAR(13)</p>
+<p>SELECT @SQL = @SQL + 'UPDATE #Tmp_StopItemProg SET StopSerl = ' + @Serl</p>
+<p>IF @SubSerl \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = @SQL + NCHAR(13) + 'UPDATE #Tmp_StopItemProg SET StopSubSerl = ' + @SubSerl</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = @SQL + NCHAR(13) + 'UPDATE #Tmp_StopItemProg SET StopSubSerl = 0'</p>
+<p>END</p>
+<p>--PRINT @SQL</p>
+<p>EXEC SP_EXECUTESQL @SQL</p>
+<p>UPDATE #Tmp_IsComplete</p>
+<p>SET IsComplete = '1'</p>
+<p>FROM #Tmp_IsComplete AS A</p>
+<p>JOIN #Tmp_StopItemProg AS B ON A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>WHERE B.CompleteCHECK = 40</p>
+<p>-- 6. 오류사항 UPDATE</p>
+<p>/* 작성         | -1</p>
+<p>미확정         | 0</p>
+<p>확정(승인) | 1</p>
+<p>중단         | 10</p>
+<p>진행         | 20</p>
+<p>진행중단         | 30</p>
+<p>완료         | 40</p>
+<p>결제진행중 | 5</p>
+<p>미완료         | 99 */</p>
+<p>IF @IsMasterStop = '1'</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1307 , -- @1의 경우 @2을(를) 할 수 없습니다. (SELECT * FROM _TCAMessageLanguage WITH(NOLOCK) WHERE LanguageSeq = 1 AND MessageSeq = 1307)</p>
+<p>@LanguageSeq ,</p>
+<p>48688, '진행완료' , -- SELECT * FROM _TCADictionary WITH(NOLOCK) WHERE LanguageSeq = 1 AND WordSeq = 48688</p>
+<p>1326 , '중단' -- SELECT * FROM _TCADictionary WITH(NOLOCK) WHERE LanguageSeq = 1 AND WordSeq = 1326</p>
+<p>UPDATE #TCOMStop</p>
+<p>SET Result = @Results ,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TCOMStop AS A</p>
+<p>--JOIN #Tmp_StopItemProg AS B ON A.StopSeq = B.StopSeq</p>
+<p>LEFT OUTER JOIN (SELECT DISTINCT StopSeq</p>
+<p>FROM #Tmp_IsComplete</p>
+<p>WHERE IsComplete = '0') AS C ON C.StopSeq = A.StopSeq</p>
+<p>WHERE C.StopSeq IS NULL        </p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1307 , -- @1의 경우 @2을(를) 할 수 없습니다. (SELECT * FROM _TCAMessageLanguage WITH(NOLOCK) WHERE LanguageSeq = 1 AND MessageSeq = 1307)</p>
+<p>@LanguageSeq ,</p>
+<p>48688, '진행완료' , -- SELECT * FROM _TCADictionary WITH(NOLOCK) WHERE LanguageSeq = 1 AND WordSeq = 48688</p>
+<p>1326 , '중단' -- SELECT * FROM _TCADictionary WITH(NOLOCK) WHERE LanguageSeq = 1 AND WordSeq = 1326</p>
+<p>UPDATE #TCOMStop</p>
+<p>SET Result = @Results ,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TCOMStop AS A</p>
+<p>JOIN #Tmp_StopItemProg AS B ON A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>WHERE B.CompleteCHECK = 40 -- 완료</p>
+<p>END</p>
+<p>IF EXISTS (SELECT 1 FROM #TCOMStop WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>--COMMIT TRAN</p>
+</blockquote>
+<p>UPDATE #BIZ_OUT_DATABLOCK1</p>
+<p>SET Result = B.Result</p>
+<p>, MessageType = B.MessageType</p>
+<p>, Status = B.Status</p>
+<p>FROM #BIZ_OUT_DATABLOCK1 AS A</p>
+<p>JOIN #TCOMStop AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<blockquote>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- 진행 데이터 중단 체크 :: 20150831 박성호 (END)</p>
+<hr />
+<p>-- 완료가 아닌 건만 중단진행 테이블에 Insert</p>
+<p>INSERT INTO _TCOMStopProgress (CompanySeq , TableSeq , StopSeq , StopSerl , StopSubSerl,</p>
+<p>ToTableSeq , ToSeq , ToSerl , ToSubSerl , ToQty ,</p>
+<p>ToStdQty , ToAmt , ToVAT , ToDOMAmt , ToDOMVAT )</p>
+<p>SELECT A.CompanySeq , A.TableSeq , A.StopSeq , A.StopSerl , A.StopSubSerl,</p>
+<p>A.ToTableSeq , A.ToSeq , A.ToSerl , A.ToSubSerl , A.ToQty ,</p>
+<p>A.ToStdQty , A.ToAmt , A.ToVAT , A.ToDOMAmt , A.ToDOMVAT</p>
+<p>FROM #SCOMStopProgress AS A</p>
+<p>JOIN #Tmp_IsComplete AS B ON A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl                </p>
+<p>WHERE B.IsComplete = '0'        </p>
+<p>--INSERT INTO _TCOMStopProgress (CompanySeq , TableSeq , StopSeq , StopSerl , StopSubSerl,</p>
+<p>-- ToTableSeq , ToSeq , ToSerl , ToSubSerl , ToQty ,</p>
+<p>-- ToStdQty , ToAmt , ToVAT , ToDOMAmt , ToDOMVAT )</p>
+<p>--SELECT CompanySeq , TableSeq , StopSeq , StopSerl , StopSubSerl,</p>
+<p>-- ToTableSeq , ToSeq , ToSerl , ToSubSerl , ToQty ,</p>
+<p>-- ToStdQty , ToAmt , ToVAT , ToDOMAmt , ToDOMVAT</p>
+<p>-- FROM #SCOMStopProgress</p>
+<p>UPDATE _TCOMStop</p>
+<p>SET IsStop = A.ISStop,</p>
+<p>StopDate = A.StopDate,</p>
+<p>StopEmpSeq = A.StopEmpSeq,</p>
+<p>UMStopReason = A.UMStopReason,</p>
+<p>StopReason = A.StopReason,</p>
+<p>IsMasterStop = A.IsMasterStop,</p>
+<p>LastDateTime = A.LastDateTime</p>
+<p>FROM #SCOMStopWorkData A</p>
+<p>JOIN _TCOMStop B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.TableSeq</p>
+<p>AND A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>JOIN #Tmp_IsComplete AS C ON C.StopSeq = A.StopSeq</p>
+<p>AND C.StopSerl = A.StopSerl</p>
+<p>AND C.StopSubSerl = A.StopSubSerl</p>
+<p>AND C.IsComplete = '0'</p>
+<p>WHERE A.IsStop = '1' AND A.Status = 0</p>
+<p>INSERT _TCOMStop</p>
+<p>SELECT A.CompanySeq, A.TableSeq, A.StopSeq, A.StopSerl, A.StopSubSerl,</p>
+<p>A.IsStop, A.StopDate, A.StopEmpSeq, A.UMStopReason, A.StopReason,</p>
+<p>A.IsMasterStop, A.LastDateTime</p>
+<p>FROM #SCOMStopWorkData A</p>
+<p>LEFT JOIN _TCOMStop B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.TableSeq</p>
+<p>AND A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>JOIN #Tmp_IsComplete AS C        ON C.StopSeq = A.StopSeq</p>
+<p>AND C.StopSerl = A.StopSerl</p>
+<p>AND C.StopSubSerl = A.StopSubSerl</p>
+<p>AND C.IsComplete = '0'</p>
+<p>WHERE A.IsStop = '1' AND A.Status = 0 AND B.CompanySeq Is NULL</p>
+<p>END</p>
+<p>------------------------ 중단취소</p>
+<p>IF EXISTS(SELECT * FROM #SCOMStopWorkData WHERE IsStop \&lt;&gt; '1' AND Status = 0)</p>
+<p>BEGIN</p>
+<p>-------- _TCOMStopProgress 지우기</p>
+<p>DELETE _TCOMStopProgress</p>
+<p>FROM _TCOMStopProgress A</p>
+<p>JOIN #SCOMStopWorkData B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.TableSeq</p>
+<p>AND A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>WHERE B.IsStop \&lt;&gt; '1' AND B.Status = 0</p>
+<p>UPDATE _TCOMStop</p>
+<p>SET IsStop = A.ISStop,</p>
+<p>StopDate = A.StopDate,</p>
+<p>StopEmpSeq = A.StopEmpSeq,</p>
+<p>UMStopReason = A.UMStopReason,</p>
+<p>StopReason = A.StopReason,</p>
+<p>IsMasterStop = A.IsMasterStop,</p>
+<p>LastDateTime = A.LastDateTime</p>
+<p>FROM #SCOMStopWorkData A</p>
+<p>JOIN _TCOMStop B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.TableSeq = B.TableSeq</p>
+<p>AND A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>WHERE A.IsStop \&lt;&gt; '1' AND A.Status = 0</p>
+<p>END</p>
+<p>-- 후처리 시작</p>
+<p>IF EXISTS (SELECT 1 FROM _TCOMStopAutoSP WHERE CompanySeq = @CompanySeq AND TableSeq = @StopSeq AND AutoSPName \&lt;&gt; N'') AND</p>
+<p>NOT EXISTS (SELECT 1 FROM #TCOMStop WHERE status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>DECLARE @AutoStopSPName                NVARCHAR(100)</p>
+<p>SELECT @AutoStopSPName = ISNULL(AutoSPName, N'')</p>
+<p>FROM _TCOMStopAutoSP</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND TableSeq = @StopSeq</p>
+<p>AND IsNotUse = N'0'</p>
+<p>SELECT @MessageType = 0,</p>
+<p>@Status = 0,</p>
+<p>@Results = N''</p>
+<p>IF @AutoStopSPName \&lt;&gt; '' AND EXISTS (SELECT 1 FROM sysobjects WHERE name = @AutoStopSPName AND xtype = 'P')</p>
+<p>BEGIN</p>
+<p>EXEC @AutoStopSPName @CompanySeq, @LanguageSeq, @UserSeq, @PgmSeq, @StopSeq, @MessageType OUTPUT, @Status OUTPUT, @Results OUTPUT</p>
+<p>IF @Status \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>--ROLLBACK TRAN</p>
+<p>UPDATE A</p>
+<p>SET MessageType = @MessageType,</p>
+<p>Status = @Status,</p>
+<p>Result = @Results</p>
+<p>FROM #TCOMStop                AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>--ROLLBACK TRAN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+</blockquote>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1053 , -- 처리 작업중 오류가 발생하였습니다.</p>
+<p>@LanguageSeq</p>
+<p>UPDATE A</p>
+<p>SET A.MessageType = @MessageType ,</p>
+<p>A.Status = @Status ,</p>
+<p>A.Result = @Results</p>
+<p>FROM #TCOMStop AS A        </p>
+<blockquote>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>--COMMIT TRAN</p>
+</blockquote>
+<p>UPDATE #TCOMStop</p>
+<p>SET STatus = B.Status</p>
+<p>FROM #TCOMStop A</p>
+<p>JOIN (SELECT j.StopSeq, j.StopSerl, j.StopSubSerl, MAX(i.Status) AS Status</p>
+<p>FROM #SCOMStopWorkData i JOIN #TCOMStop j ON i.CompanySeq = @CompanySeq</p>
+<p>AND i.TableSeq = @StopSeq</p>
+<p>AND i.StopSeq = j.StopSeq</p>
+<p>AND (j.StopSerl = 0 OR i.StopSerl = j.StopSerl)</p>
+<p>AND (j.StopSubSerl = 0 OR i.StopSubSerl = j.StopSubSerl)</p>
+<p>GROUP BY j.StopSeq, j.StopSerl, j.StopSubSerl) B ON A.StopSeq = B.StopSeq</p>
+<p>AND A.StopSerl = B.StopSerl</p>
+<p>AND A.StopSubSerl = B.StopSubSerl</p>
+<p>UPDATE #TCOMStop</p>
+<p>SET Result = [Message]</p>
+<p>FROM #TCOMStop A</p>
+<p>JOIN _TCAMessageLanguage B ON A.Status = B.MessageSeq</p>
+<p>WHERE LanguageSeq = @LanguageSeq AND STATUS \&lt;&gt; 0</p>
+<p>UPDATE #BIZ_OUT_DATABLOCK1</p>
+<p>SET Result = B.Result</p>
+<p>, MessageType = B.MessageType</p>
+<p>, Status = B.Status</p>
+<p>FROM #BIZ_OUT_DATABLOCK1 AS A</p>
+<p>JOIN #TCOMStop AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>UPDATE #BIZ_OUT_DATABLOCK1</p>
+<p>SET StopDate = @StopDate</p>
+<p>,StopEmp = (SELECT EmpName FROM _TDAEmp WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND EmpSeq = @EmpSeq)</p>
+<p>FROM #BIZ_OUT_DATABLOCK1 AS A</p>
+<p>JOIN #TCOMStop AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.Status = 0</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

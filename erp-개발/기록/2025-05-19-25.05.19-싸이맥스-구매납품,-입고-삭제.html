@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.05.19 싸이맥스 구매납품, 입고 삭제</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.05.19 싸이맥스 구매납품, 입고 삭제</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250519">25.05.19 싸이맥스 구매납품, 입고 삭제</h1>
+<p>-- 635105</p>
+<p>-- 26</p>
+<p>SELECT *</p>
+<p>FROM IF_TPUDelvIn_CYMC</p>
+<p>WHERE MESKey = 'DEL250421-000770'</p>
+<p>AND MESKeySerl = 'CIN250421-015251'</p>
+<p>BEGIN TRAN</p>
+<p>--SELECT * INTO BAK250519_TPUDelv FROM _TPUDelv WHERE DelvSeq = 641149</p>
+<p>--SELECT * INTO BAK250519_TPUDelvItem FROM _TPUDelvItem WHERE DelvSeq = 641149 AND DelvSerl = 1</p>
+<p>--SELECT * INTO BAK250519_TPUDelvIn FROM _TPUDelvIn WHERE DelvInSeq = 867753</p>
+<p>--SELECT * INTO BAK250519_TPUDelvInItem FROM _TPUDelvInItem WHERE DelvInSeq = 867753 AND DelvInSerl = 1</p>
+<p>--SELECT * INTO BAK250519_TPUBuyingAcc FROM _TPUBuyingAcc WHERE SourceSeq = 867753</p>
+<p>--DELETE FROM _TPUDelv FROM _TPUDelv WHERE DelvSeq = 641149</p>
+<p>--DELETE FROM _TPUDelvItem FROM _TPUDelvItem WHERE DelvSeq = 641149 AND DelvSerl = 1</p>
+<p>--DELETE FROM _TPUDelvIn FROM _TPUDelvIn WHERE DelvInSeq = 867753</p>
+<p>--DELETE FROM _TPUDelvInItem FROM _TPUDelvInItem WHERE DelvInSeq = 867753 AND DelvInSerl = 1</p>
+<p>--DELETE FROM _TPUBuyingAcc FROM _TPUBuyingAcc WHERE SourceSeq = 867753</p>
+<p>-- 구매발주 (13) 구매납품 (10) 구매입고 (9)</p>
+<p>-- 구매납품 - 구매입고 (641149 - 867753)</p>
+<p>DELETE</p>
+<p>FROM _TCOMSourceDaily</p>
+<p>WHERE FromTableSeq = 10 -- _TPUDelvItem</p>
+<p>AND ToTableSeq = 9 -- _TPUDelvInItem</p>
+<p>AND FromSeq = 641149</p>
+<p>AND ToSeq = 867753</p>
+<p>AND FromSerl = 1</p>
+<p>AND ToSerl = 1</p>
+<p>-- 구매발주 - 구매납품 ( 635105 - 641149)</p>
+<p>DELETE</p>
+<p>FROM _TCOMSourceDaily</p>
+<p>WHERE FromTableSeq = 13 -- _TPUORDPOItem</p>
+<p>AND ToTableSeq = 10 -- _TPUDelvItem</p>
+<p>AND FromSeq = 635105</p>
+<p>AND ToSeq = 641149</p>
+<p>AND FromSerl = 26</p>
+<p>AND ToSerl = 1</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

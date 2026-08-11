@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컬럼 특정 위치 DIS</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>컬럼 특정 위치 DIS</h1>
+    <div class="meta">
+      <span class="note-date">2023-07-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="dis">컬럼 특정 위치 DIS</h1>
+<p>-- 시트1 DIS처리</p>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<blockquote>
+<p>SS1.ActiveCol = col</p>
+<p>if SS1.ActiveColumnName == 'RKDayPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true                </p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'RKDayResult' then                </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true                </p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'RKDayDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true                </p>
+<p>end        </p>
+<p>if SS1.ActiveColumnName == 'RKMonthPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                </p>
+<p>if SS1.ActiveColumnName == 'RKMonthDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'RKMonthTarget' then        </p>
+<p>SS1.ActiveRow = 1</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'RKMonthProcRate' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STDayPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STDayResult' then        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STDayDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthPlan' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthDiff' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthTarget' then        </p>
+<p>SS1.ActiveRow = 1</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+<p>if SS1.ActiveColumnName == 'STMonthProcRate' then        </p>
+<p>SS1.ActiveRow = 3</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = 4</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 5</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>SS1.ActiveRow = 6</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+<p>end                        </p>
+</blockquote>
+<p>end</p>
+<p><img alt="" src="assets/컬럼-특정-위치-DIS/image6.png" /></p>
+  </article>
+</div>
+</body>
+</html>

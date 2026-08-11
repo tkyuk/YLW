@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출력물 소수점 설정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>출력물 소수점 설정</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">출력물 소수점 설정</h1>
+<p><span class="mark">// 수량</span></p>
+<p>This.SetFormat(GetGlobal("DecLenGoodQty"));</p>
+<p><span class="mark">// 단가</span></p>
+<p>var CurrName = This.GetDataSetValue("DataBlock1.CurrName");</p>
+<p>if ( This.GetDataSetValue("OZFormParam.BasicKorCurr") == CurrName ) {</p>
+<blockquote>
+<p>This.SetFormat(GetGlobal("DecLenDomPrice"));</p>
+</blockquote>
+<p>} else {</p>
+<blockquote>
+<p>This.SetFormat(GetGlobal("DecLenPrice"));</p>
+</blockquote>
+<p>_TraceLn("\t&gt;&gt;CurrName = " + GetGlobal("DecLenPrice"));</p>
+<p>_TraceLn("\t&gt;&gt;BasicKorCurr = " + GetGlobal("DecLenDomPrice"));</p>
+<p>}</p>
+<p>This.SetFormat(GetGlobal("DecLenPrice"));</p>
+<p><span class="mark">// 금액</span></p>
+<p>var CurrName = This.GetDataSetValue("DataBlock1.CurrName");</p>
+<p>if ( This.GetDataSetValue("OZFormParam.BasicKorCurr") == CurrName ) {</p>
+<blockquote>
+<p>This.SetFormat(GetGlobal("DecLenDomAmt"));</p>
+</blockquote>
+<p>} else {</p>
+<blockquote>
+<p>This.SetFormat(GetGlobal("DecLenCurAmt"));</p>
+</blockquote>
+<p>_TraceLn("\t&gt;&gt;CurrName = " + GetGlobal("DecLenCurAmt"));</p>
+<p>_TraceLn("\t&gt;&gt;BasicKorCurr = " + GetGlobal("DecLenDomAmt"));</p>
+<p>}</p>
+  </article>
+</div>
+</body>
+</html>

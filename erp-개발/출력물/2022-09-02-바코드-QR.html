@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바코드 / QR</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>바코드 / QR</h1>
+    <div class="meta">
+      <span class="note-date">2022-09-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="qr">바코드 / QR</h1>
+<p><img alt="" src="assets/바코드-QR/image32.png" /></p>
+<p>기존칸에 데이터가 겹칠 수 있으므로 칸을 줄임</p>
+<p><img alt="" src="assets/바코드-QR/image33.png" /></p>
+<p>컴포넌트 추가 -&gt; 바코드 / QR</p>
+<p><img alt="" src="assets/바코드-QR/image34.png" /></p>
+<p>속성 - 외관 - 그리기 형태 =&gt; 바코드 / QR 바코드 로 변경</p>
+<ul>
+<li>바코드로 할 경우 주의사항</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>맨 아래 QR =&gt; 인코딩에서</li>
+</ul>
+<blockquote>
+<p>code39 or code 128 or code128(auto)</p>
+<p>=&gt; 어떤 바코드 쓸지 여쭤 봐야함</p>
+</blockquote>
+<p><img alt="" src="assets/바코드-QR/image35.png" /></p>
+<ul>
+<li>qr =&gt; 위에 과정 생략 (그리기 형태만)</li>
+</ul>
+<p>바코드 값 없는 경우 안나오게 설정</p>
+<p>if ( This.GetDataSetValue("DataBlock1.BarCode") == "0") {</p>
+<p>This.SetVisible(false);</p>
+<p>This.SetPrintable(false);</p>
+<p>}</p>
+  </article>
+</div>
+</body>
+</html>

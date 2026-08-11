@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>영업공통함수 (마스터에 있는 값 시트로 출력)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>영업공통함수 (마스터에 있는 값 시트로 출력)</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">영업공통함수 (마스터에 있는 값 시트로 출력)</h1>
+<p>출고가능확인요청_djb</p>
+<p>function fnSLGetStdQty_djb(ObjectSS, IntSRow, IntERow, StrColItemSeq, StrColUnitSeq, StrColQty, StrColSTDUnitName, StrColSTDUnitSeq, StrColSTDQty, StrColIsQtyChange, StrColUnitName)</p>
+<p>local ds</p>
+<p>local columnSchema</p>
+<p>local addData</p>
+<p>local ActColName</p>
+<p>ActColName = ObjectSS.ActiveColumnName</p>
+<p>columnSchema = '{WorkingTag, string}{IDX_NO, int}{Status, int}{DataSeq, int}{Selected, int}{TABLE_NAME, string}'</p>
+<p>..'{ItemSeq, int}{UnitSeq, int}{Qty, double}'</p>
+<p>..'{StdUnitSeq, int}{StdUnitName, string}{StdQty, double}{IsQtyChange, string}{ConvUnitSeq, int}{ConvQty, double}{UnitName, string}'</p>
+<p>ds = CreateDataSet(ds,'DataBlock1', columnSchema)</p>
+<p>for iRow = IntSRow, IntERow, 1 do</p>
+<p>ItemSeq = CellText(ObjectSS, iRow, StrColItemSeq)</p>
+<p>UnitSeq = CellText(ObjectSS, iRow, StrColUnitSeq)</p>
+<p>Qty = CellText(ObjectSS, iRow, StrColQty)</p>
+<p>UnitName = CellText(ObjectSS, iRow, StrColUnitName)</p>
+<p>if ItemSeq == '' then</p>
+<p>ItemSeq = 0</p>
+<p>end</p>
+<p>if UnitSeq == '' then</p>
+<p>UnitSeq = 0</p>
+<p>end</p>
+<p>if Qty == '' then</p>
+<p>Qty = 0</p>
+<p>end</p>
+<p>addData = 'A'..CNST_SP..tostring(iRow)..CNST_SP..'0'..CNST_SP..tostring(iRow)..CNST_SP..'1'..CNST_SP..'DataBlock1'..CNST_SP</p>
+<p>..tostring(ItemSeq)..CNST_SP</p>
+<p>..tostring(UnitSeq)..CNST_SP</p>
+<p>..tostring(Qty)..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..tostring(UnitName)</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>end</p>
+<p>rtnDs = ExecuteService(501822, 1, ds, rtnDs, 'SQLWF')</p>
+<p>if (rtnDs == nil) then</p>
+<p>else</p>
+<p>for row=0, GetDataBlock(rtnDs, 'DataBlock1').Rows.Count-1, 1 do</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColSTDUnitName, GetDataSetValue(rtnDs, 'DataBlock1', 'StdUnitName', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColSTDUnitSeq, GetDataSetValue(rtnDs, 'DataBlock1', 'StdUnitSeq', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColSTDQty, GetDataSetValue(rtnDs, 'DataBlock1', 'StdQty', row))</p>
+<p>if StrColUnitSeq ~= '' and CellText(ObjectSS, IntSRow + row, StrColUnitSeq) == '0' then</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColUnitSeq, GetDataSetValue(rtnDs, 'DataBlock1', 'UnitSeq', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColUnitName, GetDataSetValue(rtnDs, 'DataBlock1', 'UnitName', row))</p>
+<p>end</p>
+<p>if StrColIsQtyChange ~= '' then</p>
+<p>ObjectSS.ActiveColumnName = StrColIsQtyChange</p>
+<p>ObjectSS.ActiveRow = IntSRow + row</p>
+<p>if GetDataSetValue(rtnDs, 'DataBlock1', 'IsQtyChange', row) == '1' then</p>
+<p>ObjectSS.ActiveCellReadOnly = false</p>
+<p>else</p>
+<p>ObjectSS.ActiveCellReadOnly = true</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>ObjectSS.ActiveColumnName = ActColName</p>
+<p>end</p>
+<p>..tostring(ItemSeq)..CNST_SP</p>
+<p>=&gt; CNST_SP 는 구분자 느낌 =&gt; 맨 마지막에 있으면 안된다</p>
+  </article>
+</div>
+</body>
+</html>

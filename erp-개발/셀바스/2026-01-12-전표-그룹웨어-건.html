@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전표 그룹웨어 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>전표 그룹웨어 건</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">전표 그룹웨어 건</h1>
+<p>SELECT * FROM _TSLBILL WHERE BILLSeq = 15</p>
+<p>SELECT * FROM _TSLSalesBILLRelation WHERE BILLSeq = 15</p>
+<p>SELECT * FROM _TSLSales WHERE SalesSeq = 52</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 6363 AND CfmSeq = 65</p>
+<p>SELECT * FROM _TCOMGroupWare WHERE WorkKind = 'Slip' ORDER BY LastDateTime DESC</p>
+<p>SELECT * FROM _TCOMGroupWare WHERE WorkKind = 'Slip' AND TblKey = 196</p>
+<p>SELECT * FROM _TCOMGroupWareLog WHERE WorkKind = 'Slip' AND TblKey = 196</p>
+<p>SELECT * FROM _TCOMGroupWareStatusLog WHERE WorkKind = 'Slip' AND TblKey = 196</p>
+<p>SELECT * FROM _TACSlip WHERE SlipMstSeq = 196</p>
+<p>SELECT * FROM _TACSlipRow WHERE SlipSeq = 556</p>
+<p>SELECT * FROM _TCOMTableLog WHERE TableName ='_TACSlip'</p>
+<p>SELECT * FROM _TCOMTableLog WHERE TableName ='_TACSlipRow'</p>
+<p>EXEC _SWCOMGetTableLog '_TACSlip', 1, 'SlipMstSeq', 196</p>
+<p>EXEC _SWCOMGetTableLog '_TACSlipRow', 1, 'SlipSeq', 556</p>
+<p>-- 실서버 데이터</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 6363 AND CfmSeq = 196</p>
+<p>UNION</p>
+<p>SELECT * FROM SVSTEST.DBO._TCOMConfirm WHERE ConfirmSeq = 6363 AND CfmSeq = 65</p>
+<p>SELECT * FROM _TCOMGroupWare WHERE WorkKind = 'Slip' AND TblKey = 196</p>
+<p>UNION</p>
+<p>SELECT * FROM SVSTEST.DBO._TCOMGroupWare WHERE WorkKind = 'Slip' AND TblKey = 65</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 6363 AND CfmSeq = 65</p>
+<p>SELECT * FROM _TCOMGroupWare WHERE WorkKind = 'Slip' AND TblKey = 196</p>
+  </article>
+</div>
+</body>
+</html>

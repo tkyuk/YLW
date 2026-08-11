@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선택된 행만 값 일괄 입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>선택된 행만 값 일괄 입력</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">선택된 행만 값 일괄 입력</h1>
+<p>FrmWACAsstDepreKORStd_mcnv</p>
+<p>감가상각기준등록(본사기준)_mcnv</p>
+<p>local row</p>
+<p>for row = 0, SS1.DataRowCnt-1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+</blockquote>
+<p>if CellText(SS1,row, 'Sel') == '1' then</p>
+<blockquote>
+<p>SetText(SS1, SS1.ActiveRow, 'AsstYearS', txtAsstYear.Value)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'MCNKYear', txtUsedYear.Value)</p>
+<p>if SS1.WorkingTag ~= 'A' then</p>
+<p>SS1.WorkingTag = 'U'</p>
+<p>end        </p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

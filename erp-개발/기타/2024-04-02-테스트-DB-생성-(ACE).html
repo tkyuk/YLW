@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테스트 DB 생성 (ACE)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>테스트 DB 생성 (ACE)</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="db-ace">테스트 DB 생성 (ACE)</h1>
+<p>1. DB명 + TEST 데이터베이스 2개 (Common 포함) 분리</p>
+<p>연결이 안끊켜있으면, 다른 DB에 영향을 준다. 그래서 먼저 연결 끊음</p>
+<p>--ACE TEST DB 분리</p>
+<p>USE [master]</p>
+<p>GO</p>
+<p>ALTER DATABASE [DYSTEST] SET SINGLE_USER WITH ROLLBACK IMMEDIATE</p>
+<p>GO</p>
+<p>EXEC master.dbo.sp_detach_db @dbname = N'DYSTEST'</p>
+<p>GO</p>
+<p>ALTER DATABASE [DYSTESTCommon] SET SINGLE_USER WITH ROLLBACK IMMEDIATE</p>
+<p>GO</p>
+<p>EXEC master.dbo.sp_detach_db @dbname = N'DYSTESTCommon'</p>
+<p>GO</p>
+<p>데이터베이스 - 새로고침 OR 데이터베이스 우클릭 - 새로고림 =&gt; TEST DB 분리되어있는지 확인</p>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image1.png" /></p>
+<ol start="2">
+<li>날짜 + 사이트 이니셜 (ex. 240402 DYS) 폴더 생성</li>
+</ol>
+<blockquote>
+<p>테스트 파일 4개 옮기기 (분리가 안되어있는 파일 옮기면 다른 DB 복구 영향 주기 때문에 연결 확실히 끊켰는지 확인해야함</p>
+</blockquote>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image2.png" /></p>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image3.png" /></p>
+<ol start="3">
+<li>
+<p>DB복원 작업</p>
+<ol>
+<li>
+<p>'데이터베이스' 우클릭</p>
+</li>
+<li>
+<p>'데이터베이스' 복원</p>
+</li>
+<li>
+<p>원본 - '디바이스' 선택</p>
+</li>
+<li>
+<p>디바이스 옆 ... 클릭 =&gt; 추가 =&gt; D:\DBBackup\사이트이니셜 =&gt; 파일 선택</p>
+</li>
+<li>
+<p>생성 이름 : DB명 + TEST</p>
+</li>
+</ol>
+</li>
+</ol>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image4.png" /></p>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image5.png" /></p>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image6.png" /></p>
+<p>중요 !!</p>
+<p>파일 : 원래 파일 이름 =&gt; 다음으로 복원</p>
+<p>MED.mdf =&gt; MED_TEST.mdf =&gt; 여기서 TEST 붙여있는지 확인해야한다</p>
+<p>MED.mdf =&gt; MED.mdf =&gt; 이러면 난리남 (실서버에 백업 데이터가 들어가기 때문)</p>
+<p>옵션 : '비상 로그 백업' 체크 해제</p>
+<p>+. Common 도 똑같이 반복 (* ~CommonTest 가 아니라 TestCommon</p>
+<p>개체 탐색기 - 생성 확인</p>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image7.png" /></p>
+<p>4. 인증키 ; APP 서버 (한 서버에 있다면 해당 서버)의 C드라이브 내에 DBQuery,txt 파일 안에 인증키 쿼리가</p>
+<p>있음 =&gt; 쿼리 복사해서 sql 에서 복붙 후 실행</p>
+<p>=&gt; 실행 시 사이트이니셜 맞는지 확인</p>
+<p>* ACE의 경우 추가 작업이 존재 =&gt; 5번</p>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image8.png" /></p>
+<p>- 5. IIS ( inetmgr) - 응용프로그램풀 (애플리케이션 풀) - DB명+TEST 이름이 포함된 응용프로그램 풀 5~10회 재생</p>
+<p>+. 하는 이유 (에이스는 가끔 테스트 DB가 실서버와 연결되어 있을 수 있음)</p>
+<p>+. 'IIS(인터넷 정보 서비스) 관리자' 실행</p>
+<p>+. 맨 왼쪽 WIN~ 트리 열기 =&gt; 응용 프로그램 풀 더블클릭 =&gt; 이 IIS에 연결되어있는 풀이 나옴 =&gt; medtest_WK 클릭 후 오른쪽에 '재생' 5~10번 정도 클릭</p>
+<p>+. 사이트에 따라 2개가 있을 수 있음 (ex. dystest_WK / dystest_WSvc)</p>
+<p>+. 요청자한테 테스트 확인</p>
+<p><img alt="" src="assets/테스트-DB-생성-(ACE)/image9.png" /></p>
+  </article>
+</div>
+</body>
+</html>

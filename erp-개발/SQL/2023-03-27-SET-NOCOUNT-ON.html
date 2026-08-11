@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SET NOCOUNT ON</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SET NOCOUNT ON</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="set-nocount-on">SET NOCOUNT ON</h1>
+<p>**SET NOCOUNT란? **</p>
+<p>쿼리문 또는 프로시저의 영향을 받은 행 수를 나타내는 메시지가 결과 집합의 일부로 반환되지 않도록 하는 것</p>
+<p>구문 : SET NOCOUNT {ON/OFF}</p>
+<p>**사용하는 이유 **</p>
+<p>MSSQL에서 프로시저를 만 들 경 우 프로시저의 속도(성능)에 대해서 생각을 안 할 수 없습니다.</p>
+<p>프로시저의 속도가 프로그램의 속도에 밀접한 관련이 있는 만큼</p>
+<p>프로시저의 성능에 대해 초점을 맞추고 쿼리문을 짜야합니다.</p>
+<p>이번 포스팅에서는 SET NOCOUNT라는 함수를 사용하여</p>
+<p>쿼리 문의 속도를 향상하는 방법에 대해 알아보겠습니다.</p>
+<p>MSSQL에서 프로시저를 만들고 실행을 해보면</p>
+<p><img alt="" src="assets/SET-NOCOUNT-ON/image38.png" /></p>
+<p>위와 같은 메시지를 보신 적이 있으실 텐데요.</p>
+<p>위 메시지는 INSERT나 UPDATE DELETE처럼 테이블에 영향을 주게 되면 출력이 됩니다.</p>
+<p>하지만 위에 보이는 0 개행이 영향을 받았다는 메시지는 전혀 필요가 없죠</p>
+<p>괜히 메시지를 출력하는데 서버 부하만 걸릴 뿐입니다.</p>
+<p>이 메시지는 프로시저 시작점에 SET NOCOUNT ON이라는 문구를 삽입해줌으로써 제거해줄 수 있습니다.</p>
+<p>출처: \&lt;<a href="https://coding-factory.tistory.com/95">https://coding-factory.tistory.com/95</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

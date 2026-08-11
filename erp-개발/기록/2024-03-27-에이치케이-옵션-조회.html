@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>에이치케이 옵션 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>에이치케이 옵션 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">에이치케이 옵션 조회</h1>
+<p>SELECT c.itemseq,</p>
+<p>ISNULL(F.ItemClassSSeq , 0) AS UMItemClass</p>
+<p>FROM _TDAItem AS C</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS E WITH(NOLOCK) ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.ItemSeq = C.ItemSeq</p>
+<p>AND E.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS F WITH(NOLOCK) ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.ItemClassSSeq = E.UMItemClass</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS G WITH(NOLOCK) ON G.CompanySeq = C.CompanySeq</p>
+<p>AND G.AssetSeq = C.AssetSeq</p>
+<p>WHERE ItemNo ='PHQ01516DS00013100A0D3D00000120'</p>
+<p>-- 19</p>
+<p>SELECT TOP 100 *</p>
+<p>FROM hkcon_TSLOptionItemLog</p>
+<p>WHERE LogType ='D'</p>
+<p>AND UMItemClassS = 2001028</p>
+<p>AND OPTIONLEVEL IN(</p>
+<p>'EC'</p>
+<p>,'EC.HQ010'</p>
+<p>,'EC.HQ010.18'</p>
+<p>,'EC.HQ010.18.03'</p>
+<p>,'EC.HQ010.18.03.C0'</p>
+<p>,'EC.HQ010.18.03.C0.12'</p>
+<p>,'EC.HQ010.18.03.C0.12.01'</p>
+<p>,'EC.HQ010.18.03.C0.12.01.00'</p>
+<p>,'EC.HQ010.18.03.C0.12.01.00.1'</p>
+<p>,'EC.HQ010.18.03.C0.A6'</p>
+<p>,'EC.HQ010.18.03.C0.KD2'</p>
+<p>,'EC.HQ010.18.03.C0.KD2.AD2'</p>
+<p>,'EC.HQ010.18.03.L0'</p>
+<p>,'EC.HQ010.18.03.M0'</p>
+<p>,'EC.HQ010.18.A0'</p>
+<p>,'EC.HQ010.W1'</p>
+<p>,'EC.HQ010.X0'</p>
+<p>,'EC.HQ010.Y2'</p>
+<p>,'EC.HQ010.Z0'</p>
+<p>)</p>
+<p>-- 19</p>
+<p>SELECT TOP 100 *</p>
+<p>FROM hkcon_TSLOptionItemLog</p>
+<p>WHERE LogType ='D'</p>
+<p>AND UMItemClassS = 2001028</p>
+<p>AND OPTIONLEVEL IN(</p>
+<p>'AS'</p>
+<p>,'AS.HQ030'</p>
+<p>,'AS.HQ030.16'</p>
+<p>,'AS.HQ030.16.02'</p>
+<p>,'AS.HQ030.16.02.E0'</p>
+<p>,'AS.HQ030.16.02.E0.12'</p>
+<p>,'AS.HQ030.16.02.E0.12.01'</p>
+<p>,'AS.HQ030.16.02.E0.12.01.00'</p>
+<p>,'AS.HQ030.16.02.E0.12.01.00.0'</p>
+<p>,'AS.HQ030.16.02.E0.A0'</p>
+<p>,'AS.HQ030.16.02.E0.H24'</p>
+<p>,'AS.HQ030.16.02.E0.H24.CD0'</p>
+<p>,'AS.HQ030.16.02.L0'</p>
+<p>,'AS.HQ030.16.02.M0'</p>
+<p>,'AS.HQ030.16.A2'</p>
+<p>,'AS.HQ030.W0'</p>
+<p>,'AS.HQ030.X0'</p>
+<p>,'AS.HQ030.Y2'</p>
+<p>,'AS.HQ030.Z0'</p>
+<p>)</p>
+<p>-- 19</p>
+<p>SELECT TOP 100 *</p>
+<p>FROM hkcon_TSLOptionItemLog</p>
+<p>WHERE LogType ='D'</p>
+<p>AND UMItemClassS = 2001028</p>
+<p>AND OPTIONLEVEL IN(</p>
+<p>'AS'</p>
+<p>,'AS.HQ015'</p>
+<p>,'AS.HQ015.16'</p>
+<p>,'AS.HQ015.16.02'</p>
+<p>,'AS.HQ015.16.02.E0'</p>
+<p>,'AS.HQ015.16.02.E0.12'</p>
+<p>,'AS.HQ015.16.02.E0.12.01'</p>
+<p>,'AS.HQ015.16.02.E0.12.01.00'</p>
+<p>,'AS.HQ015.16.02.E0.12.01.00.0'</p>
+<p>,'AS.HQ015.16.02.E0.A0'</p>
+<p>,'AS.HQ015.16.02.E0.H24'</p>
+<p>,'AS.HQ015.16.02.E0.H24.BD0'</p>
+<p>,'AS.HQ015.16.02.L0'</p>
+<p>,'AS.HQ015.16.02.M0'</p>
+<p>,'AS.HQ015.16.A1'</p>
+<p>,'AS.HQ015.W0'</p>
+<p>,'AS.HQ015.X0'</p>
+<p>,'AS.HQ015.Y2'</p>
+<p>,'AS.HQ015.Z0'</p>
+<p>)</p>
+<p>ORDER BY OPTIONLEVEL</p>
+<p>SELECT TOP 100 *</p>
+<p>FROM hkcon_TSLOptionItemLog</p>
+<p>WHERE LogType ='D'</p>
+<p>AND UMItemClassS = 2001028</p>
+<p>AND OPTIONLEVEL IN(</p>
+<p>'00'</p>
+<p>,'00.HQ015'</p>
+<p>,'00.HQ015.16'</p>
+<p>,'00.HQ015.16.00'</p>
+<p>,'00.HQ015.16.00.00'</p>
+<p>,'00.HQ015.16.00.00.13'</p>
+<p>,'00.HQ015.16.00.00.13.01'</p>
+<p>,'00.HQ015.16.00.00.13.01.00'</p>
+<p>,'00.HQ015.16.00.00.13.01.00.0'</p>
+<p>,'00.HQ015.16.00.00.A0'</p>
+<p>,'00.HQ015.16.00.00.KD3'</p>
+<p>,'00.HQ015.16.00.00.KD3.BD0'</p>
+<p>,'00.HQ015.16.00.L0'</p>
+<p>,'00.HQ015.16.00.M0'</p>
+<p>,'00.HQ015.16.A1'</p>
+<p>,'00.HQ015.W0'</p>
+<p>,'00.HQ015.X1'</p>
+<p>,'00.HQ015.Y2'</p>
+<p>,'00.HQ015.Z0'</p>
+<p>)</p>
+<p>ORDER BY OPTIONLEVEL</p>
+  </article>
+</div>
+</body>
+</html>

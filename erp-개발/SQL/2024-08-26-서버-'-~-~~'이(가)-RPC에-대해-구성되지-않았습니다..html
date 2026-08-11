@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서버 '\~\~~'이(가) RPC에 대해 구성되지 않았습니다.</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>서버 '\~\~~'이(가) RPC에 대해 구성되지 않았습니다.</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="rpc">서버 '\~\~~'이(가) RPC에 대해 구성되지 않았습니다.</h1>
+<ol>
+<li>
+<p>DB서버에서 사용할 수 있는 서버 조회</p>
+<ol>
+<li>exec sp_helpserver</li>
+</ol>
+</li>
+</ol>
+<blockquote></blockquote>
+<ol start="2">
+<li>
+<p>status에 rpc, rpc out 항목 미존재 -&gt; RPC, RPC OUT 활성화하기</p>
+<ol>
+<li>
+<p>EXEC sp_serveroption '연결된서버IP주소', 'RPC', TRUE</p>
+</li>
+<li>
+<p>EXEC sp_serveroption '연결된서버IP주소', 'RPC OUT', TRUE</p>
+</li>
+</ol>
+</li>
+</ol>
+<p>ex.</p>
+<p>EXEC sp_serveroption 'SHMC', 'RPC', TRUE</p>
+<p>EXEC sp_serveroption 'SHMC', 'RPC OUT', TRUE</p>
+<p><img alt="" src="assets/서버-'-~-~~'이(가)-RPC에-대해-구성되지-않았습니다./image33.pn" />)</p>
+  </article>
+</div>
+</body>
+</html>

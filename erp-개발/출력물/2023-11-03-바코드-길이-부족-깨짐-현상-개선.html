@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바코드 길이 부족 깨짐 현상 개선</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>바코드 길이 부족 깨짐 현상 개선</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">바코드 길이 부족 깨짐 현상 개선</h1>
+<p>안녕하세요.</p>
+<p>바코드 데이터 길이가 늘어남에 따라 첨부와 같이 바코드 깨짐 현상이 발생되어 문의 드립니다.</p>
+<p>기존 타입 : CODABAR</p>
+<p>샘플데이터: 10000189069512:172</p>
+<p>변경후 샘플 데이터: 10000189069512:172:11:11 (더 길어짐)</p>
+<p>바코드 타입 변경으로 해결할 수 있을지 문의 드립니다.</p>
+<p>*CODE128AUTO 로 변경 시 짤리지 않고 정상적인 바코드로 조회되나 스캔 시 인식이 안됨</p>
+<p>출처: \&lt;<a href="http://www.oztn.net/kb/board-read.do?boardId=qnarpt&amp;boardNo=157224244182375&amp;command=READ&amp;t=1698969766599">http://www.oztn.net/kb/board-read.do?boardId=qnarpt&amp;boardNo=157224244182375&amp;command=READ&amp;t=1698969766599</a>&gt;</p>
+<p>CODE128AUTO로 변경 시 짤리지 않고 정상적인 바코드로 조회되나 스캔 시 인식이 안됨 현상에 대해서</p>
+<p>바코드 타입을 CODE128AUTO(MOD103) 변경해서 테스트 해보시기 바랍니다.</p>
+<p>바코드가 그려질 공간이 없어서 바코드 내용이 나오지 않을 경우에는</p>
+<p>바코드 너비를 충분히 주시고, 바코드 라벨의 속성의‘프린터 크기’를 작게 주고,</p>
+<p>스크립트에 This.SetLeft(-45); 작성을 통해 좌표를 -값을 주어 바코드 위치를 맞춰 테스트 해보시기 바랍니다.</p>
+<p>추가로 문의사항이 있을 경우 신규로 글을 작성해 주시기 바랍니다.</p>
+<p>출처: \&lt;<a href="http://www.oztn.net/kb/board-read.do?boardId=qnarpt&amp;boardNo=157250408793684&amp;command=READ&amp;t=1698969704829">http://www.oztn.net/kb/board-read.do?boardId=qnarpt&amp;boardNo=157250408793684&amp;command=READ&amp;t=1698969704829</a>&gt;</p>
+<p>=&gt;</p>
+  </article>
+</div>
+</body>
+</html>

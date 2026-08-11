@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대칭키 / 주민등록번호, 직위, 성별</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>대칭키 / 주민등록번호, 직위, 성별</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">대칭키 / 주민등록번호, 직위, 성별</h1>
+<p>제뉴인 : dbo._FCOMDecrypt(A.PersonId, '_TDACust', 'PersonId', A.CompanySeq) AS PersonId</p>
+<p>참고sp : mcnk_SXHRInfEmpList</p>
+<p>-- 대칭키 OPEN</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>=&gt; 무조건 선언해야함</p>
+<p>계좌번호</p>
+<p>mcnv_SXPRPayResultAmtCurrUploadQuery</p>
+<p>mcnv_SXPRPayTermAmtListQuery</p>
+<p>주민등록번호</p>
+<p>ISNULL(dbo._FWCOMDecrypt(B.ResidID, '_TDAEmp', 'ResidID', @CompanySeq),'') AS ResidId</p>
+<p>직위</p>
+<p>D.MinorName AS UMJpName</p>
+<p>LEFT JOIN _TDADept AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DeptSeq = C.DeptSeq</p>
+<p>LEFT JOIN _TDAUMinor AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.UMJpSeq = D.MinorSeq</p>
+<p>성별</p>
+<p>F.MinorName AS SMSexName</p>
+<p>LEFT JOIN _TDAEmpIn AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.EmpSeq = E.EmpSeq</p>
+<p>LEFT JOIN _TDASMinor AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq</p>
+<p>AND E.SMSexSeq = F.MinorSeq</p>
+  </article>
+</div>
+</body>
+</html>

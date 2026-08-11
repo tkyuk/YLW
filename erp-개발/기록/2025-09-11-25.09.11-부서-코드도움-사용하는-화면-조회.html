@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.11 부서 코드도움 사용하는 화면 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.11 부서 코드도움 사용하는 화면 조회</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250911">25.09.11 부서 코드도움 사용하는 화면 조회</h1>
+<p>-- 부서_WBS : 610010</p>
+<p>-- 부서_VEN : 2720020</p>
+<p>-- 2. ACE</p>
+<p>SELECT A.Caption</p>
+<p>,B.ControlName</p>
+<p>,B.ControlCaption</p>
+<p>,B.DataFieldName</p>
+<p>,B.DataFieldCd</p>
+<p>,A.*</p>
+<p>FROM dasCommon.._TCAPgm AS A WITH(NOLOCK)</p>
+<p>JOIN dasCommon.._TCAPgmcontrols AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PgmSeq = A.PgmSeq</p>
+<p>WHERE b.CodeHelpConst = 610010</p>
+<p>AND A.PgmId LIKE '%DAS%'</p>
+<p>ORDER BY 1</p>
+<p>/*</p>
+<p>출장/교육/외근/시험근무보고서 전표처리_das</p>
+<p>출장/교육/외근/시험근무보고서 전표처리_das</p>
+<p>(방산원가)사원별공수내역집계_das</p>
+<p>(방산원가)월별 재직인원 직간접 설정_das</p>
+<p>*/</p>
+<p>-- 2. ACE</p>
+<p>SELECT A.Caption</p>
+<p>,B.ControlName</p>
+<p>,B.ControlCaption</p>
+<p>,B.DataFieldName</p>
+<p>,B.DataFieldCd</p>
+<p>,A.*</p>
+<p>FROM dasCommon.._TCAPgm AS A WITH(NOLOCK)</p>
+<p>JOIN dasCommon.._TCAPgmcontrols AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PgmSeq = A.PgmSeq</p>
+<p>WHERE b.CodeHelpConst = 2720020</p>
+<p>ORDER BY 1</p>
+<p>--SELECT * FROM dasCommon.._TCAPgm WHERE PGMSEQ = 76320077</p>
+<p>--SELECT * FROM dasCommon.._TCAPgmcontrols WHERE CONTROLTYPE = 32 and CODEHELPPARAMS NOT LIKE '%1016%' ORDER BY CODEHELPPARAMS</p>
+<p>SELECT A.Caption</p>
+<p>,B.Title</p>
+<p>,B.DataFieldName</p>
+<p>,B.DataFieldCd</p>
+<p>,A.*</p>
+<p>FROM dasCommon.._TCAPgm AS A WITH(NOLOCK)</p>
+<p>JOIN dasCommon.._TCAPgmSheets AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PgmSeq = A.PgmSeq</p>
+<p>WHERE b.CodeHelpConst = 2720020</p>
+<p>AND PgmId LIKE '%DAS%'</p>
+<p>ORDER BY 1</p>
+  </article>
+</div>
+</body>
+</html>

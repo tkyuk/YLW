@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>행추가</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">행추가</h1>
+<p>--==============================================================</p>
+<p>-- 행추가 - 입력한 숫자만큼 행추가하기 (거래명세서입력_evc, 구매납품입력_sscnt)</p>
+<p>--==============================================================</p>
+<p>-- 버튼은 행추가지만 기능은 행복사에 가까움....</p>
+<p>local IsSet, IsNotAllModify, IsNotRowAdd, IsNotAccAmtMod, col, CellName, CellNameText, RowAddCnt</p>
+<p>RowAddCnt = fltRowCnt.Value</p>
+<p>if tonumber(RowAddCnt) == 0 then</p>
+<blockquote>
+<p>RowAddCnt = 1</p>
+</blockquote>
+<p>end</p>
+<p>-- 데이터복사</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>for row = 0, RowAddCnt -1 do</p>
+<blockquote>
+<p>Trow = SS1.DataRowCnt</p>
+<p>-- 행추가</p>
+<p>SS1.StartRow = Trow</p>
+<p>SS1.ActionCount = 1</p>
+<p>SS1.ActionType = 'ActionType_InsertRow'</p>
+<p>-- 컬럼을 돌면서 데이터 복사하여 넣자</p>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveCol = col</p>
+<p>CellName = SS1.ActiveColumnName</p>
+<p>CellNameText = CellText(SS1, SS1.ActiveRow, CellName)</p>
+<p>if SS1.ActiveColumnName == 'InvoiceSerl' then</p>
+<p>CellNameText = ''        </p>
+<p>end</p>
+<p>SetText(SS1, Trow, CellName, CellNameText)</p>
+<p>if SS1.ActiveCellReadOnly == true then</p>
+<p>SS1.ActiveRow = Trow</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+<p>end</p>
+<p>end</p>
+<p>-- 추가된 행은 워킹태그를 'A'로 변경하자.</p>
+<p>SS1.ActiveRow = Trow</p>
+<p>SS1.WorkingTag = 'A'</p>
+</blockquote>
+<p>end</p>
+<p>여러 줄 한번에 복사 시</p>
+<p>체크된 컬럼 -&gt; 지점반품확정입력_hsg</p>
+<p>선택된 컬럼</p>
+<p><img alt="" src="assets/행추가/image61.png" /></p>
+<p>local cnt</p>
+<p>cnt = SS1.DataRowCnt</p>
+<p>for i = 0, cnt-1 do</p>
+<blockquote>
+<p>for j=0, fltRowCnt.Value-1 do</p>
+<p>SS1.ActiveRow = i</p>
+<p>RunPgmMethod('AddRow')</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<hr />
+<p><img alt="" src="assets/행추가/image62.png" /></p>
+<p>선택된 Row =&gt; 거래명세서입력_evc</p>
+<p>if SS1.WorkingTag == 'A' then</p>
+<blockquote>
+<p>for i=1, fltRowCnt.Value do</p>
+<p>DisplayAdd(SS1, m_SendXml.Data, -1)</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

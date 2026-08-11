@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0~9 만 입력 하고 싶을 때</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>0~9 만 입력 하고 싶을 때</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="09">0~9 만 입력 하고 싶을 때</h1>
+<p>--SELECT TRY_PARSE('13423432N4234' AS INT)</p>
+<p>--SELECT PARSE('13423432N4234' AS INT)</p>
+<p>SELECT ISNUMERIC ('\)</p>
+<p>CREATE TABLE #TMP(</p>
+<p>A NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TMP VALUES</p>
+<p>('0'),</p>
+<p>('1'),</p>
+<p>('100'),</p>
+<p>('+'),</p>
+<p>('++'),</p>
+<p>('-'),</p>
+<p>('\)</p>
+<p>SELECT CASE WHEN A IN('+','-') THEN 0 ELSE CASE WHEN TRY_CAST(A AS INT) IS NOT NULL THEN 1 ELSE 0 END END , A,TRY_CAST(A AS INT)</p>
+<p>FROM #TMP</p>
+<p>DROP TABLE #TMP</p>
+<p>ISNUMERIC 은 +,-, \\$ 도 숫자로 인식</p>
+<p>=&gt; CASE WHEN TRY_CAST(A AS INT) IS NOT NULL THEN 1 ELSE 0 END 사용</p>
+<p>=&gt; 이 경우에 +,-는 여전히 숫자로 인식</p>
+<p>=&gt; 별도로 CASE 문을 더 써줘야함</p>
+  </article>
+</div>
+</body>
+</html>

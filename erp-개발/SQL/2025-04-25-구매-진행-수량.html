@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매 진행 수량</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매 진행 수량</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">구매 진행 수량</h1>
+<p>-- 진행체크할 테이블값 테이블</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 진행체크할 데이터 테이블</p>
+<p>CREATE TABLE #Temp_PJTBOM</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>PJTSeq INT,</p>
+<p>BOMSerl INT,</p>
+<p>CompleteCHECK INT,</p>
+<p>SMProgressType INT NULL,</p>
+<p>ReqQty DECIMAL(19,5),</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMProgressTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>StdQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5),</p>
+<p>DOMAmt DECIMAL(19, 5),</p>
+<p>DOMVAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #PJTBOM_Tracking</p>
+<p>(</p>
+<p>IDX_NO INT</p>
+<p>,POReqQty DECIMAL(19,5)</p>
+<p>,POQty DECIMAL(19,5)</p>
+<p>,DelvQty DECIMAL(19,5)</p>
+<p>,DelvInQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>--===================================================================</p>
+<p>-- 구매 진행 수량 가져오기</p>
+<p>--===================================================================</p>
+<p>INSERT #TMP_PROGRESSTABLE(IDOrder,TABLENAME)</p>
+<p>SELECT 1, '_TPUORDPOItem' -- 구매발주</p>
+<p>UNION</p>
+<p>SELECT 2, '_TPUDelvItem' -- 구매납품</p>
+<p>UNION</p>
+<p>SELECT 3, '_TPUDelvInItem' -- 구매입고</p>
+<p>UNION</p>
+<p>SELECT 4, '_TUIImpBLItem' -- 수입BL</p>
+<p>UNION</p>
+<p>SELECT 5, '_TUIImpDelvItem' -- 수입입고</p>
+<p>UNION</p>
+<p>SELECT 6, '_TPUORDPOReqItem' -- 구매요청</p>
+<p>INSERT INTO #Temp_PJTBOM(PJTSeq, BOMSerl, CompleteCHECK,ReqQty, ItemSeq)</p>
+<p>SELECT A.PJTSeq,</p>
+<p>A.BOMSerl,</p>
+<p>-1,</p>
+<p>A.TotQty,</p>
+<p>A.ItemSeq</p>
+<p>FROM _TPJTBOM AS A WITH(NOLOCK)</p>
+<p>JOIN das_TPJTBOM AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>AND B.BOMSerl = A.BOMSerl</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS S2 WITH(NOLOCK) ON S2.CompanySeq = A.CompanySeq</p>
+<p>AND S2.MinorSeq = A.UMSupplyType-- 구매여부</p>
+<p>AND S2.Serl = 1000001</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS S4 WITH(NOLOCK) ON S4.CompanySeq = A.CompanySeq</p>
+<p>AND S4.MinorSeq = A.UMSupplyType -- 생산여부</p>
+<p>AND S4.Serl = 1000004</p>
+<p>WHERE A.BOMSerl \&lt;&gt; -1</p>
+<p>AND A.PJTSeq IN(SELECT PJTSeq FROM #PJTMST)</p>
+<p>AND (</p>
+<p>(@SupplyType = 0 )</p>
+<p>OR (@SupplyType = 1 AND S2.ValueText = '1') -- 구매</p>
+<p>OR (@SupplyType = 2 AND S4.ValueText = '1') -- 제조 (생산)</p>
+<p>)</p>
+<p>EXEC _SWCOMProgressTracking @CompanySeq, '_TPJTBOM', '#Temp_PJTBOM', 'PJTSeq', 'BOMSerl', ''</p>
+<p>INSERT INTO #PJTBOM_Tracking</p>
+<p>(</p>
+<p>IDX_NO</p>
+<p>,POReqQty</p>
+<p>,POQty</p>
+<p>,DelvQty</p>
+<p>,DelvInQty</p>
+<blockquote>
+<p>)        </p>
+</blockquote>
+<p>SELECT A.IDX_NO,</p>
+<p>SUM(CASE IDOrder WHEN 6 THEN A.Qty                         ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 1 THEN A.Qty                         ELSE 0 END),</p>
+<p>SUM(CASE WHEN IDOrder IN (2, 4) THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE WHEN IDOrder IN (3, 5) THEN A.Qty ELSE 0 END)</p>
+<p>FROM #TCOMProgressTracking AS A</p>
+<p>GROUP BY A.IDX_No</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>--===================================================================</p>
+<p>-- 종료 : 구매 진행 수량 가져오기</p>
+<p>--===================================================================</p>
+  </article>
+</div>
+</body>
+</html>

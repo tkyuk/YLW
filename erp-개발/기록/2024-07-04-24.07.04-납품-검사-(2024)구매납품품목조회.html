@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.07.04 납품 -\> 검사 (2024)구매납품품목조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.07.04 납품 -\> 검사 (2024)구매납품품목조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="240704-2024">24.07.04 납품 -&gt; 검사 (2024)구매납품품목조회</h1>
+<p>DROP PROCEDURE danam_SPDQcTestReportSave</p>
+<p>GO</p>
+<p>CREATE PROCEDURE danam_SPDQcTestReportSave</p>
+<p>@xmlDocument NVARCHAR(MAX),</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@SampleSeq INT,</p>
+<p>@Count INT,</p>
+<p>@EnvValue6233 INT,</p>
+<p>@EnvValue6236 INT,</p>
+<p>@EnvMatQty INT, -- 12.09.19 김세호 추가</p>
+<p>@EnvGoodQty INT -- 12.09.19 김세호 추가</p>
+<p>Declare @ReqInQty Decimal(19,5),</p>
+<p>@RejectQty Decimal(19,5),</p>
+<p>@DelvSerl INT</p>
+<p>-- 구매/자재 수량 소수점 자리수 -- 12.09.17 김세호 추가</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,5,@UserSeq,@@PROCID,@EnvMatQty OUTPUT</p>
+<p>-- 판매/제품 수량 소숫점 자릿수 -- 12.09.17 김세호 추가</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,8,@UserSeq,@@PROCID,@EnvGoodQty OUTPUT</p>
+<p>-- 불량수량 원가처리기준 (양수량기준, 불량수량폐기)</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,6233,@UserSeq,@@PROCID,@EnvValue6233 OUTPUT</p>
+<p>-- 불량폐기대상 설정 (전량불량, 부분불량)</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,6236,@UserSeq,@@PROCID,@EnvValue6236 OUTPUT</p>
+<p>-- 자동QC생성(무검사품 최종공정실적입력시 QC데이터 합격으로 자동생성) 이 아닐경우만 xml로 파라미터 받음 -- 12.03.18 BY 김세호</p>
+<p>IF @WorkingTag \&lt;&gt; 'AutoQC'</p>
+<p>BEGIN</p>
+<p>-- 서비스 마스타 등록 생성</p>
+<p>CREATE TABLE #TPDQcTestReport (WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TPDQcTestReport'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- PgmSeq 작업 2014년 07월 20일 일괄 작업합니다. (추후 안정화 되면 삭제예정)</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects AS A JOIN syscolumns AS B ON A.id = B.id where A.Name = '_TPDQCTestReport' AND A.xtype = 'U' AND B.Name = 'PgmSeq')</p>
+<p>BEGIN</p>
+<p>ALTER TABLE _TPDQCTestReport ADD PgmSeq INT NULL</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects AS A JOIN syscolumns AS B ON A.id = B.id where A.Name = '_TPDQCTestReportLog' AND A.xtype = 'U' AND B.Name = 'PgmSeq')</p>
+<p>BEGIN</p>
+<p>ALTER TABLE _TPDQCTestReportLog ADD PgmSeq INT NULL</p>
+<p>END</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDQCTestReport', -- 원테이블명</p>
+<p>'#TPDQcTestReport', -- 템프테이블명</p>
+<p>'QCSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq, QCSeq, FactUnit, QCNo, SourceType, SourceSeq, SourceSerl, ItemSeq, SMTestMethod, SMSamplingStd, SMAQLLevel, AQLPoint, SMAQLStrict,</p>
+<p>AQLAcValue, AQLReValue, AcBadRatio, ReqQty, ReqSampleQty, SelectDate, TestStartDate, TestEndDate, TestDocNo, SampleNo, RealSampleQty, BadSampleQty,</p>
+<p>BadSampleRate, SMTestResult, PassedQty, RejectQty, DisuseQty, ReqInQty, TestUsedTime, Remark, SMRejectTransType, EmpSeq, DeptSeq, LastUserSeq,</p>
+<p>LastDateTime, Memo1, Memo2, Memo3, Memo4, FileSeq,IsReCfm, DisposeQty,PgmSeq',</p>
+<p>'',@PgmSeq</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'danam_TPDQCTestReportAdd', -- 원테이블명</p>
+<p>'#TPDQcTestReport', -- 템프테이블명</p>
+<p>'QCSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq, QCSeq, IsNonCfmItem, NonCfmItemQty, LastUserSeq, LastDateTime, CocYN, Content,Measure, Capacity,ProductCode,CustLotNo,COCNo,DWGNo,DWGRev,IsStart,NonCfmNo',</p>
+<p>'',@PgmSeq</p>
+<hr />
+<p>-- 저장 및 수정시, 기준단위수량 환산 -- 12.09.19 BY 김세호</p>
+<hr />
+<p>IF EXISTS (SELECT 1 FROM #TPDQcTestReport WHERE WorkingTag IN ('A', 'U') AND Status = 0 AND SourceType = '1')</p>
+<p>BEGIN</p>
+<p>UPDATE #TPDQcTestReport</p>
+<p>SET StdUnitReqQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>StdUnitPassedQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>--StdUnitRejectQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>-- ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>-- WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>-- ELSE ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>-- END ,</p>
+<p>StdUnitRejectQty =</p>
+<p>CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END</p>
+<p>-</p>
+<p>CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,-- 요청수량 - 합격수량이 불량수량 20130905 이재혁</p>
+<p>StdUnitReqInQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>StdUnitDisposeQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>UnitSeq = B.UnitSeq,</p>
+<p>WHSeq = B.WHSeq</p>
+<p>FROM #TPDQcTestReport AS A</p>
+<p>JOIN _TPUDelvItem AS B WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND A.SourceSeq = B.DelvSeq</p>
+<p>AND A.SourceSerl = B.DelvSerl</p>
+<p>JOIN _TDAItemUnit AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>AND B.UnitSeq = C.UnitSeq</p>
+<p>JOIN _TDAUnit AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.UnitSeq = D.UnitSeq</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.SourceType ='1'</p>
+<p>END</p>
+<p>IF EXISTS (SELECT 1 FROM #TPDQcTestReport WHERE WorkingTag IN ('A', 'U') AND Status = 0 AND SourceType = '2')</p>
+<p>BEGIN</p>
+<p>UPDATE #TPDQcTestReport</p>
+<p>SET StdUnitReqQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>StdUnitPassedQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>--StdUnitRejectQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>-- ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>-- WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>-- ELSE ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>-- END ,</p>
+<p>StdUnitRejectQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END -</p>
+<p>CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>StdUnitReqInQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>StdUnitDisposeQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvMatQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvMatQty + 1)), @EnvMatQty)</p>
+<p>ELSE ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvMatQty, 0) END )</p>
+<p>END ,</p>
+<p>UnitSeq = B.UnitSeq,</p>
+<p>WHSeq = B.WHSeq</p>
+<p>FROM #TPDQcTestReport AS A</p>
+<p>JOIN _TPDOSPDelvItem AS B WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND A.SourceSeq = B.OSPDelvSeq</p>
+<p>AND A.SourceSerl = B.OSPDelvSerl</p>
+<p>JOIN _TDAItemUnit AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>AND B.UnitSeq = C.UnitSeq</p>
+<p>JOIN _TDAUnit AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.UnitSeq = D.UnitSeq</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.SourceType ='2'</p>
+<p>END</p>
+<p>IF EXISTS (SELECT 1 FROM #TPDQcTestReport WHERE WorkingTag IN ('A', 'U') AND Status = 0 AND SourceType = '3')</p>
+<p>BEGIN</p>
+<p>UPDATE #TPDQcTestReport</p>
+<p>SET StdUnitReqQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvGoodQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvGoodQty + 1)), @EnvGoodQty)</p>
+<p>ELSE ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvGoodQty, 0) END )</p>
+<p>END ,</p>
+<p>StdUnitPassedQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvGoodQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvGoodQty + 1)), @EnvGoodQty)</p>
+<p>ELSE ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvGoodQty, 0) END )</p>
+<p>END ,</p>
+<p>-- CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>-- ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvGoodQty, -1)</p>
+<p>-- WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvGoodQty + 1)), @EnvGoodQty)</p>
+<p>-- ELSE ROUND((A.RejectQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvGoodQty, 0) END )</p>
+<p>-- END ,</p>
+<p>StdUnitRejectQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvGoodQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvGoodQty + 1)), @EnvGoodQty)</p>
+<p>ELSE ROUND((A.ReqQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvGoodQty, 0) END )</p>
+<p>END -</p>
+<p>CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvGoodQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvGoodQty + 1)), @EnvGoodQty)</p>
+<p>ELSE ROUND((A.PassedQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvGoodQty, 0) END )</p>
+<p>END,</p>
+<p>StdUnitReqInQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0 ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvGoodQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvGoodQty + 1)), @EnvGoodQty)</p>
+<p>ELSE ROUND((A.ReqInQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvGoodQty, 0) END )</p>
+<p>END ,</p>
+<p>StdUnitDisposeQty = CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0</p>
+<p>ELSE (CASE WHEN D.SMDecPointSeq = 1003002 THEN ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))), @EnvGoodQty, -1)</p>
+<p>WHEN D.SMDecPointSeq = 1003003 THEN ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) + CAST(4 AS DECIMAL(19, 5)) / POWER(10,(@EnvGoodQty + 1)), @EnvGoodQty)</p>
+<p>ELSE ROUND((A.DisposeQty * (ISNULL(C.ConvNum,0)/ISNULL(C.ConvDen,0))) , @EnvGoodQty, 0) END )</p>
+<p>END ,</p>
+<p>UnitSeq = B.ProdUnitSeq,</p>
+<p>WHSeq = B.FieldWHSeq</p>
+<p>FROM #TPDQcTestReport AS A</p>
+<p>JOIN _TPDSFCWorkReport AS B WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND A.SourceSeq = B.WorkReportSeq</p>
+<p>JOIN _TDAItemUnit AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.GoodItemSeq = C.ItemSeq</p>
+<p>AND B.ProdUnitSeq = C.UnitSeq</p>
+<p>JOIN _TDAUnit AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.UnitSeq = D.UnitSeq</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.SourceType ='3'</p>
+<p>END</p>
+<p>-- DELETE</p>
+<p>IF EXISTS (SELECT 1 FROM #TPDQcTestReport WHERE WorkingTag = 'D' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>DELETE _TPDQcTestReport</p>
+<p>FROM _TPDQcTestReport AS A JOIN #TPDQcTestReport AS B ON A.QCSeq = B.QCSeq</p>
+<p>WHERE B.WorkingTag = 'D' AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DELETE _TPDQcTestReportSub</p>
+<p>FROM _TPDQcTestReportSub AS A JOIN #TPDQcTestReport AS B ON A.QCSeq = B.QCSeq</p>
+<p>WHERE B.WorkingTag = 'D' AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DELETE danam_TPDQCTestReportAdd</p>
+<p>FROM danam_TPDQCTestReportAdd AS A JOIN #TPDQcTestReport AS B ON A.QCSeq = B.QCSeq</p>
+<p>WHERE B.WorkingTag = 'D' AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DELETE danam_TPDNonCfmItem</p>
+<p>FROM danam_TPDNonCfmItem AS A JOIN #TPDQcTestReport AS B ON A.QCSeq = B.QCSeq</p>
+<p>WHERE B.WorkingTag = 'D' AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 인수검사 삭제시 입고 테이블 검사여부 리셋</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = 6035002,</p>
+<p>QcEmpSeq = 0,</p>
+<p>QcDate = '',</p>
+<p>QcQty = 0,</p>
+<p>BadQty = 0,</p>
+<p>QcCurAmt = 0</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Left Outer Join danam_TPUDElvItem As C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DelvSeq = C.DelvSeq</p>
+<p>AND A.DelvSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>AND IsNull(C.LotNo, '') = ''</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 인수검사 삭제시 입고 테이블 검사여부 리셋</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = 6035002,</p>
+<p>QcEmpSeq = 0,</p>
+<p>QcDate = '',</p>
+<p>QcQty = 0,</p>
+<p>BadQty = 0,</p>
+<p>QcCurAmt = 0</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE danam_TPUDElvItem</p>
+<p>SET SMQCType = 6035002,</p>
+<p>QcEmpSeq = 0,</p>
+<p>QcDate = '',</p>
+<p>QcQty = 0,</p>
+<p>BadQty = 0,</p>
+<p>QcCurAmt = 0</p>
+<p>FROM danam_TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>-- 외주검사 삭제시 입고 테이블 검사여부 리셋</p>
+<p>UPDATE _TPDOSPDelvItem</p>
+<p>SET SMQCType = 6035002,</p>
+<p>BadQty = 0 -- 11.06.10 김세호 추가</p>
+<p>FROM _TPDOSPDelvItem AS A JOIN #TPDQcTestReport AS B ON A.OSPDelvSeq = B.SourceSeq</p>
+<p>AND A.OSPDelvSerl = B.SourceSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '2'</p>
+<p>AND B.WorkingTag = 'D'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- Update</p>
+<p>IF EXISTS (SELECT 1 FROM #TPDQcTestReport WHERE WorkingTag = 'U' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>UPDATE _TPDQcTestReport SET</p>
+<p>FactUnit = ISNULL(B.FactUnit, 0),</p>
+<p>SourceType = ISNULL(B.SourceType, ''),</p>
+<p>SourceSeq = ISNULL(B.SourceSeq, 0),</p>
+<p>SourceSerl = ISNULL(B.SourceSerl, 0),</p>
+<p>ItemSeq = ISNULL(B.ItemSeq, 0),</p>
+<p>SMTestMethod = ISNULL(B.SMTestMethod, 0),</p>
+<p>SMSamplingStd= ISNULL(B.SMSamplingStd, 0),</p>
+<p>SMAQLLevel = ISNULL(B.SMAQLLevel, 0),</p>
+<p>AQLPoint = ISNULL(B.SMAQLPoint, 0),</p>
+<p>SMAQLStrict = ISNULL(B.SMAQLStrict, 0),</p>
+<p>AQLAcValue = ISNULL(B.AQLAcValue, 0),</p>
+<p>AQLReValue = ISNULL(B.AQLReValue, 0),</p>
+<p>AcBadRatio = ISNULL(B.AcBadRatio, 0),</p>
+<p>ReqQty = ISNULL(B.ReqQty , 0),</p>
+<p>ReqSampleQty = ISNULL(B.ReqSampleQty, 0),</p>
+<p>SelectDate = ISNULL(B.SelectDate, ''),</p>
+<p>TestStartDate= ISNULL(B.TestStartDate, ''),</p>
+<p>TestEndDate = ISNULL(B.TestEndDate, ''),</p>
+<p>TestDocNo = ISNULL(B.TestDocNo, ''),</p>
+<p>SampleNo = ISNULL(B.SampleNo, ''),</p>
+<p>RealSampleQty= ISNULL(B.RealSampleQty, 0),</p>
+<p>BadSampleQty = ISNULL(B.BadSampleQty, 0),</p>
+<p>BadSampleRate= ISNULL(B.BadSampleRate, 0),</p>
+<p>SMTestResult = ISNULL(B.SMTestResult, 0),</p>
+<p>PassedQty = ISNULL(B.PassedQty, 0),</p>
+<p>RejectQty = ISNULL(B.RejectQty, 0),</p>
+<p>DisposeQty = ISNULL(B.DisposeQty, 0),</p>
+<p>ReqInQty = ISNULL(B.ReqInQty, 0),</p>
+<p>TestUsedTime = ISNULL(B.TestUsedTime, 0),</p>
+<p>Remark = ISNULL(B.Remark, ''),</p>
+<p>SMRejectTransType = ISNULL(B.SMRejectTransType, 0),</p>
+<p>EmpSeq = ISNULL(B.EmpSeq, 0),</p>
+<p>DeptSeq = ISNULL(B.DeptSeq, 0),</p>
+<p>Memo1 = ISNULL(B.Memo1, ''),</p>
+<p>Memo2 = ISNULL(B.Memo2, ''),</p>
+<p>FileSeq = ISNULL(B.FileSeq, 0),</p>
+<p>IsReCfm = ISNULL(B.IsReCfm, ''),</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE(),</p>
+<hr />
+<p>-- 불량폐기 관련 칼럼 UPDATE-- -- 12.12.11 BY 김세호</p>
+<p>-- EnvSeq = 6233 (6078001 : 양품수량기준, 6078002 : 불량수량폐기, 6078003 : 불량원가계산(재작업+손실비용처리))</p>
+<p>-- EnvSeq = 6236 (6090001 : 전량불량, 6090002 : 부분불량)</p>
+<hr />
+<p>ReOrderQty = CASE WHEN @EnvValue6233 = 6078002 THEN 0</p>
+<p>ELSE ISNULL(B.RejectQty, 0) END,</p>
+<p>LossCostQty = CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN 0 ELSE ISNULL(B.RejectQty, 0) END)</p>
+<p>ELSE 0 END,</p>
+<p>DisuseQty = CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN ISNULL(B.RejectQty, 0) ELSE 0 END)</p>
+<p>ELSE 0 END,</p>
+<p>StdUnitReOrderQty = CASE WHEN @EnvValue6233 = 6078002 THEN 0</p>
+<p>ELSE ISNULL(B.StdUnitRejectQty, 0) END,</p>
+<p>StdUnitLossCostQty = CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN 0 ELSE ISNULL(B.StdUnitRejectQty, 0) END)</p>
+<p>ELSE 0 END,</p>
+<p>StdUnitDisuseQty = CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN ISNULL(B.StdUnitRejectQty, 0) ELSE 0 END)</p>
+<p>ELSE 0 END,</p>
+<p>-- 기준단위수량 추가 -- 12.09.19 BY 김세호</p>
+<p>StdUnitReqQty = ISNULL(B.StdUnitReqQty, 0),</p>
+<p>StdUnitPassedQty = ISNULL(B.StdUnitPassedQty, 0),</p>
+<p>StdUnitRejectQty = ISNULL(B.StdUnitRejectQty, 0),</p>
+<p>StdUnitReqInQty = ISNULL(B.StdUnitReqInQty, 0),</p>
+<p>StdUnitDisposeQty = ISNULL(B.StdUnitDisposeQty, 0),</p>
+<p>UnitSeq = ISNULL(B.UnitSeq, 0),</p>
+<p>WHSeq = ISNULL(B.WHSeq , 0),</p>
+<p>PgmSeq = @PgmSeq</p>
+<p>FROM _TPDQcTestReport AS A JOIN #TPDQcTestReport AS B ON (A.QCSeq = B.QCSeq)</p>
+<p>WHERE B.WorkingTag = 'U' AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- danam_TPDQCTestReportAdd 업데이트</p>
+<p>UPDATE danam_TPDQCTestReportAdd</p>
+<p>SET IsNonCfmItem = ISNULL(B.IsNonCfmItem, '0'),</p>
+<p>NonCfmItemQty = ISNULL(B.NonCfmItemQty, 0),</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE(),</p>
+<p>CocYN = ISNULL(B.CocYN, '0'),</p>
+<p>Content = ISNULL(B.Content, ''), -- 20191118.작업내용 추가</p>
+<p>Measure = ISNULL(B.Measure, ''), -- 20191118.문제점및대책 추가</p>
+<p>Capacity = ISNULL(B.Capacity , ''), -- 20191127.용량값 추가</p>
+<p>ProductCode = ISNULL(B.ProductCode, ''), -- 20191127.제품생산코드 추가</p>
+<p>CustLotNo = ISNULL(B.CustLotNo , ''), -- 20191127.구매처LotNo 추가</p>
+<p>COCNo = ISNULL(B.COCNo , ''), -- 20191127.COC NO. 추가</p>
+<p>DWGNo = ISNULL(B.DWGNo , ''), -- 20191127.도면번호 추가</p>
+<p>DWGRev = ISNULL(B.DWGRev , ''), -- 20191127.도면개정번호 추가</p>
+<p>NonCfmNo = ISNULL(B.NonCfmNo , '') -- 부적합번호 추가</p>
+<p>FROM danam_TPDQCTestReportAdd AS A JOIN #TPDQcTestReport AS B ON (A.QCSeq = B.QCSeq)</p>
+<p>WHERE B.WorkingTag = 'U' AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--수정데이터이지만 사이트테이블에 없는 경우 인서트</p>
+<p>INSERT INTO danam_TPDQCTestReportAdd (CompanySeq, QCSeq, IsNonCfmItem, NonCfmItemQty, LastUserSeq, LastDateTime, CocYN, Content,Measure,Capacity,ProductCode,CustLotNo,COCNo,DWGNo,DWGRev,IsStart,NonCfmNo)</p>
+<p>SELECT @CompanySeq, A.QCSeq, A.IsNonCfmItem, A.NonCfmItemQty, @UserSeq, GETDATE(), A.CocYN, Content,Measure,Capacity,ProductCode,CustLotNo,COCNo,DWGNo,DWGRev,'',NonCfmNo</p>
+<p>FROM #TPDQcTestReport AS A</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM danam_TPDQCTestReportAdd WHERE CompanySeq = @CompanySeq</p>
+<p>AND QCSeq = A.QCSeq)</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPUDelvItem</p>
+<p>SET SMQCType = B.SMTestResult,</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>QcQty = ISNULL(B.ReqInQty, 0), -- 검사일지 수정시에 금액이 계속 더해서 늘어나는 오류 때문에 수정</p>
+<p>BadQty = ISNULL(B.RejectQty, 0),</p>
+<p>QcCurAmt = CASE B.SMTestResult WHEN 6035003 THEN A.CurAmt ELSE 0 END</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Left Outer Join danam_TPUDElvItem As C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DelvSeq = C.DelvSeq</p>
+<p>AND A.DelvSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND (IsNull(C.DelvSeq, 0) = 0 and IsNull(C.ItemSeq, 0) = 0 and ISNULL(C.LotNo, '') = '' )</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--QC에서 COC여부 체크 시 LotMaster의 Dummy2에 Update</p>
+<p>UPDATE _TLGLotMaster</p>
+<p>SET Dummy2 = ISNULL(B.CocYN, '0')</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>JOIN _TLGLotMaster AS L ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.LotNo = L.LotNo</p>
+<p>Left Outer Join danam_TPUDElvItem As C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DelvSeq = C.DelvSeq</p>
+<p>AND A.DelvSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND ISNULL(B.CocYN, '0') = '1'</p>
+<p>AND (IsNull(C.DelvSeq, 0) = 0 and IsNull(C.ItemSeq, 0) = 0 and ISNULL(C.LotNo, '') = '' )</p>
+<p>-- 납품 집게인 건은 전체 초기화</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = 6035002,</p>
+<p>QcEmpSeq = 0,</p>
+<p>QcDate = '',</p>
+<p>QcQty = 0,</p>
+<p>BadQty = 0,</p>
+<p>QcCurAmt = 0</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE danam_TPUDElvItem</p>
+<p>SET SMQCType = B.SMTestResult,</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>QcQty = ISNULL(B.ReqInQty, 0),</p>
+<p>BadQty = ISNULL(B.RejectQty, 0),</p>
+<p>QcCurAmt = CASE B.SMTestResult WHEN 6035003 THEN A.CurAmt ELSE 0 END</p>
+<p>FROM danam_TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>Select @ReqInQty = ReqInQty, @RejectQty = RejectQty, @DelvSerl = 0</p>
+<p>From #TPDQcTestReport</p>
+<p>--납품 집계 건이면 납품 건별로 합격처리</p>
+<p>If Exists (Select top 1 1 FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>JOIN danam_TPUDElvItem As C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DelvSeq = C.DelvSeq</p>
+<p>AND A.DelvSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U')</p>
+<p>Begin</p>
+<p>While 1=1</p>
+<p>Begin</p>
+<p>Select top 1 @DelvSerl = A.DelvSerl</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND A.DelvSerl &gt; @DelvSerl</p>
+<p>Order by A.DelvSerl</p>
+<p>IF @@Rowcount = 0</p>
+<p>Break</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = Case When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then 6035003 Else B.SMTestResult End,</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>QcQty = ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>Else @ReqInQty End,</p>
+<p>BadQty = ISNULL(A.BadQty, 0) + Case When @ReqInQty \&lt;= 0 Then Case When @RejectQty = 0 Then 0</p>
+<p>When @RejectQty \&lt;= ISNULL(A.Qty, 0) Then @RejectQty</p>
+<p>Else A.Qty End</p>
+<p>Else 0 End,</p>
+<p>QcCurAmt = CASE WHEN B.SMTestResult = 6035003 THEN A.CurAmt</p>
+<p>WHEN B.SMTestResult \&lt;&gt; 6035004 THEN A.Price * (ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>Else @ReqInQty End) ELSE 0 END</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--QC에서 COC여부 체크 시 LotMaster의 Dummy2에 Update</p>
+<p>UPDATE _TLGLotMaster</p>
+<p>SET Dummy2 = ISNULL(B.CocYN, '0')</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>JOIN _TLGLotMaster AS L ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.LotNo = L.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>Select @ReqInQty = @ReqInQty - A.Qty</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>IF @ReqInQty \&lt;= 0</p>
+<p>Begin</p>
+<p>--Select @DelvSerl = 0</p>
+<p>While 1=1</p>
+<p>Begin</p>
+<p>Select top 1 @DelvSerl = A.DelvSerl</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND A.DelvSerl &gt; @DelvSerl</p>
+<p>AND A.Qty \&lt;&gt; A.QCQty</p>
+<p>Order by A.DelvSerl</p>
+<p>IF @@Rowcount = 0</p>
+<p>Break</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = Case When A.QCQty &gt; 0 Then 6035006 Else 6035004 End, --불합격</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>--QcQty = ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>-- When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>-- Else @ReqInQty End,</p>
+<p>BadQty = ISNULL(A.BadQty, 0) + Case When @RejectQty = 0 Then 0 When @RejectQty \&lt;= ISNULL(A.Qty, 0) Then @RejectQty Else A.Qty End,</p>
+<p>QcCurAmt = CASE WHEN B.SMTestResult = 6035003 THEN A.CurAmt</p>
+<p>WHEN B.SMTestResult \&lt;&gt; 6035004 THEN A.Price * (ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>Else @ReqInQty End) ELSE 0 END</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>Select @RejectQty = Case When (@RejectQty - A.Qty) \&lt;= 0 Then 0 Else @RejectQty - A.Qty End</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>End</p>
+<p>End</p>
+<p>End</p>
+<p>End</p>
+<p>-- 외주테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPDOSPDelvItem</p>
+<p>SET SMQCType = B.SMTestResult,</p>
+<p>BadQty = ISNULL(B.RejectQty, 0)</p>
+<p>FROM _TPDOSPDelvItem AS A JOIN #TPDQcTestReport AS B ON A.OSPDelvSeq = B.SourceSeq</p>
+<p>AND A.OSPDelvSerl = B.SourceSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '2'</p>
+<p>AND B.WorkingTag = 'U'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- INSERT</p>
+<p>IF EXISTS (SELECT 1 FROM #TPDQcTestReport WHERE WorkingTag = 'A' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>-- 서비스 INSERT</p>
+<p>INSERT INTO _TPDQcTestReport (</p>
+<p>CompanySeq ,</p>
+<p>FactUnit ,</p>
+<p>QCSeq ,</p>
+<p>QCNo ,</p>
+<p>SourceType ,</p>
+<p>SourceSeq ,</p>
+<p>SourceSerl ,</p>
+<p>ItemSeq ,</p>
+<p>SMTestMethod,</p>
+<p>SMSamplingStd,</p>
+<p>SMAQLLevel ,</p>
+<p>AQLPoint ,</p>
+<p>SMAQLStrict ,</p>
+<p>AQLAcValue ,</p>
+<p>AQLReValue ,</p>
+<p>AcBadRatio ,</p>
+<p>ReqQty ,</p>
+<p>ReqSampleQty ,</p>
+<p>SelectDate ,</p>
+<p>TestStartDate,</p>
+<p>TestEndDate ,</p>
+<p>TestDocNo ,</p>
+<p>SampleNo ,</p>
+<p>RealSampleQty,</p>
+<p>BadSampleQty ,</p>
+<p>BadSampleRate,</p>
+<p>SMTestResult ,</p>
+<p>PassedQty ,</p>
+<p>RejectQty ,</p>
+<p>DisposeQty ,</p>
+<p>ReqInQty ,</p>
+<p>TestUsedTime ,</p>
+<p>Remark ,</p>
+<p>SMRejectTransType ,</p>
+<p>EmpSeq ,</p>
+<p>DeptSeq ,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime ,</p>
+<p>Memo1 ,</p>
+<p>Memo2 ,</p>
+<p>FileSeq ,</p>
+<p>IsReCfm,</p>
+<p>-- 불량폐기 관련 칼럼 INSERT -- 12.12.11 BY 김세호</p>
+<p>ReOrderQty ,</p>
+<p>LossCostQty ,</p>
+<p>DisuseQty ,</p>
+<p>StdUnitReOrderQty,</p>
+<p>StdUnitLossCostQty,</p>
+<p>StdUnitDisuseQty ,</p>
+<p>-- 단위, 창고, 기준단위수량 추가 -- 12.09.19 BY 김세호</p>
+<p>StdUnitReqQty,</p>
+<p>StdUnitPassedQty,</p>
+<p>StdUnitRejectQty,</p>
+<p>StdUnitReqInQty,</p>
+<p>StdUnitDisposeQty,</p>
+<p>UnitSeq,</p>
+<p>WHSeq ,</p>
+<p>PgmSeq</p>
+<p>)</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>ISNULL(B.FactUnit, 0),</p>
+<p>ISNULL(B.QCSeq , 0),</p>
+<p>ISNULL(B.QCNo ,''),</p>
+<p>ISNULL(B.SourceType, ''),</p>
+<p>ISNULL(B.SourceSeq, 0),</p>
+<p>ISNULL(B.SourceSerl, 0),</p>
+<p>ISNULL(B.ItemSeq, 0),</p>
+<p>ISNULL(B.SMTestMethod, 0),</p>
+<p>ISNULL(B.SMSamplingStd, 0),</p>
+<p>ISNULL(B.SMAQLLevel, 0),</p>
+<p>ISNULL(B.SMAQLPoint, 0),</p>
+<p>ISNULL(B.SMAQLStrict, 0),</p>
+<p>ISNULL(B.AQLAcValue, 0),</p>
+<p>ISNULL(B.AQLReValue, 0),</p>
+<p>ISNULL(B.AcBadRatio, 0),</p>
+<p>ISNULL(B.ReqQty , 0),</p>
+<p>ISNULL(B.ReqSampleQty, 0),</p>
+<p>ISNULL(B.SelectDate, ''),</p>
+<p>ISNULL(B.TestStartDate, ''),</p>
+<p>ISNULL(B.TestEndDate, ''),</p>
+<p>ISNULL(B.TestDocNo, ''),</p>
+<p>ISNULL(B.SampleNo, ''),</p>
+<p>ISNULL(B.RealSampleQty, 0),</p>
+<p>ISNULL(B.BadSampleQty, 0),</p>
+<p>ISNULL(B.BadSampleRate, 0),</p>
+<p>ISNULL(B.SMTestResult, 0),</p>
+<p>ISNULL(B.PassedQty, 0),</p>
+<p>ISNULL(B.RejectQty, 0),</p>
+<p>ISNULL(B.DisposeQty, 0),</p>
+<p>ISNULL(B.ReqInQty, 0),</p>
+<p>ISNULL(B.TestUsedTime, 0),</p>
+<p>ISNULL(B.Remark, ''),</p>
+<p>ISNULL(B.SMRejectTransType, 0),</p>
+<p>ISNULL(B.EmpSeq, 0),</p>
+<p>ISNULL(B.DeptSeq, 0),</p>
+<p>@UserSeq,</p>
+<p>GETDATE(),</p>
+<p>ISNULL(Memo1 , '') ,</p>
+<p>ISNULL(Memo2 , '') ,</p>
+<p>ISNULL(B.FileSeq, 0) ,</p>
+<p>ISNULL(B.IsReCfm, ''),</p>
+<hr />
+<p>-- 불량폐기 관련 칼럼 UPDATE-- -- 12.12.11 BY 김세호</p>
+<p>-- EnvSeq = 6233 (6078001 : 양품수량기준, 6078002 : 불량수량폐기, 6078003 : 불량원가계산(재작업+손실비용처리))</p>
+<p>-- EnvSeq = 6236 (6090001 : 전량불량, 6090002 : 부분불량)</p>
+<hr />
+<p>CASE WHEN @EnvValue6233 = 6078002 THEN 0</p>
+<p>ELSE ISNULL(B.RejectQty, 0) END,</p>
+<p>CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN 0 ELSE ISNULL(B.RejectQty, 0) END)</p>
+<p>ELSE 0 END,</p>
+<p>CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN ISNULL(B.RejectQty, 0) ELSE 0 END)</p>
+<p>ELSE 0 END,</p>
+<p>CASE WHEN @EnvValue6233 = 6078002 THEN 0</p>
+<p>ELSE ISNULL(B.StdUnitRejectQty, 0) END,</p>
+<p>CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN 0 ELSE ISNULL(B.StdUnitRejectQty, 0) END)</p>
+<p>ELSE 0 END,</p>
+<p>CASE WHEN @EnvValue6233 = 6078002 THEN (CASE WHEN @EnvValue6236 = 6090001 THEN ISNULL(B.StdUnitRejectQty, 0) ELSE 0 END)</p>
+<p>ELSE 0 END,</p>
+<p>-- 단위, 창고, 기준단위수량 추가 -- 12.09.19 BY 김세호</p>
+<p>ISNULL(B.StdUnitReqQty, 0),</p>
+<p>ISNULL(B.StdUnitPassedQty, 0),</p>
+<p>ISNULL(B.StdUnitRejectQty, 0),</p>
+<p>ISNULL(B.StdUnitReqInQty, 0),</p>
+<p>ISNULL(B.StdUnitDisposeQty, 0),</p>
+<p>ISNULL(B.UnitSeq, 0),</p>
+<p>ISNULL(B.WHSeq, 0) ,</p>
+<p>@PgmSeq</p>
+<p>FROM #TPDQcTestReport AS B WHERE B.WorkingTag = 'A' AND B.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 사이트테이블 INSERT</p>
+<p>INSERT INTO danam_TPDQCTestReportAdd (</p>
+<p>CompanySeq ,</p>
+<p>QCSeq ,</p>
+<p>IsNonCfmItem ,</p>
+<p>NonCfmItemQty,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime ,</p>
+<p>CocYN,</p>
+<p>Content, -- 20191118.작업내용 추가</p>
+<p>Measure, -- 20191118.문제점및대책 추가</p>
+<p>Capacity,ProductCode,CustLotNo,COCNo,DWGNo,DWGRev,</p>
+<p>NonCfmNo</p>
+<p>)</p>
+<p>SELECT</p>
+<p>@CompanySeq,</p>
+<p>ISNULL(B.QCSeq, 0),</p>
+<p>ISNULL(B.IsNonCfmItem ,'0'),</p>
+<p>ISNULL(B.NonCfmItemQty,0),</p>
+<p>@UserSeq,</p>
+<p>GETDATE(),</p>
+<p>ISNULL(B.CocYN, '0'),</p>
+<p>ISNULL(B.Content, ''),</p>
+<p>ISNULL(B.Measure, ''),</p>
+<p>ISNULL(B.Capacity,''),</p>
+<p>ISNULL(B.ProductCode, ''),</p>
+<p>ISNULL(B.CustLotNo, ''),</p>
+<p>ISNULL(B.COCNo, ''),</p>
+<p>ISNULL(B.DWGNo, ''),</p>
+<p>ISNULL(B.DWGRev, ''),</p>
+<p>ISNULL(B.NonCfmNo, '')</p>
+<p>FROM #TPDQcTestReport AS B</p>
+<p>WHERE B.WorkingTag = 'A' AND B.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = B.SMTestResult,</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>QcQty = ISNULL(A.QCQty, 0) + ISNULL(B.ReqInQty, 0),</p>
+<p>BadQty = ISNULL(A.BadQty, 0) + ISNULL(B.RejectQty, 0), QcCurAmt = CASE B.SMTestResult WHEN 6035003 THEN A.CurAmt ELSE 0 END</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>LEFT OUTER JOIN danam_TPUDElvItem As C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DelvSeq = C.DelvSeq</p>
+<p>AND A.DelvSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND (IsNull(C.DelvSeq, 0) = 0 and IsNull(C.ItemSeq, 0) = 0 and ISNULL(C.LotNo, '') = '' )</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--QC에서 COC여부 체크 시 LotMaster의 Dummy2에 Update</p>
+<p>UPDATE _TLGLotMaster</p>
+<p>SET Dummy2 = ISNULL(B.CocYN, '0')</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>JOIN _TLGLotMaster AS L ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.LotNo = L.LotNo</p>
+<p>Left Outer Join danam_TPUDElvItem As C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.DelvSeq = C.DelvSeq</p>
+<p>AND A.DelvSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND ISNULL(B.CocYN, '0') = '1'</p>
+<p>AND (IsNull(C.DelvSeq, 0) = 0 and IsNull(C.ItemSeq, 0) = 0 and ISNULL(C.LotNo, '') = '' )</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE danam_TPUDElvItem</p>
+<p>SET SMQCType = B.SMTestResult,</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>QcQty = ISNULL(A.QCQty, 0) + ISNULL(B.ReqInQty, 0),</p>
+<p>BadQty = ISNULL(A.BadQty, 0) + ISNULL(B.RejectQty, 0),</p>
+<p>QcCurAmt = CASE B.SMTestResult WHEN 6035003 THEN A.CurAmt ELSE 0 END</p>
+<p>FROM danam_TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>Select @ReqInQty = ReqInQty, @RejectQty = RejectQty, @DelvSerl = 0</p>
+<p>From #TPDQcTestReport</p>
+<p>--납품 집계 건이면 납품 건별로 합격처리</p>
+<p>If Exists (Select top 1 1 FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A')</p>
+<p>Begin</p>
+<p>While 1=1</p>
+<p>Begin</p>
+<p>Select top 1 @DelvSerl = A.DelvSerl</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND A.DelvSerl &gt; @DelvSerl</p>
+<p>Order by A.DelvSerl</p>
+<p>IF @@Rowcount = 0</p>
+<p>Break</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = Case When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then 6035003 Else B.SMTestResult End,</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>QcQty = ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>Else @ReqInQty End,</p>
+<p>BadQty = ISNULL(A.BadQty, 0) + Case When @ReqInQty \&lt;= 0 Then Case When @RejectQty = 0 Then 0</p>
+<p>When @RejectQty \&lt;= ISNULL(A.Qty, 0) Then @RejectQty</p>
+<p>Else A.Qty End</p>
+<p>Else 0 End,</p>
+<p>QcCurAmt = CASE WHEN B.SMTestResult = 6035003 THEN A.CurAmt</p>
+<p>WHEN B.SMTestResult \&lt;&gt; 6035004 THEN A.Price * (ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>Else @ReqInQty End) ELSE 0 END</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--QC에서 COC여부 체크 시 LotMaster의 Dummy2에 Update</p>
+<p>UPDATE _TLGLotMaster</p>
+<p>SET Dummy2 = ISNULL(B.CocYN, '0')</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>JOIN _TLGLotMaster AS L ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.LotNo = L.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>Select @ReqInQty = @ReqInQty - A.Qty</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>IF @ReqInQty \&lt;= 0 and @RejectQty &gt; 0</p>
+<p>Begin</p>
+<p>--Select @DelvSerl = 0</p>
+<p>While 1=1</p>
+<p>Begin</p>
+<p>Select top 1 @DelvSerl = A.DelvSerl</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND A.DelvSerl &gt; @DelvSerl</p>
+<p>AND A.Qty \&lt;&gt; A.QCQty</p>
+<p>Order by A.DelvSerl</p>
+<p>IF @@Rowcount = 0</p>
+<p>Break</p>
+<p>-- 구매입고테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPUDElvItem</p>
+<p>SET SMQCType = Case When A.QCQty &gt; 0 Then 6035006 Else 6035004 End, --불합격</p>
+<p>QcEmpSeq = @UserSeq,</p>
+<p>QcDate = CONVERT( NCHAR(8), GETDATE(), 112),</p>
+<p>--QcQty = ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>-- When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>-- Else @ReqInQty End,</p>
+<p>BadQty = ISNULL(A.BadQty, 0) + Case When @RejectQty = 0 Then 0 When @RejectQty \&lt;= ISNULL(A.Qty, 0) Then @RejectQty Else A.Qty End,</p>
+<p>QcCurAmt = CASE WHEN B.SMTestResult = 6035003 THEN A.CurAmt</p>
+<p>WHEN B.SMTestResult \&lt;&gt; 6035004 THEN A.Price * (ISNULL(A.QCQty, 0) + Case When @ReqInQty \&lt;= 0 Then 0</p>
+<p>When @ReqInQty &gt;= ISNULL(A.Qty, 0) Then A.Qty</p>
+<p>Else @ReqInQty End) ELSE 0 END</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(c.MakerSeq,0)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>Select @RejectQty = Case When (@RejectQty - A.Qty) \&lt;= 0 Then 0 Else @RejectQty - A.Qty End</p>
+<p>FROM _TPUDElvItem AS A JOIN #TPDQcTestReport AS B ON A.DelvSeq = B.SourceSeq</p>
+<p>AND A.DelvSerl = B.SourceSerl</p>
+<p>Join danam_TPUDElvItem As C ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceSeq = C.DelvSeq</p>
+<p>AND B.SourceSerl = C.DelvSerl</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>And A.Price = C.Price</p>
+<p>AND A.LotNo = C.LotNo</p>
+<p>AND ISNULL(A.MakerSeq,0) = ISNULL(C.MakerSeq,0)</p>
+<p>JOIN _TPJTWBSPJTUnion U ON C.CompanySeq = U.CompanySeq</p>
+<blockquote>
+<p>AND C.PJTSeq = U.PJTSeq</p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '1'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>AND U.JoinPJTSeq = A.PJTSeq</p>
+<p>AND A.DelvSerl = @DelvSerl</p>
+<p>End</p>
+<p>End</p>
+<p>End</p>
+<p>End</p>
+<p>-- 외주테이블에 QC관련 컬럼 업뎃</p>
+<p>UPDATE _TPDOSPDelvItem</p>
+<p>SET SMQCType = B.SMTestResult,</p>
+<p>BadQty = ISNULL(A.BadQty, 0) + ISNULL(B.RejectQty, 0)</p>
+<p>FROM _TPDOSPDelvItem AS A JOIN #TPDQcTestReport AS B ON A.OSPDelvSeq = B.SourceSeq</p>
+<p>AND A.OSPDelvSerl = B.SourceSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.SourceType = '2'</p>
+<p>AND B.WorkingTag = 'A'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- 최종검사 -&gt; 작업지시(재작업,재생작업) 진행을 위한 테이블</p>
+<p>DELETE _TPDQCLastProcBad</p>
+<p>FROM _TPDQCLastProcBad AS A</p>
+<p>JOIN #TPDQcTestReport AS B ON A.QCSeq = B.QCSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT _TPDQCLastProcBad(CompanySeq,QCSeq,BadQty)</p>
+<p>SELECT @CompanySeq, A.QCSeq, A.RejectQty</p>
+<p>FROM #TPDQcTestReport AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('A','U')</p>
+<p>AND A.RejectQty \&lt;&gt; 0</p>
+<p>AND A.SourceType = '3'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>IF @WorkingTag \&lt;&gt; 'AutoQC'</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPDQcTestReport AS _TPDQcTestReport</p>
+<p>END</p>
+<p>--SELECT QTY,QCQTY,* FROM _TPUDelvItem WHERE DelvSeq = 38599</p>
+<p>--SELECT QTY,QCQTY,* FROM danam_TPUDelvItem WHERE DelvSeq = 38599</p>
+<p>RETURN</p>
+<p>go</p>
+<p>begin tran</p>
+<p>exec danam_SPDQcTestReportSave_ttest @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;QCSeq&gt;171631\&lt;/QCSeq&gt;</p>
+<p>\&lt;QCNo&gt;202407040010\&lt;/QCNo&gt;</p>
+<p>\&lt;SourceType&gt;1\&lt;/SourceType&gt;</p>
+<p>\&lt;SourceSeq&gt;38599\&lt;/SourceSeq&gt;</p>
+<p>\&lt;SourceSerl&gt;2\&lt;/SourceSerl&gt;</p>
+<p>\&lt;ItemSeq&gt;128190\&lt;/ItemSeq&gt;</p>
+<p>\&lt;SMTestMethod&gt;6013002\&lt;/SMTestMethod&gt;</p>
+<p>\&lt;SMSamplingStd&gt;0\&lt;/SMSamplingStd&gt;</p>
+<p>\&lt;SMAQLLevel&gt;0\&lt;/SMAQLLevel&gt;</p>
+<p>\&lt;SMAQLPoint&gt;0\&lt;/SMAQLPoint&gt;</p>
+<p>\&lt;SMAQLStrict&gt;0\&lt;/SMAQLStrict&gt;</p>
+<p>\&lt;AQLAcValue&gt;0.00000\&lt;/AQLAcValue&gt;</p>
+<p>\&lt;AQLReValue&gt;0.00000\&lt;/AQLReValue&gt;</p>
+<p>\&lt;AcBadRatio&gt;0.00000\&lt;/AcBadRatio&gt;</p>
+<p>\&lt;ReqQty&gt;6.00000\&lt;/ReqQty&gt;</p>
+<p>\&lt;ReqSampleQty&gt;0.00000\&lt;/ReqSampleQty&gt;</p>
+<p>\&lt;SelectDate&gt;20240704\&lt;/SelectDate&gt;</p>
+<p>\&lt;TestStartDate&gt;20240704\&lt;/TestStartDate&gt;</p>
+<p>\&lt;TestEndDate&gt;20240704\&lt;/TestEndDate&gt;</p>
+<p>\&lt;TestDocNo /&gt;</p>
+<p>\&lt;SampleNo /&gt;</p>
+<p>\&lt;RealSampleQty&gt;6.00000\&lt;/RealSampleQty&gt;</p>
+<p>\&lt;BadSampleQty&gt;0.00000\&lt;/BadSampleQty&gt;</p>
+<p>\&lt;BadSampleRate&gt;0.00000\&lt;/BadSampleRate&gt;</p>
+<p>\&lt;SMTestResult&gt;6035003\&lt;/SMTestResult&gt;</p>
+<p>\&lt;PassedQty&gt;6.00000\&lt;/PassedQty&gt;</p>
+<p>\&lt;RejectQty&gt;0.00000\&lt;/RejectQty&gt;</p>
+<p>\&lt;DisposeQty&gt;0.00000\&lt;/DisposeQty&gt;</p>
+<p>\&lt;ReqInQty&gt;6.00000\&lt;/ReqInQty&gt;</p>
+<p>\&lt;TestUsedTime&gt;0.00000\&lt;/TestUsedTime&gt;</p>
+<p>\&lt;Remark /&gt;</p>
+<p>\&lt;SMRejectTransType&gt;6047001\&lt;/SMRejectTransType&gt;</p>
+<p>\&lt;EmpSeq&gt;1\&lt;/EmpSeq&gt;</p>
+<p>\&lt;EmpName&gt;영림원\&lt;/EmpName&gt;</p>
+<p>\&lt;Memo1 /&gt;</p>
+<p>\&lt;Memo2 /&gt;</p>
+<p>\&lt;FileSeq&gt;0\&lt;/FileSeq&gt;</p>
+<p>\&lt;TestEndDateOld&gt;20240704\&lt;/TestEndDateOld&gt;</p>
+<p>\&lt;IsReCfm&gt;0\&lt;/IsReCfm&gt;</p>
+<p>\&lt;IsNonCfmItem&gt;1\&lt;/IsNonCfmItem&gt;</p>
+<p>\&lt;NonCfmItemQty&gt;0.00000\&lt;/NonCfmItemQty&gt;</p>
+<p>\&lt;CocYN&gt;1\&lt;/CocYN&gt;</p>
+<p>\&lt;Capacity /&gt;</p>
+<p>\&lt;ProductCode /&gt;</p>
+<p>\&lt;CustLotNo /&gt;</p>
+<p>\&lt;COCNo /&gt;</p>
+<p>\&lt;DWGNo /&gt;</p>
+<p>\&lt;DWGRev /&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=1036991,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1030319</p>
+<p>rollback tran</p>
+<p>안녕하세요. 개발팀 박성재 입니다.</p>
+<p>[(2024)구매납품품목조회] 화면 합격 로직의 경우</p>
+<p>(3013D)품질검사의뢰조회(입고검사) 에서 납품 건 조회 및 1건 선택하여 '검사등록' 툴바 클릭 후</p>
+<p>(3014D)품질검사등록(입고검사) 에서 합격 처리 후 입고 데이터 생성하도록 로직 작성 되어있습니다.</p>
+<p>합격 처리 저장 시 품목, LotNo로 JOIN이 형성되어있고, 순번에 대한 JOIN이 누락되어있어</p>
+<p>같은 품목으로 구성된 납품 건에서 오류가 발생한 것으로 확인하였습니다.</p>
+<p>- 순번 로직 추가하였습니다. (SP : danam_SPDQcTestReportSave)</p>
+<p>- 71 수량 납품건에 대해 65로 업데이트 하였습니다.</p>
+<p>- 0수량 검사 삭제 후 기존 데이터 그대로 재생성 하였습니다.</p>
+<p><img alt="" src="assets/24.07.04-납품-검사-(2024)구매납품품목조회/image91.png" /></p>
+  </article>
+</div>
+</body>
+</html>

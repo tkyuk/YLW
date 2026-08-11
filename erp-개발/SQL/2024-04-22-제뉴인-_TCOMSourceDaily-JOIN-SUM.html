@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 \_TCOMSourceDaily JOIN SUM</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 \_TCOMSourceDaily JOIN SUM</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_tcomsourcedaily-join-sum">제뉴인 _TCOMSourceDaily JOIN SUM</h1>
+<p>JOIN _TCOMSourceDaily AS P WITH(NOLOCK) ON P.CompanySeq = A.CompanySeq</p>
+<p>AND P.FromTableSeq = 10</p>
+<p>AND P.ToTableSeq = 9</p>
+<p>AND P.ToSeq = A.DelvInSeq</p>
+<p>AND P.ToSerl = a.DelvInSerl</p>
+<p>JOIN (SELECT CompanySeq, FromSeq, FromSerl, ToSeq,ToSerl, FromTableSeq, ToTableSeq, SUM(ADD_DEL * ToQty) AS ToQty -- 24.04.22 SJPARK</p>
+<p>FROM _TCOMSourceDaily</p>
+<p>GROUP BY CompanySeq, FromSeq, FromSerl, ToSeq,ToSerl,FromTableSeq, ToTableSeq</p>
+<p>)AS P ON P.CompanySeq = A.CompanySeq</p>
+<p>AND P.FromTableSeq = 10</p>
+<p>AND P.ToTableSeq = 9</p>
+<p>AND P.ToSeq = A.DelvInSeq</p>
+<p>AND P.ToSerl = A.DelvInSerl</p>
+<p>=&gt;</p>
+  </article>
+</div>
+</body>
+</html>

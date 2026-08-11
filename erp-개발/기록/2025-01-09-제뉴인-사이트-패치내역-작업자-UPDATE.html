@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 사이트 패치내역 작업자 UPDATE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 사이트 패치내역 작업자 UPDATE</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="update">제뉴인 사이트 패치내역 작업자 UPDATE</h1>
+<p>SELECT A.DBPatchSeq , A.DBWorkSeq , A.DBPatchListSeq , A.Seq , A.PatchList ,</p>
+<p>A.ToDB , A.FromDB , A.IsFail , A.Remark , A.LastUserSeq ,</p>
+<p>A.LastDateTime</p>
+<p>, ISNULL(B.UserName, N'') AS LastUserName</p>
+<p>FROM _TDEVDBPatchListHistory AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAUser AS B WITH(NOLOCK) ON A.LastUserSeq = B.UserSeq</p>
+<p>WHERE A.DBPatchSeq = 13</p>
+<p>AND A.DBWorkSeq IN (46476,46464,46461)</p>
+<p>ORDER BY A.LastDateTime DESC, A.Seq DESC</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE _TDEVDBPatchListHistory</p>
+<p>SET LastUserSeq = 46</p>
+<p>FROM _TDEVDBPatchListHistory</p>
+<p>WHERE DBPatchSeq = 13</p>
+<p>AND DBWorkSeq IN (46476,46464,46461)</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RD</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>RD</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="rd">RD</h1>
+<p>\&lt;\&lt;RD 압축파일.zip&gt;&gt;\&lt;\&lt;SSPOrderPrt_sjpark.mrd&gt;&gt;</p>
+<p>출력물은 결국 조회</p>
+<p>dataset 하나를 보내서 조회를 함</p>
+<p>[</p>
+<p>OZ =&gt; 제뉴인, 에이스에서 쏴주는 데이터(XML) 를 받아서 쓴다</p>
+<blockquote>
+<p>받은 변수들을 가공해서 사용</p>
+</blockquote>
+<p>=&gt; 만약 컬럼을 추가하려면 화면, 서비스, SP 다 바꿔야함</p>
+<p>]</p>
+<p>RD는 RD에서 접속하기 때문에 SP, 출력물만 바꾸면 된다</p>
+<p>수정하려면 '경로'를 알아야함</p>
+<p>MTS서버 - K SYSTEM에서 출력물 이름이 뭔지 다 알아야함</p>
+<blockquote>
+<p>=&gt; 출력물 클릭하면 2가지 정보 알 수 있다</p>
+</blockquote>
+<ol>
+<li>
+<p>출력물 이름</p>
+<ol>
+<li>조회모음에 달린 출력물 (SP명에서 끝에 P)</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>ex. SCTQry_ylwa12345_mgp.mrd (확장자 mrd)</p>
+</blockquote>
+<ol start="2">
+<li>폼화면에 달린 출력물</li>
+</ol>
+<blockquote>
+<p>ex. 정해진게 없다 (들어가서 확인을 해야함)</p>
+</blockquote>
+<ol start="2">
+<li>
+<p>/rv 부터 끝까지 (나중에 써야하기 때문에 복사, 붙여넣기)</p>
+<ul>
+<li>
+<p>조회모음 파라미터 (실행문)</p>
+</li>
+<li>
+<p>SP를 실행하려면 파라미터가 필요하기 때문에 파라미터를 가져간다</p>
+</li>
+<li>
+<p>ex.</p>
+</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p>/rv WorkType[PRINT] BizUnit[01                            ] Date1[20150101] Date2[20220308] Date3[] Date4[] 1stCond[] 2stCond[] 3stCond[] 4thCond[] 5thCond[] 1stComboCond[] 2stComboCond[] 3stComboCond[] 4thComboCond[] 5thComboCond[] MajorCd[] Code[ ]  Language[0] EmpId[19890021] DeptCd[00000] WkDeptCd[00000] LoginId[super   ]</p>
+<p>+. 데이터가 없습니다 =&gt; 데이터가 없기 때문 (선택을 안해서)</p>
+</blockquote>
+<ol start="3">
+<li>Report Desinger 실행</li>
+</ol>
+<ul>
+<li>
+<p>출력물 경로 : D:\Ksystem.NET\Common\FileDownload</p>
+</li>
+<li>
+<p>report (닷넷버전) =&gt; 3.0 사용</p>
+</li>
+<li>
+<p>reportnet (스마트) =&gt; 5.0 사용</p>
+</li>
+</ul>
+<p>순서 정리</p>
+<ol>
+<li>고객사 MTS 서버를 간다</li>
+</ol>
+<!-- -->
+
+<ol start="2">
+<li>
+<p>해당 경로에 있는 출력물 파일을 로컬 (내 PC)로 가져온다</p>
+</li>
+<li>
+<p>ERP에서 출력물을 실행해본다 (출력물이름, 파라미터 확인용)</p>
+</li>
+</ol>
+<!-- -->
+
+<ol start="4">
+<li>가져온 출력물을 고친다</li>
+</ol>
+<ul>
+<li>
+<p>4.1 =&gt; 출력물 디자인만 고칠 경우 : 데이터베이스 접속해서 SP 수정, 쿼리정의 부분도 수정</p>
+</li>
+<li>
+<p>4.2 =&gt; 데이터도 고칠경우 -&gt; DB 접속해서 SP 수정, 쿼리 정의 부분도 수정</p>
+</li>
+</ul>
+<ol start="5">
+<li>소스세이프에 버전관리 잘하고 고객사 MTS 서버 해당경로에 출력물 넣기 DB에 SP 카탈하기(drop, create)</li>
+</ol>
+<p>*실서버 버전, 소스세이프 버전, 내가 고치는 버전 *</p>
+<ul>
+<li>출력물 SP 명</li>
+</ul>
+<blockquote>
+<p>조회모음 - 조회모음sp명 + p =&gt;</p>
+</blockquote>
+<ul>
+<li>출력물 수정 시</li>
+</ul>
+<blockquote>
+<p>1. 데이터를 고치는 것</p>
+<p>2. 출력물을 고치는 것 (EX. 위치 변경, 폰트 변경 / 데이터베이스 접속도 안해도 된다)</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

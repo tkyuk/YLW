@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>데이터 갯수에 따라 더미 출력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>데이터 갯수에 따라 더미 출력</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">데이터 갯수에 따라 더미 출력</h1>
+<p><img alt="" src="assets/데이터-갯수에-따라-더미-출력/image29.png" /></p>
+<p>if (This.GetDataSetRowCount("DataBlock1") \&lt; 10) {</p>
+<blockquote>
+<p>This.SetRepeatNumber(10-(This.GetDataSetRowCount("DataBlock1")));</p>
+</blockquote>
+<p>} else {</p>
+<blockquote>
+<p>This.SetRepeatNumber(0);</p>
+</blockquote>
+<p>}</p>
+  </article>
+</div>
+</body>
+</html>

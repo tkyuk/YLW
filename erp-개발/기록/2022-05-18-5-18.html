@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/18</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>5/18</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="518">5/18</h1>
+<p>그룹박스</p>
+<p>입력 =&gt; 조회조건 이름 삭제</p>
+<blockquote>
+<p>시트가 마스터일 경우 입력이 조회조건이므로 이런 경우에는 유지</p>
+</blockquote>
+<p>조회 =&gt; 조회조건 컬럼명 유지</p>
+<p>시트가 마스터인 경우</p>
+<p>- 마스터 부분에 키 값 필요 없음</p>
+<p>- 행삭제가 삭제이므로 삭제 툴바 필요 없음</p>
+<p>체크 SP 주의 사항</p>
+<p>- 기본적인 순서가 정해져있음 =&gt; 필수 입력체크, 데이터 유무 체크가 맨 앞에 나온다</p>
+<p>- 업무별 외부키가 필요없으면 번호생성 밑에 부분 필요 없다</p>
+<blockquote>
+<p>(번호생성시 이니셜이 사업부문일 경우 해당 사업부문의 이니셜을 가져오고, 사업부문 아닐경우는 0으로 넣어줌)</p>
+</blockquote>
+<p>저장, 삭제 메소드 =&gt; 비즈니스 아래부터 트랜잭션 필수</p>
+<p>단가정보입력</p>
+<p>저장,삭제 부분은 금지표시(트랜잭션) 비즈니스 부터 아래로 다걸어준다</p>
+<p>이화면은 시트가 마스터성 데이터이기 때문에, 전체삭제 필요없다</p>
+<p>조회조건에 PLSeq 없애기.</p>
+<p>저장sp 에서 unitseq 추가</p>
+<p>업무별외부키 생성부분 삭제</p>
+<p>조회sp -&gt; 파라미터 날짜로 바꾸기</p>
+<p>단가정보조회</p>
+<p>점프부분은 우선 없애기</p>
+<p>복사저장 기능 생성</p>
+  </article>
+</div>
+</body>
+</html>

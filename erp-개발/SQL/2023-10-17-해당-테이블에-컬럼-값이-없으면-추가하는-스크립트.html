@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해당 테이블에 컬럼 값이 없으면 추가하는 스크립트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>해당 테이블에 컬럼 값이 없으면 추가하는 스크립트</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">해당 테이블에 컬럼 값이 없으면 추가하는 스크립트</h1>
+<p>DECLARE @pID INT</p>
+<p>SELECT @pID = id FROM Sysobjects WHERE name = 'mcnk_TPDBOMECO'</p>
+<p>IF NOT EXISTS(SELECT NAME FROM SYSCOLUMNS WHERE id = @pID AND name = 'ECOTitle_New')</p>
+<p>BEGIN</p>
+<p>SELECT 1</p>
+<p>ALTER TABLE mcnk_TPDBOMECO ADD ECOTitle_New NVARCHAR(100)</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[das_TARBizTripCostPJTAmt]') AND name='ENDDateKind')</p>
+<p>BEGIN</p>
+<p>ALTER TABLE das_TARBizTripCostPJTAmt ADD ENDDateKind INT</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

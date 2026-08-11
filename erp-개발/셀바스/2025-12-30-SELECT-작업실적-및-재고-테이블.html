@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SELECT 작업실적 및 재고 테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SELECT 작업실적 및 재고 테이블</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-30</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="select">SELECT 작업실적 및 재고 테이블</h1>
+<p>select * from _TLGInOutSerialStock where inouttype = 140 AND SerialNo IN('11' ,'20251230_001','20251230_002')</p>
+<p>select * from _TLGInOutSerialSub where inouttype = 140 AND SerialNo IN('11' ,'20251230_001','20251230_002')</p>
+<p>SELECT * FROM _TLGINOUTSTOCK WHERE INOUTTYPE = 140 AND InOutSEQ IN(11,56)</p>
+<p>SELECT * FROM _tPDSFCWORKREPORT WHERE WorkReportSeq = 56</p>
+<p>SELECT * FROM _TPDSFCGoodIn WHERE WorkReportSeq = 56</p>
+<p>SELECT * FROM _TLGINOUTSTOCK WHERE INOUTTYPE = 140 AND InOutSEQ IN(11,56)</p>
+  </article>
+</div>
+</body>
+</html>

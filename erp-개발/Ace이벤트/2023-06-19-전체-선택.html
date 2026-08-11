@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전체 선택</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>전체 선택</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">전체 선택</h1>
+<p>--==============================================================</p>
+<p>-- 전체 선택</p>
+<p>--==============================================================</p>
+<p>local row ,maxrow</p>
+<p>maxrow = SS.DataRowCnt</p>
+<p>for row = 1, maxrow -1 do</p>
+<blockquote>
+<p>if ChkAll.Value =='1' then</p>
+</blockquote>
+<p>SetText(SS, row,'Select', '1')</p>
+<p>else</p>
+<p>SetText(SS, row,'Select', '0')</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

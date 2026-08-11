@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환경설정 값 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>환경설정 값 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2022-09-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">환경설정 값 가져오기</h1>
+<p>DECLARE @MatItemPoint INT</p>
+<p>---- 구매/자재 소수점 자리수 가져오기 ----</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,5,@UserSeq,@@PROCID,@MatItemPoint OUTPUT</p>
+<hr />
+<p>-- 전공정 공정품 가져오기 ---</p>
+<hr />
+<p>DECLARE @EnvValue NVARCHAR(100) -- 6217</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,6217,@UserSeq,@@PROCID,@EnvValue OUTPUT</p>
+<p>--=============================================================</p>
+<p>-- 환경설정 가져오기</p>
+<p>--=============================================================</p>
+<p>DECLARE @DomVatPoint INT -- 6506 원화부가세소수점처리(외주)</p>
+<p>, @DomAmtPoint INT -- 6507 원화금액소수점처리(외주)</p>
+<p>, @KorCurrSeq INT -- 13 자국통화</p>
+<p>, @CurAmtDec INT -- 14 거래금액 소수점 자리수(외화)</p>
+<p>, @DomAmtDec INT -- 15 자국통화금액 소수점 자리수(원화)</p>
+<p>, @DomPriceDec INT -- 6 구매/자재 원화단가 소수점 자릿수</p>
+<p>, @CurPriceDec INT -- 7 구매/자재 거래통화단가 소수점 자릿수</p>
+<p>, @MatDec INT -- 20230303.추가</p>
+<p>-- 원화부가세 소수점 처리방식 환경설정 가져오기(외주)</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 6506, @UserSeq, @@PROCID, @DomVatPoint OUTPUT</p>
+<p>-- 원화금액 소수점 처리방식 환경설정 가져오기(외주)</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 6507, @UserSeq, @@PROCID, @DomAmtPoint OUTPUT</p>
+<p>-- 구매/자재 원화단가 소수점 자릿수 환경설정 가져오기</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 6 , @UserSeq, @@PROCID, @DomPriceDec OUTPUT</p>
+<p>-- 구매/자재 거래통화단가 소수점 자릿수 환경설정 가져오기</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 7 , @UserSeq, @@PROCID, @CurPriceDec OUTPUT</p>
+<p>-- 자국통화</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 13 , @UserSeq, @@PROCID, @KorCurrSeq OUTPUT</p>
+<p>-- 거래금액 소수점 자릿수 환경설정 가져오기</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 14 , @UserSeq, @@PROCID, @CurAmtDec OUTPUT</p>
+<p>-- 자국통화금액 소수점 자릿수 환경설정 가져오기</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 15 , @UserSeq, @@PROCID, @DomAmtDec OUTPUT</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 5, 0, @@PROCID, @MatDec OUTPUT -- 20230303.구매/자재 수량 소숫점 자릿수 추가</p>
+  </article>
+</div>
+</body>
+</html>

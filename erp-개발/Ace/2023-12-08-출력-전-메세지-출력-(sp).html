@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출력 전 메세지 출력 (sp)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>출력 전 메세지 출력 (sp)</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">출력 전 메세지 출력 (sp)</h1>
+<p>DROP PROCEDURE dbo.djb_SWSLInvoiceRptBeforeQuery</p>
+<p>GO</p>
+<p>CREATE PROCEDURE djb_SWSLInvoiceRptBeforeQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>-- 변수선언</p>
+<p>DECLARE @Count INT,</p>
+<p>@Seq INT,</p>
+<p>@MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<p>@BizUnit INT,</p>
+<p>@Date NVARCHAR(8),</p>
+<p>@MaxNo NVARCHAR(50)</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN _TDACustClass AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.UMajorCustClass = 2140260</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.UMCustClass = D.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.MinorSeq = D.MinorSeq</p>
+<p>AND E.Serl = 15000001</p>
+<p>WHERE E.ValueText = '1'</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET CustClass = '1'</p>
+<p>END</p>
+<p>RETURN</p>
+<ol>
+<li>
+<p>데이터 수집</p>
+</li>
+<li>
+<p>체크 sp 태우기</p>
+</li>
+<li>
+<p>스크립트</p>
+</li>
+</ol>
+<p>local msg, result, CustClassName</p>
+<p>CustClassName= GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'CustClassName', 0)</p>
+<p>if GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'CustClass', 0) == "1" then</p>
+<blockquote>
+<p>result = MessageBox(CustClassName + ' 딜러가 선택한 거래명세서 출력에 선택되었습니다. 출력 하시겠습니까?', '', 'MsgBoxTypeYesNo')</p>
+<p>if result ~= 1 then</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p><img alt="" src="assets/출력-전-메세지-출력-(sp)/image132.png" /></p>
+  </article>
+</div>
+</body>
+</html>

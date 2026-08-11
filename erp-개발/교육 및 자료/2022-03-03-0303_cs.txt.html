@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\<\<0303_cs.txt\>\></title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\<\<0303_cs.txt\>\></h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#교육 및 자료</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="0303_cstxt">\&lt;\&lt;0303_cs.txt&gt;&gt;</h1>
+<p>0303</p>
+<p>aspx - 위에 html 부분에 작성해도 나타난다</p>
+<p>aspx 컨트롤영역 추가할 때</p>
+<p>Ylw.Common 붙은 애들 사용해야한다 (도구상자 x)</p>
+<blockquote>
+<p>필요한게 있으면 화면에서 복붙 해야한다</p>
+</blockquote>
+<p>속성</p>
+<p>BizClass - 권한 느낌 (1,2 주면 별도 설정을 통해 특정 사람한테만 보임 / 거의 9 들어감)</p>
+<p>DicCode (비워두어도 상관 없지만 / 채우는게 나음 ex. ID 가 cmbAccunit =&gt; DicCode = Accunit</p>
+<p>KViewState</p>
+<p>TabKeyIndex =&gt; 기타에서 하면 안되고 밑에 '동작'에서 바꿔야한다</p>
+<p>TextMode =&gt; 멀티박스 / 싱글박스</p>
+<p>UserClass - BizClass와 연관 거의 안건듬</p>
+<p>* aspx - html</p>
+<p>Function ~ =&gt; 툴바</p>
+<p>button - message ~ no</p>
+<p>=&gt; no 클릭하면 버튼 나옴</p>
+<p>ActionPostBackBefore - After =&gt; 동작 전 / 동작 후 (액션 =&gt; ex. 툴바 누르는 것)</p>
+<p>JumpIn - cs에서 처리</p>
+<p>JumpOut - aspx에서 처리</p>
+<p>Resize 시트가 여러개 일 때 만들어줘야함 (1개일 때는 필요없음)</p>
+<p>전체를 비율로 분배하기 때문에 화면 보면서 만들어야함</p>
+<p>SheetComboInit() 없으면 초기화가 안된다</p>
+<p>AddRowsToSheet - 기본적으로 보여지는 시트 갯수 (기본값이 10 / 안뿌리고 싶으면 0 작성)</p>
+<p>page unload</p>
+<p>새로 화면이 초기화 될때마다 매번 조회할 수 없으니 파일에 뿌림</p>
+<p>r</p>
+<p>실제로 화면에 뿌림 - DataDisplay</p>
+<p>@@</p>
+<p>저장 후 작동</p>
+<p>1. 가져온 순서</p>
+<p>2,3컬럼명 =&gt; 보통 같게 씀</p>
+<p>저장화면에서 중요한거 - sheetmesagecheck / 이걸 안하면 serl에 값이 안들어감</p>
+<p>call form1 부분 무조건 있어야하고</p>
+<p>데이터 갯수도 무조건 맞아야함</p>
+<p>시트 여러개면 갯수 맞춰서 해야함</p>
+<p>시트추가할 경우 이 부분 무조건 추가해야함</p>
+<p>save sp - 1048 =&gt; 0,1 에러체크, 결과 / 뒤에 msorserl은 신규 저장 시 키값을 설정하면 시트에 // 저장한 결과 키값을 뿌려줌</p>
+<p>신규 저장하면 1뿌려줌</p>
+<p>- =&gt; 한칸을 띄워도 이어주겠다</p>
+<p>==&gt; 시트별로 하나씩 있어야하고, 키값은 무조건 있어야한다</p>
+<p>최대 5개</p>
+<p>컨트롤에 대한 코드도움 설정</p>
+<blockquote>
+<p>다른부분 =&gt; 코드도움의 키 값</p>
+</blockquote>
+<p>원래는 숫자인데 알아보기 편하게</p>
+<p>(58번)d - ksystem - Common - Const - CodeHelp cs에 나와있음</p>
+<p>custnm거래처번호를 같이가져옴</p>
+<p>2 1</p>
+<p>3 4 5 6 7 8 9 순서 =&gt; 7에 작성해야 뿌려지는 순서가 7인걸 가져옴</p>
+<p>shwodic - 시트 코드헬프 관리하는 부분</p>
+<p>case문으로 관리한다</p>
+<p>2 1</p>
+<p>3 4 5 6 7 8 9</p>
+<p>키값은 무조건 4번째에 들어가있다</p>
+<p>마지막 5개는 제뉴인 파라미터처럼 (vntTmp)</p>
+<p>@@</p>
+<p>ylwsh_Change = 시트 변경 있을 때 이벤트</p>
+<p>col 이 숫자형태로 넘어옴</p>
+<p>colx = 위치</p>
+<p>위치랑 똑같으면 동작</p>
+<p>11번째가 바뀌면 col - 11 row -1첫번째 행</p>
+<p>colx를 통해서 col와 같은 값이 있는지 확인</p>
+<p>컬럼 개별적으로 change를 못걸고 시트전체에 건다</p>
+<p>=====================================</p>
+<p>=====================================</p>
+<p>cs - 화면, db 이어주는 서비스 역할</p>
+<p>private void setviewstate</p>
+<blockquote></blockquote>
+<p>settoolbar - 1이면 보임 (툴바)</p>
+<p>movepageprevious - 맨 끝으로 이동 (0이라 비활성화 되어있다)</p>
+<p>setinfoforpage</p>
+<p>digformnms =&gt; 다이얼로그 화면 명칭들 나와있음</p>
+<p>setcomboandvar</p>
+<blockquote>
+<p>var = vari</p>
+</blockquote>
+<p>위에서부터 차례대로 0,1,2,3,4에 담김</p>
+<p>통제값은 위에서부터 이어져서 숫자셈 (5에서 끝났으면 6부터 시작)</p>
+<p>setCombo (이 컨트롤에 콤보/몇번째 테이블에/ true=addtotalrow있음(빈칸있는거)</p>
+<p>* 통제값 = 환경설정값 (ex. 원화소수점 자리수) (variable 폴더에 다 나와있음)</p>
+<p>007009 =&gt; 007 + 009 =&gt; tdacontrol + tdacontrolsub</p>
+<p>* sp</p>
+<p>tdacontrol</p>
+<p>tdacontrolsub</p>
+<p>전자결제 =&gt; 고정 / 그냥 가져다가 쓰면 된다</p>
+<p>private void action - 안건들이는게 좋다 (aspx로 이동)</p>
+<p>private bool newpage = 초기설정</p>
+<blockquote>
+<p>isopen =&gt; 신규모드 설정 =&gt; 없으면 신규일 때 A인걸 수정하면 U로 바뀜</p>
+<p>isopen=true =&gt; U</p>
+</blockquote>
+<p>setdaultvalue =&gt; 위에서 설정했던 것들이 적용</p>
+<p>default(기본값) =&gt; 디자인 속성 말고 html에서 설정</p>
+<p>checkauthoritybefore =&gt; 권한 체크 (보통 부서로 한다)</p>
+<blockquote>
+<p>권한체크안할거면 없어도 됨</p>
+<p>조직도 체크해서 하위조직만 체크할 때 이거를 쓴다</p>
+</blockquote>
+<p>조회 후 messagecheckquery가 넘어온 값들에 대해 체크</p>
+<p>=false -&gt; 값이 이상한 경우</p>
+<p>else</p>
+<blockquote>
+<p>if =&gt; [0][2] = 3번째 값이 에러일 때 처리</p>
+</blockquote>
+<p>에러가 아니면</p>
+<p>displaydatamaster =&gt; 넘어온 값들 넣어줌</p>
+<p>(cs에서는 aspx와 달리 자체에 있다)</p>
+<p>cs에서 완료후 datadisplay를 타서 aspx에서 결과를 보여준다</p>
+<p>저장시 마스터 키가 생김 =&gt; 키를 txtorderno.text = dsmsg.table 부분에 뿌려줌</p>
+<p>savesheet에서 txtorderno 키값을 가져와서 저장</p>
+<p>==&gt; 시트에 저장하기 전에 주문번호를 먼저가져와서 저장</p>
+<p>savesheetvalue 할 때 orderno를 먼저가져간다</p>
+<hr />
+<p>*</p>
+<p>savemulti</p>
+<p>멀티로 가져와서 한 줄씩 잘라서 사용</p>
+<p>멀티쓰면 = addcolitem</p>
+<p>한번에 가져오기 때문에 varchar(4000) 처럼 길다 / sp에서 while 써야함</p>
+<p>ex. 합계 출력할 때 별도로 sp에서 컬럼 하나 더 추가</p>
+<p>*save 쓰면 for사용 (additem)</p>
+<p>==&gt; 선택사항</p>
+<hr />
+<p>jump in</p>
+<p>StringArray - 넘어온 값들을 잘라줌</p>
+<p>[1][1] 폼아이디 (넘어온 화면 명칭)</p>
+<p>[2][1]</p>
+<p>[3][1] 키값</p>
+<p>[4][1]</p>
+<p>[5][1] 플래그값 (N | Q )</p>
+<blockquote>
+<p>=&gt; NEW 인지 QUERY인지</p>
+<p>점프할 때 무슨동작할지</p>
+<p>조회모드인지 신규모드인지</p>
+</blockquote>
+<p>TRUE - 조회 =&gt; 화면 수정</p>
+<p>FALSE - 신규 - 키값을 공백으로 넣어줘야함</p>
+<p>_\~~ =&gt; 사이트 이니셜인것들 제외</p>
+<p>연결된 키값을 뿌려줌</p>
+<p>SONO =&gt; 넘겨주는 화면에서 =&gt; 조회모음의 키값을 설정하는 부분을 SONO로 해야</p>
+<p>넘어왔을 때 처리가 가능</p>
+<p>==&gt; 넘겨주는 쪽에서 설정을 해야한다</p>
+<p>==========================</p>
+<p>==========================</p>
+<p>JUMP OUT (aspx)</p>
+<p>수주등록 =&gt; 거래명세서 점프 한다고 가정</p>
+<p>화면아이디 담아주고</p>
+<p>strJumpPgmIdTruc =&gt; _사이트명 잘라주는 과정</p>
+<p>Case문으로 점프할 화면 설정</p>
+<p>SONo에 키값이 넘어감</p>
+<p>AddJumpString - 담아주는 과정</p>
+<p>strjumppgmid strjumpmsg =&gt; 각각 거래명세서, 키값</p>
+<p>out에서 키값넘기고 in에서 받는다</p>
+<p>============================</p>
+<p>aspx</p>
+<p>그룹웨어, 파일업로드는 추가 스크립트가 있다</p>
+<p>#include file= \~\~~ File/GroupWare.bas</p>
+<p>선택한 시트의 행의 수를 전체 행의 수를 가져와서 비교 / 같으면 전체 삭제</p>
+<p>Form1.ylwsh.DataRowCnt = 전체행수</p>
+<p>시트콤보 쓸때</p>
+<p>sheetcomboinit() 있어야함 (기본적으로 있기 때문에 굳이 지울 필요는 없긴함)</p>
+<hr />
+<p>cs</p>
+<p>통제값</p>
+<p>setview - 처음 열때</p>
+<p>getview - 이전에 열렸던 부분</p>
+<p>겟뷰에 추가하면 셋뷰에도 추가하면 된다</p>
+<p>_page.Add / _vari.d\~~ 부분에 추가</p>
+<hr />
+<p>DataDBSales (=공통DB) // 이상한 DB로 나와있으면 참조에 있는 것들로 바꿔줌</p>
+<p>dsdata = libdb.query 마스터와 아이템은 따로 조회하고 마지막에 조회타임아웃시간을 설정</p>
+<blockquote>
+<p>libdb.querymaster =&gt; 옛날 방식 =&gt; 바꿔줘야함</p>
+</blockquote>
+<p>query, save,savemulti 이렇게 3개만 아용</p>
+<p>page.messagecheckquery =&gt; 첫줄확인해서 있는지 없는지 확인</p>
+<p>=&gt; 없으면 =false이므로 별도로 동작 안한다</p>
+<p>================================</p>
+<p>================================</p>
+<p>* csproj</p>
+<p>f4 =&gt; 속성 열림</p>
+<p>CommonUTIL.js - 파일 첨부</p>
+<p>===================</p>
+<p>콤보는 통제값보다 앞에 입력</p>
+<p>_page.addcombo</p>
+<p>_page.addvariable</p>
+<p>EXEC SDAGetSystemDate @vcSystemDate OUTPUT</p>
+<p>=&gt; 시간값이 담긴다 =&gt; 그 값을 등록일, 수정일 등에 넣어준다</p>
+<p>202203031207 형식으로 담김</p>
+  </article>
+</div>
+</body>
+</html>

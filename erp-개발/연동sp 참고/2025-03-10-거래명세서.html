@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래명세서</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래명세서</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래명세서</h1>
+<p>CREATE VIEW smc_VMESTSLInvoiceItem</p>
+<p>AS</p>
+<p>SELECT A.CompanySeq AS CompanySeq, -- 법인내부코드</p>
+<p>C.CompanyName AS CompanyName, -- 법인명</p>
+<p>A.InvoiceSeq AS InvoiceSeq, -- 거래명세서내부코드</p>
+<p>B.InvoiceSerl AS InvoiceSerl, -- 거래명세서순번</p>
+<p>A.InvoiceNo AS InvoiceNo, -- 거래명세서번호</p>
+<p>A.InvoiceDate AS InvoiceDate, -- 거래명세서일</p>
+<p>D.MinorName AS SMExpKindName, -- Local구분</p>
+<p>E.MinorName AS UMOutKindName, -- 출고구분</p>
+<p>F.DeptName AS DeptName, -- 부서</p>
+<p>G.EmpName AS EmpName, -- 담당자</p>
+<p>CASE WHEN ISNULL(J.CustName,'') = ''</p>
+<p>THEN H.CustName</p>
+<p>ELSE J.CustName</p>
+<p>END AS BillCustName, -- 청구처</p>
+<p>H.CustName AS CustName, -- 거래처</p>
+<p>K.ItemName AS ItemName, -- 품명</p>
+<p>K.ItemNo AS ItemNo, -- 품번</p>
+<p>K.Spec AS Spec, -- 규격</p>
+<p>B.ItemSeq AS ItemSeq, -- 품번내부코드</p>
+<p>L.UnitName AS UnitName, -- 판매단위</p>
+<p>M.WHName AS WHName, -- 창고</p>
+<p>B.Remark AS RemarkI, -- 품목특이사항</p>
+<p>ISNULL(N.ToQty, 0) AS SalesQty, -- 매출수량</p>
+<p>O.AssetName AS AssetName, -- 품목자산분류</p>
+<p>B.Dummy2 AS Location, -- 본사/광주구분</p>
+<p>R.PONo AS PONo, -- P/O No.</p>
+<p>B.Dummy5 AS SerialNo -- SerialNo</p>
+<p>FROM _TSLInvoice AS A</p>
+<p>JOIN _TSLInvoiceItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.InvoiceSeq = A.InvoiceSeq</p>
+<p>LEFT OUTER JOIN _TCACompany AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.MinorSeq = A.SMExpKind</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.MinorSeq = A.UMOutKind</p>
+<p>LEFT OUTER JOIN _TDADept AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.DeptSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.EmpSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS H WITH(NOLOCK) ON H.CompanySeq = A.CompanySeq</p>
+<p>AND H.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACustGroup AS I WITH(NOLOCK) ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.CustSeq = A.CustSeq</p>
+<p>AND I.UMCustGroup = 8014002</p>
+<p>LEFT OUTER JOIN _TDACust AS J WITH(NOLOCK) ON J.CompanySeq = I.CompanySeq</p>
+<p>AND J.CustSeq = I.UpperCustSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS K WITH(NOLOCK) ON K.CompanySeq = B.CompanySeq</p>
+<p>AND K.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS L WITH(NOLOCK) ON L.CompanySeq = B.CompanySeq</p>
+<p>AND L.UnitSeq = B.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS M WITH(NOLOCK) ON M.CompanySeq = B.CompanySeq</p>
+<p>AND M.WHSeq = B.WHSeq</p>
+<p>LEFT OUTER JOIN (SELECT CompanySeq, FromSeq, FromSerl, FromTableSeq, ToTableSeq , SUM(ADD_DEL * ToQty) AS ToQty</p>
+<p>FROM _TCOMSourceDaily</p>
+<p>GROUP BY CompanySeq, FromSeq, FromSerl, FromTableSeq, ToTableSeq</p>
+<p>) AS N ON N.CompanySeq = B.CompanySeq</p>
+<p>AND N.FromSeq = B.InvoiceSeq</p>
+<p>AND N.FromSerl = B.InvoiceSerl</p>
+<p>AND N.FromTableSeq = 18</p>
+<p>AND N.ToTableSeq = 20</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS O WITH(NOLOCK) ON O.CompanySeq = K.CompanySeq</p>
+<p>AND O.AssetSeq = K.AssetSeq</p>
+<p>LEFT OUTER JOIN _TCOMSourceDaily AS P WITH(NOLOCK) ON P.CompanySeq = B.CompanySeq</p>
+<p>AND P.ToSeq = B.InvoiceSeq</p>
+<p>AND P.ToSerl = B.InvoiceSerl</p>
+<p>AND P.FromTableSeq = 19</p>
+<p>AND P.ToTableSeq = 18</p>
+<p>LEFT OUTER JOIN _TSLOrder AS R WITH(NOLOCK) ON R.CompanySeq = P.CompanySeq</p>
+<p>AND R.OrderSeq = P.FromSeq</p>
+<p>WHERE A.IsDelvCfm = '0' -- 미처리</p>
+  </article>
+</div>
+</body>
+</html>

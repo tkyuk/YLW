@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>엔터 개수, 개행문자 개수에 따라 높이 재설정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>엔터 개수, 개행문자 개수에 따라 높이 재설정</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">엔터 개수, 개행문자 개수에 따라 높이 재설정</h1>
+<p>-- 개행문자 갯수에 따라 Row 높이 재설정 (개행 처리된 데이터를 한눈에 보기 위함)</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>Enter = CellText(SS1, row, 'Enter')</p>
+<p>Enter = tonumber(Enter)</p>
+<p>if Enter \&lt; 1 then</p>
+<p>Enter = 30</p>
+<p>elseif Enter == 1 then        </p>
+<p>Enter = 45</p>
+<p>else</p>
+<p>Enter = (Enter * 18) + 23</p>
+<p>end</p>
+<p>SetRowHeight(SS1, row, Enter)</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

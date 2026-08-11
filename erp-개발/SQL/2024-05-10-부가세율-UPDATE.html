@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부가세율 UPDATE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>부가세율 UPDATE</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="update">부가세율 UPDATE</h1>
+<p>UPDATE A</p>
+<p>SET CCtrSeq = ISNULL(E.CCtrSeq, 0),</p>
+<p>LotNo = CASE WHEN C.IsLotMng = '1' THEN ISNULL(E.PJTNo, '') ELSE '' END,</p>
+<p>VATRate = CASE WHEN A.VATRate IS NULL THEN ISNULL(G.VATRate, 10) ELSE A.VATRate END,</p>
+<p>STDUnitQty = CASE WHEN A.UnitSeq = A.STDUnitSeq THEN A.Qty</p>
+<p>ELSE dbo._FWPDGetDecPointQty((CASE WHEN ISNULL(D.ConvDen, 0) = 0 THEN 1</p>
+<p>ELSE D.ConvNum / D.ConvDen</p>
+<p>END) * A.Qty,</p>
+<p>@QtyDec, F.SMDecPointSeq)</p>
+<p>END</p>
+<p>FROM #TDelvItem AS A</p>
+<p>JOIN _TDAItemSales AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItemStock AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq AND C.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemUnit AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.ItemSeq = A.ItemSeq</p>
+<p>AND D.UnitSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS E WITH(NOLOCK) ON E.CompanySeq = @CompanySeq</p>
+<p>AND E.PJTSeq = A.PJTSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS F WITH(NOLOCK) ON F.CompanySeq = @CompanySeq</p>
+<p>AND F.UnitSeq = A.STDUnitSeq</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.VatRate</p>
+<p>FROM _TDAVatRate AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = B.CompanySeq</p>
+<p>AND Z.SMVatType = ISNULL(B.SMVatType, 8028001)</p>
+<p>AND Z.SDate \&lt;= A.DelvDate</p>
+<p>ORDER BY Z.SDate DESC</p>
+<p>) AS G</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+  </article>
+</div>
+</body>
+</html>

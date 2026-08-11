@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>회계연월 이후 숨기기 - 월, 분기, 반기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>회계연월 이후 숨기기 - 월, 분기, 반기</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">회계연월 이후 숨기기 - 월, 분기, 반기</h1>
+<p>local i, AccYM, Quarter, Half, IsHidDiff</p>
+<p>AccYM = tonumber(string.sub(datAccYM.Text, 5, 6))</p>
+<p>IsHidDiff = chkIsHidDiff.Value</p>
+<p>if AccYM \&lt; 4 then</p>
+<blockquote>
+<p>Quarter = 2</p>
+</blockquote>
+<p>elseif AccYM \&lt; 7 then</p>
+<blockquote>
+<p>Quarter = 3</p>
+</blockquote>
+<p>elseif AccYM \&lt; 10 then</p>
+<blockquote>
+<p>Quarter = 4</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>Quarter = 5</p>
+</blockquote>
+<p>end</p>
+<p>AccYM = AccYM + 1</p>
+<p>if chkAccYMHID.Value == '1' then</p>
+<blockquote>
+<p>for i=AccYM, 12 do</p>
+<p>SS1.ActiveColumnName = 'CurYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>SS1.ActiveColumnName = 'BudYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'DiffYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'RateYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'                        </p>
+<p>end</p>
+<p>for i= 1, AccYM - 1 do                </p>
+<p>SS1.ActiveColumnName = 'CurYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'BudYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>if IsHidDiff ~= '1' then</p>
+<p>SS1.ActiveColumnName = 'DiffYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'RateYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'                                        </p>
+<p>end</p>
+<p>for i=Quarter, 4 do</p>
+<p>SS1.ActiveColumnName = 'CurYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'BudYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'DiffYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'        </p>
+<p>SS1.ActiveColumnName = 'RateYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>end</p>
+<p>for i=2, Quarter - 1 do</p>
+<p>SS1.ActiveColumnName = 'CurYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'BudYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>if IsHidDiff ~= '1' then</p>
+<p>SS1.ActiveColumnName = 'DiffYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'RateYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>end        </p>
+<p>if Quarter \&lt;= 3 then</p>
+<p>SS1.ActiveColumnName = 'CurYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>SS1.ActiveColumnName = 'BudYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>SS1.ActiveColumnName = 'DiffYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>SS1.ActiveColumnName = 'RateYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;HID;'</p>
+<p>else</p>
+<p>SS1.ActiveColumnName = 'CurYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'BudYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>if IsHidDiff ~= '1' then</p>
+<p>SS1.ActiveColumnName = 'DiffYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'RateYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>end</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>for i=1, 12 do</p>
+<p>SS1.ActiveColumnName = 'CurYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'BudYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'                </p>
+<p>if IsHidDiff ~= '1' then</p>
+<p>SS1.ActiveColumnName = 'DiffYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'RateYM'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'                                        </p>
+<p>end</p>
+<p>for i=2, 4 do</p>
+<p>SS1.ActiveColumnName = 'CurYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'BudYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>if IsHidDiff ~= '1' then</p>
+<p>SS1.ActiveColumnName = 'DiffYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'RateYMQ'..i</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'CurYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>SS1.ActiveColumnName = 'BudYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>if IsHidDiff ~= '1' then</p>
+<p>SS1.ActiveColumnName = 'DiffYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'</p>
+<p>end</p>
+<p>SS1.ActiveColumnName = 'RateYMH2'</p>
+<p>SS1.ColumnControlKey = 'DIS;'        </p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

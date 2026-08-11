@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로그테이블 검색</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>로그테이블 검색</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">로그테이블 검색</h1>
+<p>-- 테이블 키값으로만 가능(빠름) : 테이블, CompanySeq, 테이블 키, 테이블 키 값</p>
+<p>EXEC _SWCOMGetTableLog '_TDAItem', 1, 'ItemSeq', 998</p>
+<p>-- 기간, 컬럼, 컬럼값으로 가능(느림) : CompanySeq, 테이블, 기간Fr, 기간To, 컬럼명, 컬럼값</p>
+<p>EXEC _SWCOMTableLogQuery</p>
+<p>@CompanySeq = 1,</p>
+<p>@TableName = '_TDAItem',</p>
+<p>@LogDateFr = '20240901',</p>
+<p>@LogDateTo = '20241030',</p>
+<p>@TXTCol1 = 'ItemSeq',</p>
+<p>@TXTData1 = '998'</p>
+<p>-</p>
+  </article>
+</div>
+</body>
+</html>

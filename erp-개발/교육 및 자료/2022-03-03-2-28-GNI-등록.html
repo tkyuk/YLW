@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2/28 GNI 등록</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2/28 GNI 등록</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#교육 및 자료</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="228-gni">2/28 GNI 등록</h1>
+<blockquote>
+<p>G&amp;I</p>
+<p>1. 조회모음 (입력 등 다른거 불가능하고 조회만 가능)</p>
+<p>- SP로만 굴러가는 화면, 현황화면</p>
+<p>(Save, Check없고 Query SP만 있음)</p>
+<p>- ylwa 로 시작함 (ylwa00000_jsb, SCTQry_ylwa00000_jsb)</p>
+<p>ylwa + 숫자 5자리 + _업체명</p>
+<p>ylwa 00000 _jsb</p>
+<p>SP명 : SCTQry_ylwa00000_jsb</p>
+<p>2. 폼(화면)</p>
+<p>- 확장자</p>
+<p>1. aspx</p>
+<p>2. cs</p>
+<p>3. resx</p>
+<p>4. csproj</p>
+<p>5. webinfo</p>
+<p>6. sln (자동으로 만들어짐 / 1~5는 무조건 있어야한다)</p>
+<p>- SP</p>
+<p>(보통 aspx, cs, SP 고친다 / 나머지는 새로 개발할 때 사용)</p>
+<p>aspx - 화면, 데이터를 보여주는 쪽</p>
+<p>cs - 데이터, DB갔다오는 애</p>
+<p>- 대부분 frm~ 으로 시작 (97%) / dlg~ (3%)</p>
+<p>- 조회, 저장 다 가능</p>
+<p>SA = 영업 Sales</p>
+<p>PU = 구매 Purchase</p>
+<p>PD = 생산</p>
+<p>HR = 인사</p>
+<p>COM = 공통</p>
+<p>=====================================</p>
+<p>aspx</p>
+<p>* 처음 3줄</p>
+<p><img alt="" src="assets/2-28-GNI-등록/image23.png" /></p>
+<p>- Codebehind =&gt; 이름 변경</p>
+<p>- Inherits (aspx의) 경로 =&gt; sjpark - Sales - ~.aspx</p>
+<p>\&lt;HTML&gt; 부분 (처음부터 끝까지 이긴함)</p>
+<p>1. 화면의 컨트롤 부분 (속성 정하기)</p>
+<p>\&lt;변수&gt;값123\&lt;/변수&gt;</p>
+<p>+. 58번 서버에서 수정하면 더 편하다</p>
+<p>2. 변수</p>
+<p><img alt="" src="assets/2-28-GNI-등록/image24.png" /></p>
+<p>시트에 필요한 변수 작성 (EX. No, 판매구분 등등)</p>
+<p>(마스터 부분은 id가 있기 때문에 변수 설정이 필요 없다)</p>
+<p>양식 : ms~</p>
+<p>고객사 : 컬럼 추가해주세요~</p>
+<p>=&gt; ms~ 추가</p>
+<p>3. Function (함수) (Ace의 툴바)</p>
+<p><img alt="" src="assets/2-28-GNI-등록/image25.png" /></p>
+<p>aspx =&gt; 화면에 보여주는 부분이므로 =&gt; JumpOut</p>
+<p>화면에 있는 데이터를 긁어가서 점프하기 때문에</p>
+<p>cs =&gt; JumpIn 다른 화면이 준 데이터를 보여줌</p>
+<p>4. Page_Load() (제일 중요 / 거의 이거만 고침)</p>
+<p><img alt="" src="assets/2-28-GNI-등록/image26.png" /></p>
+<p>순서가 중요 =&gt; 60 =&gt; 전체 컬럼 갯수</p>
+<p>G&amp;I 의 가장 큰 특징 중 하나가 특징대로 출력한다는 점이다</p>
+<p>Ace에서는 컬럼 추가 시 위치는 별도로 지정 안해도 되지만</p>
+<p>G&amp;I는 순서가 정해져 있기 때문에 중간에 추가하면</p>
+<p>다시 일일히 뒤로 내려야한다</p>
+<p>5. 코드도움 함수 (Sub txt\~\~~_CodeHelp(IsDblClick)</p>
+<p>코드도움 추가하려면 이걸 하나 추가하면 된다</p>
+<p>6. Private Sub ylwsh_Change(Col, Row)</p>
+<p>====</p>
+<p>영림원 시트</p>
+<p>사용자가 시트를 바꿀 때</p>
+<p>ex. 수량, 판매단가 쓰면 자동으로 판매금액 나오는 것</p>
+<p>============================</p>
+<p>Ksystem.NET - bin -</p>
+<p>cs는 dll파일로 되어있다 (</p>
+<p>(</p>
+<p>61.250.183.58 - 회사 서버 (yjkwon / 1003)</p>
+<p>너무 옛날 버전이라, 윈도우 8이후부터는 개발이 안됨</p>
+<p>그래서 xp인 회사 서버를 사용</p>
+<p>aspx를 보려면 csproj를 봐야함</p>
+<p>Ctrl Shift B =&gt; 컴파일</p>
+<p>(aspx, cs에서 수정했던 부분이 들어가있는 bin폴더를 자동으로 만들어 생성</p>
+<p>=&gt; dll파일)</p>
+<p>단순 화면, 디자인 수정은 dll파일 생성 안됨)</p>
+<p>새로운 dll파일을 복붙하면 서버에 옮기는데 시간이 걸려서 컴퓨터 모두 렉걸려서</p>
+<p>보통 점심시간, 18시이후에 올린다</p>
+<p>)</p>
+<p>58번 서버에서 수정 후 컴파일 =&gt; 생성된 dll파일을 1번서버 (Ksystem.NET–bin에 붙여넣기)</p>
+<p>* cs</p>
+<p>aspx 수정 및 저장 후 F7을 누르면 cs에서도 자동으로 생성</p>
+<p>저장도 순서대로 저장해야함</p>
+<p>SP도 저장순서 동일</p>
+<p>(순서로 취급하기 때문에 이름이 달라도 상관없다)</p>
+<p>SetToolBar</p>
+<p>0 - 사용안함 =&gt; 아이콘이 회색되면서 클릭 불가</p>
+<p>1 - 사용</p>
+<p>SetComboAndVar</p>
+<p>콤보값 넣어주기</p>
+<p>TDAMajor =&gt; 앞에 _안붙음</p>
+<p>SetDefault()</p>
+<p>- ex. YMD</p>
+<p>===========</p>
+</blockquote>
+<ul>
+<li>SP</li>
+</ul>
+<blockquote>
+<p>Ctrl + H =&gt; Site_Init =&gt; sjpark 이름 변경하고 끝</p>
+<p>======================================</p>
+<p>61.250.183.58 - 옵션표시</p>
+<p>로컬리소스 - 자세히 - 새볼륨 d 체크 - 확인 - 연결</p>
+<p>ybheo</p>
+<p>0930</p>
+<p>2개열기</p>
+<p>탐색기 - 기타:d - ksystem \~\~~ : sjpark을</p>
+<p>이 컴퓨터의 d드라이브 ksystem.net에 복붙</p>
+<p>=&gt; 끝까지 들어간 후</p>
+<p>csproj파일 열기</p>
+<p>오른쪽 aspx 파일 열기 =&gt; 수정 시작</p>
+<p>ctrl shift b =&gt; 컴파일 =&gt; bin폴더 생성 =&gt; 본인 d에 bin 폴더 옮기기</p>
+<p>원격 내리고 옮긴 bin확인 - 수정한 날짜 확인해보면 혼자 최신임</p>
+<p>==============================================</p>
+<p>61.250.183.1</p>
+<p>빨간색 위 화살표 - 폼등록</p>
+<p>저장 후</p>
+<p>영업/수출관리 - 영업활동 - 수주현황 에서 보인다</p>
+<p>뒤에 *이 붙음 =&gt; 개발된 화면 =&gt; 수주입력* (수주입력** =&gt; 버전2)</p>
+<p>없으면 표준화면 =&gt; 수주입력</p>
+<p>수주현황에서 더블클릭 =&gt; 점프되어서 수주입력으로 간다</p>
+<p>개발된 곳으로 점프 하게 하려면</p>
+<p>마스타 및 운영관리 / 운영관리 / 프로그램 / Jump항목 등록</p>
+<p>=&gt; 추가개발 =&gt;</p>
+<p>저장 sp =&gt; ace는 1번 돌지만 G&amp;I는 행 갯수만큼 돈다</p>
+<p>=&gt; 오류발생 시 오류 직전까지는 넣도록 할 수 있다</p>
+<p>삭제 =&gt; 키 값만 넣어서 삭제</p>
+<p>1번서버</p>
+<p>sysdelv1!@</p>
+<p>58번서버</p>
+<p>yjkwon - 1003</p>
+<p>TSASOItem - 컬럼 (시트정보) 들이 들어가 있다</p>
+<p>본인화면에 test_sjpark 컬럼추가</p>
+<p>1. ASPX에서 컬럼추가 ==&gt; ksystem.net/sjpark/Sales/SASalesOrder_02_sjpark/ ~ 에 추가</p>
+<p>Private 에서 변수 선언</p>
+<p>쭉 내려와서</p>
+<p>Page_Load 부분에 추가 (맨 마지막에 추가) (맨위에 전체갯수 59 =&gt; 60)</p>
+<p>19,0,""</p>
+<p>2. CS에서 저장하는 부분에 추가 =&gt; ksystem.net/bin</p>
+<p>==========</p>
+<p>SaveSheetValue 끝에 추가</p>
+<p>다 하고 =&gt; 컴파일 컨트롤 쉬프트 B =&gt; dll, aspx 옮기기</p>
+<p>3. SP에서 조회, 저장 잘 고치기</p>
+<p>58번 - 컴파일해서 dll / 컨트롤영역 쉽게 보기</p>
+</blockquote>
+<ul>
+<li>과제</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>시트에 컬럼 추가하기</li>
+</ul>
+<p>aspx</p>
+<ol>
+<li>변수 추가</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/2-28-GNI-등록/image27.png" /></p>
+</blockquote>
+<ol start="2">
+<li>전체 갯수 1 증가</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/2-28-GNI-등록/image28.png" /></p>
+</blockquote>
+<ol start="3">
+<li>시트에 추가</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/2-28-GNI-등록/image29.png" /></p>
+</blockquote>
+<p>cs</p>
+<ol>
+<li>body 부분 수정 (58번 서버에서 수정 시 body부분 눌러서 열어야 검색해서 찾을 수 있다)</li>
+</ol>
+<p><img alt="" src="assets/2-28-GNI-등록/image30.png" /></p>
+<p>aspx =&gt; 1번 서버로 옮기기 =&gt; 화면에 나온다</p>
+<p>저장 및 조회하기 위해 SP 수정</p>
+<ol>
+<li>SSASalesOrder2Save_02_sjpark</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/2-28-GNI-등록/image31.png" /></p>
+<p><img alt="" src="assets/2-28-GNI-등록/image32.png" /></p>
+<p><img alt="" src="assets/2-28-GNI-등록/image33.png" /></p>
+<p><img alt="" src="assets/2-28-GNI-등록/image34.png" /></p>
+<p><img alt="" src="assets/2-28-GNI-등록/image35.png" /></p>
+<hr />
+</blockquote>
+<ol start="2">
+<li>SSASalesOrder2Qry_sjpark</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/2-28-GNI-등록/image36.png" /></p>
+<p><img alt="" src="assets/2-28-GNI-등록/image37.png" /></p>
+</blockquote>
+<p>\&lt;\&lt;SASalesOrder_02_Site_Init.zip&gt;&gt;\&lt;\&lt;0228_GNI등록.hwp&gt;&gt;</p>
+<p>\&lt;\&lt;0228_GNI등록.hwp&gt;&gt;</p>
+  </article>
+</div>
+</body>
+</html>

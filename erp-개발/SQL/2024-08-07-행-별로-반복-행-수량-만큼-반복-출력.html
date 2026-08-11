@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행 별로 반복 / 행 수량 만큼 반복 출력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>행 별로 반복 / 행 수량 만큼 반복 출력</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">행 별로 반복 / 행 수량 만큼 반복 출력</h1>
+<p>SELECT CONVERT(NVARCHAR(100),ISNULL(D.OrderNo, ''))+'-'+CONVERT(NVARCHAR(100),RIGHT('00' + CAST(ISNULL(B.OrderSerl, 0) AS NVARCHAR), 2))+ RIGHT('000' + CAST(CONVERT(NVARCHAR(100),G.number) AS NVARCHAR), 3) AS SN,</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>LEFT OUTER JOIN #SOInfo AS C ON A.IDX_NO = C.IDX_NO</p>
+<p>LEFT OUTER JOIN _TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.OrderSeq = C.OrderSeq</p>
+<p>AND B.Orderserl = C.OrderSerl</p>
+<p>LEFT OUTER JOIN _TSLOrder AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND B.OrderSeq = D.OrderSeq</p>
+<p>JOIN <span class="mark">master..spt_values</span> AS G ON 1=1</p>
+<p>AND number BETWEEN 1 AND 1000</p>
+<p>AND type = 'P'</p>
+<p><span class="mark">AND A.OrderQty &gt;= G.number</span></p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>채번</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>채번</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">채번</h1>
+<p>마스터테이블 채번</p>
+<p>@seq</p>
+<p>=&gt; _SWCOMCreateSeq</p>
+<blockquote>
+<p>=&gt; _TCOMCreateSeqMax (테이블내부키 최대값 모아놓은 테이블)</p>
+</blockquote>
+<p>1</p>
+<p>2</p>
+<p>3</p>
+<p>A</p>
+<p>A</p>
+<p>* count - A 갯수 확인 (한 개라도 있으면 동작)</p>
+<p>* seq - OrderSerl의 최대값 (3)</p>
+<p>* DataSeq - WorkingTag별 순번 값 (1,2)</p>
+<p>* OrderSerl = Seq + DataSeq</p>
+<blockquote>
+<p>3 1,2</p>
+<p>= 4,5</p>
+</blockquote>
+<p>===============================</p>
+<p>* OrderSerl = MaxSerl + Serl</p>
+<p>3</p>
+<p>마스터채번 시</p>
+<p>1. SP에서 가져옴</p>
+<p>테이블 기준으로 MAX값을 찾아 데이터를 넣어줌 (CREATE에)</p>
+<p>실제테이블의 MAX값과 TCOMCREATESEQMAX의 맥스값이 다를수가 있다</p>
+<p>==========================================</p>
+<p>-- IDX_NO : 화면에서 넘어갈 때 자동으로 넘어감 (WorkingTag와 무관하게 1,2,3,4,5)</p>
+<p>/*</p>
+<p>DataSeq : WorkingTag별 순번</p>
+<p>U 1</p>
+<p>A 1</p>
+<p>A 2</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

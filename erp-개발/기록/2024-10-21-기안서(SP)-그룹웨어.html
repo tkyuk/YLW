@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기안서(SP) 그룹웨어</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>기안서(SP) 그룹웨어</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">기안서(SP) 그룹웨어</h1>
+<p>_SCOMGroupWareStatus_danam</p>
+<p>SELECT * FROM danam_TPJTSVCProjectPJTLog AS A WHERE A.SVCSeq = 168</p>
+<p>SELECT B.PJTNo,B.PJTSeq</p>
+<p>FROM danam_TPJTSVCProject AS A</p>
+<p>Join danam_TPJTSVCProjectPJT AS B with(nolock) On A.CompanySeq = B.CompanySeq</p>
+<p>And A.SVCSeq = B.SVCSeq</p>
+<p>WHERE A.SVCSeq = 168</p>
+<p>SELECT '중복건',PJTNo,PJTSeq</p>
+<p>FROM _TPJTProject</p>
+<p>WHERE PJTNo ='SA221801AS003'</p>
+<p>SELECT '수정 전 데이터',PJTNo,PJTSeq</p>
+<p>FROM _TPJTProject</p>
+<p>WHERE PJTNo ='SA221801AS001'</p>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>,@TblKey INT = 168</p>
+<p>/*</p>
+<p>DROP Table #TmpSVC</p>
+<p>Create Table #TmpSVC</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1),</p>
+<p>IDX_NO INT Identity,</p>
+<p>DataSeq INT,</p>
+<p>Status INT,</p>
+<p>Selected INT,</p>
+<p>PJTTypeSeq INT,</p>
+<p>PJTTypeName NVARCHAR(50),</p>
+<p>PJTSeq INT,</p>
+<p>ProdItemSeq INT,</p>
+<p>CustSeq INT,</p>
+<p>PJTName NVARCHAR(100),</p>
+<p>PJTNo NVARCHAR(50),</p>
+<p>CustName NVARCHAR(100),</p>
+<p>ProdItemName NVARCHAR(100),</p>
+<p>ProdItemNo NVARCHAR(100),</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>Price DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>Vat DECIMAL(19,5),</p>
+<p>UnitFr INT,</p>
+<p>UnitTo INT,</p>
+<p>ItemGubunName NVARCHAR(100),</p>
+<p>DelvDueDate NCHAR(8),</p>
+<p>ItemGubunSeq INT,</p>
+<p>EstDeliveryDate NCHAR(8),</p>
+<p>SortNum INT,</p>
+<p>PlanFrDate NCHAR(8),</p>
+<p>PlanToDate NCHAR(8),</p>
+<p>ContractFrDate NCHAR(8),</p>
+<p>ContractToDate NCHAR(8),</p>
+<p>IsWorkTimeEnd NCHAR(1),</p>
+<p>Etc NVARCHAR(1000),</p>
+<p>ConDelvDate NCHAR(8),</p>
+<p>TABLE_NAME NVARCHAR(100),</p>
+<p>BizPJTSeq INT</p>
+<p>)</p>
+<p>Insert Into #TmpSVC</p>
+<p>(</p>
+<p>WorkingTag ,</p>
+<p>DataSeq , Status , Selected , PJTTypeSeq , PJTTypeName ,</p>
+<p>PJTSeq , ProdItemSeq , CustSeq , PJTName , PJTNo ,</p>
+<p>CustName , ProdItemName , ProdItemNo , Qty , Price ,</p>
+<p>Amt , Vat , UnitFr , UnitTo , ItemGubunName ,</p>
+<p>DelvDueDate , ItemGubunSeq , EstDeliveryDate , SortNum , PlanFrDate ,</p>
+<p>PlanToDate , ContractFrDate , ContractToDate , IsWorkTimeEnd , Etc ,</p>
+<p>ConDelvDate , TABLE_NAME , BizPJTSeq</p>
+<p>)</p>
+<p>Select Case When Isnull(P.PJTSeq, 0) = 0 Then 'A' Else 'U' End AS WorkingTag,</p>
+<p>1 AS DataSeq , 0 AS Status , 1 AS Selected , B.PJTTypeSeq , '서비스' AS PJTTypeName,</p>
+<p>B.PJTSeq , IsNull(P5.ItemSeq, 0) AS ProdItemSeq, A.CustSeq , Rtrim(IsNull(I5.ItemName, '')) + '_' + Right(B.PJTNo, 3) + '_SP' AS PJTName, B.PJTNo ,</p>
+<p>C.CustName , B.PJTNo , B.PJTNo, 1 AS Qty , IsNull(P2.ItemDomAmt, 0) + IsNull(D.Amt, 0),</p>
+<p>IsNull(P2.ItemDomAmt, 0) + IsNull(D.Amt, 0), (IsNull(P2.ItemDomAmt, 0) + IsNull(D.Amt, 0)) * 0.1 As Vat, 0 AS UnitFr, 0 AS UnitTo , '제작' AS ItemGubunName,</p>
+<p>A.PlanToDate, 1011243001 , '' , IsNull(P3.SortNum, 0) , A.PlanFrDate AS PlanFrDate,</p>
+<p>A.PlanToDate AS PlanToDate, '' AS ContractFrDate, '' AS ContractToDate, '0' , '' AS Etc ,</p>
+<p>A.PlanToDate, 'DataBlock1' , A.BizPJTSeq</p>
+<p>From danam_TPJTSVCProject AS A with(nolock) Join danam_TPJTSVCProjectPJT AS B with(nolock)</p>
+<p>On A.CompanySeq = B.CompanySeq</p>
+<p>And A.SVCSeq = B.SVCSeq</p>
+<p>Left Outer Join _TDACust AS C with(nolock)</p>
+<p>On A.CompanySeq = C.CompanySeq</p>
+<p>And A.CustSeq = C.CustSeq</p>
+<p>Left Outer Join (Select CompanySeq, SVCSeq, PJTSeq, Sum(Amt) AS Amt</p>
+<p>From danam_TPJTSVCProjectItem with(nolock)</p>
+<p>Where CompanySeq = @CompanySeq</p>
+<p>And SVCSeq = @TblKey</p>
+<p>Group by CompanySeq, SVCSeq, PJTSeq) AS D</p>
+<p>On B.CompanySeq = D.CompanySeq</p>
+<p>And B.SVCSeq = D.SVCSeq</p>
+<p>And B.PJTSeq = D.PJTSeq</p>
+<p>Left Outer Join _TPJTProject AS P with(nolock)</p>
+<p>On B.CompanySeq = P.CompanySeq</p>
+<p>And B.PJTNo = P.PJTNo</p>
+<p>And P.PJTTypeSeq = 14 --서비스프로젝트</p>
+<p>Left Outer Join (Select CompanySeq, PJTSeq, Sum(ItemDomAmt) AS ItemDomAmt</p>
+<p>From _TPJTProjectItem A with(nolock)</p>
+<p>Group by CompanySeq, PJTSeq) AS P2</p>
+<p>On P.CompanySeq = P2.CompanySeq</p>
+<p>And P.PJTSeq = P2.PJTSeq</p>
+<p>Left Outer Join danam_TPJTProject AS P3 with(nolock)</p>
+<p>On P.CompanySeq = P3.CompanySeq</p>
+<p>And P.PJTSeq = P3.PJTSeq</p>
+<p>Left Outer Join (Select a.CompanySeq, MAX(a.PJTSeq) AS PJTSeq, Left(a.PJTNo, 9) AS PJTNo</p>
+<p>From _TPJTProject a with(nolock) Join danam_TPJTSVCProjectPJT b with(nolock)</p>
+<p>on a.CompanySeq = b.CompanySeq</p>
+<p>and Left(a.PJTNo, 9) = Left(b.PJTNo, 9)</p>
+<p>Left Outer Join _TPJTProjectItem AS P5 with(nolock)</p>
+<p>On a.CompanySeq = P5.CompanySeq</p>
+<p>And a.PJTSeq = P5.PJTSeq</p>
+<p>And P5.PJTItemSerl = 1</p>
+<p>Where a.CompanySeq = @CompanySeq</p>
+<p>and b.SVCSeq = @TblKey</p>
+<p>Group by a.CompanySeq, Left(a.PJTNo, 9)</p>
+<p>) AS P4</p>
+<p>On B.CompanySeq = P4.CompanySeq</p>
+<p>and Left(B.PJTNo, 9) = P4.PJTNo</p>
+<p>Left Outer Join _TPJTProjectItem AS P5 with(nolock)</p>
+<p>On P4.CompanySeq = P5.CompanySeq</p>
+<p>And P4.PJTSeq = P5.PJTSeq</p>
+<p>And P5.PJTItemSerl = 1</p>
+<p>Left Outer Join _TDAItem AS I5 with(nolock)</p>
+<p>ON P5.CompanySeq = I5.CompanySeq</p>
+<p>and P5.ItemSeq = I5.ItemSeq</p>
+<p>Where A.CompanySeq = @CompanySeq</p>
+<p>And A.SVCSeq = Convert(INT, @TblKey)</p>
+<p>*/</p>
+<p>SELECT PJTNo,* FROM #TmpSVC</p>
+<p>-- SA221801AS003</p>
+<p>SELECT B.*</p>
+<p>FROM #TmpSVC AS A JOIN ( SELECT S.PJTNo</p>
+<p>FROM (</p>
+<p>SELECT A1.PJTNo</p>
+<p>FROM #TmpSVC AS A1</p>
+<p>WHERE A1.WorkingTag IN ('A','U')</p>
+<p>AND A1.Status = 0</p>
+<p>UNION ALL</p>
+<p>SELECT A1.PJTNo</p>
+<p>FROM _TPJTProject AS A1</p>
+<p>WHERE A1.Companyseq = @CompanySeq</p>
+<p>AND A1.PJTSeq NOT IN (SELECT PJTSeq</p>
+<p>FROM #TmpSVC</p>
+<p>WHERE WorkingTag IN ('U','D')</p>
+<p>AND Status = 0)</p>
+<p>) AS S</p>
+<p>GROUP BY S.PJTNo</p>
+<p>HAVING COUNT(1) &gt; 1</p>
+<p>) AS B ON (A.PJTNo = B.PJTNo)</p>
+<p>SELECT S.PJTNo ,COUNT(*)</p>
+<p>FROM (</p>
+<p>SELECT A1.PJTNo</p>
+<p>FROM #TmpSVC AS A1</p>
+<p>WHERE A1.WorkingTag IN ('A','U')</p>
+<p>AND A1.Status = 0</p>
+<p>UNION ALL</p>
+<p>SELECT A1.PJTNo</p>
+<p>FROM _TPJTProject AS A1</p>
+<p>WHERE A1.Companyseq = @CompanySeq</p>
+<p>AND A1.PJTSeq NOT IN (SELECT PJTSeq</p>
+<p>FROM #TmpSVC</p>
+<p>WHERE WorkingTag IN ('U','D')</p>
+<p>AND Status = 0)</p>
+<p>) AS S</p>
+<p>GROUP BY S.PJTNo</p>
+<p>HAVING COUNT(*) &gt; 1</p>
+<p>SELECT * FROM _TPJTProject WHERE PJTNo = 'SA221801AS003'</p>
+  </article>
+</div>
+</body>
+</html>

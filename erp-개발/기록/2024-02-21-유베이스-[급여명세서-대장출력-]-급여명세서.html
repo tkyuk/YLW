@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>유베이스 - \[급여명세서/대장출력\] - 급여명세서</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>유베이스 - \[급여명세서/대장출력\] - 급여명세서</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">유베이스 - [급여명세서/대장출력] - 급여명세서</h1>
+<p>sp : ubase_SXPRPayReceiptPrint2021</p>
+<ol>
+<li>
+<p>_SXPRPayResultPrtEmpItem 서브 sp를 통해 출력항목생성</p>
+<ol>
+<li>
+<p>근태항목의 경우 [월근태집계내역조회] 에서 확인이 가능</p>
+<ol>
+<li>SELECT PP.EmpSeq , B.ItemSeq,</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>SUM(PP.DTCnt), MAX(B.PosNum) , 0</p>
+<p>FROM _TPRPayEmpMm AS PP WITH(NOLOCK)</p>
+<p>INNER JOIN _TXPRBasPrtTypeItem AS B WITH(NOLOCK)</p>
+<p>ON PP.CompanySeq = B.CompanySeq</p>
+<p>AND PP.WkItemSeq = B.ItemSeq</p>
+<p>INNER JOIN _TXPRBasPrtType AS A WITH(NOLOCK) -- _TXPRBasPrtTypePb -&gt; _TXPRBasPrtType 테이블 변경</p>
+<p>ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PrtTypeSeq = A.PrtTypeSeq</p>
+<p>INNER JOIN _TPRWkItem AS PW WITH(NOLOCK)</p>
+<p>ON PW.WkItemSeq = B.ItemSeq</p>
+<p>AND PW.CompanySeq = B.CompanySeq</p>
+<p>AND (PW.SMWkItemType IN (3007001 , 3007002) OR PW.WkItemSeq = -1) -- 시스템월일수 추가</p>
+<p>WHERE PP.CompanySeq = 1</p>
+<p>AND PP.PbYm = '202401'</p>
+<p>AND PP.SerialNo = 16</p>
+<p>AND B.ItemType = 'W'</p>
+<p>AND A.PrtTypeSeq = 5</p>
+<p>AND A.SMPrtType = 3041002</p>
+<p>AND PP.EmpSeq = 47249</p>
+<p>GROUP BY PP.EmpSeq, B.ItemSeq</p>
+</blockquote>
+<ol start="2">
+<li>
+<p>항목 목록은 [출력유형등록]에 있다</p>
+<ol>
+<li>
+<p>_TXPRBasPrtTypeItem ( SELECT * FROM _TPRPayEmpMm WHERE EmpSeq = 47249 AND PbYm = '202401' )</p>
+<ol>
+<li>
+<p>ItemSeq = 근태항목코드</p>
+<ol>
+<li>근무일수, 근무시간 =&gt; SELECT * FROM _TXPRBasPrtTypeItem WHERE ItemSeq IN(1000,999) AND PosNum IN(101,102) AND PrtTypeSeq = 5</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<!-- -->
+
+<ol start="2">
+<li>
+<p>유베이스의 경우 근태집계처리_ubase 화면의 데이터로 시간, 일수 업데이트함</p>
+<ol>
+<li>
+<p>ubase_TXPRWkMMSumD</p>
+</li>
+<li>
+<p>SELECT *,RealWorkCnt,        RealWorkTime</p>
+</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>FROM ubase_TXPRWkMMSumD</p>
+<p>WHERE EmpSeq = 47249</p>
+<p>AND WkYM = '202401'</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

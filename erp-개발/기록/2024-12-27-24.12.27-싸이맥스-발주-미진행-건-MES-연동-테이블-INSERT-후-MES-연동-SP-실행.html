@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.27 싸이맥스 발주 미진행 건 MES 연동 테이블 INSERT 후 MES 연동 SP 실행</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.27 싸이맥스 발주 미진행 건 MES 연동 테이블 INSERT 후 MES 연동 SP 실행</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241227-mes-insert-mes-sp">24.12.27 싸이맥스 발주 미진행 건 MES 연동 테이블 INSERT 후 MES 연동 SP 실행</h1>
+<p>DECLARE @CompanySeq INT</p>
+<p>SELECT @CompanySeq = 1</p>
+<p>CREATE TABLE #Temp_POProgress</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>IsDelv NCHAR(1),</p>
+<p>IsStop NCHAR(1),</p>
+<p>SMCurrStatus INT,</p>
+<p>CurAmt DECIMAL(19, 5),</p>
+<p>CurVAT DECIMAL(19, 5),</p>
+<p>DelvSeq INT,</p>
+<p>DelvSerl INT,</p>
+<p>DelvAmt DECIMAL(19, 5),</p>
+<p>DelvVAT DECIMAL(19, 5),</p>
+<p>DelvQty DECIMAL(19, 5),</p>
+<p>DelvInSeq INT,</p>
+<p>DelvInSerl INT,</p>
+<p>DelvInAmt DECIMAL(19, 5),</p>
+<p>DelvInVAT DECIMAL(19, 5),</p>
+<p>DelvInQty DECIMAL(19, 5),</p>
+<p>DelvDate NCHAR(8),</p>
+<p>DelvInDate NCHAR(8),</p>
+<p>DelvExRate DECIMAL(19, 5),</p>
+<p>DelvInExRate DECIMAL(19, 5),</p>
+<p>CompleteCHECK INT,</p>
+<p>ApproReqNo NCHAR(12),</p>
+<p>POReqNO NCHAR(12),</p>
+<p>ReqEmpSeq INT,</p>
+<p>ApproReqEmpSeq INT,</p>
+<p>ApproReqDeptSeq INT,</p>
+<p>DelvDomAmt DECIMAL(19, 5), -- 12.04.13 김세호 추가</p>
+<p>DelvInDomAmt DECIMAL(19, 5), -- 12.04.13 김세호 추가</p>
+<p>UMPOReqType INT,</p>
+<p>POReqDeptSeq INT,</p>
+<p>PJTSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #Temp_POProgress(POSeq, POSerl, Qty, IsDelv, IsStop, SMCurrStatus, CurAmt, CurVAT, DelvSeq, DelvSerl, DelvAmt, DelvVAT, DelvQty, DelvInSeq, DelvInSerl, DelvInAmt, DelvInVAT, DelvInQty, DelvExRate, DelvInExRate, CompleteCHECK, DelvDomAmt, DelvInDomAmt, UMPOReqType, PJTSeq)</p>
+<p>SELECT A.POSeq, B.POSerl, B.Qty, '1', B.IsStop, 6036001, ISNULL(SUM(B.CurAmt), 0), ISNULL(SUM(B.CurVAT), 0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, B.PJTSeq-- 미납으로 셋팅</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>JOIN cymc_TPUORDPOItem AS B1 WITH(NOLOCK) ON B.CompanySeq = B1.CompanySeq</p>
+<p>AND B.POSeq = B1.POSeq</p>
+<p>AND B.POSerl = B1.POSerl</p>
+<p>JOIN _TDAItem AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND B.ItemSeq = D.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (A.SMImpType IN (8008001, 8008002, 8008003))</p>
+<p>AND ISNULL(B.IsStop,'0') = '0'</p>
+<p>GROUP BY A.POSeq, B.POSerl, B.Qty, B.IsStop, B.PJTSeq</p>
+<p>-- 진행상태 체크</p>
+<p>EXEC _SCOMProgStatus @CompanySeq, '_TPUORDPOItem', 1036002, '#Temp_POProgress', 'POSeq', 'POSerl', '', '', '', '', '', '', 'CompleteCHECK', 1, 'Qty', 'StdUnitQty', 'CurAmt', '', 'POSeq', 'POSerl', '', '_TPUORDPOItem', 13120026</p>
+<p>UPDATE #Temp_POProgress</p>
+<p>SET SMCurrStatus = (SELECT CASE WHEN A.CompleteCHECK = '5' OR B.MinorSeq = 1037009 THEN 6036007 -- 결재진행중 2014.07.03 김용현추가</p>
+<p>WHEN A.IsStop = '1' OR B.MinorSeq = 1037005 THEN 6036005 -- 중단</p>
+<p>WHEN A.CompleteCHECK = '40' OR B.MinorSeq = 1037008 THEN 6036004 -- 완료</p>
+<p>WHEN A.CompleteCHECK = 1 OR B.MinorSeq = 1037003 THEN 6036002 -- 확정(승인)</p>
+<p>WHEN A.CompleteCHECK = '20' OR B.MinorSeq = 1037006 THEN 6036003 -- 진행</p>
+<p>ELSE 6036001 END) -- 작성(미확정)</p>
+<p>FROM #Temp_POProgress AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.MajorSeq = 1037</p>
+<p>AND A.CompleteCHECK = B.MinorValue</p>
+<p>DELETE FROM #Temp_POProgress</p>
+<p>WHERE SMCurrStatus NOT IN (6036001, 6036002, 6036003)</p>
+<p>INSERT INTO TN_INF022T(</p>
+<p>WorkingTag ,CompanySeq ,MESKey ,MESRevKey ,MESSerl ,--MESPOReqSerl ,</p>
+<p>POSeq ,POSerl ,</p>
+<p>SMImpType ,PODate ,DeptSeq ,EmpSeq ,CustSeq ,CurrSeq ,ExRate ,Payment ,</p>
+<p>Remark ,IsCustAccept ,IsDirectDelv ,PORev ,PORevEmpSeq ,PORevDate ,</p>
+<p>UnitSeq ,Qty ,Price ,ItemSeq ,CurAmt ,CurVAT ,DomPrice ,</p>
+<p>DomAmt ,DomVAT ,IsVAT ,MakerSeq ,DelvDate ,Remark1 ,Remark2 ,SMPriceType ,</p>
+<p>SMPayType ,POAmd ,WhSeq ,DelvTime ,POReqSeq ,POReqSerl ,StdUnitSeq ,StdUnitQty ,</p>
+<p>ChgDelvDate ,IsStop ,StopDate ,StopEmpSeq ,PJTSeq ,WBSSeq ,LastUserSeq ,LastDateTime ,</p>
+<p>DelvDate2 ,UMSupplyType ,UMRegType ,UMPartType ,ProcStep ,ProdPlanSrtDate,ProdPlanEndDate,ProdPlanChgDate,</p>
+<p>ProcYn ,ProcDateTime ,Status ,Result ,DelvCust_MES</p>
+<p>)</p>
+<p>SELECT 'A' AS WorkingTag</p>
+<p>,A.CompanySeq AS CompanySeq</p>
+<p>,'' AS MESKey</p>
+<p>,'' AS MESRevKey</p>
+<p>,'' AS MESSerl</p>
+<p>--,0 AS MESPOReqSerl</p>
+<p>,ISNULL(A.POSeq , 0) AS POSeq</p>
+<p>,ISNULL(B.POSerl , 0) AS POSerl</p>
+<p>,ISNULL(A.SMImpType , 0) AS SMImpType</p>
+<p>,ISNULL(A.PODate , '') AS PODate</p>
+<p>,ISNULL(A.DeptSeq , 0) AS DeptSeq</p>
+<p>,ISNULL(A.EmpSeq , 0) AS EmpSeq</p>
+<p>,ISNULL(A.CustSeq , 0) AS CustSeq</p>
+<p>,ISNULL(A.CurrSeq , 0) AS CurrSeq</p>
+<p>,ISNULL(A.ExRate , 0) AS ExRate</p>
+<p>,ISNULL(A.Payment , '') AS Payment</p>
+<p>,ISNULL(A.Remark , '') AS Remark</p>
+<p>,ISNULL(A.IsCustAccept , '') AS IsCustAccept</p>
+<p>,ISNULL(A.IsDirectDelv , '') AS IsDirectDelv</p>
+<p>,ISNULL(A.PORev , 0) AS PORev</p>
+<p>,ISNULL(A.PORevEmpSeq , 0) AS PORevEmpSeq</p>
+<p>,ISNULL(A.PORevDate , '') AS PORevDate</p>
+<p>,ISNULL(B.UnitSeq , 0) AS UnitSeq</p>
+<p>,ISNULL(B.Qty , 0) AS Qty</p>
+<p>,ISNULL(B.Price , 0) AS Price</p>
+<p>,ISNULL(B.ItemSeq , 0) AS ItemSeq</p>
+<p>,ISNULL(B.CurAmt , 0) AS CurAmt</p>
+<p>,ISNULL(B.CurVAT , 0) AS CurVAT</p>
+<p>,ISNULL(B.DomPrice , 0) AS DomPrice</p>
+<p>,ISNULL(B.DomAmt , 0) AS DomAmt</p>
+<p>,ISNULL(B.DomVAT , 0) AS DomVAT</p>
+<p>,ISNULL(B.IsVAT , '') AS IsVAT</p>
+<p>,ISNULL(B.MakerSeq , 0) AS MakerSeq</p>
+<p>,ISNULL(B.DelvDate , '') AS DelvDate</p>
+<p>,ISNULL(B.Remark1 , '') AS Remark1</p>
+<p>,ISNULL(B.Remark2 , '') AS Remark2</p>
+<p>,ISNULL(B.SMPriceType , 0) AS SMPriceType</p>
+<p>,ISNULL(B.SMPayType , 0) AS SMPayType</p>
+<p>,ISNULL(A.POAmd , 0) AS POAmd</p>
+<p>,ISNULL(B.WhSeq , 0) AS WhSeq</p>
+<p>,ISNULL(B.DelvTime , '') AS DelvTime</p>
+<p>,ISNULL(B.POReqSeq , 0) AS POReqSeq</p>
+<p>,ISNULL(B.POReqSerl , 0) AS POReqSerl</p>
+<p>,ISNULL(B.StdUnitSeq , 0) AS StdUnitSeq</p>
+<p>,ISNULL(B.StdUnitQty , 0) AS StdUnitQty</p>
+<p>,ISNULL(B.ChgDelvDate , '') AS ChgDelvDate</p>
+<p>,ISNULL(B.IsStop , '') AS IsStop</p>
+<p>,ISNULL(B.StopDate , '') AS StopDate</p>
+<p>,ISNULL(B.StopEmpSeq , 0) AS StopEmpSeq</p>
+<p>,ISNULL(B.PJTSeq , 0) AS PJTSeq</p>
+<p>,ISNULL(B.WBSSeq , 0) AS WBSSeq</p>
+<p>,ISNULL(A.LastUserSeq , 0) AS LastUserSeq</p>
+<p>,ISNULL(A.LastDateTime , '') AS LastDateTime</p>
+<p>,ISNULL(B.DelvDate2 , '') AS DelvDate2</p>
+<p>,ISNULL(C.UMSupplyType , 0) AS UMSupplyType</p>
+<p>,ISNULL(C.UMRegType , 0) AS UMRegType</p>
+<p>,ISNULL(C.UMPartType , 0) AS UMPartType</p>
+<p>,ISNULL(C.ProcStep , 0) AS ProcStep</p>
+<p>,ISNULL(C.ProdPlanSrtDate, '') AS ProdPlanSrtDate</p>
+<p>,ISNULL(C.ProdPlanEndDate, '') AS ProdPlanEndDate</p>
+<p>,ISNULL(C.ProdPlanChgDate, '') AS ProdPlanChgDate</p>
+<p>,0 AS ERPProcYn</p>
+<p>,NULL AS ERPProcDateTime</p>
+<p>,0 AS Status</p>
+<p>,NULL AS Result</p>
+<p>,'' AS DelvCust_MES</p>
+<p>FROM #Temp_POProgress AS Z</p>
+<p>JOIN _TPUORDPO AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = Z.POSeq</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.POSeq = Z.POSeq</p>
+<p>AND B.POSerl = Z.POSerl</p>
+<p>JOIN cymc_TPUORDPOItem AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.POSeq = B.POSeq</p>
+<p>AND C.POSerl = B.POSerl</p>
+<p>LEFT OUTER JOIN MESGUNLIVE.GwMES_CYMECHS.dbo.TN_INF022T AS D ON B.POSeq = D.POseq</p>
+<p>AND B.POSerl = D.POSerl</p>
+<p>WHERE D.POseq IS NULL</p>
+<p>INSERT INTO MESGUNLIVE.GwMES_CYMECHS.dbo.TN_INF022T</p>
+<p>(</p>
+<p>WorkingTag ,CompanySeq ,MESKey ,MESRevKey ,MESSerl ,POSeq ,POSerl ,</p>
+<p>SMImpType ,PODate ,DeptSeq ,EmpSeq ,CustSeq ,CurrSeq ,ExRate ,</p>
+<p>Payment ,Remark ,IsCustAccept ,IsDirectDelv ,PORev ,PORevEmpSeq ,PORevDate ,</p>
+<p>LastUserSeq ,LastDateTime ,UnitSeq ,Qty ,Price ,ItemSeq ,CurAmt ,</p>
+<p>CurVAT ,DomPrice ,DomAmt ,DomVAT ,IsVAT ,MakerSeq ,DelvDate ,</p>
+<p>Remark1 ,Remark2 ,SMPriceType ,SMPayType ,POAmd ,WhSeq ,DelvTime ,</p>
+<p>POReqSeq ,POReqSerl ,StdUnitSeq ,StdUnitQty ,ChgDelvDate ,IsStop ,StopDate ,</p>
+<p>StopEmpSeq ,PJTSeq ,WBSSeq ,DelvDate2 ,UMSupplyType ,UMRegType ,UMPartType ,</p>
+<p>ProcStep ,ProdPlanSrtDate,ProdPlanEndDate,ProdPlanChgDate,ProcYn ,ProcDateTime ,Status ,</p>
+<p>Result --,DelvCust_MES</p>
+<p>,PONo ,CD_DELVCUST</p>
+<p>)</p>
+<p>SELECT WorkingTag ,CompanySeq ,MESKey ,MESRevKey ,MESSerl ,POSeq ,POSerl ,</p>
+<p>SMImpType ,PODate ,DeptSeq ,EmpSeq ,CustSeq ,CurrSeq ,ExRate ,</p>
+<p>Payment ,Remark ,IsCustAccept ,IsDirectDelv ,PORev ,PORevEmpSeq ,PORevDate ,</p>
+<p>LastUserSeq ,LastDateTime ,UnitSeq ,Qty ,Price ,ItemSeq ,CurAmt ,</p>
+<p>CurVAT ,DomPrice ,DomAmt ,DomVAT ,IsVAT ,MakerSeq ,DelvDate ,</p>
+<p>Remark1 ,Remark2 ,SMPriceType ,SMPayType ,POAmd ,WhSeq ,DelvTime ,</p>
+<p>POReqSeq ,POReqSerl ,StdUnitSeq ,StdUnitQty ,ChgDelvDate ,IsStop ,StopDate ,</p>
+<p>StopEmpSeq ,PJTSeq ,WBSSeq ,DelvDate2 ,UMSupplyType ,UMRegType ,UMPartType ,</p>
+<p>ProcStep ,ProdPlanSrtDate,ProdPlanEndDate,ProdPlanChgDate,ProcYn ,ProcDateTime ,Status ,</p>
+<p>Result --,DelvCust_MES</p>
+<p>,ISNULL(A.PONo, '') AS PONo ,ISNULL(A.CD_DELVCUST, '') AS CD_DELVCUST</p>
+<p>FROM TN_INF022T AS A</p>
+<p>WHERE A.ProcYn = '0' -- 처리 안된 건</p>
+<p>DECLARE @POSeq INT;</p>
+<p>DECLARE @Status INT</p>
+<p>,@Result NVARCHAR(100)</p>
+<p>SELECT @POSeq = 0</p>
+<p>EXEC MESGUNLIVE.GwMES_CYMECHS.dbo.USP_IF_ERP_SET_PUR_PO_SAVE @POSeq, @Status OUTPUT, @Result OUTPUT</p>
+<p>DROP TABLE #Temp_POProgress</p>
+<p>ERP DB에 있는 TN_INF022T 테이블에는 데이터가 존재하지만</p>
+<p>MESGUN.GwMES_CYMECHS.dbo.TN_INF022T 에는 데이터가 미존재하여</p>
+<p>미납품된 건에 대해 INSERT 해주는 로직</p>
+<p>DECLARE @CompanySeq INT</p>
+<p>SELECT @CompanySeq = 1</p>
+<p>CREATE TABLE #Temp_POProgress</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>IsDelv NCHAR(1),</p>
+<p>IsStop NCHAR(1),</p>
+<p>SMCurrStatus INT,</p>
+<p>CurAmt DECIMAL(19, 5),</p>
+<p>CurVAT DECIMAL(19, 5),</p>
+<p>DelvSeq INT,</p>
+<p>DelvSerl INT,</p>
+<p>DelvAmt DECIMAL(19, 5),</p>
+<p>DelvVAT DECIMAL(19, 5),</p>
+<p>DelvQty DECIMAL(19, 5),</p>
+<p>DelvInSeq INT,</p>
+<p>DelvInSerl INT,</p>
+<p>DelvInAmt DECIMAL(19, 5),</p>
+<p>DelvInVAT DECIMAL(19, 5),</p>
+<p>DelvInQty DECIMAL(19, 5),</p>
+<p>DelvDate NCHAR(8),</p>
+<p>DelvInDate NCHAR(8),</p>
+<p>DelvExRate DECIMAL(19, 5),</p>
+<p>DelvInExRate DECIMAL(19, 5),</p>
+<p>CompleteCHECK INT,</p>
+<p>ApproReqNo NCHAR(12),</p>
+<p>POReqNO NCHAR(12),</p>
+<p>ReqEmpSeq INT,</p>
+<p>ApproReqEmpSeq INT,</p>
+<p>ApproReqDeptSeq INT,</p>
+<p>DelvDomAmt DECIMAL(19, 5), -- 12.04.13 김세호 추가</p>
+<p>DelvInDomAmt DECIMAL(19, 5), -- 12.04.13 김세호 추가</p>
+<p>UMPOReqType INT,</p>
+<p>POReqDeptSeq INT,</p>
+<p>PJTSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #Temp_POProgress(POSeq, POSerl, Qty, IsDelv, IsStop, SMCurrStatus, CurAmt, CurVAT, DelvSeq, DelvSerl, DelvAmt, DelvVAT, DelvQty, DelvInSeq, DelvInSerl, DelvInAmt, DelvInVAT, DelvInQty, DelvExRate, DelvInExRate, CompleteCHECK, DelvDomAmt, DelvInDomAmt, UMPOReqType, PJTSeq)</p>
+<p>SELECT A.POSeq, B.POSerl, B.Qty, '1', B.IsStop, 6036001, ISNULL(SUM(B.CurAmt), 0), ISNULL(SUM(B.CurVAT), 0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, B.PJTSeq-- 미납으로 셋팅</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>JOIN cymc_TPUORDPOItem AS B1 WITH(NOLOCK) ON B.CompanySeq = B1.CompanySeq</p>
+<p>AND B.POSeq = B1.POSeq</p>
+<p>AND B.POSerl = B1.POSerl</p>
+<p>JOIN _TDAItem AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND B.ItemSeq = D.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (A.SMImpType IN (8008001, 8008002, 8008003))</p>
+<p>AND ISNULL(B.IsStop,'0') = '0'</p>
+<p>AND A.PODate LIKE '2024%'</p>
+<p>GROUP BY A.POSeq, B.POSerl, B.Qty, B.IsStop, B.PJTSeq</p>
+<p>-- 진행상태 체크</p>
+<p>EXEC _SCOMProgStatus @CompanySeq, '_TPUORDPOItem', 1036002, '#Temp_POProgress', 'POSeq', 'POSerl', '', '', '', '', '', '', 'CompleteCHECK', 1, 'Qty', 'StdUnitQty', 'CurAmt', '', 'POSeq', 'POSerl', '', '_TPUORDPOItem', 13120026</p>
+<p>UPDATE #Temp_POProgress</p>
+<p>SET SMCurrStatus = (SELECT CASE WHEN A.CompleteCHECK = '5' OR B.MinorSeq = 1037009 THEN 6036007 -- 결재진행중 2014.07.03 김용현추가</p>
+<p>WHEN A.IsStop = '1' OR B.MinorSeq = 1037005 THEN 6036005 -- 중단</p>
+<p>WHEN A.CompleteCHECK = '40' OR B.MinorSeq = 1037008 THEN 6036004 -- 완료</p>
+<p>WHEN A.CompleteCHECK = 1 OR B.MinorSeq = 1037003 THEN 6036002 -- 확정(승인)</p>
+<p>WHEN A.CompleteCHECK = '20' OR B.MinorSeq = 1037006 THEN 6036003 -- 진행</p>
+<p>ELSE 6036001 END) -- 작성(미확정)</p>
+<p>FROM #Temp_POProgress AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.MajorSeq = 1037</p>
+<p>AND A.CompleteCHECK = B.MinorValue</p>
+<p>DELETE FROM #Temp_POProgress</p>
+<p>WHERE SMCurrStatus NOT IN (6036001, 6036002, 6036003)</p>
+<p>INSERT INTO MESGUN.GwMES_CYMECHS.dbo.TN_INF022T</p>
+<p>(</p>
+<p>WorkingTag ,CompanySeq ,MESKey ,MESRevKey ,MESSerl ,POSeq ,POSerl ,</p>
+<p>SMImpType ,PODate ,DeptSeq ,EmpSeq ,CustSeq ,CurrSeq ,ExRate ,</p>
+<p>Payment ,Remark ,IsCustAccept ,IsDirectDelv ,PORev ,PORevEmpSeq ,PORevDate ,</p>
+<p>LastUserSeq ,LastDateTime ,UnitSeq ,Qty ,Price ,ItemSeq ,CurAmt ,</p>
+<p>CurVAT ,DomPrice ,DomAmt ,DomVAT ,IsVAT ,MakerSeq ,DelvDate ,</p>
+<p>Remark1 ,Remark2 ,SMPriceType ,SMPayType ,POAmd ,WhSeq ,DelvTime ,</p>
+<p>POReqSeq ,POReqSerl ,StdUnitSeq ,StdUnitQty ,ChgDelvDate ,IsStop ,StopDate ,</p>
+<p>StopEmpSeq ,PJTSeq ,WBSSeq ,DelvDate2 ,UMSupplyType ,UMRegType ,UMPartType ,</p>
+<p>ProcStep ,ProdPlanSrtDate,ProdPlanEndDate,ProdPlanChgDate,ProcYn ,ProcDateTime ,Status ,</p>
+<p>Result --,DelvCust_MES</p>
+<p>,PONo ,CD_DELVCUST</p>
+<p>)</p>
+<p>SELECT A.WorkingTag ,A.CompanySeq ,A.MESKey ,A.MESRevKey ,A.MESSerl ,A.POSeq ,A.POSerl ,</p>
+<p>A.SMImpType ,A.PODate ,A.DeptSeq ,A.EmpSeq ,A.CustSeq ,A.CurrSeq ,A.ExRate ,</p>
+<p>A.Payment ,A.Remark ,A.IsCustAccept ,A.IsDirectDelv ,A.PORev ,A.PORevEmpSeq ,A.PORevDate ,</p>
+<p>A.LastUserSeq ,A.LastDateTime ,A.UnitSeq ,A.Qty ,A.Price ,A.ItemSeq ,A.CurAmt ,</p>
+<p>A.CurVAT ,A.DomPrice ,A.DomAmt ,A.DomVAT ,A.IsVAT ,A.MakerSeq ,A.DelvDate ,</p>
+<p>A.Remark1 ,A.Remark2 ,A.SMPriceType ,A.SMPayType ,A.POAmd ,A.WhSeq ,A.DelvTime ,</p>
+<p>A.POReqSeq ,A.POReqSerl ,A.StdUnitSeq ,A.StdUnitQty ,A.ChgDelvDate ,A.IsStop ,A.StopDate ,</p>
+<p>A.StopEmpSeq ,A.PJTSeq ,A.WBSSeq ,A.DelvDate2 ,A.UMSupplyType ,A.UMRegType ,A.UMPartType ,</p>
+<p>A.ProcStep ,A.ProdPlanSrtDate,A.ProdPlanEndDate,A.ProdPlanChgDate,A.ProcYn ,A.ProcDateTime ,A.Status ,</p>
+<p>A.Result --,DelvCust_MES</p>
+<p>,ISNULL(A.PONo, '') AS PONo ,ISNULL(A.CD_DELVCUST, '') AS CD_DELVCUST</p>
+<p>FROM TN_INF022T AS A</p>
+<p>JOIN #Temp_POProgress AS Z ON Z.POSeq = A.POSeq</p>
+<p>AND Z.POSerl = A.POSerl</p>
+<p>DECLARE @POSeq INT;</p>
+<p>DECLARE @Status INT</p>
+<p>,@Result NVARCHAR(100)</p>
+<p>SELECT @POSeq = 0</p>
+<p>EXEC MESGUN.GwMES_CYMECHS.dbo.USP_IF_ERP_SET_PUR_PO_SAVE @POSeq, @Status OUTPUT, @Result OUTPUT</p>
+<p>DROP TABLE #Temp_POProgress</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다른 값 저장 안되도록 저장 SP에서 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>다른 값 저장 안되도록 저장 SP에서 체크</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">다른 값 저장 안되도록 저장 SP에서 체크</h1>
+<p>UPDATE #TSLOrderItem</p>
+<p>SET Result = '향정품은 다른품목과 함께 주문 할 수 없습니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 9999</p>
+<p>WHERE (1=1)</p>
+<p>AND WorkingTag IN ('A','U')</p>
+<p>AND Status = 0</p>
+<p>AND @PgmSeq IN (35420024,35420068) -- 주문등록_nkp, 주문등록(담당자)_nkp</p>
+<p>AND (</p>
+<p>-- ''과 1이 같이 있는 경우</p>
+<p>EXISTS (</p>
+<p>SELECT 1</p>
+<p>FROM _TSLOrderItem AS B WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN nkp_TDAItemPam AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND B.OrderSeq = #TSLOrderItem.OrderSeq</p>
+<p>AND C.ISPSY IN ('', '1')</p>
+<p>GROUP BY B.OrderSeq</p>
+<p>HAVING COUNT(DISTINCT C.ISPSY) = 2</p>
+<p>)</p>
+<p>OR</p>
+<p>-- 0과 1이 같이 있는 경우</p>
+<p>EXISTS (</p>
+<p>SELECT 1</p>
+<p>FROM _TSLOrderItem AS B WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN nkp_TDAItemPam AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND B.OrderSeq = #TSLOrderItem.OrderSeq</p>
+<p>AND C.ISPSY IN ('0', '1')</p>
+<p>GROUP BY B.OrderSeq</p>
+<p>HAVING COUNT(DISTINCT C.ISPSY) = 2</p>
+<p>)</p>
+<p>)</p>
+<p>0,1 같이 있는 경우 저장 X</p>
+  </article>
+</div>
+</body>
+</html>

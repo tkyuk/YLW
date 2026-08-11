@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매입고 내외자 업데이트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매입고 내외자 업데이트</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">구매입고 내외자 업데이트</h1>
+<p>SELECT * FROM _TPUDelvIn WHERE DelvInNo LIKE 'MI240626'</p>
+<p>SELECT * FROM _TPUDelvInItem WHERE DelvInSeq = 769727</p>
+<p>SELECT * FROM _TPUDelvInItem WHERE DelvInSeq = 774886</p>
+<p>SELECT * FROM _TPUDelvInItem WHERE DelvInSeq = 774887</p>
+<p>SELECT * FROM _TPUBuyingAcc WHERE SMImpType = 8008004</p>
+<p>BEGIN TRAN</p>
+<p>--UPDATE _TPUDelvInItem</p>
+<p>-- SET SMImpType = 8008001</p>
+<p>-- FROM _TPUDelvInItem</p>
+<p>-- WHERE DelvInSeq IN (774886,774887)</p>
+<p>-- AND SMImpType = 8008004</p>
+<p>UPDATE _TPUBuyingAcc</p>
+<p>SET SMImpType = 8008001</p>
+<p>FROM _TPUBuyingAcc</p>
+<p>WHERE SMImpType = 8008004</p>
+<p>ROLLBACK TRAN</p>
+<p>그룹웨어 html 실행문</p>
+  </article>
+</div>
+</body>
+</html>

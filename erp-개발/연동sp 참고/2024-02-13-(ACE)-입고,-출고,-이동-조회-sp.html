@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(ACE) 입고, 출고, 이동 조회 sp</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(ACE) 입고, 출고, 이동 조회 sp</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ace-sp">(ACE) 입고, 출고, 이동 조회 sp</h1>
+<p>/*</p>
+<p>1. 업무구분에 따라 입고대상, 출고대상, 이동대상을 조회해야 합니다.</p>
+<p>(1) 입고대상</p>
+<p>- 구매발주 미납내역 조회</p>
+<p>- 외주발주 미납내역 조회</p>
+<p>- 수입BL 미입고내역 조회</p>
+<p>(2) 출고대상</p>
+<p>- 출하의뢰,수출출하의뢰 미진행내역 조회(거래명세서, 수출Invoice 미진행)</p>
+<p>(3) 이동대상</p>
+<p>- 이동입력, 자재이동입력 미진행내역 조회</p>
+<p>*/</p>
+<p>CREATE PROCEDURE TNT_SLGPDAProcReqQry</p>
+<p>@CompanySeq INT = 1, -- 법인코드 법인코드 (1:디폴트)</p>
+<p>@WorkKind INT , -- 구분 업무구분 (1:입고, 2:출고, 3:이동)</p>
+<p>@DateFr NCHAR(8) , -- 일자From 일자From</p>
+<p>@DateTo NCHAR(8) , -- 일자To 일자To</p>
+<p>@QryText NVARCHAR(200) , -- 조회값 조회값(입고,출고:거래처, 이동: 입고창고)</p>
+<p>@PDANo NVARCHAR(30) -- PDA일련번호 ERP의 PDA 기준 번호로 출고창고 체크용도 (PDA 환경설정의 번호)</p>
+<p>AS</p>
+<p>-- PDA연동 대상조회 SP                                </p>
+<p>SET NOCOUNT ON</p>
+<p>SELECT @CompanySeq = ISNULL(@CompanySeq , 0),</p>
+<p>@WorkKind = ISNULL(@WorkKind , 0),</p>
+<p>@DateFr = ISNULL(@DateFr , ''),</p>
+<p>@DateTo = ISNULL(@DateTo , ''),</p>
+<p>@QryText = ISNULL(@QryText , ''),</p>
+<p>@PDANo = ISNULL(@PDANo , '')</p>
+<p>IF @CompanySeq = 0 SELECT @CompanySeq = 1</p>
+<p>IF @DateTo = '' SELECT @DateTo = '29991231'</p>
+<p>DECLARE @WHSeq INT</p>
+<p>SELECT @WHSeq = B.ValueSeq</p>
+<p>FROM _TDAUMinor AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq -- 소속창고</p>
+<p>AND A.MinorSeq = B.MinorSeq</p>
+<p>AND B.Serl = 15000001</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1001005 -- tnt_PDA일련번호</p>
+<p>AND A.MinorName = @PDANo</p>
+<p>IF @WorkKind = 1 -- 입고</p>
+<p>BEGIN</p>
+<p>SELECT A.PODate AS ReqDate ,</p>
+<p>A.PONo AS ReqNo ,</p>
+<p>C.CustName AS CustName</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.POSeq</p>
+<p>AND Z.FromSerl = B.POSerl</p>
+<p>AND Z.FromTableSeq = 13 -- _TPUORDPOItem         구매발주(수입Order)</p>
+<p>AND Z.ToTableSeq = 9 -- _TPUDelvInItem 구매입고</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PODate BETWEEN @DateFr AND @DateTo</p>
+<p>AND A.SMImpType IN (8008001, 8008002, 8008003)</p>
+<p>AND B.WhSeq = @WHSeq</p>
+<p>AND (B.StdUnitQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>AND (@QryText = '' OR C.CustName LIKE @QryText + '%')</p>
+<p>GROUP BY A.PODate ,</p>
+<p>A.PONo ,</p>
+<p>C.CustName</p>
+<p>UNION ALL</p>
+<p>SELECT A.PODate AS ReqDate ,</p>
+<p>A.OSPPONo AS ReqNo ,</p>
+<p>C.CustName AS CustName</p>
+<p>FROM _TPDOSPPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPPOItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.OSPPOSeq = B.OSPPOSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.OSPPOSeq</p>
+<p>AND Z.FromSerl = B.OSPPOSerl</p>
+<p>AND Z.FromTableSeq = 4        -- _TPDOSPPOItem 외주발주</p>
+<p>AND Z.ToTableSeq = 2        -- _TPDOSPDelvInItem 외주입고</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PODate BETWEEN @DateFr AND @DateTo</p>
+<p>AND B.WhSeq = @WHSeq</p>
+<p>AND (B.StdUnitQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>AND (@QryText = '' OR C.CustName LIKE @QryText + '%')</p>
+<p>GROUP BY A.PODate ,</p>
+<p>A.OSPPONo,</p>
+<p>C.CustName</p>
+<p>UNION ALL</p>
+<p>SELECT A.BLDate AS ReqDate ,</p>
+<p>A.BLNo AS ReqNo ,</p>
+<p>C.CustName AS CustName</p>
+<p>FROM _TUIImpBL AS A WITH(NOLOCK)</p>
+<p>JOIN _TUIImpBLItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.BLSeq = B.BLSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.BLSeq</p>
+<p>AND Z.FromSerl = B.BLSerl</p>
+<p>AND Z.FromTableSeq = 43        -- _TUIImpBLItem        수입BL</p>
+<p>AND Z.ToTableSeq = 49        -- _TUIImpDelvItem 수입입고</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BLDate BETWEEN @DateFr AND @DateTo</p>
+<p>AND B.WhSeq = @WHSeq</p>
+<p>AND (B.StdQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>AND (@QryText = '' OR C.CustName LIKE @QryText + '%')</p>
+<p>GROUP BY A.BLDate ,</p>
+<p>A.BLNo ,</p>
+<p>C.CustName</p>
+<p>ORDER BY 1,2,3</p>
+<p>END</p>
+<p>ELSE IF @WorkKind = 2 -- 출고</p>
+<p>BEGIN</p>
+<p>SELECT A.DVReqDate AS ReqDate ,</p>
+<p>A.DVReqNo AS ReqNo ,</p>
+<p>C.CustName AS CustName</p>
+<p>FROM _TSLDVReq AS A WITH(NOLOCK)</p>
+<p>JOIN _TSLDVReqItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.DVReqSeq = B.DVReqSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.DVReqSeq</p>
+<p>AND Z.FromSerl = B.DVReqSerl</p>
+<p>AND Z.FromTableSeq = 16        -- _TSLDVReqItem        출하의뢰(반품요청)</p>
+<p>AND Z.ToTableSeq = 18        -- _TSLInvoiceItem        거래명세서(수출Invoice)</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.DVReqDate BETWEEN @DateFr AND @DateTo</p>
+<p>AND B.WhSeq = @WHSeq</p>
+<p>AND (B.StdQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>AND (@QryText = '' OR C.CustName LIKE @QryText + '%')</p>
+<p>GROUP BY A.DVReqDate ,</p>
+<p>A.DVReqNo ,</p>
+<p>C.CustName</p>
+<p>ORDER BY 1,2,3</p>
+<p>END</p>
+<p>ELSE IF @WorkKind = 3 -- 이동</p>
+<p>BEGIN</p>
+<p>SELECT A.ReqDate AS ReqDate ,</p>
+<p>A.ReqNo AS ReqNo ,</p>
+<p>C.WHName AS CustName</p>
+<p>FROM _TLGInOutReq AS A WITH(NOLOCK)</p>
+<p>JOIN _TLGInOutReqItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ReqSeq = B.ReqSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.InWHSeq = C.WHSeq</p>
+<p>OUTER APPLY (SELECT SUM(Z.ToSTDQty) AS InQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromSeq = A.ReqSeq</p>
+<p>AND Z.FromSerl = B.ReqSerl</p>
+<p>AND Z.FromTableSeq = 14        -- _TLGInOutDailyItem        입출고</p>
+<p>AND Z.ToTableSeq = 15        -- _TLGInOutReqItem        입출고요청</p>
+<p>) AS E</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ReqDate BETWEEN @DateFr AND @DateTo</p>
+<p>AND A.OutWHSeq = @WHSeq</p>
+<p>AND (B.StdQty - ISNULL(E.InQty,0)) &gt; 0</p>
+<p>AND A.InOutReqType IN (80,82) -- 80 이동요청 82 자재이동요청</p>
+<p>AND (@QryText = '' OR C.WHName LIKE @QryText + '%')</p>
+<p>GROUP BY A.ReqDate ,</p>
+<p>A.ReqNo ,</p>
+<p>C.WHName</p>
+<p>ORDER BY 1,2,3</p>
+<p>END</p>
+<p>RETURN</p>
+<p>/*</p>
+<p>GO</p>
+<p>EXEC TNT_SLGPDAProcReqQry</p>
+<p>@CompanySeq = 1, -- 법인코드 법인코드 (1:디폴트)</p>
+<p>@WorkKind = 2, -- 구분 업무구분 (1:입고, 2:출고, 3:이동)</p>
+<p>@DateFr = '20210101', -- 일자From 일자From</p>
+<p>@DateTo = '20240207', -- 일자To 일자To</p>
+<p>@QryText = '' , -- 조회값 조회값(입고,출고:거래처, 이동: 입고창고)</p>
+<p>@PDANo = 'PDA0001'</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

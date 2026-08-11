@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>루아 행삭제 / 첫 번째 행만 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>루아 행삭제 / 첫 번째 행만 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">루아 행삭제 / 첫 번째 행만 조회</h1>
+<p>local row</p>
+<p>for row = SS1.DataRowCnt-1, 0, -1 do</p>
+<p>--if CellText(SS1, row, 'CustName') ~= '500.K-System ACE-엠씨넥스' then</p>
+<blockquote>
+<p>if row ~= 0 then</p>
+</blockquote>
+<p>SS1.StartRow = row</p>
+<blockquote>
+<p>SS1.ActionCount = 1</p>
+<p>SS1.ActionType = 'ActionType_DeleteRow'</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

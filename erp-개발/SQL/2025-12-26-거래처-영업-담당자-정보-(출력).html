@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래처 영업 담당자 정보 (출력)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래처 영업 담당자 정보 (출력)</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래처 영업 담당자 정보 (출력)</h1>
+<p>/************************************************************</p>
+<p>설 명 - 수출Invoice출력물조회(Packing List % Commercial INVOICE)</p>
+<p>************************************************************/</p>
+<p>CREATE PROCEDURE tnt_SWSLExpPackingRptQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>DECLARE --@InvoiceSeq INT,</p>
+<p>@TotCurtAmt DECIMAL(19,5),</p>
+<p>@TotVAT DECIMAL(19,5),</p>
+<p>@TotAmt DECIMAL(19,5),</p>
+<p>@CountRow INT,</p>
+<p>@Carton INT,</p>
+<blockquote>
+<p>@CustSeq                INT,</p>
+</blockquote>
+<p>@SiteInit NVARCHAR(100),</p>
+<p>@EnvValue4016 INT</p>
+<p>--SELECT @InvoiceSeq = InvoiceSeq</p>
+<p>-- FROM #BIZ_IN_DataBlock1</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 4016, @UserSeq, @@PROCID, @EnvValue4016 OUTPUT</p>
+<p>SELECT @SiteInit = SiteInit</p>
+<p>FROM _TCACompanyConfig</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>CREATE TABLE #Temp(IDX_NO INT IDENTITY,InvoiceSeq INT, LCDate NCHAR(8),LCNo NVARCHAR(30), LCBankName NVARCHAR(100), InvoiceNo NVARCHAR(100) )</p>
+<p>INSERT INTO #Temp(InvoiceSeq)</p>
+<p>SELECT A.InvoiceSeq</p>
+<p>FROM _TSLInvoice AS A WITH(NOLOCK)</p>
+<p>JOIN #BIZ_IN_DataBlock1 AS B ON A.InvoiceSeq = B.InvoiceSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>CREATE TABLE #TMP_SOURCEITEM</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>SourceSeq INT,</p>
+<p>SourceSerl INT,</p>
+<p>SourceSubSerl INT</p>
+<p>)</p>
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT IDENTITY,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT '_TSLExpPaymentItem'</p>
+<p>INSERT #TMP_SOURCEITEM(SourceSeq, SourceSerl, SourceSubSerl)</p>
+<p>SELECT A.InvoiceSeq, A.InvoiceSerl, ''</p>
+<p>FROM _TSLInvoiceItem AS A WITH(NOLOCK)</p>
+<p>JOIN #BIZ_IN_DataBlock1 AS B ON A.InvoiceSeq = B.InvoiceSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- 수주Data찾기(원천)</p>
+<p>EXEC _SWCOMSourceTracking @CompanySeq, '_TSLInvoiceItem', '#TMP_SOURCEITEM', 'SourceSeq', 'SourceSerl', ''</p>
+<p>UPDATE #Temp</p>
+<p>SET LCDate = ISNULL(A.PaymentDate,''),</p>
+<p>LCNo = ISNULL(A.PaymentRefNo,''),</p>
+<p>LCBankName = ISNULL(C.MngValText,'') ,</p>
+<p>InvoiceNo = ISNULL(A2.InvoiceNo, '' )</p>
+<p>FROM #TCOMSourceTracking AS X</p>
+<p>JOIN #Temp AS Z ON X.IDX_NO = Z.IDX_NO</p>
+<p>LEFT OUTER JOIN _TSLExpPayment AS A WITH(NOLOCK) ON X.Seq = A.PaymentSeq</p>
+<p>AND A.CompanySeq =@CompanySeq</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS C WITH (NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.TableSeq = 17</p>
+<p>AND C.KeySeq = A.PaymentSeq</p>
+<p>AND C.MngSerl = 2020 -- Opening Bank</p>
+<p>LEFT OUTER JOIN _TSLInvoice AS A2 WITH(NOLOCK) ON A2.CompanySeq = @CompanySeq</p>
+<p>AND A2.InvoiceSeq = X.Seq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- 수출입정보 담기 : 220919 HCWOO 가격조건_mcf, Shipping Mark_mcf 추가</p>
+<p>CREATE TABLE #TempExpImp (</p>
+<p>CompanySeq INT,</p>
+<p>InvoiceSeq INT,</p>
+<p>Payment_Type NVARCHAR(400), -- 결제방법</p>
+<p>Payment_Time NVARCHAR(400), -- 결제시기</p>
+<p>Payment_Term NVARCHAR(400), -- 결제기한</p>
+<p>Ship_Via NVARCHAR(400), -- Ship Via</p>
+<p>Insurance_Condition NVARCHAR(400), -- 보험조건</p>
+<p>Partial_Shipment NVARCHAR(400), -- Partial Shipment</p>
+<p>Trans_Shipment NVARCHAR(400), -- Trans Shipment</p>
+<p>Freight NVARCHAR(400), -- Freight</p>
+<p>SD NCHAR(8) , -- S/D</p>
+<p>ED NCHAR(8) , -- E/D</p>
+<p>Loading_Port NVARCHAR(400), -- Loading Port</p>
+<p>ETA NCHAR(8) , -- ETA</p>
+<p>DischargingPort NVARCHAR(400), -- DischargingPort</p>
+<p>ETD NCHAR(8) , -- ETD</p>
+<p>Destination NVARCHAR(400), -- Destination</p>
+<p>Carrier NVARCHAR(400), -- Carrier</p>
+<p>Sailing_On_About NCHAR(8) , -- Sailing On or About</p>
+<p>Country_Origin NVARCHAR(400), -- Country of Origin</p>
+<p>Packing NVARCHAR(400), -- Packing</p>
+<p>Opening_Bank NVARCHAR(400), -- Opening Bank</p>
+<p>Opening_Date NCHAR(8) , -- Opening Date</p>
+<p>Advising_Bank NVARCHAR(400), -- Advising Bank</p>
+<p>Advising_Date NCHAR(8) , -- Advising Date</p>
+<p>Payment_Plan_Date NCHAR(8) , -- 결제예정일</p>
+<p>Measurement DECIMAL(19,3), -- Measurement_mcm</p>
+<p>TOD NVARCHAR(100),</p>
+<p>Size NVARCHAR(100),</p>
+<p>GrossWeight DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #TempExpImp (</p>
+<p>CompanySeq ,</p>
+<p>InvoiceSeq ,</p>
+<p>Payment_Type ,</p>
+<p>Payment_Time ,</p>
+<p>Payment_Term ,</p>
+<p>Ship_Via ,</p>
+<p>Insurance_Condition,</p>
+<p>Partial_Shipment ,</p>
+<p>Trans_Shipment ,</p>
+<p>Freight ,</p>
+<p>SD ,</p>
+<p>ED ,</p>
+<p>Loading_Port ,</p>
+<p>ETA ,</p>
+<p>DischargingPort ,</p>
+<p>ETD ,</p>
+<p>Destination ,</p>
+<p>Carrier ,</p>
+<p>Sailing_On_About ,</p>
+<p>Country_Origin ,</p>
+<p>Packing ,</p>
+<p>Opening_Bank ,</p>
+<p>Opening_Date ,</p>
+<p>Advising_Bank ,</p>
+<p>Advising_Date ,</p>
+<p>Payment_Plan_Date ,</p>
+<p>Measurement ,</p>
+<p>TOD ,</p>
+<p>Size ,</p>
+<p>GrossWeight</p>
+<p>)SELECT A.CompanySeq,</p>
+<p>A.InvoiceSeq,</p>
+<p>ISNULL(BU.MinorName, ''),</p>
+<p>ISNULL(CU.MinorName, ''),</p>
+<p>ISNULL(D.MngValText, ''),</p>
+<p>ISNULL(EU.MinorName, ''),</p>
+<p>ISNULL(FS.MinorName, ''),</p>
+<p>ISNULL(GS.MinorName, ''),</p>
+<p>ISNULL(HS.MinorName, ''),</p>
+<p>ISNULL(ISS.MinorName, ''),</p>
+<p>ISNULL(J.MngValText, ''),</p>
+<p>ISNULL(K.MngValText, ''),</p>
+<p>ISNULL(L.MngValText, ''),</p>
+<p>ISNULL(M.MngValText, ''),</p>
+<p>ISNULL(N.MngValText, ''),</p>
+<p>ISNULL(O.MngValText, ''),</p>
+<p>ISNULL(P.MngValText, ''),</p>
+<p>ISNULL(Q.MngValText, ''),</p>
+<p>ISNULL(R.MngValText, ''),</p>
+<p>ISNULL(S.MngValText, ''),</p>
+<p>ISNULL(T.MngValText, ''),</p>
+<p>ISNULL(U.MngValText, ''),</p>
+<p>ISNULL(V.MngValText, ''),</p>
+<p>ISNULL(W.MngValText, ''),</p>
+<p>ISNULL(X.MngValText, ''),</p>
+<p>ISNULL(Y.MngValText, ''),</p>
+<p>ISNULL(CONVERT(DECIMAL(19,3),ISNULL(Z4.MngValText, '0')),0),</p>
+<p>ISNULL(TOD.MngValText, ''),</p>
+<p>ISNULL(Si.MngValText, ''),</p>
+<p>ISNULL(GW.MngValText, 0)</p>
+<p>FROM _TSLInvoice AS A</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.TableSeq = 18</p>
+<p>AND B.KeySeq = A.InvoiceSeq</p>
+<p>AND B.MngSerl = 2001 -- 결제방법</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS BU WITH(NOLOCK) ON BU.CompanySeq = B.CompanySeq</p>
+<p>AND BU.MinorSeq = B.MngValSeq</p>
+<p>AND BU.MajorSeq = 8202</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.TableSeq = 18</p>
+<p>AND C.KeySeq = A.InvoiceSeq</p>
+<p>AND C.MngSerl = 2002 -- 결제시기</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS CU WITH(NOLOCK) ON CU.CompanySeq = C.CompanySeq</p>
+<p>AND CU.MinorSeq = C.MngValSeq</p>
+<p>AND CU.MajorSeq = 8203</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.TableSeq = 18</p>
+<p>AND D.KeySeq = A.InvoiceSeq</p>
+<p>AND D.MngSerl = 2003 -- 결제기한</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.TableSeq = 18</p>
+<p>AND E.KeySeq = A.InvoiceSeq</p>
+<p>AND E.MngSerl = 2004 -- Shop Via</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS EU WITH(NOLOCK) ON EU.CompanySeq = E.CompanySeq</p>
+<p>AND EU.MinorSeq = E.MngValSeq</p>
+<p>AND EU.MajorSeq = 8204</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.TableSeq = 18</p>
+<p>AND F.KeySeq = A.InvoiceSeq</p>
+<p>AND F.MngSerl = 2005 -- 보험조건</p>
+<p>LEFT OUTER JOIN _TDASMinor AS FS WITH(NOLOCK) ON FS.CompanySeq = F.CompanySeq</p>
+<p>AND FS.MinorSeq = F.MngValSeq</p>
+<p>AND FS.MajorSeq = 8204</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.TableSeq = 18</p>
+<p>AND G.KeySeq = A.InvoiceSeq</p>
+<p>AND G.MngSerl = 2006 -- Partial Shipment</p>
+<p>LEFT OUTER JOIN _TDASMinor AS GS WITH(NOLOCK) ON GS.CompanySeq = G.CompanySeq</p>
+<p>AND GS.MinorSeq = G.MngValSeq</p>
+<p>AND GS.MajorSeq = 8201</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS H WITH(NOLOCK) ON H.CompanySeq = A.CompanySeq</p>
+<p>AND H.TableSeq = 18</p>
+<p>AND H.KeySeq = A.InvoiceSeq</p>
+<p>AND H.MngSerl = 2007 -- Trans Shipment</p>
+<p>LEFT OUTER JOIN _TDASMinor AS HS WITH(NOLOCK) ON HS.CompanySeq = H.CompanySeq</p>
+<p>AND HS.MinorSeq = H.MngValSeq</p>
+<p>AND HS.MajorSeq = 8202</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS I WITH(NOLOCK) ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.TableSeq = 18</p>
+<p>AND I.KeySeq = A.InvoiceSeq</p>
+<p>AND I.MngSerl = 2008 -- Freight</p>
+<p>LEFT OUTER JOIN _TDASMinor AS ISS WITH(NOLOCK) ON ISS.CompanySeq = I.CompanySeq</p>
+<p>AND ISS.MinorSeq = I.MngValSeq</p>
+<p>AND ISS.MajorSeq = 8203</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS J WITH(NOLOCK) ON J.CompanySeq = A.CompanySeq</p>
+<p>AND J.TableSeq = 18</p>
+<p>AND J.KeySeq = A.InvoiceSeq</p>
+<p>AND J.MngSerl = 2009 -- S/D</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS K WITH(NOLOCK) ON K.CompanySeq = A.CompanySeq</p>
+<p>AND K.TableSeq = 18</p>
+<p>AND K.KeySeq = A.InvoiceSeq</p>
+<p>AND K.MngSerl = 2010 -- E/D</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS L WITH(NOLOCK) ON L.CompanySeq = A.CompanySeq</p>
+<p>AND L.TableSeq = 18</p>
+<p>AND L.KeySeq = A.InvoiceSeq</p>
+<p>AND L.MngSerl = 2011 -- Loading Port</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS M WITH(NOLOCK) ON M.CompanySeq = A.CompanySeq</p>
+<p>AND M.TableSeq = 18</p>
+<p>AND M.KeySeq = A.InvoiceSeq</p>
+<p>AND M.MngSerl = 2012 -- ETA</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS N WITH(NOLOCK) ON N.CompanySeq = A.CompanySeq</p>
+<p>AND N.TableSeq = 18</p>
+<p>AND N.KeySeq = A.InvoiceSeq</p>
+<p>AND N.MngSerl = 2013 -- DischargingPort</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS O WITH(NOLOCK) ON O.CompanySeq = A.CompanySeq</p>
+<p>AND O.TableSeq = 18</p>
+<p>AND O.KeySeq = A.InvoiceSeq</p>
+<p>AND O.MngSerl = 2014 -- ETD</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS P WITH(NOLOCK) ON P.CompanySeq = A.CompanySeq</p>
+<p>AND P.TableSeq = 18</p>
+<p>AND P.KeySeq = A.InvoiceSeq</p>
+<p>AND P.MngSerl = 2015 -- Destination</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS Q WITH(NOLOCK) ON Q.CompanySeq = A.CompanySeq</p>
+<p>AND Q.TableSeq = 18</p>
+<p>AND Q.KeySeq = A.InvoiceSeq</p>
+<p>AND Q.MngSerl = 2016 -- Carrier</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS R WITH(NOLOCK) ON R.CompanySeq = A.CompanySeq</p>
+<p>AND R.TableSeq = 18</p>
+<p>AND R.KeySeq = A.InvoiceSeq</p>
+<p>AND R.MngSerl = 2017 -- Sailing On or About</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS S WITH(NOLOCK) ON S.CompanySeq = A.CompanySeq</p>
+<p>AND S.TableSeq = 18</p>
+<p>AND S.KeySeq = A.InvoiceSeq</p>
+<p>AND S.MngSerl = 2018 -- Country of Origin</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS T WITH(NOLOCK) ON T.CompanySeq = A.CompanySeq</p>
+<p>AND T.TableSeq = 18</p>
+<p>AND T.KeySeq = A.InvoiceSeq</p>
+<p>AND T.MngSerl = 2019 -- Packing</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS U WITH(NOLOCK) ON U.CompanySeq = A.CompanySeq</p>
+<p>AND U.TableSeq = 18</p>
+<p>AND U.KeySeq = A.InvoiceSeq</p>
+<p>AND U.MngSerl = 2020 -- Opening Bank</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS V WITH(NOLOCK) ON V.CompanySeq = A.CompanySeq</p>
+<p>AND V.TableSeq = 18</p>
+<p>AND V.KeySeq = A.InvoiceSeq</p>
+<p>AND V.MngSerl = 2021 -- Opening Date</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS W WITH(NOLOCK) ON W.CompanySeq = A.CompanySeq</p>
+<p>AND W.TableSeq = 18</p>
+<p>AND W.KeySeq = A.InvoiceSeq</p>
+<p>AND W.MngSerl = 2022 -- Advising Bank</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS X WITH(NOLOCK) ON X.CompanySeq = A.CompanySeq</p>
+<p>AND X.TableSeq = 18</p>
+<p>AND X.KeySeq = A.InvoiceSeq</p>
+<p>AND X.MngSerl = 2023 -- Advising Date</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS Y WITH(NOLOCK) ON Y.CompanySeq = A.CompanySeq</p>
+<p>AND Y.TableSeq = 18</p>
+<p>AND Y.KeySeq = A.InvoiceSeq</p>
+<p>AND Y.MngSerl = 2024 -- 결제예정일</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS Z4 WITH(NOLOCK) ON Z4.CompanySeq = A.CompanySeq</p>
+<p>AND Z4.TableSeq = 18</p>
+<p>AND Z4.KeySeq = A.InvoiceSeq</p>
+<p>AND Z4.MngSerl = 2049 -- Measurement_mcm</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS TOD WITH(NOLOCK) ON TOD.CompanySeq = A.CompanySeq</p>
+<p>AND TOD.TableSeq = 18</p>
+<p>AND TOD.KeySeq = A.InvoiceSeq</p>
+<p>AND TOD.MngSerl = 2071 -- 가격조건2_tnt</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS Si WITH(NOLOCK) ON Si.CompanySeq = A.CompanySeq</p>
+<p>AND Si.TableSeq = 18</p>
+<p>AND Si.KeySeq = A.InvoiceSeq</p>
+<p>AND Si.MngSerl = 2072 -- Size_tnt</p>
+<p>LEFT OUTER JOIN _TSLExpImpInfo AS GW WITH(NOLOCK) ON GW.CompanySeq = A.CompanySeq</p>
+<p>AND GW.TableSeq = 18</p>
+<p>AND GW.KeySeq = A.InvoiceSeq</p>
+<p>AND GW.MngSerl = 2074 -- Gross Weight</p>
+<p>-- 수출입정보 담기 완료</p>
+<p>-- PO NO. HCWOO 221101 수정</p>
+<p>CREATE TABLE #TempPONo(</p>
+<p>IDX INT IDENTITY(1,1),</p>
+<p>InvoiceSeq INT,</p>
+<p>PONo NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TempPONo(InvoiceSeq, PONo)</p>
+<p>SELECT DISTINCT B.InvoiceSeq, N.PONo</p>
+<p>FROM #BIZ_IN_DataBlock1 AS M</p>
+<p>JOIN _TSLInvoiceItem                AS B WITH(NOLOCK) ON M.InvoiceSeq        = B.InvoiceSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>JOIN _TCOMSourceDailyTrace        AS K WITH(NOLOCK) ON K.CompanySeq = @CompanySeq</p>
+<p>AND K.ToTableSeq = 18</p>
+<p>AND K.FromTableSeq = 19</p>
+<p>AND K.ToSeq = B.InvoiceSeq</p>
+<p>AND K.ToSerl = B.InvoiceSerl</p>
+<p>AND K.ToSubSerl = 0</p>
+<p>JOIN _TSLOrder                                AS N WITH(NOLOCK) ON N.CompanySeq        = K.CompanySeq</p>
+<p>AND N.OrderSeq = K.FromSeq</p>
+<p>WHERE ISNULL(N.PONo, '') \&lt;&gt; ''</p>
+<p>DECLARE @InvoiceSeq INT,</p>
+<p>@Cnt INT,</p>
+<p>@PONo NVARCHAR(4000)</p>
+<p>CREATE TABLE #TempPONoResult(</p>
+<p>InvoiceSeq INT,</p>
+<p>PONo NVARCHAR(100)</p>
+<p>)</p>
+<p>SELECT @Cnt = 0, @PONo = ''</p>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@InvoiceSeq = InvoiceSeq,</p>
+<p>@PONo = PONo</p>
+<p>FROM #TempPONo</p>
+<p>WHERE IDX &gt; @Cnt</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>IF EXISTS (SELECT 1 FROM #TempPONoResult AS A WHERE A.InvoiceSeq = @InvoiceSeq AND ISNULL(A.PONo, '') \&lt;&gt; '' )</p>
+<p>BEGIN</p>
+<p>UPDATE #TempPONoResult</p>
+<p>SET PONo = PONo + ', ' + @PONo</p>
+<p>FROM #TempPONoResult AS A</p>
+<p>WHERE A.InvoiceSeq = @InvoiceSeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TempPONoResult(InvoiceSeq, PONo)</p>
+<p>SELECT @InvoiceSeq, @PONo</p>
+<p>END</p>
+<p>SELECT @Cnt = @Cnt + 1</p>
+<p>END</p>
+<hr />
+<hr />
+<p>-- 최종조회</p>
+<hr />
+<hr />
+<p>SELECT A.InvoiceSeq AS InvoiceSeq,</p>
+<blockquote>
+<p>CASE WHEN @EnvValue4016 = 4125002</p>
+</blockquote>
+<p>THEN CASE ISNULL(A.Shipper,'') WHEN '' THEN ISNULL(U.TaxEngName, '') + CHAR(13) +</p>
+<p>ISNULL(V.Addr, '') + CHAR(13)</p>
+<p>+ 'TEL : +82-' + SUBSTRING( ISNULL(dbo._FWCOMDecrypt(U.TelNo, '_TDATaxUnit', 'TelNo', @CompanySeq), '') ,2 ,LEN(ISNULL(dbo._FWCOMDecrypt(U.TelNo, '_TDATaxUnit', 'TelNo', @CompanySeq), '')) )</p>
+<p>+ ' FAX : + 82-' + SUBSTRING( ISNULL(U.FaxNo, '') ,2 ,LEN(ISNULL(U.FaxNo, '')) ) -- 주사업자의 전화 ,팩스번호로 수정 SHWON 20240329</p>
+<p>ELSE ISNULL(A.Shipper, '') END</p>
+<p>ELSE CASE ISNULL(A.Shipper,'') WHEN '' THEN ISNULL(U1.TaxEngName, '') + CHAR(13) +</p>
+<p>ISNULL(V1.Addr, '') + CHAR(13)</p>
+<p>+ 'TEL : +82-' + SUBSTRING( ISNULL(dbo._FWCOMDecrypt(U1.TelNo, '_TDATaxUnit', 'TelNo', @CompanySeq), '') ,2 ,LEN(ISNULL(dbo._FWCOMDecrypt(U1.TelNo, '_TDATaxUnit', 'TelNo', @CompanySeq), '')) )</p>
+<p>+ ' FAX : + 82-' + SUBSTRING( ISNULL(U1.FaxNo, '') ,2 ,LEN(ISNULL(U1.FaxNo, '')) ) -- 주사업자의 전화 ,팩스번호로 수정 SHWON 20240329</p>
+<p>ELSE ISNULL(A.Shipper, '') END</p>
+<p>END AS Shipper, -- 1)Shipper</p>
+<blockquote>
+<p>CASE ISNULL(A.Consignee,'') WHEN '' THEN ISNULL(J.FullName, '') + CHAR(13) +</p>
+</blockquote>
+<p>ISNULL(Q.EngAddr, '') + CHAR(13)</p>
+<p>+ ISNULL(CE2.SurName,'') + ISNULL(CE2.GivenName, '') + CHAR(13)</p>
+<p>+ 'TEL : ' + ISNULL(dbo._FWCOMDecrypt(CE2.ContactNumber, N'_TDAContact', N'ContactNumber', @CompanySeq),'')</p>
+<p>+ ' FAX :' + ISNULL(CE2.Fax, '')</p>
+<p>ELSE ISNULL(A.Consignee,'') END AS Consignee, -- 2)Consignee</p>
+<p>CASE ISNULL(A.Notify,'') WHEN '' THEN 'SAME AS ABOVE' ELSE A.Notify END AS Notify, -- 3)Notify Party</p>
+<p>ISNULL(EX.Loading_Port ,'') AS LoadingPort, -- 4)Port Of Loading</p>
+<p>ISNULL(EX.Destination ,'') AS Destination, -- 5)Destination</p>
+<p>ISNULL(EX.Carrier ,'') AS Carrier, -- 6)Carrier</p>
+<p>CASE WHEN ISNULL(EX.Sailing_On_About,'')= '' THEN ''</p>
+<p>ELSE LEFT(EX.Sailing_On_About, 4)+'-'+SUBSTRING(EX.Sailing_On_About, 5, 2)+'-'+RIGHT(EX.Sailing_On_About, 2) END AS SailingDate, --7) Sailing on Or About</p>
+<p>ISNULL(EX.Payment_Type ,'') + ' ' + ISNULL(EX.Payment_Time ,'') + ' ' + ISNULL(EX.Payment_Term ,'') AS Payment, -- 9) PAYMENT: 결제방법 + " " + 결제시기 + " " + 결제기한 (수출정보)</p>
+<p>ISNULL((SELECT TOP 1 HSCode FROM _TSLHSCodeItemClass WHERE ItemSeq = B.ItemSeq AND A.InvoiceDate BETWEEN FrDate AND ToDate), '') AS HSCode, -- HS CODE</p>
+<p>ISNULL(H.ItemName ,'') AS ItemName , -- 12) Description of Goods: 품목마스터의 품명</p>
+<p>ISNULL(B.Qty,0) AS Qty , -- 14) Qty</p>
+<p>ISNULL((SELECT UnitName FROM _TDAUnit WHERE CompanySeq = @CompanySeq AND UnitSeq = H.UnitSeq),'') AS UnitName,        -- 기준단위</p>
+<p>ISNULL(O.CurrName ,'') AS CurrName , -- 통화</p>
+<p>ISNULL(B.Price , 0) AS Price , -- 판매단가</p>
+<p>ISNULL(B.CurAmt,0) AS CurAmt , -- Amount</p>
+<p>CASE WHEN @EnvValue4016 = 4125002</p>
+<p>THEN ISNULL(V.Addr, '') + CHAR(13) +</p>
+<p>'TEL : +82-' +</p>
+<p>SUBSTRING(dbo._FWCOMDecrypt(U.TelNo, N'_TDATaxUnit', N'TelNo', @CompanySeq),2,LEN(dbo._FWCOMDecrypt(U.TelNo, N'_TDATaxUnit', N'TelNo', @CompanySeq)))</p>
+<p>+', FAX : +82-' + SUBSTRING(ISNULL(U.FaxNo, ''),2,LEN(ISNULL(U.FaxNo, '')))</p>
+<p>ELSE ISNULL(V1.Addr, '') + CHAR(13) +</p>
+<p>'TEL : +82-' +</p>
+<p>SUBSTRING(dbo._FWCOMDecrypt(U1.TelNo, N'_TDATaxUnit', N'TelNo', @CompanySeq),2,LEN(dbo._FWCOMDecrypt(U1.TelNo, N'_TDATaxUnit', N'TelNo', @CompanySeq)))</p>
+<p>+', FAX : +82-' + SUBSTRING(ISNULL(U1.FaxNo, ''),2,LEN(ISNULL(U1.FaxNo, '')))</p>
+<p>END AS Addr,</p>
+<p>A.InvoiceDate AS InvoiceDate,</p>
+<p>A.InvoiceNo AS InvoiceNo,</p>
+<p>ISNULL(PO.PONo ,'') AS PONO, -- PO 번호 HCWOO 221101 수정</p>
+<p>-- E.MinorName　 AS TOD, -- TERMS OF DELIVERY: 가격조건 + " " +수출정보의 가격조건2</p>
+<p>CASE WHEN ISNULL(EX.TOD,'') = '' THEN E.MinorName</p>
+<p>ELSE E.MinorName + ' ' + EX.TOD END AS TOD, -- 8) TERMS OF DELIVERY: 가격조건 + " " +수출정보의 가격조건</p>
+<p>ISNULL(A.Remark,'') AS Remark, -- 비고</p>
+<p>ISNULL(B.NetWeight,0) AS NetWeight, -- NetWeight</p>
+<p>--ISNULL(B.GrossWeight,0) AS GrossWeight, -- GrossWeight</p>
+<p>ISNULL(EX.GrossWeight ,0) AS GrossWeight, -- GrossWeight &gt;&gt; 수출입 정보의 Gross Weight_tnt SHWON</p>
+<p>ISNULL(EX.Packing,'') AS Packing , -- Packing</p>
+<p>ISNULL(B.CottonNo ,'') AS CottonNo , -- CARTON NO</p>
+<p>ISNULL(EX.Size, '' ) AS Size , -- Size</p>
+<p>ISNULL(H2.MngValText, '') AS Origin -- Origin_tnt</p>
+<p>-- , CONVERT(DECIMAL(19,5), B.CottonNo)</p>
+<p>, @SiteInit AS SiteInit</p>
+<p>FROM _TSLInvoice AS A WITH(NOLOCK)</p>
+<p>JOIN #Temp AS X ON A.InvoiceSeq = X.InvoiceSeq</p>
+<p>LEFT OUTER JOIN _TSLInvoiceItem AS B WITH (NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.InvoiceSeq = B.InvoiceSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS H WITH (NOLOCK) ON B.CompanySeq = H.CompanySeq</p>
+<p>AND B.ItemSeq = H.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS H2 WITH(NOLOCK) ON H2.CompanySeq = H.CompanySeq</p>
+<p>AND H2.ItemSeq = H.ItemSeq</p>
+<p>AND H2.MngSerl = 1000196 -- Origin_tnt</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TSLCustItem AS M WITH(NOLOCK) ON B.CompanySeq = M.CompanySeq</p>
+</blockquote>
+<p>AND B.ItemSeq = M.ItemSeq</p>
+<p>AND M.CustSeq = A.CustSeq</p>
+<p>AND B.UnitSeq = M.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.MinorSeq = A.UMPriceTerms</p>
+<blockquote>
+<p>/***사업자 영문명 추가 : 20190107 성지원 ***/</p>
+<p>LEFT OUTER JOIN _TDADept                AS T WITH(NOLOCK) ON A.CompanySeq = T.CompanySeq</p>
+<p>AND A.DeptSeq = T.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDATaxUnit                AS U WITH(NOLOCK) ON U.CompanySeq = @CompanySeq</p>
+<p>--AND T.TaxUnit = U.TaxUnit</p>
+</blockquote>
+<p>AND U.SMTaxationType = 4128002 -- 주사업자</p>
+<blockquote>
+<p>LEFT OUTER JOIN _VWCOMAddress AS V WITH (NOLOCK) ON U.Companyseq                 = V.CompanySeq</p>
+<p>AND U.ContactAddressSeq = V.AddressSeq</p>
+<p>AND V.SMAddressTypeSeq = 500052003</p>
+<p>LEFT OUTER JOIN _TDATaxUnit                AS U1 WITH(NOLOCK) ON T.CompanySeq = U1.CompanySeq</p>
+<p>AND T.TaxUnit = U1.TaxUnit</p>
+</blockquote>
+<p>AND U1.SMTaxationType = 4128001</p>
+<blockquote>
+<p>LEFT OUTER JOIN _VWCOMAddress AS V1 WITH(NOLOCK) ON U1.Companyseq                 = V1.CompanySeq</p>
+<p>AND U1.ContactAddressSeq = V1.AddressSeq</p>
+<p>AND V1.SMAddressTypeSeq = 500052003</p>
+</blockquote>
+<p>/***** 거래처 및 품목 항목 추가 : 20171017 성지원 *****/</p>
+<p>LEFT OUTER JOIN _TDACust AS J WITH (NOLOCK) ON A.CompanySeq = J.CompanySeq</p>
+<p>AND A.CustSeq = J.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACustAdd AS K WITH (NOLOCK) ON A.CompanySeq = K.CompanySeq</p>
+<p>AND A.CustSeq = K.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACustEmpInfo AS CE WITH(NOLOCK) ON CE.CompanySeq = J.CompanySeq -- 거래처담당자</p>
+<p>AND CE.CustSeq = J.CustSeq</p>
+<p>AND CE.IsStd = '1'</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDAContact         AS CE2 WITH(NOLOCK) ON CE2.CompanySeq = CE.CompanySeq -- 거래처담당자 전화,FAX</p>
+</blockquote>
+<p>AND CE2.ContactSeq = CE.ContactSeq</p>
+<p>AND CE2.ContactType = 500035003</p>
+<p>LEFT OUTER JOIN _TDACustClass AS L WITH (NOLOCK) ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.CustSeq = L.CustSeq</p>
+<p>AND L.UMajorCustClass = 8004</p>
+<blockquote>
+<p>LEFT OUTER JOIN _VWCOMAddress AS P WITH (NOLOCK) ON P.CompanySeq = J.CompanySeq</p>
+</blockquote>
+<p>AND P.AddressSeq = J.BizAddrSeq</p>
+<blockquote>
+<p>AND P.IsMin = '1'</p>
+<p>LEFT OUTER JOIN _VWCOMAddress AS N WITH (NOLOCK) ON N.CompanySeq = K.CompanySeq</p>
+</blockquote>
+<p>AND N.AddressSeq = K.AddrSeq</p>
+<blockquote>
+<p>AND N.IsMin = '1'</p>
+<p>LEFT OUTER JOIN _VWCOMAddress AS Q WITH (NOLOCK) ON Q.CompanySeq = K.CompanySeq</p>
+</blockquote>
+<p>AND Q.AddressSeq = K.AddrSeq</p>
+<blockquote>
+<p>AND Q.SMAddressTypeSeq = 500052003</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItemClass        AS S WITH (NOLOCK) ON S.CompanySeq = B.CompanySeq</p>
+<blockquote>
+<p>AND S.ItemSeq         = B.ItemSeq</p>
+<p>AND S.UMajorItemClass IN (2001,2004)</p>
+</blockquote>
+<p>LEFT OUTER JOIN _VDAItemClass        AS R WITH (NOLOCK) ON R.CompanySeq = S.CompanySeq</p>
+<blockquote>
+<p>AND R.ItemClassSSeq = S.UMItemClass</p>
+</blockquote>
+<p>/***수출입정보 및 출력물 데이터 추가 : 20220420 김희연 ***/</p>
+<p>LEFT OUTER JOIN #TempExpImp AS EX ON EX.CompanySeq = A.CompanySeq</p>
+<p>AND EX.InvoiceSeq = A.InvoiceSeq</p>
+<p>LEFT OUTER JOIN (SELECT B.InvoiceSeq, B.InvoiceSerl, N.PONo , N.OrderNo</p>
+<blockquote>
+<p>FROM #BIZ_IN_DataBlock1 AS M</p>
+<p>JOIN _TSLInvoiceItem                AS B WITH(NOLOCK) ON M.InvoiceSeq        = B.InvoiceSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>JOIN _TCOMSourceDailyTrace        AS K WITH(NOLOCK) ON K.CompanySeq = @CompanySeq</p>
+<p>AND K.ToTableSeq = 18 -- INVOICE</p>
+<p>AND K.FromTableSeq = 19 -- ORDER</p>
+<p>AND K.ToSeq = B.InvoiceSeq</p>
+<p>AND K.ToSerl = B.InvoiceSerl</p>
+<p>AND K.ToSubSerl = 0</p>
+<p>JOIN _TSLOrder                                AS N WITH(NOLOCK) ON N.CompanySeq        = K.CompanySeq</p>
+<p>AND N.OrderSeq = K.FromSeq)        AS Z ON Z.InvoiceSeq = B.InvoiceSeq</p>
+<p>AND Z.InvoiceSerl = B.InvoiceSerl</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDACurr AS O WITH (NOLOCK) ON O.CompanySeq = A.CompanySeq</p>
+<p>AND O.CurrSeq = A.CurrSeq</p>
+<p>LEFT OUTER JOIN _TDAUminor AS UP WITH(NOLOCK) ON UP.CompanySeq = A.CompanySeq</p>
+<p>AND UP.MinorSeq = A.UMPriceTerms</p>
+<p>AND UP.MajorSeq = 8201</p>
+<p>LEFT OUTER JOIN #TempPONoResult AS PO ON Z.InvoiceSeq = PO.InvoiceSeq</p>
+<p>LEFT OUTER JOIN _TDAEmpIN AS EM WITH (NOLOCK) ON EM.CompanySeq = A.CompanySeq -- 사원정보 : 개인인사정보등록</p>
+<p>AND EM.EmpSeq = A.EmpSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

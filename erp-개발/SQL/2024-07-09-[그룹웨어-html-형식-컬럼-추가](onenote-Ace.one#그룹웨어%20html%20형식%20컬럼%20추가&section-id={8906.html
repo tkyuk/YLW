@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2024-07-09-[그룹웨어-html-형식-컬럼-추가](onenote-Ace.one#그룹웨어%20html%20형식%20컬럼%20추가&section-id={8906</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2024-07-09-[그룹웨어-html-형식-컬럼-추가](onenote-Ace.one#그룹웨어%20html%20형식%20컬럼%20추가&section-id={8906</h1>
+    <div class="meta">
+      
+      
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="html"><a href="onenote:Ace.one#그룹웨어%20html%20형식%20컬럼%20추가&amp;section-id={890692CD-9BCC-451A-BCF5-AA1910C5517E}&amp;page-id={6C3B774F-B953-4F0C-A490-DFCF5D828A8C}&amp;end&amp;base-path=https://d.docs.live.net/4b1f2458d28ea117/문서/220523">그룹웨어 html 형식 컬럼 추가</a></h1>
+<p>BEGIN TRAN</p>
+<p>CREATE TABLE #HTML</p>
+<p>(</p>
+<p>HTML NVARCHAR(MAX)</p>
+<p>,Title NVARCHAR(200)</p>
+<p>)</p>
+<p>EXEC kl_SXPRWkOverTimeAppQueryHTML</p>
+<p>1,</p>
+<p>1,</p>
+<p>1,</p>
+<p>'WkOver',</p>
+<p>20</p>
+<p>SELECT * FROM #HTML</p>
+<p>ROLLBACK TRAN</p>
+<p>BEGIN TRAN</p>
+<p>CREATE TABLE #HTML</p>
+<p>(</p>
+<p>HTML NVARCHAR(MAX), Title NVARCHAR(200)</p>
+<p>)</p>
+<p>EXEC kl_SWSLEstimateGWPrintQueryHTML</p>
+<p>@CompanySeq = 1</p>
+<p>,@LanguageSeq = 1</p>
+<p>,@UserSeq = 1</p>
+<p>,@GWWorkKind = 'Estimate2'</p>
+<p>,@GWValue1 = '124,1,'</p>
+<p>SELECT * FROM #HTML</p>
+<p>--SELECT * FROM _TSLEstimate WHERE EstimateNo = '202412310001'</p>
+<p>--SELECT * FROM _TSLEstimate WHERE EstimateNo = '202401030004'</p>
+<p>--SELECT * FROM kl_TSLEstimate where EstimateSeq = 181</p>
+<p>--SELECT * FROM kl_TSLEstimate where EstimateSeq = 21</p>
+<p>ROLLBACK TRAN</p>
+<p>IF EXISTS (SELECT * FROM sysobjects WHERE id = OBJECT_ID('kl_SXPRWkOverTimeAppQueryHTML') AND sysstat &amp; 0xf = 4)</p>
+<p>DROP PROCEDURE dbo.kl_SXPRWkOverTimeAppQueryHTML</p>
+<p>GO</p>
+<p>/*************************************************************************************************</p>
+<p>화면명 - OT실적</p>
+<p>작성일 - 2024-01-03</p>
+<p>작성자 -</p>
+<p>*************************************************************************************************/</p>
+<p>CREATE PROC dbo.kl_SXPRWkOverTimeAppQueryHTML</p>
+<p>@CompanySeq INT ,</p>
+<p>@LanguageSeq INT ,</p>
+<p>@UserSeq INT ,</p>
+<p>@GWWorkKind NVARCHAR(40),</p>
+<p>@GWValue1 INT</p>
+<p>AS</p>
+<p>DECLARE @OTAppSeq INT</p>
+<p>SELECT @OTAppSeq = @GWValue1</p>
+<p>--==========================</p>
+<p>-- 환경설정</p>
+<p>--==========================</p>
+<p>DECLARE @LinkSeq INT</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 9001, @UserSeq, @@PROCID, @LinkSeq OUTPUT -- 그룹웨어 업체</p>
+<p>CREATE TABLE #Result (</p>
+<p>IDX_NO INT IDENTITY(1, 1)</p>
+<p>,Title NVARCHAR(100)</p>
+<p>,ReqEmpName NVARCHAR(100)</p>
+<p>,ReqEmpId NVARCHAR(100)</p>
+<p>,ReqDeptName NVARCHAR(100)</p>
+<p>,AppDate NCHAR(8)</p>
+<p>,AppReason NVARCHAR(200)</p>
+<p>,EmpName NVARCHAR(100)</p>
+<p>,EmpId NVARCHAR(100)</p>
+<p>,WkDate NCHAR(8)</p>
+<p>,WkName NVARCHAR(100)</p>
+<p>,BegTime NCHAR(4)</p>
+<p>,EndTime NCHAR(4)</p>
+<p>,Hours DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #Result</p>
+<p>(</p>
+<p>Title</p>
+<p>,ReqEmpName</p>
+<p>,ReqEmpId</p>
+<p>,ReqDeptName</p>
+<p>,AppDate</p>
+<p>,AppReason</p>
+<p>,EmpName</p>
+<p>,EmpId</p>
+<p>,WkDate</p>
+<p>,WkName</p>
+<p>,BegTime</p>
+<p>,EndTime</p>
+<p>,Hours</p>
+<p>)</p>
+<p>SELECT '시간외 근무신청서_실적'</p>
+<p>,Req.EmpName</p>
+<p>,Req.EmpID</p>
+<p>,Req.DeptName</p>
+<p>,A.AppDate</p>
+<p>,A.AppReason</p>
+<p>,D.EmpName</p>
+<p>,D.EmpID</p>
+<p>,B.WkDate</p>
+<p>,DATENAME(WEEKDAY, B.WkDate)</p>
+<p>,B.BegTime</p>
+<p>,B.EndTime</p>
+<p>,B.DTCnt</p>
+<p>FROM _TXPRWkOverTimeApp AS A</p>
+<p>JOIN _TXPRWkOverTimeAppDtl AS B ON A.OTAppSeq = B.OTAppSeq</p>
+<p>AND A.CompanySeq = B.CompanySeq</p>
+<p>JOIN _VWHREmpInfoLast AS Req ON A.EmpSeq = Req.EmpSeq</p>
+<p>AND A.CompanySeq = Req.CompanySeq</p>
+<p>JOIN _VWHREmpInfoLast AS D ON B.EmpSeq = D.EmpSeq</p>
+<p>AND B.CompanySeq = D.CompanySeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OTAppSeq = @OTAppSeq</p>
+<p>--_TXPRWkWorkAppDtl</p>
+<p>--=======================</p>
+<p>-- 그룹웨어 HTML 설정</p>
+<p>--=======================</p>
+<p>DECLARE @Header NVARCHAR(MAX),</p>
+<p>@Body NVARCHAR(MAX),</p>
+<p>@ReplaceBody NVARCHAR(MAX),</p>
+<p>@Footer NVARCHAR(MAX),</p>
+<p>@TitleName NVARCHAR(200),</p>
+<p>@strStyle NVARCHAR(MAX),</p>
+<p>@strTitle NVARCHAR(MAX),</p>
+<p>@strRepeatBody NVARCHAR(MAX),</p>
+<p>@strContentsBody NVARCHAR(MAX),</p>
+<p>@strRepeatBodyPRT NVARCHAR(MAX),</p>
+<p>@index INT,</p>
+<p>@index_Max INT,</p>
+<p>@strRB NVARCHAR(MAX)</p>
+<p>SELECT @Header = ISNULL(Header , N'') ,</p>
+<p>@Body = ISNULL(Body , N'') ,</p>
+<p>@Footer = ISNULL(Footer , N'')</p>
+<p>FROM _TCOMEnvGroupWare WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND WorkKind = @GWWorkKind</p>
+<p>--// style 내용만 분리</p>
+<p>SELECT @strStyle = SUBSTRING(@Body,0,CHARINDEX(N'\&lt;/style&gt;',@Body) + LEN(N'\&lt;/style&gt;'))</p>
+<p>--// title 만 분리 설정에 따라 빈문자열로 치환</p>
+<p>SELECT @strTitle = SUBSTRING(@Body,CHARINDEX(N'\&lt;h1&gt;',@Body),CHARINDEX(N'\&lt;/h1&gt;',@Body) - CHARINDEX(N'\&lt;h1&gt;',@Body) + LEN(N'\&lt;/h1&gt;'))</p>
+<p>--// 이하 컨텐츠 내용</p>
+<p>SELECT @strContentsBody = SUBSTRING(@Body,CHARINDEX(N'\&lt;/h1&gt;',@Body) + LEN(N'\&lt;/h1&gt;'),LEN(@Body))</p>
+<p>--// 반복 영역 가져오기</p>
+<p>SELECT @strRepeatBody = SUBSTRING(@Body,CHARINDEX(N'\&lt;!-- 반복영역 시작--&gt;',@Body),CHARINDEX(N'\&lt;!-- 반복영역 끝--&gt;',@Body) - CHARINDEX(N'\&lt;!-- 반복영역 시작--&gt;',@Body) + LEN(N'\&lt;!-- 반복영역 끝--&gt;'))</p>
+<p>--// 미 반복 구문 Replace</p>
+<p>-- HTML 양식에 REPLACE 처리</p>
+<p>SELECT @strTitle = REPLACE(@strTitle, '근무신청서_실적' ,(SELECT TOP 1 Title FROM #Result))</p>
+<p>SELECT @strContentsBody = REPLACE(@strContentsBody, '#ReqEmpName' , (SELECT TOP 1 ReqEmpName FROM #Result))</p>
+<p>SELECT @strContentsBody = REPLACE(@strContentsBody, '#ReqEmpId' , (SELECT TOP 1 ReqEmpId FROM #Result))</p>
+<p>SELECT @strContentsBody = REPLACE(@strContentsBody, '#ReqDeptName' , (SELECT TOP 1 ReqDeptName FROM #Result))</p>
+<p>SELECT @strContentsBody = REPLACE(@strContentsBody, '#AppDate' , (SELECT TOP 1 LEFT(AppDate,4) + '년' + SUBSTRING(AppDate,5,2) + '월' + RIGHT(AppDate,2) + '일' FROM #Result))</p>
+<p>SELECT @strContentsBody = REPLACE(@strContentsBody, '#AppReason' , (SELECT TOP 1 AppReason FROM #Result))</p>
+<p>--Body 만들기 2017.09.21 박수영 수정</p>
+<p>CREATE TABLE #Body</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>BodyHTML NVARCHAR(MAX),</p>
+<p>ReplaceHTML NVARCHAR(MAX)</p>
+<p>)</p>
+<p>INSERT INTO #Body</p>
+<p>SELECT IDX_NO, @strRepeatBody, ''</p>
+<p>FROM #Result</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.BodyHTML, '#Serl', B.IDX_NO)</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.ReplaceHTML, '#EmpName', EmpName)</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.ReplaceHTML, '#EmpId', EmpId)</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.ReplaceHTML, '#WkDate', LEFT(B.WkDate,4) + '년' + SUBSTRING(B.WkDate,5,2) + '월' + RIGHT(B.WkDate,2) + '일')</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.ReplaceHTML, '#WkName', WkName)</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.ReplaceHTML, '#BegTime', LEFT(B.BegTime,2) + ':' + RIGHT(B.BegTime,2))</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.ReplaceHTML, '#EndTime', LEFT(B.EndTime,2) + ':' + RIGHT(B.EndTime,2))</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET ReplaceHTML = REPLACE(A.ReplaceHTML, '#Hours', FORMAT(B.Hours, '##0.######') )</p>
+<p>FROM #Body AS A</p>
+<p>JOIN #Result AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>SELECT @index = 1</p>
+<p>SELECT @Body = ''</p>
+<p>SELECT @strRB = ''</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>IF NOT EXISTS (SELECT 1 FROM #Body WHERE IDX_NO = @index) BREAK</p>
+<p>SELECT @ReplaceBody = ReplaceHTML FROM #Body WHERE IDX_NO = @index</p>
+<p>SELECT @strRB = @strRB + @ReplaceBody</p>
+<p>SELECT @index = @index + 1</p>
+<p>END</p>
+<p>SELECT @strContentsBody = REPLACE(@strContentsBody, @strRepeatBody, @strRB)</p>
+<p>--SELECT @strContentsBody</p>
+<p>IF @LinkSeq IN (90010013 , 90010024, 90010045) -- 그룹웨어종류(이든비즈텍) 조건 추가</p>
+<p>BEGIN</p>
+<p>-- 다우 제목</p>
+<p>SELECT @TitleName = (SELECT TOP 1 Title FROM #Result)</p>
+<p>--//다우 방식 출력</p>
+<p>INSERT INTO #HTML (HTML, Title)</p>
+<p>SELECT @strStyle + @strContentsBody, @TitleName</p>
+<p>/*</p>
+<p>PRINT @strStyle</p>
+<p>PRINT @strContentsBody</p>
+<p>*/</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>--//기존 새움 방식 출력</p>
+<p>INSERT INTO #HTML (HTML)</p>
+<p>SELECT @Header + @strStyle + @strTitle + @strContentsBody + @Footer</p>
+<p>/*</p>
+<p>PRINT @Header</p>
+<p>PRINT @strStyle</p>
+<p>PRINT @strTitle</p>
+<p>PRINT @strContentsBody</p>
+<p>PRINT @Footer</p>
+<p>*/</p>
+<p>END</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>BEGIN TRAN</p>
+<p>CREATE TABLE #HTML</p>
+<p>(</p>
+<p>HTML NVARCHAR(MAX)</p>
+<p>,Title NVARCHAR(200)</p>
+<p>)</p>
+<p>EXEC kl_SXPRWkOverTimeAppQueryHTML</p>
+<p>1,</p>
+<p>1,</p>
+<p>1,</p>
+<p>'WkOver',</p>
+<p>20</p>
+<p>SELECT * FROM #HTML</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

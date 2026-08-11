@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2024-03-13-@SPName-없는-경우-sp-지정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2024-03-13-@SPName-없는-경우-sp-지정</h1>
+    <div class="meta">
+      
+      
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="spname-sp">@SPName 없는 경우 sp 지정</h1>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE id = object_id(@SPName) AND sysstat &amp; 0xf = 4)</p>
+<p>BEGIN</p>
+<p>SELECT @SPName = 'dbo._SWPRAdjTotAbrIncomePrint'</p>
+<p>END</p>
+<p>DROP PROCEDURE cymc_SWPRAdjTotAbrIncomePrint</p>
+<p>GO</p>
+<p>/************************************************************************************************</p>
+<p>설 명 - 근로소득원천징수영수증</p>
+<p>작 성 일 - 2015-01-13</p>
+<p>작 성 자 - CREATED BY</p>
+<p>수정내역 - 2018.01.04 분개 SP 수정(2016 -&gt; 2017)</p>
+<p>- 2019.11.26 이범확 : 2018 -&gt; 2019</p>
+<p>- 2020.12.19 구은혜 : 2019 -&gt; 2020</p>
+<p>- 2021.12.29 이설우 : 2020 -&gt; 2021</p>
+<p>*************************************************************************************************/</p>
+<p>CREATE PROCEDURE cymc_SWPRAdjTotAbrIncomePrint</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @YY NCHAR(4)</p>
+<p>,@SPName NVARCHAR(200)</p>
+<p>SELECT @YY = ISNULL(YY, '')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<blockquote>
+<p>SELECT @SPName = '_SWPRAdjTotAbrIncomePrint_' + @YY</p>
+</blockquote>
+<p>-- 2023년 인 경우 사이트 SP 호출 (직인 공백) 24.03.13 SJPARK</p>
+<p>IF @YY = '2023'</p>
+<p>SELECT @SPName = 'cymc_SWPRAdjTotAbrIncomePrint_2023'</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE id = object_id(@SPName) AND sysstat &amp; 0xf = 4)</p>
+<p>BEGIN</p>
+<p>SELECT @SPName = 'dbo._SWPRAdjTotAbrIncomePrint_2021'</p>
+<p>END</p>
+<blockquote>
+<p>EXEC @SPName @ServiceSeq ,</p>
+</blockquote>
+<p>@WorkingTag ,</p>
+<p>@CompanySeq ,</p>
+<p>@LanguageSeq ,</p>
+<p>@UserSeq ,</p>
+<p>@PgmSeq ,</p>
+<p>@IsTransaction</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

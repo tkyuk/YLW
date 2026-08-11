@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시간 더하기 (시, 분)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시간 더하기 (시, 분)</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시간 더하기 (시, 분)</h1>
+<p>DROP PROCEDURE dbo.jis_SXPRWkCalcTime</p>
+<p>GO</p>
+<p>CREATE PROCEDURE dbo.jis_SXPRWkCalcTime</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>-- 변수 선언</p>
+<p>DECLARE @BegTime NVARCHAR(4), -- 시작시간</p>
+<blockquote>
+<p>@WkDTCnt DECIMAL(19, 5) -- 시간수</p>
+</blockquote>
+<p>-- 변수 설정</p>
+<p>SELECT @BegTime = ISNULL(BegTime , ''), -- BegTime이 '0000'인 경우도 있어서 ''으로 수정(2021.06.28)</p>
+<p>@WkDTCnt = ISNULL(WkDTCnt , 0)</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>SELECT @BegTime        AS BegTime,</p>
+<p>@WkDTCnt        AS WkDTCnt,</p>
+<p>REPLACE(CONVERT(VARCHAR(5), DATEADD(HOUR, FLOOR(@WkDTCnt), DATEADD(MINUTE, (@WkDTCnt - FLOOR(@WkDTCnt)) * 60, + LEFT(@BegTime,2) + ':' + RIGHT(@BegTime,2))), 108),':','') AS EndTime,</p>
+<p>@WkDTCnt AS DTCnt,</p>
+<p>@WkDTCnt * 60 AS MinCnt</p>
+<p>RETURN</p>
+<p>REPLACE(CONVERT(VARCHAR(5), DATEADD(HOUR, FLOOR(@WkDTCnt), DATEADD(MINUTE, (@WkDTCnt - FLOOR(@WkDTCnt)) * 60, + LEFT(@BegTime,2) + ':' + RIGHT(@BegTime,2))), 108),':','')</p>
+  </article>
+</div>
+</body>
+</html>

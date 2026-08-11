@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제상품구분 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제상품구분 추가</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">제상품구분 추가</h1>
+<p>cmbSMItemOrGood        CodeHelp        제상품구분        DataBlock1        SMItemOrGoodName        SMItemOrGood</p>
+<p>제상품구분</p>
+<p>19998</p>
+<p>8010</p>
+<p>TextBox        제상품구분        DataBlock1        SMItemOrGoodName                        DIS;        100</p>
+<p>FloatBox        제상품구분코드        DataBlock1        SMItemOrGood                        DIS;HID;        100</p>
+<p><img alt="" src="assets/제상품구분-추가/image42.png" /></p>
+<p>,@SMItemOrGood INT -- 제상품구분 추가 / 시스템코드(8010)-제상품구분 25.12.17 SJPARK</p>
+<p>,IIF(ISNULL(S1.MinorValue,0) = 1 ,'자재' ,'제상품') AS SMItemOrGoodName</p>
+<p>,IIF(ISNULL(S1.MinorValue,0) = 1 ,8010002 ,8010001 ) AS SMItemOrGood</p>
+<p>-- 셀바스 추가 25.12.17 SJPARK</p>
+<p>AND ( @SMItemOrGood = 0</p>
+<p>OR (@SMItemOrGood = 8010001 AND ISNULL(S1.MinorValue,0) \&lt;&gt; 1 ) -- 제상품</p>
+<p>OR (@SMItemOrGood = 8010002 AND ISNULL(S1.MinorValue,0) = 1 ) -- 자재</p>
+<p>)</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사원 EmpSeq의 부서 / 생산사업장</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사원 EmpSeq의 부서 / 생산사업장</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="empseq">사원 EmpSeq의 부서 / 생산사업장</h1>
+<p>_fnAdmEmpOrdRet(@CompanySeq,'') =&gt; 사원 코드도움</p>
+<p>UPDATE A</p>
+<p>SET A.DeptSeq = ISNULL(B.DeptSeq,0),</p>
+<p>A.FactUnit = ISNULL(C.FactUnit,1)</p>
+<p>FROM #TPDMMOutReqM AS A</p>
+<p>LEFT OUTER JOIN _fnAdmEmpOrd(1,'') AS B ON B.EmpSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.DeptSeq = B.DeptSeq</p>
+  </article>
+</div>
+</body>
+</html>

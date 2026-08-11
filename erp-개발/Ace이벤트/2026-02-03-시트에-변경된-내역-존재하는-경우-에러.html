@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트에 변경된 내역 존재하는 경우 에러</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트에 변경된 내역 존재하는 경우 에러</h1>
+    <div class="meta">
+      <span class="note-date">2026-02-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트에 변경된 내역 존재하는 경우 에러</h1>
+<p>-- 시트에 저장되지 않은 데이터가 있는 경우 저장 후 처리하도록 메세지</p>
+<p>for row = 0, SS9.DataRowCnt - 1 do</p>
+<p>SS9.ActiveRow = row</p>
+<blockquote>
+<p>if SS9.WorkingTag == 'A' or SS9.WorkingTag == 'U' then</p>
+<p>msg = '저장 후 출고 확정/취소 가능합니다.'</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

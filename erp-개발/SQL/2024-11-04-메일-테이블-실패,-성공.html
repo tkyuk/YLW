@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메일 테이블 실패, 성공</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>메일 테이블 실패, 성공</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">메일 테이블 실패, 성공</h1>
+<p>SELECT TOP 100 MailDateTime,SendEmail,RecvEmail,Subject,SendMessage, * FROM _TCASendMessage ORDER BY 1 DESC</p>
+<p>-- 실패</p>
+<p>SELECT TOP 100 CrDateTime,SendEmail,RecvEmail,Subject,SendMessage,Result, * FROM _TCAFailedMessage ORDER BY 1 DESC</p>
+<p>-- 성공</p>
+<p>SELECT TOP 100 CrDateTime,SendEmail,RecvEmail,Subject,SendMessage, * FROM _TCASendedMessage ORDER BY 1 DESC</p>
+  </article>
+</div>
+</body>
+</html>

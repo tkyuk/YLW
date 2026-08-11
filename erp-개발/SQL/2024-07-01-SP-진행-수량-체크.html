@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP 진행 수량 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SP 진행 수량 체크</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">SP 진행 수량 체크</h1>
+<p>CREATE PROC mcf_SWPUORDPOCustItemListJumpQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction CHAR(1)</p>
+<p>AS</p>
+<p>CREATE TABLE #QCDelvQty_Temp(</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>QCDelvQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 구매납품</p>
+<p>INSERT #QCDelvQty_Temp(X.POSeq, X.POSerl, QCDelvQty)</p>
+<p>SELECT X.POSeq, X.POSerl, SUM(ISNULL(D.PassedQty,0)) AS Qty</p>
+<p>FROM #BIZ_IN_DataBlock1 AS X</p>
+<p>OUTER APPLY (SELECT ISNULL(Z.ToSeq, 0) AS ToSeq , ISNULL(Z.ToSerl,0) AS ToSerl</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.FromSeq = X.POSeq</p>
+<p>AND Z.FromSerl = X.POSerl</p>
+<p>AND Z.FromTableSeq = 13 -- 구매발주</p>
+<p>AND Z.ToTableSeq = 10 -- 구매납품</p>
+<p>) AS Y</p>
+<p>JOIN _TPUDelv AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND Y.ToSeq = A.DelvSeq</p>
+<p>JOIN _TPUDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.DelvSeq = Y.ToSeq</p>
+<p>AND B.DelvSerl = Y.ToSerl</p>
+<p>LEFT OUTER JOIN _TPDQCTestReport AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.SourceSeq = B.DelvSeq</p>
+<p>AND D.SourceSerl = B.DelvSerl</p>
+<p>AND D.SourceType = 6097001 -- 구매검사</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.SMImpType IN (8008001, 8008002, 8008003)</p>
+<p>AND ISNULL(D.SMTestResult, B.SMQcType) IN (6035003, 6035001, 6035006) -- 무검사, 합격, 부분합격</p>
+<p>AND X.UMDelvKind = 1000498001 -- 구매발주</p>
+<p>GROUP BY X.POSeq, X.POSerl</p>
+<p>CREATE TABLE #QCOSPQty_Temp(</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>QCOSPQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 외주납품</p>
+<p>INSERT #QCOSPQty_Temp(X.POSeq, X.POSerl, QCOSPQty)</p>
+<p>SELECT X.POSeq, X.POSerl , SUM(ISNULL(D.PassedQty,0)) AS Qty</p>
+<p>FROM #BIZ_IN_DataBlock1 AS X</p>
+<p>OUTER APPLY (SELECT ISNULL(Z.ToSeq, 0) AS ToSeq , ISNULL(Z.ToSerl,0) AS ToSerl</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.FromSeq = X.POSeq</p>
+<p>AND Z.FromSerl = X.POSerl</p>
+<p>AND Z.FromTableSeq = 4 -- 외주발주</p>
+<p>AND Z.ToTableSeq = 3 -- 외주납품</p>
+<p>) AS Y</p>
+<p>LEFT OUTER JOIN _TPDOSPDelv AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.OSPDelvSeq = Y.ToSeq</p>
+<p>LEFT OUTER JOIN _TPDOSPDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OSPDelvSeq = Y.ToSeq</p>
+<p>AND B.OSPDelvSeq = Y.ToSerl</p>
+<p>LEFT OUTER JOIN _TPDQCTestReport AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.SourceSeq = B.OSPDelvSeq</p>
+<p>AND D.SourceSerl = B.OSPDelvSerl</p>
+<p>AND D.SourceType = 6097002 -- 외주검사</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(D.SMTestResult, B.SMQcType) IN (6035003, 6035001, 6035006) -- 무검사, 합격, 부분합격</p>
+<p>AND X.UMDelvKind = 1000498002 -- 외주납품</p>
+<p>GROUP BY X.POSeq, X.POSerl</p>
+<p>SELECT H.UMDelvKind, H.POSeq, H.POSerl, SUM(ISNULL(H.Qty,0)) AS CustDelvQty</p>
+<p>INTO #CustDelvQty</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN mcf_TPUCustDelvItem AS H WITH(NOLOCK) ON @CompanySeq = H.CompanySeq</p>
+<p>AND A.POSeq = H.POSeq</p>
+<p>AND A.POSerl = H.POSerl</p>
+<p>AND A.UMDelvKind = H.UMDelvKind</p>
+<p>GROUP BY H.UMDelvKind, H.POSeq, H.POSerl</p>
+<p>SELECT '0' AS IsDelvCfm , -- 납품확인</p>
+<p>0 AS CustDelvSeq , -- 협력사납품내부코드</p>
+<p>D.MinorName AS UMDelvKindName , -- 구분</p>
+<p>A.UMDelvKind AS UMDelvKind , -- 구분내부코드</p>
+<p>A.POSeq AS POSeq , -- 발주내부코드</p>
+<p>A.POSerl AS POSerl , -- 발주내부순번</p>
+<p>(SELECT MinorName FROM _TDASMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = 1133002) AS SMIsCfmName , -- 납품확인여부</p>
+<p>'' AS CustDelvDate , -- 납품일</p>
+<p>C.ItemSeq AS ItemSeq , -- 품목내부코드</p>
+<p>E.ItemName AS ItemName , -- 품명</p>
+<p>E.ItemNo AS ItemNo , -- 품번</p>
+<p>E.Spec AS Spec , -- 규격</p>
+<p>F.UnitName AS UnitName , -- 구매단위</p>
+<p>C.UnitSeq AS UnitSeq , -- 구매단위내부코드</p>
+<p>ISNULL(J.ToQty,0) AS TotDelvQty , -- 총납품수량</p>
+<p>ISNULL(K.QCDelvQty,0) AS TotQcQty , -- 총합격수량</p>
+<p>ISNULL(C.Qty,0) - ISNULL(L.CustDelvQty,0) AS Qty , -- 금회납품수량</p>
+<p>0 AS CfmQty , -- 납품확인수량</p>
+<p>'' AS Remark , -- 비고</p>
+<p>G.CustName AS CustName , -- 거래처</p>
+<p>B.CustSeq AS CustSeq , -- 거래처내부코드</p>
+<p>'' AS IsFile -- 첨부파일</p>
+<p>INTO #TempResult</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>JOIN _TPUORDPO AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>JOIN _TPUORDPOItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = C.POSeq</p>
+<p>AND A.POSerl = C.POSerl</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.MinorSeq = A.UMDelvKind</p>
+<p>LEFT OUTER JOIN _TDAItem AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.ItemSeq = E.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS F WITH(NOLOCK) ON C.CompanySeq = F.CompanySeq</p>
+<p>AND C.UnitSeq = F.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS G WITH(NOLOCK) ON B.CompanySeq = G.CompanySeq</p>
+<p>AND B.CustSeq = G.CustSeq</p>
+<p>-- LEFT OUTER JOIN mcf_TPUCustDelvItem AS H WITH(NOLOCK) ON C.CompanySeq = H.CompanySeq</p>
+<p>-- AND C.POSeq = H.POSeq</p>
+<p>-- AND C.POSerl = H.POSerl</p>
+<p>-- AND H.UMDelvKind = 1000498001</p>
+<p>LEFT OUTER JOIN _TDAWH AS I WITH(NOLOCK) ON C.WHSeq = I.WHSeq</p>
+<p>AND C.CompanySeq = I.CompanySeq</p>
+<p>OUTER APPLY (SELECT ISNULL(Z.FromSeq, 0) AS FromSeq , ISNULL(Z.FromSerl,0) AS FromSerl, SUM(ISNULL(Z.ToQty,0)) AS ToQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = B.CompanySeq</p>
+<p>AND Z.FromSeq = C.POSeq</p>
+<p>AND Z.FromSerl = C.POSerl</p>
+<p>AND Z.FromTableSeq = 13 -- 구매발주</p>
+<p>AND Z.ToTableSeq = 10 -- 구매납품</p>
+<p>GROUP BY Z.FromSeq, Z.FromSerl</p>
+<p>) AS J</p>
+<p>LEFT OUTER JOIN #QCDelvQty_Temp AS K ON A.POSeq = K.POSeq</p>
+<p>AND A.POSerl = K.POSerl</p>
+<p>LEFT OUTER JOIN #CustDelvQty AS L ON A.POSeq = L.POSeq</p>
+<p>AND A.POSerl = L.POSerl</p>
+<p>AND A.UMDelvKind = L.UMDelvKind</p>
+<p>WHERE A.UMDelvKind = 1000498001</p>
+<p>INSERT INTO #TempResult</p>
+<p>SELECT '0' AS IsDelvCfm , -- 납품확인</p>
+<p>0 AS CustDelvSeq , -- 협력사납품내부코드</p>
+<p>D.MinorName AS UMDelvKindName , -- 구분</p>
+<p>A.UMDelvKind AS UMDelvKind , -- 구분내부코드</p>
+<p>A.POSeq AS POSeq , -- 발주내부코드</p>
+<p>A.POSerl AS POSerl , -- 발주내부순번</p>
+<p>(SELECT MinorName FROM _TDASMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = 1133002) AS SMIsCfmName , -- 납품확인여부</p>
+<p>'' AS CustDelvDate , -- 납품일</p>
+<p>C.ItemSeq AS ItemSeq , -- 품목내부코드</p>
+<p>E.ItemName AS ItemName , -- 품명</p>
+<p>E.ItemNo AS ItemNo , -- 품번</p>
+<p>E.Spec AS Spec , -- 규격</p>
+<p>F.UnitName AS UnitName , -- 구매단위</p>
+<p>C.UnitSeq AS UnitSeq , -- 구매단위내부코드</p>
+<p>ISNULL(J.ToQty,0) AS TotDelvQty , -- 총납품수량</p>
+<p>ISNULL(K.QCOSPQty,0) AS TotQcQty , -- 총합격수량</p>
+<p>ISNULL(C.Qty,0) - ISNULL(L.CustDelvQty,0) AS Qty , -- 금회납품수량</p>
+<p>0 AS CfmQty , -- 납품확인수량</p>
+<p>'' AS Remark , -- 비고</p>
+<p>G.CustName AS CustName , -- 거래처</p>
+<p>B.CustSeq AS CustSeq , -- 거래처내부코드</p>
+<p>'' AS IsFile -- 첨부파일</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>JOIN _TPDOSPPO AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = B.OSPPOSeq</p>
+<p>JOIN _TPDOSPPOItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = C.OSPPOSeq</p>
+<p>AND A.POSerl = C.OSPPOSerl</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.MinorSeq = A.UMDelvKind</p>
+<p>LEFT OUTER JOIN _TDAItem AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.ItemSeq = E.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS F WITH(NOLOCK) ON C.CompanySeq = F.CompanySeq</p>
+<p>AND C.UnitSeq = F.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS G WITH(NOLOCK) ON B.CompanySeq = G.CompanySeq</p>
+<p>AND B.CustSeq = G.CustSeq</p>
+<p>-- LEFT OUTER JOIN mcf_TPUCustDelvItem AS H WITH(NOLOCK) ON C.CompanySeq = H.CompanySeq</p>
+<p>-- AND C.OSPPOSeq = H.POSeq</p>
+<p>-- AND C.OSPPOSerl = H.POSerl</p>
+<p>-- AND H.UMDelvKind = 1000498002</p>
+<p>OUTER APPLY (SELECT ISNULL(Z.FromSeq, 0) AS FromSeq , ISNULL(Z.FromSerl,0) AS FromSerl, SUM(ISNULL(Z.ToQty,0)) AS ToQty</p>
+<p>FROM _TCOMSourceDailyTrace AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = B.CompanySeq</p>
+<p>AND Z.FromSeq = C.OSPPOSeq</p>
+<p>AND Z.FromSerl = C.OSPPOSerl</p>
+<p>AND Z.FromTableSeq = 4 -- 외주발주</p>
+<p>AND Z.ToTableSeq = 3 -- 외주납품</p>
+<p>GROUP BY Z.FromSeq, Z.FromSerl</p>
+<p>) AS J</p>
+<p>LEFT OUTER JOIN #QCOSPQty_Temp AS K ON A.POSeq = K.POSeq</p>
+<p>AND A.POSerl = K.POSerl</p>
+<p>LEFT OUTER JOIN #CustDelvQty AS L ON A.POSeq = L.POSeq</p>
+<p>AND A.POSerl = L.POSerl</p>
+<p>AND A.UMDelvKind = L.UMDelvKind</p>
+<p>WHERE A.UMDelvKind = 1000498002</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock1(BizUnit, BizUnitName)</p>
+<p>SELECT DISTINCT A.BizUnit, M.BizUnitName</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS M WITH(NOLOCK) ON M.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = M.BizUnit</p>
+<p>TRUNCATE TABLE #BIZ_OUT_DataBlock2</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock2</p>
+<p>(</p>
+<p>IsDelvCfm ,</p>
+<p>CustDelvSeq ,</p>
+<p>UMDelvKindName ,</p>
+<p>UMDelvKind ,</p>
+<p>POSeq ,</p>
+<p>POSerl ,</p>
+<p>SMIsCfmName ,</p>
+<p>CustDelvDate ,</p>
+<p>ItemName ,</p>
+<p>ItemNo ,</p>
+<p>Spec ,</p>
+<p>ItemSeq ,</p>
+<p>UnitName ,</p>
+<p>UnitSeq ,</p>
+<p>TotDelvQty ,</p>
+<p>TotQcQty ,</p>
+<p>Qty ,</p>
+<p>CfmQty ,</p>
+<p>Remark ,</p>
+<p>CustName ,</p>
+<p>CustSeq ,</p>
+<p>IsFile</p>
+<p>)</p>
+<p>SELECT IsDelvCfm ,</p>
+<p>CustDelvSeq ,</p>
+<p>UMDelvKindName ,</p>
+<p>UMDelvKind ,</p>
+<p>POSeq ,</p>
+<p>POSerl ,</p>
+<p>SMIsCfmName ,</p>
+<p>CONVERT(NCHAR(8),GETDATE(),112),</p>
+<p>ItemName ,</p>
+<p>ItemNo ,</p>
+<p>Spec ,</p>
+<p>ItemSeq ,</p>
+<p>UnitName ,</p>
+<p>UnitSeq ,</p>
+<p>TotDelvQty ,</p>
+<p>TotQcQty ,</p>
+<p>Qty ,</p>
+<p>CfmQty ,</p>
+<p>Remark ,</p>
+<p>CustName ,</p>
+<p>CustSeq ,</p>
+<p>IsFile</p>
+<p>FROM #TempResult</p>
+<p>WHERE Qty &gt; 0</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

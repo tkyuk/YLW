@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래처별 구매 담당자 등록의 담당자</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래처별 구매 담당자 등록의 담당자</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래처별 구매 담당자 등록의 담당자</h1>
+<p>UPDATE A</p>
+<p>SET EmpSeq = ISNULL(B.EmpSeq, 0)</p>
+<p>FROM #Fix AS A</p>
+<p>LEFT OUTER JOIN _TPUBaseBuyEmp AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>AND B.SMEmpRegKind = 6218002 -- 거래처별구매담당자</p>
+  </article>
+</div>
+</body>
+</html>

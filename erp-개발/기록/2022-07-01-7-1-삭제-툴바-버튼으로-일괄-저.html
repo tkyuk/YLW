@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7/1 삭제 툴바 / 버튼으로 일괄 저</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>7/1 삭제 툴바 / 버튼으로 일괄 저</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="71">7/1 삭제 툴바 / 버튼으로 일괄 저</h1>
+<p>_base.IsOpen = true</p>
+<p>툴바 - 삭제 의 경우</p>
+<p>보통 마스터영역에도 저장을 할 때 사용함</p>
+<p>시트에만 저장을 하는데 삭제를 하는 경우 (키값에 해당하는 데이터를 지울 때)</p>
+<p>따로 sp를 만들어줘야함</p>
+<p>FrmWDAStdCostMatPrice_sys</p>
+<p>표준재료비기준단가_sys</p>
+<p>그런데 이 경우 이벤트의 S을 마스터 부분은 하지 않기 때문에</p>
+<p>조회모드가 안 바뀌어있음</p>
+<p>그래서 강제로 넣어줘야함</p>
+<p>=&gt; _base.IsOpen = true</p>
+  </article>
+</div>
+</body>
+</html>

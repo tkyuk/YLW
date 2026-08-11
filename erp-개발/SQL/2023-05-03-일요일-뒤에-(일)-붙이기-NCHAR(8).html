@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일요일 뒤에 (일) 붙이기 NCHAR(8)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>일요일 뒤에 (일) 붙이기 NCHAR(8)</h1>
+    <div class="meta">
+      <span class="note-date">2023-05-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="nchar8">일요일 뒤에 (일) 붙이기 NCHAR(8)</h1>
+<p>CREATE TABLE #TempSero</p>
+<p>(</p>
+<p>DD NCHAR(8)</p>
+<p>)</p>
+<p>SELECT CASE WHEN SUBSTRING(DD, 7, 2) = '32'</p>
+<p>THEN '총계' ELSE SUBSTRING(DD, 5, 2) + '/'+SUBSTRING(DD, 7, 2)</p>
+<blockquote>
+<p>+ CASE DATEPART(W, DD) WHEN 1</p>
+</blockquote>
+<p>THEN '(일)'</p>
+<p>ELSE '' END END</p>
+<p>FROM #TempSero ORDER BY DD</p>
+  </article>
+</div>
+</body>
+</html>

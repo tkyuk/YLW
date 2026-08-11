@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출력물 저장 경로 설정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>출력물 저장 경로 설정</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">출력물 저장 경로 설정</h1>
+<p>-- PC명 함수지정1</p>
+<p>%USERPROFILE%\Desktop\임가공 계약서\</p>
+<p>-- 경로지정 (경로만)</p>
+<p>C:\Users\PC명\Desktop\임가공계약서\</p>
+<p>-- 경로지정 (경로 + 파일명 =&gt; 자동저장)</p>
+<p>C:\Users\PC명\Desktop\임가공계약서\파일명</p>
+<p>함수 사용하여 PC경로 지정 시 파일명까지 입력하는 자동 저장은 불가능</p>
+<p>경로 지정 시 폴더 없는 경우 자동 생성되지만, 함수는 자동 생성되지 않는다</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM _TCAOZReport WHERE CompanySeq= 1 AND ReportSeq = 59020223 AND OZPSeq = 28 AND OZPSerl = 9)</p>
+<p>INSERT INTO _TCAOZReport</p>
+<p>SELECT 1,        59020223,        28,        9,        0,        '%USERPROFILE%\Desktop\임가공 계약서\,        '0',        '0',        0,        1, GETDATE()</p>
+  </article>
+</div>
+</body>
+</html>

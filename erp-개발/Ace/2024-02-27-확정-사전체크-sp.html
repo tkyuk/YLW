@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정 사전체크 sp</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정 사전체크 sp</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">확정 사전체크 sp</h1>
+<p>DROP PROCEDURE das_SWPJTSVCProjectConfirmCheck</p>
+<p>GO</p>
+<p>CREATE PROCEDURE das_SWPJTSVCProjectConfirmCheck</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@ConfirmSeq INT = 0,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@LanguageSeq INT = 1</p>
+<p>AS</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1(</p>
+<p>Result NVARCHAR(100)</p>
+<p>,MessageType INT</p>
+<p>,Status INT</p>
+<p>,WorkingTag NCHAR(1)</p>
+<p>,SVCSeq INT</p>
+<p>,PJTSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock1(Result, MessageType, Status, WorkingTag, SVCSeq, PJTSeq)</p>
+<p>SELECT '' AS Result</p>
+<p>,0 AS MessageType</p>
+<p>,0 AS Status</p>
+<p>,'D' AS WorkingTag</p>
+<p>,A.CfmSeq</p>
+<p>,C.PJTSeq</p>
+<p>FROM #TCOMConfirm AS A</p>
+<p>JOIN das_TPJTServicePJTItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.SVCSeq = A.CfmSeq</p>
+<p>JOIN _TPJTProject AS C ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.PJTNo = B.SVCPJTNo</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.CfmCode = '0'</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'D')</p>
+<p>BEGIN</p>
+<p>EXEC _SWCOMCodeDeleteCheck @CompanySeq, @UserSeq, @LanguageSeq, '_TPJTProject', '#BIZ_OUT_DataBlock1', 'PJTSeq'</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET Result = REPLACE(B.Result,'삭제','확정취소'),</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #TCOMConfirm AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON B.SVCSeq = A.CfmSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.CfmCode = '0'</p>
+<p>AND B.Status \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>--GO</p>
+<p>--EXEC _SWCOMConfirmProc N'1',N'1',N'27292',N'128410304',N'51',N'',N'',N'0',N'0',N'0'</p>
+<p>테이블 : _TCOMConfirmPrevCheckSP</p>
+<p>sp 예시 : sd_SWSLDVReqPreCheck / hct_SWSLDVReqPreCheck</p>
+<p>업체 ERP에서는 사전체크SP, 사전체크SP내역은 기입이 안됨</p>
+<ol>
+<li>
+<p>두 컬럼 입력,미사용 체크</p>
+</li>
+<li>
+<p>SP, 테이블스크립트 패치 (단순히 SP 명만 가져가기 때문에, 꼭 패치로 할 필요는 없다)</p>
+</li>
+<li>
+<p>업체 ERP 가서 미사용 해제</p>
+</li>
+</ol>
+<p><img alt="" src="assets/확정-사전체크-sp/image139.png" /></p>
+<p><img alt="" src="assets/확정-사전체크-sp/image140.png" /></p>
+<p>DROP PROCEDURE sd_SWSLDVReqPreCheck</p>
+<p>GO</p>
+<p>CREATE PROCEDURE sd_SWSLDVReqPreCheck</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@ConfirmSeq INT = 0,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@LanguageSeq INT = 1</p>
+<p>AS</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>-- 이미 진행된 공용창고-&gt;부서창고 이동처리 존재시, 공용수량 수정 불가</p>
+<p>UPDATE #TCOMConfirm</p>
+<p>SET Status = 99999,</p>
+<p>Result = '이동처리 되지 않은 공용창고이동수량이 존재합니다.'</p>
+<p>FROM #TCOMConfirm AS A</p>
+<p>JOIN _TSLDVReqItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.CfmSeq = B.DVReqSeq</p>
+<p>LEFT OUTER JOIN _TLGInOutDailyItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.DVReqSeq = C.Dummy9</p>
+<p>AND B.DVReqSerl = C.Dummy10</p>
+<p>AND C.InOutType = 80 -- 이동처리</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.Status = 0</p>
+<p>AND A.CfmCode = '1'</p>
+<p>AND ISNULL(B.Dummy9,0) \&lt;&gt; 0</p>
+<p>AND C.CompanySeq IS NULL</p>
+<p>RETURN</p>
+<p>go</p>
+<p>--_SWCOMConfirmProc_Ttest N'1',N'1',N'186',N'500593',N'240',N'',N'',N'1',N'0',N'0'</p>
+  </article>
+</div>
+</body>
+</html>

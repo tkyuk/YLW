@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>루아 문자열 포함 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>루아 문자열 포함 체크</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">루아 문자열 포함 체크</h1>
+<blockquote>
+<p>if string.find(SiteNameSS3, SiteNameSS1) and not string.find(SiteNameSS3, "개발") and not string.find(SiteNameSS3, "TEST") then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'PkgInstallTime', CellText(SS3, SS3.ActiveRow, 'PkgInstallTime'))</p>
+<p>SetText(SS1, SS1.ActiveRow, 'UserName', CellText(SS3, SS3.ActiveRow, 'UserName'))</p>
+<p>elseif string.find(SiteNameSS3, SiteNameSS1) and string.find(SiteNameSS3, "TEST") then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'PkgInstallTimeTest', CellText(SS3, SS3.ActiveRow, 'PkgInstallTime'))</p>
+<p>SetText(SS1, SS1.ActiveRow, 'UserNameTest', CellText(SS3, SS3.ActiveRow, 'UserName'))</p>
+<p>end</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

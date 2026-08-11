@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정 관리 주의사항</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정 관리 주의사항</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">확정 관리 주의사항</h1>
+<p>select * FROM _TSLOrder_Confirm WHERE CfmSeq = 1</p>
+<p>ㅈ</p>
+<p>-- 혹시 빼먹고 데이터 기입했을 경우 확정 테이블에 insert (지우고 새로 만드는게 제일 좋긴함)</p>
+<p>INSERT INTO _TSLOrder_Confirm</p>
+<p>SELECT A.CompanySeq, A.OrderSeq AS CfmSeq,0 AS CfmSerl,0 AS CfmSubSerl,6303 CfmSecuSeq, '0' IsAuto,'0' CfmCode,'' CfmDate,0 CfmEmpSeq,0 UMCfmReason, '' CfmReason, a.LastDateTime</p>
+<p>fROM _TSLOrder AS A LEFT OUTER JOIN _TSLOrder_Confirm as b on A.OrderSeq = B.CfmSeq</p>
+<p>WHERE B.CompanySeq IS NULL</p>
+<p>에이스의 경우 자동으로 확정테이블에 데이터 넣어주지만</p>
+<p>제뉴인에서는 확정관리 화면에 입력화면도 넣어줘야한다</p>
+<p>조회화면만 넣으면 테이블에 데이터가 안들어감</p>
+<p>에이스 확정 테이블 : _TCOMConfirm</p>
+<p>제뉴인 확정 테이블 : 테이블명_Confirm</p>
+<p>ex. _TSLOrder_Confirm</p>
+<p><img alt="" src="assets/확정-관리-주의사항/image4.png" /></p>
+  </article>
+</div>
+</body>
+</html>

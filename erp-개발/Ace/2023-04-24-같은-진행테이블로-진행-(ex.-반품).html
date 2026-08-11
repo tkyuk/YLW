@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>같은 진행테이블로 진행 (ex. 반품)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>같은 진행테이블로 진행 (ex. 반품)</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ex">같은 진행테이블로 진행 (ex. 반품)</h1>
+<p><img alt="" src="assets/같은-진행테이블로-진행-(ex.-반품)/image120.png" /></p>
+<p>SELECT * FROM _TCAPgm WHERE Caption = '거래명세서입력' -- 500626</p>
+<p>SELECT * FROM _TCAPgm WHERE Caption = '거래명세서조회' -- 500629</p>
+<p>SELECT * FROM _TCAPgm WHERE Caption = '거래명세서품목조회' -- 500630</p>
+<p>SELECT * FROM _TCAPgm WHERE Caption = '거래명세서입력_svs' -- 149710020</p>
+<p>SELECT * FROM _TCAPgm WHERE Caption = '거래명세서조회_svs' -- 149710030</p>
+<p>SELECT * FROM _TCAPgm WHERE Caption = '거래명세서품목조회_svs' -- 149710045</p>
+<p>SELECT * FROM _TCAPgm WHERE Caption = '반품거래명세서입력_svs' -- 149710164</p>
+<p>SELECT * FROM _TDAProgFromPGM WHERE FromPGMSeq IN(500626,500629,500630)</p>
+<p>SELECT * FROM _TDAProgFromPGM WHERE FromPGMSeq IN(500626,500629,500630)</p>
+<p>SELECT B.Caption, B.PgmId, A.*</p>
+<p>FROM _TDAProgFromPGM AS A</p>
+<p>JOIN _TCAPgm AS B ON B.PgmSeq = A.FromPGMSeq</p>
+<p>WHERE B.Caption LIKE '거래명세서입력%'</p>
+<p>INSERT INTO _TDAProgFromPGM SELECT 18, 149710020, 27292, GETDATE() -- 거래명세서입력_svs</p>
+<p>INSERT INTO _TDAProgFromPGM SELECT 18, 149710030, 27292, GETDATE() -- 거래명세서조회_svs</p>
+<p>INSERT INTO _TDAProgFromPGM SELECT 18, 149710045, 27292, GETDATE() -- 거래명세서품목조회_svs</p>
+<p>SELECT B.Caption, B.PgmId, A.*</p>
+<p>FROM _TDAProgToPGM AS A</p>
+<p>JOIN _TCAPgm AS B ON B.PgmSeq = A.ToPGMSeq</p>
+<p>WHERE B.Caption LIKE '반품거래%'</p>
+<p>INSERT INTO _TDAProgToPGM SELECT 18, 149710164, 27292, GETDATE() -- 반품거래명세서입력_svs</p>
+<p>INSERT INTO _TDAProgFromPGM SELECT 18, 149710020, 27292, GETDATE() -- 거래명세서입력_svs</p>
+<p>INSERT INTO _TDAProgFromPGM SELECT 18, 149710030, 27292, GETDATE() -- 거래명세서조회_svs</p>
+<p>INSERT INTO _TDAProgFromPGM SELECT 18, 149710045, 27292, GETDATE() -- 거래명세서품목조회_svs</p>
+<p>INSERT INTO _TDAProgFromPGM SELECT 18, 149710164, 27292, GETDATE() -- 반품거래명세서입력_svs</p>
+<p>-- 서로 같은 진행테이블을 사용하는 거래명세표_emk와 판매품목반품등록_emk 간의 진행을 설정하기 위한 스크립트입니다.</p>
+<p>-- 18 : 거래명세서입력</p>
+<p>-- 101820032 : 거래명세표_emk</p>
+<p>-- 101820053 : 판매품목반품등록_emk</p>
+<p>SELECT * FROM _TDAProgFromPGM WHERE FromPGMSeq = 521290</p>
+<p>SELECT * FROM _TDAProgToPGM WHERE ToPGMSeq = 521290</p>
+<p>INSERT INTO _TDAProgFromPGM</p>
+<p>SELECT 18, 128410366, 1, GETDATE()</p>
+<p>INSERT INTO _TDAProgToPGM</p>
+<p>SELECT 18, 101820053, 1, GETDATE()</p>
+  </article>
+</div>
+</body>
+</html>

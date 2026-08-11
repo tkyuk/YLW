@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>에이엠텔레콤 로그테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>에이엠텔레콤 로그테이블</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">에이엠텔레콤 로그테이블</h1>
+<p>SELECT TableName,COUNT(*) FROM _TCOMTableLog GROUP BY TableName ORDER BY 2 DESC</p>
+<p>SELECT TableName,COUNT(*) FROM _TCOMTableLog GROUP BY TableName ORDER BY 2 DESC</p>
+<p>BEGIN TRAN</p>
+<p>SELECT LogDateTime FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub') AND CONVERT(NCHAR(8),LogDateTime,112) = '20240125'</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub')</p>
+<p>SELECT LogSeq,LogDateTime,TableName FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub') AND LogDateTime\&lt; DATEADD(MONTH, -3, GETDATE()) ORDER BY 1 DESC</p>
+<p>SELECT LogSeq,LogDateTime,TableName FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub') AND LogSeq \&lt;=241181</p>
+<p>DELETE FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub') AND LogDateTime\&lt; DATEADD(MONTH, -3, GETDATE())</p>
+<p>DELETE FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub') AND LogSeq \&lt;=241181</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub')</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog ORDER BY 1</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog WHERE TABLENAME = '_TSIASServiceInfo' ORDER BY 1 DESC</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog WHERE TABLENAME = '_TSIASServiceProc' ORDER BY 1 DESC -- 서비스 처리</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog WHERE TABLENAME = 'amt_TSIASServiceReq' ORDER BY 1 DESC -- 서비스접수_amt</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog WHERE TABLENAME = '_TSIASServiceReq' ORDER BY 1 DESC</p>
+<p>SELECT LogDateTime,TableName FROM _TCOMTableLog WHERE TABLENAME = '_TSLInvoice' ORDER BY 1 DESC</p>
+<p>행별로 로그테이블 삭제</p>
+<p>DROP TABLE #TMP</p>
+<p>CREATE TABLE #TMP (</p>
+<p>ID INT IDENTITY(1,1),</p>
+<p>LogSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #TMP</p>
+<p>SELECT LogSeq FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub') AND LogDateTime\&lt; DATEADD(MONTH, -6, GETDATE()) ORDER BY 1</p>
+<p>DECLARE @Start INT ,</p>
+<p>@End INT ,</p>
+<p>@ABSSumTot DECIMAL(19,5)</p>
+<p>SELECT @Start = MIN(A.ID),</p>
+<p>@End = MAX(A.ID)</p>
+<p>FROM #TMP AS A</p>
+<p>--반복처리</p>
+<p>WHILE (@Start \&lt;= @End)</p>
+<p>BEGIN</p>
+<p>DELETE</p>
+<p>FROM _TCOMTableLog</p>
+<p>FROM _TCOMTableLog AS A</p>
+<p>JOIN #TMP AS B ON B.LogSeq = A.LogSeq</p>
+<p>where B.ID = @Start</p>
+<p>SELECT @Start = @Start +1</p>
+<p>END</p>
+<p>SELECT COUNT(*) FROM _TCOMTableLog where TableName IN ('_TLGInOutSerialSub','AMT_TLGInOutSerialSub') AND LogDateTime\&lt; DATEADD(MONTH, -6, GETDATE())</p>
+  </article>
+</div>
+</body>
+</html>

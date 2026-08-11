@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로그인 실패 컬럼 초기화</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>로그인 실패 컬럼 초기화</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">로그인 실패 컬럼 초기화</h1>
+<p>-- 1번 제뉴인</p>
+<p>UPDATE _TCAUser</p>
+<p>SET LoginStatus =18001,</p>
+<p>LoginFailFirstTime = null,</p>
+<p>LoginFailCnt = 0</p>
+<p>WHERE UserSeq = 1</p>
+<p>USE SYSDEVCommon</p>
+<p>UPDATE _TCAUser</p>
+<p>SET LoginStatus =18001,</p>
+<p>LoginFailFirstTime = null,</p>
+<p>LoginFailCnt = 0</p>
+<p>WHERE UserSeq = 1</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE _TCAUser</p>
+<p>SET LoginStatus =18001,</p>
+<p>LoginFailFirstTime = null,</p>
+<p>LoginFailCnt = 0</p>
+<p>WHERE UserSeq = 50</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

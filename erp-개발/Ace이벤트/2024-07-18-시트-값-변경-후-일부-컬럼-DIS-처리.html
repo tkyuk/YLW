@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 값 변경 후 일부 컬럼 DIS 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 값 변경 후 일부 컬럼 DIS 처리</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="dis">시트 값 변경 후 일부 컬럼 DIS 처리</h1>
+<p>-- ets 로직 추가 23.07.17 SJPARK</p>
+<p>-- 표준품인 경우 품목추가정보와 겹치지 않도록 ets 추가 컬럼 DIS 처리</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'UMRLCSeq') == '1028164001' then        </p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMRLCTempName'         </p>
+<p>SS1.ActiveCellReadOnly = true</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'UMRLCTempName'         </p>
+<p>SS1.ActiveCellReadOnly = false</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>패치 시 \> 문구 glt로 반영</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>패치 시 \> 문구 glt로 반영</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="glt">패치 시 &gt; 문구 glt로 반영</h1>
+<p>'StockQty &gt; 0' ===&gt; 'StockQty \&gt; 0' 잘못 패치</p>
+<p>해당 건 update 시 _TCACodeHelpSubCondition 테이블의 SqlScript 뿐만 아니라 <span class="mark">LastDateTime도 바꿔줘야한다</span></p>
+<p><img alt="" src="assets/패치-시-문구-glt로-반영/image24.png" /></p>
+<p><img alt="" src="assets/패치-시-문구-glt로-반영/image25.png" /></p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>비즈니스에서 데이터서비스 분기 GetServiceEnv</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>비즈니스에서 데이터서비스 분기 GetServiceEnv</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="getserviceenv">비즈니스에서 데이터서비스 분기 GetServiceEnv</h1>
+<p>envValue = GetServiceEnv(6232)</p>
+<p>if envValue == '1' or envValue == 'true' then</p>
+<blockquote>
+<p>GotoIndex('NotCapa')</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>GotoIndex('Capa')</p>
+</blockquote>
+<p>end</p>
+<p><img alt="" src="assets/비즈니스에서-데이터서비스-분기-GetServiceEnv/image2.png" /></p>
+<p>비즈니스 새로 추가할 때는 db에서 넣어줘야함</p>
+<p>SELECT * FROM _TCAService WHERE ServiceSeq = 79920153</p>
+<p>SELECT * FROM _TCAServiceEnv \&lt;= 테이블에 넣어줘야함</p>
+<p><img alt="" src="assets/비즈니스에서-데이터서비스-분기-GetServiceEnv/image3.png" /></p>
+<p>begin tran</p>
+<p>insert into _TCAServiceEnv values(</p>
+<p>'0','79920153','6232','생산계획에서무한CAPA사용여부','1',getdate()</p>
+<p>)</p>
+<p>SELECT * FROM _TCAServiceEnv WHERE EnvSeq = 6232</p>
+<p>rollback tran</p>
+  </article>
+</div>
+</body>
+</html>

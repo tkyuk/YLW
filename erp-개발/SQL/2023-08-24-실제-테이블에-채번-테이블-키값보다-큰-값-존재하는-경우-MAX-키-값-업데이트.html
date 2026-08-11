@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>실제 테이블에 채번 테이블 키값보다 큰 값 존재하는 경우 MAX 키 값 업데이트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>실제 테이블에 채번 테이블 키값보다 큰 값 존재하는 경우 MAX 키 값 업데이트</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="max">실제 테이블에 채번 테이블 키값보다 큰 값 존재하는 경우 MAX 키 값 업데이트</h1>
+<p>25.09.03</p>
+<p>IF EXISTS (SELECT 1 FROM _TDAItem WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND ItemSeq &gt; @Seq)</p>
+<p>BEGIN</p>
+<p>SELECT @Seq = (SELECT MAX(ItemSeq) FROM _TDAItem WITH(NOLOCK) WHERE CompanySeq = @CompanySeq)</p>
+<p>UPDATE _TCOMCreateSeqMax</p>
+<p>SET MaxSeq = @Seq + @Count,</p>
+<p>WorkCount = @Count</p>
+<p>WHERE CompanySeq = @CompanySeq AND TableName = '_TDAItem'</p>
+<p>END</p>
+<p>IF EXISTS (SELECT 1 FROM _TPDQCTestReport WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND QCSeq &gt;= @QcSeq)</p>
+<p>BEGIN</p>
+<p>SELECT @QcSeq = (SELECT MAX(QCSeq) + 1 FROM _TPDQCTestReport WITH(NOLOCK) WHERE CompanySeq = @CompanySeq)</p>
+<p>UPDATE _TCOMCreateSeqMax</p>
+<p>SET MaxSeq = @QcSeq + 1</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND TableName = '_TPDQCTestReport'</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

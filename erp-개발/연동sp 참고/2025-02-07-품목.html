@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품목</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>품목</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">품목</h1>
+<p>CREATE OR ALTER VIEW mcm_VMESDAItem</p>
+<p>AS</p>
+<p>SELECT A.CompanySeq AS CompanySeq, -- 법인코드</p>
+<p>B.CompanyName AS CompanyName, -- 법인명</p>
+<p>A.ItemSeq AS ItemSeq, -- 품목코드</p>
+<p>A.ItemName AS ItemName, -- 품명</p>
+<p>A.ItemNo AS ItemNo, -- 품번</p>
+<p>A.Spec AS Spec, -- 규격</p>
+<p>A.AssetSeq AS AssetSeq, -- 품목자산분류코드</p>
+<p>C.AssetName AS AssetName, -- 품목자산분류</p>
+<p>E.ItemClassLSeq AS ItemClassLSeq, -- 품목대분류코드</p>
+<p>E.ItemClassLName AS ItemClassLName, -- 품목대분류</p>
+<p>E.ItemClassMSeq AS ItemClassMSeq, -- 품목중분류코드</p>
+<p>E.ItemClassMName AS ItemClassMName, -- 품목중분류</p>
+<p>E.ItemClassSSeq AS ItemClassSSeq, -- 품목소분류코드</p>
+<p>E.ItemClassSName AS ItemClassSName, -- 품목소분류</p>
+<p>A.UnitSeq AS UnitSeq, -- 단위코드</p>
+<p>F.UnitName AS UnitName, -- 단위</p>
+<p>A.SMStatus AS SMStatus, -- 품목상태</p>
+<p>G.MinorName AS SMStatusName, -- 품목상태명</p>
+<p>ISNULL(H.IsInQC , '0') AS IsInQC, -- 수입검사여부</p>
+<p>ISNULL(H.IsFinQC, '0') AS IsLastQc, -- 최종검사여부</p>
+<p>CASE WHEN C.SMAssetGrp IN (6008005, 6008006, 6008010) THEN '1' ELSE '0' END AS IsMat, -- 자재여부</p>
+<p>A.LastUserSeq AS LastUserSeq, -- 최종등록자</p>
+<p>A.LastDateTime AS LastDateTime -- 최종등록일자</p>
+<p>FROM _TDAItem AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCACompany AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.AssetSeq = A.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.ItemSeq = A.ItemSeq</p>
+<p>AND D.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.ItemClassSSeq = D.UMItemClass</p>
+<p>LEFT OUTER JOIN _TDAUnit AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.UnitSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.MinorSeq = A.SMStatus</p>
+<p>LEFT OUTER JOIN _TPDQAItemClassQCKind AS H WITH(NOLOCK) ON H.CompanySeq = D.CompanySeq</p>
+<p>AND H.UMItemClass = D.UMItemClass;</p>
+  </article>
+</div>
+</body>
+</html>

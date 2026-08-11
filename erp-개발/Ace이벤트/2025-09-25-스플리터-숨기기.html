@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스플리터 숨기기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>스플리터 숨기기</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">스플리터 숨기기</h1>
+<p>-- 단암 추가 링크드 화면 세팅</p>
+<p>LinkPgm = _base.LinkCreateID</p>
+<p>if LinkPgm ~= '' then</p>
+<p>-- 구매입고 툴바 숨기기</p>
+<blockquote>
+<p>GetToolbar('JumpOutDelvIn').EventArgs.Disable = true</p>
+<p>GetToolbar('JumpOutDelvIn').EventArgs.Visible = false        </p>
+<p>GetToolbar('JumpOutPJTDelvReturnQuery').EventArgs.Disable = true</p>
+<p>GetToolbar('JumpOutPJTDelvReturnQuery').EventArgs.Visible = false        </p>
+</blockquote>
+<p>else</p>
+<p>-- 링크드 화면 아닌 경우 첨부파일 높이 조정</p>
+<blockquote>
+<p>SetGridRowDefinition('GridItem',3,0,false)        </p>
+<p><span class="mark">if GridItem.GetRowSplitter(2, 0) ~= nil then</span></p>
+</blockquote>
+<p><span class="mark">GridItem.GetRowSplitter(2, 0).ControlKey = 'HID';</span></p>
+<blockquote>
+<p><span class="mark">end</span>        </p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.16 단암 자재등록요청 품목코드 업데이트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.16 단암 자재등록요청 품목코드 업데이트</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250916">25.09.16 단암 자재등록요청 품목코드 업데이트</h1>
+<p>BEGIN TRAN</p>
+<p>DECLARE @Seq INT</p>
+<p>,@Seq2 INT</p>
+<blockquote>
+<p>,@Seq3 INT</p>
+</blockquote>
+<p>SELECT @Seq = max(ItemSeq)</p>
+<p>from das_TDAItemReq</p>
+<p>SELECT @Seq2 = max(ItemSeq)</p>
+<p>from _TDAItem</p>
+<p>if @Seq &gt; @Seq2</p>
+<p>select @Seq3 = @Seq</p>
+<p>else</p>
+<p>select @Seq3 = @Seq2</p>
+<p>select @Seq3</p>
+<p>SELECT * FROM das_TDAItemReq WHERE ITEMSEQ = 189213</p>
+<p>SELECT * FROM das_TDAItemReq WHERE ITEMSEQ = 189214</p>
+<p>SELECT * FROM das_TDAItemReq WHERE ITEMSEQ = 189219</p>
+<p>UPDATE das_TDAItemReq</p>
+<p>SET ITEMSEQ = @Seq3 + 1</p>
+<p>FROM das_TDAItemReq</p>
+<p>WHERE ITEMSEQ = 189213</p>
+<p>UPDATE das_TDAItemReq</p>
+<p>SET ITEMSEQ = @Seq3 + 2</p>
+<p>FROM das_TDAItemReq</p>
+<p>WHERE ITEMSEQ = 189214</p>
+<p>UPDATE das_TDAItemReq</p>
+<p>SET ITEMSEQ = @Seq3 + 3</p>
+<p>FROM das_TDAItemReq</p>
+<p>WHERE ITEMSEQ = 189219</p>
+<p>UPDATE _TCOMCreateSeqMax</p>
+<p>SET MaxSeq = @Seq3 + 3</p>
+<p>WHERE CompanySeq = 1AND TableName = '_TDAItem'</p>
+<p>SELECT * FROM das_TDAItemReq WHERE ITEMSEQ = 189305</p>
+<p>SELECT * FROM das_TDAItemReq WHERE ITEMSEQ = 189306</p>
+<p>SELECT * FROM das_TDAItemReq WHERE ITEMSEQ = 189307</p>
+<p>select * from _TCOMCreateSeqMax where TableName = '_TDAItem'</p>
+<p>commit TRAN</p>
+<p>SELECT * FROM das_TDAItemReq WHERE ITEMSEQ = 189308</p>
+  </article>
+</div>
+</body>
+</html>

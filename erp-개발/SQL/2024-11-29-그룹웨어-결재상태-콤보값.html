@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹웨어 결재상태 콤보값</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹웨어 결재상태 콤보값</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">그룹웨어 결재상태 콤보값</h1>
+<p>columnSchema = '{GWSMStatus, int}{GWStatusName, string}'</p>
+<p>ds = CreateDataSet(ds, 'DataBlock1', columnSchema)</p>
+<p>addData = ''</p>
+<p>addData = ''..'2'..CNST_SP..''</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'0'..CNST_SP..'작성(미확정)'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'1'..CNST_SP..'확정(승인)'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'5'..CNST_SP..'결재진행중'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>SetAddCombo(txtGWStatusName, ds, 'DataBlock1', false)</p>
+<p>txtGWStatusName.Value = 2</p>
+<p>C.MinorName</p>
+<p>LEFT OUTER JOIN _TDASMinor AS C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND C.MajorSeq = 1037</p>
+<p>AND C.MinorValue = CFM.CfmCode</p>
+<p>AND (@GWSMStatus = 2 OR CfmCode = @GWSMStatus)</p>
+<p>rot_SPJTProjectDocListQuery</p>
+<p>FrmPJTProjectDocList_rot</p>
+  </article>
+</div>
+</body>
+</html>

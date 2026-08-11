@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>색 변경 / 이전차수 비교</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>색 변경 / 이전차수 비교</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">색 변경 / 이전차수 비교</h1>
+<p>-- 가변부에서 이전차수 데이터 비교하여 변경시 색상 표시</p>
+<p>-- 가변부</p>
+<p>local row, col, dynCol, toCol, aCol, dynColArray, colName,fixedColCnt</p>
+<p>--row = SS1.ActiveRow</p>
+<p>-- 가변부 컬럼수로 나누기!!</p>
+<p>fixedColCnt = 5 -- 가변부 컬럼수</p>
+<p>dynCol = (SS2.MaxCols - SS2.SheetFixCols) / fixedColCnt</p>
+<p>dynColArray = {</p>
+<p>[1] = 'Qty',</p>
+<p>[2] = 'Price',</p>
+<p>[3] = 'Amt',</p>
+<p>[4] = 'DelvDate',</p>
+<p>[5] = 'Remark'</p>
+<p>}</p>
+<p>if dynCol &gt; 1 then</p>
+<p>for row = 0, SS2.DataRowCnt - 1 do</p>
+<p>for col = 1, dynCol -1 do</p>
+<p>for i = 1, fixedColCnt do</p>
+<p>colName = dynColArray[i]</p>
+<p>if CellText(SS2, row, colName..col) ~= CellText(SS2, row, colName..(col-1)) then</p>
+<p>SS2.ActiveColumnName = colName..col</p>
+<p>SS2.ActiveRow = row</p>
+<p>SS2.ActiveCellBackColor = '#DFFFE5'</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

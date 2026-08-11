@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>동적쿼리 예시</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>동적쿼리 예시</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">동적쿼리 예시</h1>
+<p>DECLARE @DBName NVARCHAR(100),</p>
+<p>@BizSeq INT,</p>
+<p>@SQLParam NVARCHAR(500),</p>
+<p>-- 각 INSERT 문에 대한 "템플릿" 변수</p>
+<p>@TPL_DirItemRate NVARCHAR(MAX),</p>
+<p>@TPL_DirItemTgtAmt NVARCHAR(MAX),</p>
+<p>@TPL_DirItemRlt NVARCHAR(MAX),</p>
+<p>@TPL_CostSumRlt NVARCHAR(MAX),</p>
+<p>@TPL_ItemCostRlt NVARCHAR(MAX),</p>
+<p>@TPL_ProcCostTgtAmt NVARCHAR(MAX),</p>
+<p>@TPL_ProcCostRate NVARCHAR(MAX),</p>
+<p>@TPL_ProcCostRlt NVARCHAR(MAX),</p>
+<p>-- 각 INSERT 문을 만들기 위한 "빌더" 변수</p>
+<p>@SQL_DirItemRate NVARCHAR(MAX),</p>
+<p>@SQL_DirItemTgtAmt NVARCHAR(MAX),</p>
+<p>@SQL_DirItemRlt NVARCHAR(MAX),</p>
+<p>@SQL_CostSumRlt NVARCHAR(MAX),</p>
+<p>@SQL_ItemCostRlt NVARCHAR(MAX),</p>
+<p>@SQL_ProcCostTgtAmt NVARCHAR(MAX),</p>
+<p>@SQL_ProcCostRate NVARCHAR(MAX),</p>
+<p>@SQL_ProcCostRlt NVARCHAR(MAX),</p>
+<p>-- 임시 조각을 담을 변수</p>
+<p>@CurrentFragment NVARCHAR(MAX);</p>
+<p>-- 파라미터 준비</p>
+<p>SET @SQLParam = N'@pCompanySeq INT, @pCostKeySeq INT';</p>
+<hr />
+<p>-- 1. 쿼리 템플릿 정의 (##DBName## 이라는 Placeholder 사용)</p>
+<hr />
+<p>SET @TPL_DirItemRate = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.SendCCtrSeq, A.ItemSeq, A.WorkOrderSeq, A.ProcSeq, A.AssySeq, D.CostAccSeq, A.DriverSeq, A.DriverValue, A.DriverRate</p>
+<p>FROM ##DBName##.dbo._TESMCProdDirItemRate AS A</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq';</p>
+<p>SET @TPL_DirItemTgtAmt = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.CCtrSeq, D.CostAccSeq, A.Amt</p>
+<p>FROM ##DBName##.dbo._TESMCProdDirItemTgtAmt AS A</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq';</p>
+<p>SET @TPL_DirItemRlt = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.SendCCtrSeq, A.ItemSeq, A.WorkOrderSeq, A.ProcSeq, A.AssySeq, D.CostAccSeq, A.DriverSeq, A.Amt</p>
+<p>FROM ##DBName##.dbo._TESMCProdDirItemRlt AS A</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq';</p>
+<p>SET @TPL_CostSumRlt = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.TransKind, A.CCtrSeq, A.AllocSeq, D.CostAccSeq, A.Amt, A.RevAmt, A.SendAmt</p>
+<p>FROM ##DBName##.dbo._TESMCProdCostSumRlt AS A</p>
+<p>JOIN dbo._TDASMinor B WITH(NOLOCK) ON A.TransKind = B.MinorSeq AND B.MajorSeq = 5551 AND A.CompanySeq = B.CompanySeq</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq AND CONVERT(INT, B.MinorValue) &gt;= 6';</p>
+<p>SET @TPL_ItemCostRlt = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.ItemSeq, A.WorkOrderSeq, A.ProcSeq, A.AssySeq, D.CostAccSeq, A.TransKind, A.RevAmt, A.Amt</p>
+<p>FROM ##DBName##.dbo._TESMCProdItemCostRlt AS A</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq';</p>
+<p>SET @TPL_ProcCostTgtAmt = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.ItemSeq, D.CostAccSeq, A.Amt</p>
+<p>FROM ##DBName##.dbo._TESMCProdProcCostTgtAmt AS A</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq';</p>
+<p>SET @TPL_ProcCostRate = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.ItemSeq, A.WorkOrderSeq, A.ProcSeq, A.AssySeq, D.CostAccSeq, A.DriverSeq, A.DriverValue, A.DriverRate</p>
+<p>FROM ##DBName##.dbo._TESMCProdProcCostRate AS A</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq';</p>
+<p>SET @TPL_ProcCostRlt = N'</p>
+<p>SELECT A.CompanySeq, 1, A.CostKeySeq, A.ItemSeq, A.WorkOrderSeq, A.ProcSeq, A.AssySeq, D.CostAccSeq, A.Amt</p>
+<p>FROM ##DBName##.dbo._TESMCProdProcCostRlt AS A</p>
+<p>LEFT JOIN ##DBName##.dbo._TESMBAccount C ON C.CompanySeq = A.CompanySeq AND C.CostAccSeq = A.CostAccSeq</p>
+<p>LEFT JOIN dbo._TESMBAccount D ON D.CompanySeq = C.CompanySeq AND D.AccSeq = C.AccSeq</p>
+<p>WHERE A.CostKeySeq = @pCostKeySeq AND A.CompanySeq = @pCompanySeq';</p>
+<hr />
+<p>-- 2. 빌더 변수 초기화 및 단일 루프 실행</p>
+<hr />
+<p>SELECT @BizSeq = 0,</p>
+<p>@SQL_DirItemRate = N'', @SQL_DirItemTgtAmt = N'', @SQL_DirItemRlt = N'',</p>
+<p>@SQL_CostSumRlt = N'', @SQL_ItemCostRlt = N'', @SQL_ProcCostTgtAmt = N'',</p>
+<p>@SQL_ProcCostRate = N'', @SQL_ProcCostRlt = N'';</p>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1 @BizSeq = BizSeq, @DBName = BizDNS</p>
+<p>FROM sys_TMDMBiz AS A</p>
+<p>WHERE A.CompanySeq = @pCompanySeq AND A.IsMainBiz \&lt;&gt; '1' AND A.BizSeq &gt; @BizSeq</p>
+<p>ORDER BY A.BizSeq;</p>
+<p>IF @@ROWCOUNT = 0 BREAK;</p>
+<p>-- 템플릿의 ##DBName## 부분을 실제 DB 이름으로 교체하여 조각(Fragment) 생성 후 UNION ALL로 연결</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_DirItemRate, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_DirItemRate) &gt; 0 SET @SQL_DirItemRate = @SQL_DirItemRate + N' UNION ALL ';</p>
+<p>SET @SQL_DirItemRate = @SQL_DirItemRate + @CurrentFragment;</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_DirItemTgtAmt, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_DirItemTgtAmt) &gt; 0 SET @SQL_DirItemTgtAmt = @SQL_DirItemTgtAmt + N' UNION ALL ';</p>
+<p>SET @SQL_DirItemTgtAmt = @SQL_DirItemTgtAmt + @CurrentFragment;</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_DirItemRlt, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_DirItemRlt) &gt; 0 SET @SQL_DirItemRlt = @SQL_DirItemRlt + N' UNION ALL ';</p>
+<p>SET @SQL_DirItemRlt = @SQL_DirItemRlt + @CurrentFragment;</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_CostSumRlt, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_CostSumRlt) &gt; 0 SET @SQL_CostSumRlt = @SQL_CostSumRlt + N' UNION ALL ';</p>
+<p>SET @SQL_CostSumRlt = @SQL_CostSumRlt + @CurrentFragment;</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_ItemCostRlt, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_ItemCostRlt) &gt; 0 SET @SQL_ItemCostRlt = @SQL_ItemCostRlt + N' UNION ALL ';</p>
+<p>SET @SQL_ItemCostRlt = @SQL_ItemCostRlt + @CurrentFragment;</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_ProcCostTgtAmt, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_ProcCostTgtAmt) &gt; 0 SET @SQL_ProcCostTgtAmt = @SQL_ProcCostTgtAmt + N' UNION ALL ';</p>
+<p>SET @SQL_ProcCostTgtAmt = @SQL_ProcCostTgtAmt + @CurrentFragment;</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_ProcCostRate, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_ProcCostRate) &gt; 0 SET @SQL_ProcCostRate = @SQL_ProcCostRate + N' UNION ALL ';</p>
+<p>SET @SQL_ProcCostRate = @SQL_ProcCostRate + @CurrentFragment;</p>
+<p>SET @CurrentFragment = REPLACE(@TPL_ProcCostRlt, '##DBName##', QUOTENAME(@DBName));</p>
+<p>IF LEN(@SQL_ProcCostRlt) &gt; 0 SET @SQL_ProcCostRlt = @SQL_ProcCostRlt + N' UNION ALL ';</p>
+<p>SET @SQL_ProcCostRlt = @SQL_ProcCostRlt + @CurrentFragment;</p>
+<p>END;</p>
+<hr />
+<p>-- 3. 루프 종료 후, 생성된 SQL들을 각각 실행</p>
+<hr />
+<p>DECLARE @FinalSQL NVARCHAR(MAX);</p>
+<p>IF LEN(@SQL_DirItemRate) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdDirItemRate (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, SendCCtrSeq, ItemSeq, WorkOrderSeq, ProcSeq, AssySeq,</p>
+<p>CostAccSeq, DriverSeq, DriverValue, DriverRate</p>
+<p>)</p>
+<p>SELECT</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.SendCCtrSeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.DriverSeq, SUM(Z.DriverValue), AVG(Z.DriverRate)</p>
+<p>FROM (' + @SQL_DirItemRate + N') AS Z</p>
+<p>GROUP BY</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.SendCCtrSeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.DriverSeq;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END</p>
+<p>IF LEN(@SQL_DirItemTgtAmt) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdDirItemTgtAmt (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, CCtrSeq, CostAccSeq, Amt</p>
+<p>)</p>
+<p>SELECT Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.CCtrSeq, Z.CostAccSeq, SUM(Z.Amt)</p>
+<p>FROM (' + @SQL_DirItemTgtAmt + N') AS Z</p>
+<p>GROUP BY Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.CCtrSeq, Z.CostAccSeq;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END</p>
+<p>IF LEN(@SQL_DirItemRlt) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdDirItemRlt (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, SendCCtrSeq, ItemSeq, WorkOrderSeq, ProcSeq, AssySeq,</p>
+<p>CostAccSeq, DriverSeq, Amt</p>
+<p>)</p>
+<p>SELECT</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.SendCCtrSeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.DriverSeq, SUM(Z.Amt)</p>
+<p>FROM (' + @SQL_DirItemRlt + N') AS Z</p>
+<p>GROUP BY</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.SendCCtrSeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.DriverSeq;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END</p>
+<p>IF LEN(@SQL_CostSumRlt) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdCostSumRlt (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, TransKind, CCtrSeq, AllocSeq, CostAccSeq, Amt, RevAmt, SendAmt</p>
+<p>)</p>
+<p>SELECT</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.TransKind, Z.CCtrSeq, Z.AllocSeq, Z.CostAccSeq,</p>
+<p>SUM(Z.Amt), SUM(Z.RevAmt), SUM(Z.SendAmt)</p>
+<p>FROM (' + @SQL_CostSumRlt + N') AS Z</p>
+<p>GROUP BY</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.TransKind, Z.CCtrSeq, Z.AllocSeq, Z.CostAccSeq;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END</p>
+<p>IF LEN(@SQL_ItemCostRlt) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdItemCostRlt (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, ItemSeq, WorkOrderSeq, ProcSeq, AssySeq,</p>
+<p>CostAccSeq, TransKind, RevAmt, Amt</p>
+<p>)</p>
+<p>SELECT</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.TransKind, SUM(Z.RevAmt), SUM(Z.Amt)</p>
+<p>FROM (' + @SQL_ItemCostRlt + N') AS Z</p>
+<p>GROUP BY</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.TransKind;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END</p>
+<p>IF LEN(@SQL_ProcCostTgtAmt) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdProcCostTgtAmt (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, ItemSeq, CostAccSeq, Amt</p>
+<p>)</p>
+<p>SELECT Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.CostAccSeq, SUM(Z.Amt)</p>
+<p>FROM (' + @SQL_ProcCostTgtAmt + N') AS Z</p>
+<p>GROUP BY Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.CostAccSeq;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END</p>
+<p>IF LEN(@SQL_ProcCostRate) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdProcCostRate (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, ItemSeq, WorkOrderSeq, ProcSeq, AssySeq,</p>
+<p>CostAccSeq, DriverSeq, DriverValue, DriverRate</p>
+<p>)</p>
+<p>SELECT</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.DriverSeq, SUM(Z.DriverValue), AVG(Z.DriverRate)</p>
+<p>FROM (' + @SQL_ProcCostRate + N') AS Z</p>
+<p>GROUP BY</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq,</p>
+<p>Z.CostAccSeq, Z.DriverSeq;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END</p>
+<p>IF LEN(@SQL_ProcCostRlt) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @FinalSQL = N'</p>
+<p>INSERT INTO _TESMCProdProcCostRlt (</p>
+<p>CompanySeq, CostUnit, CostKeySeq, ItemSeq, WorkOrderSeq, ProcSeq, AssySeq, CostAccSeq, Amt</p>
+<p>)</p>
+<p>SELECT</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq, Z.CostAccSeq, SUM(Z.Amt)</p>
+<p>FROM (' + @SQL_ProcCostRlt + N') AS Z</p>
+<p>GROUP BY</p>
+<p>Z.CompanySeq, Z.CostUnit, Z.CostKeySeq, Z.ItemSeq, Z.WorkOrderSeq, Z.ProcSeq, Z.AssySeq, Z.CostAccSeq;';</p>
+<p>EXEC sp_executesql @FinalSQL, @SQLParam, @pCompanySeq = @CompanySeq, @pCostKeySeq = @CostKeySeq;</p>
+<p>END;</p>
+  </article>
+</div>
+</body>
+</html>

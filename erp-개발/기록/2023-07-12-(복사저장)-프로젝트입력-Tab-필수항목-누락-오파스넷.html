@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(복사저장) 프로젝트입력 - Tab 필수항목 누락 / 오파스넷</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(복사저장) 프로젝트입력 - Tab 필수항목 누락 / 오파스넷</h1>
+    <div class="meta">
+      <span class="note-date">2023-07-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-tab">(복사저장) 프로젝트입력 - Tab 필수항목 누락 / 오파스넷</h1>
+<p><img alt="" src="assets/(복사저장)-프로젝트입력-Tab-필수항목-누락-오파스넷/image113.png" /></p>
+<p>마스터 - 프로젝트유형 에 따라 탭 부분 visible 처리</p>
+<p>화면에 안보이는 납품품목 탭의 필수값 누락으로 인해 오류 발생</p>
+<p>저장과 다르게 복사저장의 경우 공백으로 조회된 부분을 저장으로 가져가기 때문에 오류 발생</p>
+<p>기존에는 마스터 '계획기간' 이 필수값이었고, 계획기간 값을 납품품목 탭 - 납품예정일 테이블에 저장하기 때문에 오류 발생</p>
+<p>=&gt; 필수값으로 바뀐 계약기간을 납품예정일 테이블에 저장하도록 sp 변경</p>
+  </article>
+</div>
+</body>
+</html>

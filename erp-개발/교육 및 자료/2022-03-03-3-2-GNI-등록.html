@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3/2 GNI 등록</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>3/2 GNI 등록</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#교육 및 자료</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="32-gni">3/2 GNI 등록</h1>
+<p>컨트롤 추가 및 조건에 따라 시트 검색</p>
+<blockquote>
+<p><img alt="" src="assets/3-2-GNI-등록/image38.png" /></p>
+<p>* 컨트롤 영역에 컬럼 추가 (sjpark_최소값 / sjpark_최대값)</p>
+<p>1. 58번서버 – aspx파일</p>
+<p>디자인 – 컬럼 추가</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image39.png" /></p>
+<p>ID = fltSjparkFrom / fltSjparkTo</p>
+<p>flt =&gt; float (ex. txt =&gt; text)</p>
+<p>Caption – sjpark_최소값 / sjpark_최대값</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image40.png" /></p>
+<p>Declength – 0 (소수점 개수)</p>
+<p>2. HTML 제대로 들어갔는지 확인</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image41.png" /></p>
+<p>** SP에서 데이터를 가져갈 수 있도록 CS에 추가 **</p>
+<p>3. F7 눌러서 CS파일 열기</p>
+<p>3-1. protected 부분 - fltSjparkFrom / To 추가</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image42.png" /></p>
+<p>3-2. _page.AddItem 마찬가지로 From / To 추가</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image43.png" /></p>
+</blockquote>
+<ul>
+<li>fltSjparkFrom.Text</li>
+</ul>
+<blockquote>
+<p>Text =&gt; 일반적인 텍스트</p>
+<p>** Value =&gt; 콤보</p>
+<p>** TextCode =&gt; 코드헬프</p>
+<p>Ace에서 ‘코드 도움’과 ‘콤보 박스’는 단순히 보여지는 차이 / 원리는 같다</p>
+<p>but. GNI에서는 아예 개념이 다르다</p>
+<hr />
+</blockquote>
+<ul>
+<li>GNI</li>
+</ul>
+<blockquote>
+<p>* 코드 도움 =&gt; Ace와 동일 (파란색으로 보임)</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image44.png" /></p>
+<p><img alt="" src="assets/3-2-GNI-등록/image45.png" /></p>
+<p>* GNI 콤보 박스</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image46.png" /></p>
+<p>키 값이 숨어있다 (Ace에서는 콤보, 코드 헬프 둘다 필요 없음)</p>
+<p>4. CS에서 SP로 주는거 2개 추가했으니, SP에서 받는 것도 2개 추가</p>
+<p>(SP에서 추가까지 완료해야 값들을 사용할 수 있다)</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image47.png" /></p>
+<p>* Ace에서는 CREATE PROCEDURE 부분이 거의 고정되어 있었지만</p>
+<p>GNI의 경우 CS부분과 동일해야한다</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image48.png" /></p>
+<p><img alt="" src="assets/3-2-GNI-등록/image49.png" /></p>
+<p>5. END_Proc 부분 수정</p>
+<p>5-1. TSASOM (마스터 테이블)에 test_sjpark부분이 없기 때문에</p>
+<p>TSAOItem (아이템 테이블)과 join시켜준다</p>
+<p>5-2. 최소값은 상관없지만, 최대값이 0일 때 문제 발생</p>
+<p>=&gt; BETWEEN이 아니라 To 부분에 별도로 조건 추가</p>
+<p>=&gt; 테이블 값이 입력값보다 작을 때</p>
+<p>=&gt; ++. 0이거나 조건도 추가</p>
+<p><img alt="" src="assets/3-2-GNI-등록/image50.png" /></p>
+</blockquote>
+<p>\&lt;\&lt;0302_GNI 등록(조회조건).hwp&gt;&gt;</p>
+<p>\&lt;\&lt;0302.sql&gt;&gt;</p>
+<p>\&lt;\&lt;0302 G&amp;I 조회.txt&gt;&gt;</p>
+<ul>
+<li>_사이트 수정할 때 SP부분에서 주석처리 해야하는 부분</li>
+</ul>
+<p><img alt="" src="assets/3-2-GNI-등록/image51.png" /></p>
+<p>\~~_@@ =&gt; _@@ 있으면 표준이 아니다</p>
+<p>ex. SSASalesOrderQry =&gt; 표준</p>
+<p>ex. SSASalesOrderQry_ =&gt; 테스트용</p>
+<p>이 부분이 있으면 주석처리 해야한다</p>
+<p>의미 : 표준을 실행하다가 테스트용(_@@)을 만나면 표준 실행을 중지하고 테스트를 실행</p>
+<p>but.</p>
+<p>테스트용 실행 시</p>
+<p>테스트용 실행 =&gt; 주석 부분 만남 =&gt; 표준으로 알고 종료 후 다시 테스트용을 실행</p>
+<p>=&gt; 다시 주석 부분 만남</p>
+<p>===&gt; 무한 루프</p>
+<p>3/3 GNI 등록</p>
+<p>\&lt;\&lt;0303 GNI (aspx, cs).hwp&gt;&gt;\&lt;\&lt;0303_aspx.txt&gt;&gt;\&lt;\&lt;0303 GNI (aspx, cs).txt&gt;&gt;</p>
+<p>\&lt;\&lt;NET개발메뉴얼.zip&gt;&gt;</p>
+  </article>
+</div>
+</body>
+</html>

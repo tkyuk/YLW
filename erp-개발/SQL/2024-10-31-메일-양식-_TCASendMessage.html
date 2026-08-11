@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메일 양식 \_TCASendMessage</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>메일 양식 \_TCASendMessage</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-31</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_tcasendmessage">메일 양식 _TCASendMessage</h1>
+<p>DROP PROC mcm_SWDAItemSendMail</p>
+<p>GO</p>
+<p>CREATE PROC mcm_SWDAItemSendMail</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>-- 품목등록에서 값 변경된 경우</p>
+<p>UPDATE A</p>
+<p>SET SendMail = '1'</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq -- mcm_품목상태별이메일정보.품목세부상태</p>
+<p>AND C.MajorSeq = 1110142</p>
+<p>AND C.Serl = 15000001</p>
+<p>AND C.ValueSeq = A.UMStatusDetail</p>
+<p>WHERE A.WorkingTag = 'U'</p>
+<p>AND A.UMStatusDetail \&lt;&gt; A.UMStatusDetailOld</p>
+<p>AND ISNULL(A.UMStatusDetailOld,0) \&lt;&gt; 0</p>
+<p>AND A.Status = 0</p>
+<p>DECLARE @SendEmail NVARCHAR(200)</p>
+<p>SELECT @SendEmail = ISNULL((SELECT A.PwdMailAdder</p>
+<p>FROM _TCAUser AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.UserSeq = @UserSeq),'')</p>
+<p>CREATE TABLE #Tmp_Email(</p>
+<p>IDX_NO INT IDENTITY ,</p>
+<p>ItemSeq INT ,</p>
+<p>Subject1 NVARCHAR(MAX),</p>
+<p>SendMessage NVARCHAR(MAX),</p>
+<p>Email NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_Email(ItemSeq,Subject1,SendMessage,Email)</p>
+<p>SELECT A.ItemSeq</p>
+<p>,REPLACE(REPLACE(REPLACE(E.ValueText,'#ItemName',B.ItemName),'#ItemNo',B.ItemNo),'#UMStatusDetailName',G.MinorName) AS Subject1</p>
+<p>,REPLACE(REPLACE(REPLACE(F.ValueText,'#ItemName',B.ItemName),'#ItemNo',B.ItemNo),'#UMStatusDetailName',G.MinorName) AS SendMessage</p>
+<p>,D.ValueText</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq -- mcm_품목상태별이메일정보.품목세부상태</p>
+<p>AND C.MajorSeq = 1110142</p>
+<p>AND C.Serl = 15000001</p>
+<p>AND C.ValueSeq = A.UMStatusDetail</p>
+<p>JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq -- mcm_품목상태별이메일정보.받는사람이메일</p>
+<p>AND C.MinorSeq = D.MinorSeq</p>
+<p>AND D.Serl = 15000002</p>
+<p>AND D.MajorSeq = 1110142</p>
+<p>JOIN _TDAUMinorValue AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq -- mcm_품목상태별이메일정보.메일제목</p>
+<p>AND C.MinorSeq = E.MinorSeq</p>
+<p>AND E.Serl = 15000003</p>
+<p>AND E.MajorSeq = 1110142</p>
+<p>JOIN _TDAUMinorValue AS F WITH(NOLOCK) ON C.CompanySeq = F.CompanySeq -- mcm_품목상태별이메일정보.메일내용</p>
+<p>AND C.MinorSeq = F.MinorSeq</p>
+<p>AND F.Serl = 15000004</p>
+<p>AND F.MajorSeq = 1110142</p>
+<p>JOIN _TDAUMinor AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq -- mcm_품목세부상태</p>
+<p>AND G.MinorSeq = A.UMStatusDetail</p>
+<p>WHERE ISNULL(A.SendMail,'') = '1'</p>
+<p>/*****************************/</p>
+<p>DECLARE @Seq INT ,</p>
+<p>@SendMessageID INT ,</p>
+<p>@XmlDocument XML ,</p>
+<p>@ColumnInfo NVARCHAR(MAX) ,</p>
+<p>@SQL NVARCHAR(MAX) ,</p>
+<p>@Cnt INT ,</p>
+<p>@SeqValue INT ,</p>
+<p>@SerlValue INT ,</p>
+<p>@SubSerlValue INT ,</p>
+<p>@Subject NVARCHAR(500) ,</p>
+<p>@MailContent NVARCHAR(MAX) ,</p>
+<p>@Email NVARCHAR(200) ,</p>
+<p>@GETDATE DATETIME ,</p>
+<p>@MailRecvName NVARCHAR(200) ,</p>
+<p>@ViewerId NVARCHAR(200)</p>
+<p>SELECT @GETDATE = GETDATE(),</p>
+<p>@ViewerId = 'ItemMail'</p>
+<p>CREATE TABLE #TCOMOnlineViewerData (IDOrder INT IDENTITY(1,1), STDSeq INT, STDSerl INT, STDSubSerl INT)</p>
+<p>-- 컬럼 정보 수집</p>
+<p>SELECT @ColumnInfo = ''</p>
+<p>--syscolumns의 Xtype 231인 경우, max_length가 -1 이면 MAX로 치환하도록 수정 2024.03.04 정민찬</p>
+<p>SELECT @ColumnInfo = @ColumnInfo + name + ' ' + CASE system_type_id WHEN 34 THEN 'IMAGE, '</p>
+<p>WHEN 56 THEN 'INT, '</p>
+<p>WHEN 61 THEN 'DATETIME, '</p>
+<p>WHEN 104 THEN 'BIT, '</p>
+<p>WHEN 165 THEN 'VARBINARY, '</p>
+<p>WHEN 106 THEN 'DECIMAL(' + CONVERT(NVARCHAR(10), Precision ) + ', ' + CONVERT(NVARCHAR(10), scale) + '), '</p>
+<p>WHEN 108 THEN 'NUMERIC(' + CONVERT(NVARCHAR(10), Precision ) + ', ' + CONVERT(NVARCHAR(10), scale) + '), '</p>
+<p>WHEN 175 THEN 'CHAR(' + CONVERT(NVARCHAR(10), max_length) + '), '</p>
+<p>WHEN 167 THEN 'VARCHAR(' + CONVERT(NVARCHAR(10), max_length) + '), '</p>
+<p>WHEN 239 THEN 'NCHAR(' + CONVERT(NVARCHAR(100), CONVERT(INT, max_length) / 2) + '), '</p>
+<p>WHEN 231 THEN (CASE WHEN max_length = -1 THEN 'NVARCHAR(MAX), '</p>
+<p>ELSE 'NVARCHAR(' + CONVERT(NVARCHAR(100), CONVERT(INT, max_length) / 2) + '), ' END)</p>
+<p>ELSE '' END</p>
+<p>FROM tempdb.sys.columns WITH(NOLOCK)</p>
+<p>WHERE object_id = OBJECT_ID('tempdb..#Tmp_Email')</p>
+<p>SELECT @ColumnInfo = LEFT(@ColumnInfo, LEN(@ColumnInfo) - 1)</p>
+<p>-- XML 변환</p>
+<p>INSERT INTO #TCOMOnlineViewerData (STDSeq)</p>
+<p>SELECT ItemSeq</p>
+<p>FROM #Tmp_Email</p>
+<p>SELECT @Cnt = 1</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT @Email = A.Email,</p>
+<p>@Subject = A.Subject1,</p>
+<p>@MailContent = A.SendMessage,</p>
+<p>@MailRecvName = A.Email,</p>
+<p>@SeqValue = A.ItemSeq</p>
+<p>FROM #Tmp_Email AS A</p>
+<p>JOIN #TCOMOnlineViewerData AS B ON B.STDSeq = A.ItemSeq</p>
+<p>WHERE B.IDOrder = @Cnt</p>
+<p>-- MessageType = 4 로 하드코딩 되어있어 변수로 받을 수 있도록 수정 2021.05.21 mjjang</p>
+<p>DECLARE @MessageType INT</p>
+<p>SELECT @MessageType = 1</p>
+<p>--SELECT @MessageType = ISNULL(MessageType, 4)</p>
+<p>-- FROM OTCAOnlineViewer WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND ViewerId = @ViewerID</p>
+<p>SELECT @MailContent = REPLACE(@MailContent, CHAR(13) + CHAR(10), '\&lt;br/&gt;')</p>
+<p>SELECT @XmlDocument = '\&lt;ROOT&gt;' + (SELECT A.*</p>
+<p>FROM #Tmp_Email AS A</p>
+<p>JOIN #TCOMOnlineViewerData AS B ON B.STDSeq = A.ItemSeq</p>
+<p>WHERE B.IDOrder = @Cnt</p>
+<p>FOR XML AUTO) + '\&lt;/ROOT&gt;'</p>
+<p>IF @XmlDocument IS NULL BREAK</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq, '_TCOMOnlineViewerData', 'ViewerValue', 1</p>
+<p>INSERT INTO _TCOMOnlineViewerData (CompanySeq , SendDateKey , ViewerID , ViewerValue , Email ,</p>
+<p>Seq , Serl , SubSerl , ClickCount , IsConfirm ,</p>
+<p>IsCancel , IsRead , IsRequest , RequestMemo , KeyWord ,</p>
+<p>Content , ColumnInfo , PgmSeq , SendUserSeq , SendEmail ,</p>
+<p>LastUserSeq , LastDateTime)</p>
+<p>SELECT @CompanySeq , @GETDATE , @ViewerID , @Seq + 1 , @Email ,</p>
+<p>@SeqValue , @SerlValue , @SubSerlValue , 0 , '0' ,</p>
+<p>'0' , '0' , '0' , '' , '' AS KeyWord,</p>
+<p>@XmlDocument, @ColumnInfo , @PgmSeq , @UserSeq , @SendEmail ,</p>
+<p>@UserSeq , @GETDATE</p>
+<p>SELECT @SendMessageID = ISNULL(MAX(SendMessageID), 0)</p>
+<p>FROM _TCASendMessage WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>INSERT INTO _TCASendMessage (CompanySeq , SendMessageID , SendUserSeq , SendMessageType, Subject ,</p>
+<p>SendMessage , RecvUserSeq , IsMemo , IsMail , IsSMS ,</p>
+<p>SendMemo , SendMail , MemoDateTime , MailDateTime , SMSDateTime ,</p>
+<p>SendSMS , TblKey , CrDateTime , RecvEmail , RecvTelNo ,</p>
+<p>LoginPwd , States , Result , EmailPass , AttachMessage ,</p>
+<p>AttachFileName , SendEmail , CCEmail , charset , AttachFiles ,</p>
+<p>AttachType , AttachConfig , IsProcessing , PgmSeq , ToPgmSeq ,</p>
+<p>JumpMode , JumpData , IsFast , MessageGroupSeq, SendTelNo ,</p>
+<p>BCCEmail , SendDateKey , ViewerId , ViewerValue , BisDivCode ,</p>
+<p>SecuBody )</p>
+<p>SELECT @CompanySeq , @SendMessageID + 1, @UserSeq , 4 , @Subject ,</p>
+<p>@MailContent , @UserSeq , '0' , '1' , '0' ,</p>
+<p>'' , 0 , '' , @GETDATE , '' ,</p>
+<p>'' , '' , @GETDATE , @Email , '' ,</p>
+<p>'' , '' , '' , '' , '' ,</p>
+<p>'' , @SendEmail , '' , 'utf-8' , '' ,</p>
+<p>4 , '' , NULL , @PgmSeq , 0 ,</p>
+<p>0 , '' , 0 , 0 , '' ,</p>
+<p>'' , @GETDATE , @ViewerId , @Seq + 1 , 0 ,</p>
+<p>CASE @MailContent WHEN '' THEN NULL ELSE @MailContent END</p>
+<p>SELECT @Cnt = @Cnt + 1</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET UMStatusDetailOld = UMStatusDetail</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>RETURN</p>
+<p>CREATE PROCEDURE shilla_SWCOMOnlineViewerSendPUDelv</p>
+<p>@CompanySeq INT , -- 법인내부코드</p>
+<p>@LanguageSeq INT , -- 다국어내부코드</p>
+<p>@MailTitle NVARCHAR(200), -- 메일타이틀</p>
+<p>@TempTableName NVARCHAR(100), -- 전송 데이터가 수집된 임시테이블</p>
+<p>@SeqCol NVARCHAR(100), -- 메일을 보낼 기준 데이터 내부코드 (ex.거래처원장 : 거래처내부코드, 거래명세서 : 거래명세서내부코드..)</p>
+<p>@SerlCol NVARCHAR(100), -- 메일을 보낼 기준 데이터 순번</p>
+<p>@SubSerlCol NVARCHAR(100), -- 메일을 보낼 기준 데이터 하부순번</p>
+<p>@EmailCol NVARCHAR(100), -- 받는사람 메일주소 컬럼</p>
+<p>@SendEMailCol NVARCHAR(100), -- 보내는사람 메일주소 컬럼</p>
+<p>@SubjectCol NVARCHAR(100), -- 메일제목 컬럼</p>
+<p>@MailContentCol NVARCHAR(100), -- 메일내용 컬럼</p>
+<p>@SendTitle NVARCHAR(200), -- 메일 내용에 표기될 발신자</p>
+<p>@RecvTitle NVARCHAR(200), -- 메일 내용에 표기될 수신자 컬럼</p>
+<p>@PgmSeq INT , -- 프로그램내부코드</p>
+<p>@UserSeq INT , -- 전송담당자내부코드</p>
+<p>@ViewerID NVARCHAR(100), -- 전송업무</p>
+<p>@KeyWord NVARCHAR(100) -- 문서암호</p>
+<p>AS</p>
+<p>DECLARE @Seq INT ,</p>
+<p>@SendMessageID INT ,</p>
+<p>@XmlDocument XML ,</p>
+<p>@ColumnInfo NVARCHAR(MAX) ,</p>
+<p>@SQL NVARCHAR(MAX) ,</p>
+<p>@Cnt INT ,</p>
+<p>@SeqValue INT ,</p>
+<p>@SerlValue INT ,</p>
+<p>@SubSerlValue INT ,</p>
+<p>@Subject NVARCHAR(500) ,</p>
+<p>@MailContent NVARCHAR(MAX) ,</p>
+<p>@SendEmail NVARCHAR(200) ,</p>
+<p>@Email NVARCHAR(200) ,</p>
+<p>@GETDATE DATETIME ,</p>
+<p>@MailRecvName NVARCHAR(200)</p>
+<p>SELECT @GETDATE = GETDATE()</p>
+<p>CREATE TABLE #TCOMOnlineViewerData (IDOrder INT, STDSeq INT, STDSerl INT, STDSubSerl INT)</p>
+<p>-- 컬럼 정보 수집</p>
+<p>SELECT @ColumnInfo = ''</p>
+<p>--syscolumns의 Xtype 231인 경우, max_length가 -1 이면 MAX로 치환하도록 수정 2024.03.04 정민찬</p>
+<p>SELECT @ColumnInfo = @ColumnInfo + name + ' ' + CASE system_type_id WHEN 34 THEN 'IMAGE, '</p>
+<p>WHEN 56 THEN 'INT, '</p>
+<p>WHEN 61 THEN 'DATETIME, '</p>
+<p>WHEN 104 THEN 'BIT, '</p>
+<p>WHEN 165 THEN 'VARBINARY, '</p>
+<p>WHEN 106 THEN 'DECIMAL(' + CONVERT(NVARCHAR(10), Precision ) + ', ' + CONVERT(NVARCHAR(10), scale) + '), '</p>
+<p>WHEN 108 THEN 'NUMERIC(' + CONVERT(NVARCHAR(10), Precision ) + ', ' + CONVERT(NVARCHAR(10), scale) + '), '</p>
+<p>WHEN 175 THEN 'CHAR(' + CONVERT(NVARCHAR(10), max_length) + '), '</p>
+<p>WHEN 167 THEN 'VARCHAR(' + CONVERT(NVARCHAR(10), max_length) + '), '</p>
+<p>WHEN 239 THEN 'NCHAR(' + CONVERT(NVARCHAR(100), CONVERT(INT, max_length) / 2) + '), '</p>
+<p>WHEN 231 THEN (CASE WHEN max_length = -1 THEN 'NVARCHAR(MAX), '</p>
+<p>ELSE 'NVARCHAR(' + CONVERT(NVARCHAR(100), CONVERT(INT, max_length) / 2) + '), ' END)</p>
+<p>ELSE '' END</p>
+<p>FROM tempdb.sys.columns WITH(NOLOCK)</p>
+<p>WHERE object_id = OBJECT_ID('tempdb..' + @TempTableName)</p>
+<p>SELECT @ColumnInfo = LEFT(@ColumnInfo, LEN(@ColumnInfo) - 1)</p>
+<p>-- XML 변환</p>
+<p>SELECT @SQL = 'INSERT INTO #TCOMOnlineViewerData (IDOrder, STDSeq'</p>
+<p>IF @SerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', STDSerl'</p>
+<p>IF @SubSerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', STDSubSerl'</p>
+<p>SELECT @SQL = @SQL + ')' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + 'SELECT DISTINCT DENSE_RANK() OVER(ORDER BY ' + @SeqCol</p>
+<p>IF @SerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', ' + @SerlCol</p>
+<p>IF @SubSerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', ' + @SubSerlCol</p>
+<p>SELECT @SQL = @SQL + '), '</p>
+<p>SELECT @SQL = @SQL + @SeqCol</p>
+<p>IF @SerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', ' + @SerlCol</p>
+<p>IF @SubSerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', ' + @SubSerlCol</p>
+<p>SELECT @SQL = @SQL + CHAR(13) + ' FROM ' + @TempTableName</p>
+<p>--PRINT @SQL</p>
+<p>EXEC SP_EXECUTESQL @SQL</p>
+<p>SELECT @Cnt = 1</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT @SQL = 'SELECT @Email = A.' + @EmailCol + ', @Subject = A.' + @SubjectCol + ', @MailContent = A.' + @MailContentCol + ', @SendEmail = A.' + @SendEmailCol + ', @MailRecvName = A.' + @RecvTitle + ', @SeqValue = A.' + @SeqCol</p>
+<p>IF @SerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', @SerlValue = A.' + @SerlCol</p>
+<p>IF @SubSerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ', @SubSerlValue = A.' + @SubSerlCol</p>
+<p>SELECT @SQL = @SQL + CHAR(13) + ' FROM ' + @TempTableName + ' AS A' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' JOIN #TCOMOnlineViewerData AS B ON B.STDSeq = A.' + @SeqCol + CHAR(13)</p>
+<p>IF @SerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + 'AND B.STDSerl = A.' + @SerlCol + CHAR(13)</p>
+<p>IF @SubSerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + 'AND B.STDSubSerl = A.' + @SubSerlCol + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE B.IDOrder = ' + CONVERT(NVARCHAR(10), @Cnt)</p>
+<p>--PRINT @SQL</p>
+<p>IF @SerlCol = ''</p>
+<p>EXEC SP_EXECUTESQL @SQL, N'@Email NVARCHAR(200) OUTPUT, @Subject NVARCHAR(500) OUTPUT, @MailContent NVARCHAR(1000) OUTPUT, @SendEmail NVARCHAR(200) OUTPUT, @MailRecvName NVARCHAR(200) OUTPUT, @SeqValue INT OUTPUT',</p>
+<p>@Email = @Email OUTPUT, @Subject = @Subject OUTPUT, @MailContent = @MailContent OUTPUT, @SendEmail= @SendEmail OUTPUT, @MailRecvName = @MailRecvName OUTPUT, @SeqValue = @SeqValue OUTPUT</p>
+<p>IF @SerlCol \&lt;&gt; ''</p>
+<p>EXEC SP_EXECUTESQL @SQL, N'@Email NVARCHAR(200) OUTPUT, @Subject NVARCHAR(500) OUTPUT, @MailContent NVARCHAR(1000) OUTPUT, @SendEmail NVARCHAR(200) OUTPUT, @MailRecvName NVARCHAR(200) OUTPUT, @SeqValue INT OUTPUT, @SerlValue INT OUTPUT',</p>
+<p>@Email = @Email OUTPUT, @Subject = @Subject OUTPUT, @MailContent = @MailContent OUTPUT, @SendEmail= @SendEmail OUTPUT, @MailRecvName = @MailRecvName OUTPUT, @SeqValue = @SeqValue OUTPUT, @SerlValue = @SerlValue OUTPUT</p>
+<p>IF @SubSerlCol \&lt;&gt; ''</p>
+<p>EXEC SP_EXECUTESQL @SQL, N'@Email NVARCHAR(200) OUTPUT, @Subject NVARCHAR(500) OUTPUT, @MailContent NVARCHAR(1000) OUTPUT, @SendEmail NVARCHAR(200) OUTPUT, @MailRecvName NVARCHAR(200) OUTPUT, @SeqValue INT OUTPUT, @SerlValue INT OUTPUT, @SubSerlValue INT OUTPUT',</p>
+<p>@Email = @Email OUTPUT, @Subject = @Subject OUTPUT, @MailContent = @MailContent OUTPUT, @SendEmail= @SendEmail OUTPUT, @MailRecvName = @MailRecvName OUTPUT, @SeqValue = @SeqValue OUTPUT, @SerlValue = @SerlValue OUTPUT, @SubSerlValue = @SubSerlValue OUTPUT</p>
+<p>-- MessageType = 4 로 하드코딩 되어있어 변수로 받을 수 있도록 수정 2021.05.21 mjjang</p>
+<p>DECLARE @MessageType INT</p>
+<p>SELECT @MessageType = ISNULL(MessageType, 4)</p>
+<p>FROM OTCAOnlineViewer WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND ViewerId = @ViewerID</p>
+<p>SELECT @MailContent = REPLACE(@MailContent, CHAR(13) + CHAR(10), '\&lt;br/&gt;')</p>
+<blockquote>
+<p>SELECT @MailContent = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(SecuMessage, '##MailContent##', @MailContent), '##Subject##', @Subject), '##MailName##', @MailTitle), '##MailSendCompanyName##', @SendTitle), '##MailRecvCompanyName##', @MailRecvName)</p>
+</blockquote>
+<p>FROM _TCASecuMessageTemplate WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND LanguageSeq = @LanguageSeq</p>
+<p>AND MessageType = @MessageType</p>
+<p>--AND MessageType = 4</p>
+<p>SELECT @SQL = 'SELECT @XmlDocument = ''\&lt;ROOT&gt;'' + (SELECT A.*' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM ' + @TempTableName + ' AS A' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' JOIN #TCOMOnlineViewerData AS B ON B.STDSeq = A.' + @SeqCol + CHAR(13)</p>
+<p>IF @SerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ' AND B.STDSerl = A.' + @SerlCol + CHAR(13)</p>
+<p>IF @SubSerlCol \&lt;&gt; ''</p>
+<p>SELECT @SQL = @SQL + ' AND B.STDSubSerl = A.' + @SubSerlCol + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE B.IDOrder = ' + CONVERT(NVARCHAR(10), @Cnt) + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ORDER BY A.IDX_NO ' + CHAR(13) -- 240415 hcwoo</p>
+<p>SELECT @SQL = @SQL + ' FOR XML AUTO) + ''\&lt;/ROOT&gt;'''</p>
+<p>--PRINT @SQL</p>
+<p>EXEC SP_EXECUTESQL @SQL, N'@XmlDocument XML OUTPUT', @XmlDocument = @XmlDocument OUTPUT</p>
+<p>IF @XmlDocument IS NULL BREAK</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq, '_TCOMOnlineViewerData', 'ViewerValue', 1</p>
+<p>INSERT INTO _TCOMOnlineViewerData (CompanySeq , SendDateKey , ViewerID , ViewerValue , Email ,</p>
+<p>Seq , Serl , SubSerl , ClickCount , IsConfirm ,</p>
+<p>IsCancel , IsRead , IsRequest , RequestMemo , KeyWord ,</p>
+<p>Content , ColumnInfo , PgmSeq , SendUserSeq , SendEmail ,</p>
+<p>LastUserSeq , LastDateTime)</p>
+<p>SELECT @CompanySeq , @GETDATE , @ViewerID , @Seq + 1 , @Email ,</p>
+<p>@SeqValue , @SerlValue , @SubSerlValue , 0 , '0' ,</p>
+<p>'0' , '0' , '0' , '' , @KeyWord ,</p>
+<p>@XmlDocument, @ColumnInfo , @PgmSeq , @UserSeq , @SendEmail ,</p>
+<p>@UserSeq , @GETDATE</p>
+<p>SELECT @SendMessageID = ISNULL(MAX(SendMessageID), 0)</p>
+<p>FROM _TCASendMessage WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>INSERT INTO _TCASendMessage (CompanySeq , SendMessageID , SendUserSeq , SendMessageType, Subject ,</p>
+<p>SendMessage , RecvUserSeq , IsMemo , IsMail , IsSMS ,</p>
+<p>SendMemo , SendMail , MemoDateTime , MailDateTime , SMSDateTime ,</p>
+<p>SendSMS , TblKey , CrDateTime , RecvEmail , RecvTelNo ,</p>
+<p>LoginPwd , States , Result , EmailPass , AttachMessage ,</p>
+<p>AttachFileName , SendEmail , CCEmail , charset , AttachFiles ,</p>
+<p>AttachType , AttachConfig , IsProcessing , PgmSeq , ToPgmSeq ,</p>
+<p>JumpMode , JumpData , IsFast , MessageGroupSeq, SendTelNo ,</p>
+<p>BCCEmail , SendDateKey , ViewerId , ViewerValue , BisDivCode ,</p>
+<p>SecuBody )</p>
+<p>SELECT @CompanySeq , @SendMessageID + 1, @UserSeq , 4 , @Subject ,</p>
+<p>@MailContent , @UserSeq , '0' , '1' , '0' ,</p>
+<p>'' , 0 , '' , @GETDATE , '' ,</p>
+<p>'' , '' , @GETDATE , @Email , '' ,</p>
+<p>'' , '' , '' , '' , '' ,</p>
+<p>'' , @SendEmail , '' , 'utf-8' , '' ,</p>
+<p>4 , '' , NULL , @PgmSeq , 0 ,</p>
+<p>0 , '' , 0 , 0 , '' ,</p>
+<p>'' , @GETDATE , @ViewerId , @Seq + 1 , 0 ,</p>
+<p>CASE @MailContent WHEN '' THEN NULL ELSE @MailContent END</p>
+<p>SELECT @Cnt = @Cnt + 1</p>
+<p>END</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

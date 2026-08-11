@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일괄입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>일괄입력</h1>
+    <div class="meta">
+      <span class="note-date">2022-09-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">일괄입력</h1>
+<p>local row</p>
+<p>for row = 0, SS.DataRowCnt-1 do        </p>
+<blockquote>
+<p>SS.ActiveRow = row</p>
+<p>SetText(SS, SS.ActiveRow, 'WHName', cmbWHSeq.Text)</p>
+<p>SetText(SS, SS.ActiveRow, 'DelvDate', datDelvDate.Value)</p>
+<p>if SS.WorkingTag ~= 'A' then</p>
+<p>SS.WorkingTag = 'U'</p>
+<p>end        </p>
+</blockquote>
+<p>end</p>
+<p>=&gt; 메소드 E처리로 (저장 하면 안됨)</p>
+  </article>
+</div>
+</body>
+</html>

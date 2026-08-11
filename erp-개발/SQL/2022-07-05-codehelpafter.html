@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>codehelpafter</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>codehelpafter</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="codehelpafter">codehelpafter</h1>
+<p>mcnk_SWACLoanUsanceSetLoanSeq</p>
+<p>mcnv_SXPRWkGetEmpWkTypeQuery</p>
+<p>운전자금(유산스)등록</p>
+<p>일자별근무내역_mcnv</p>
+<p>장려금기준등록_hsg</p>
+<p>추가정보가져오기</p>
+<p>SELECT A.MinorName</p>
+<p>FROM _TDAUMinor AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.MinorSeq = B.ValueSeq</p>
+<p>AND B.MajorSeq = 1000394</p>
+<p>WHERE @UMCity = B.MinorSeq</p>
+<p><img alt="" src="assets/codehelpafter/image8.png" /></p>
+<p>for row=0,SS1.DataRowCnt-1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>RunPgmMethod('SetItemClass')</p>
+</blockquote>
+<p>end</p>
+<p>=&gt;</p>
+  </article>
+</div>
+</body>
+</html>

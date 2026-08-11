@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0407 (사전등록, update)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>0407 (사전등록, update)</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="0407-update">0407 (사전등록, update)</h1>
+<p>* 기간별입고품목조회_mcnk</p>
+<p>화면 : 기간별입고품목조회(MCNK)</p>
+<p>컨트롤</p>
+<p>- 입고부서 =&gt; 입고부서</p>
+<p>시트</p>
+<p>- 입고수량(기준단위) =&gt; 기준단위입고수량</p>
+<p>- 입고단위 =&gt; 단위</p>
+<p>- 납품비고 =&gt; 비고</p>
+<p>======================</p>
+<p>사용자정의코드</p>
+<p>- 입고구분</p>
+<p>===================================</p>
+<p>* 자재출고요청품목조회_mcnk (FrmWPDMMOutReqItemTotalList_mcnk)</p>
+<p>화면</p>
+<p>- 자재출고요청품목조회(MCNK)</p>
+<p>마스터</p>
+<p>- MES전송 (신규)</p>
+<p>시트</p>
+<p>- MES전송여부 (신규)</p>
+<p>==================================</p>
+<p>* 자재출고입력_mcnk</p>
+<p>화면</p>
+<p>- 자재출고입력(MCNK)</p>
+<p>시트 (출고자재)</p>
+<p>- 선택</p>
+<p>- 대체여부</p>
+<p>- 요청자재명 (신규)</p>
+<p>- 요청자재번호 (신규)</p>
+<p>- 요청자재규격 (신규)</p>
+<p>- 요청자재코드 (신규)</p>
+<p>버튼</p>
+<p>- 대체자재가져오기 (신규)</p>
+<p>조회해서 다이나믹 시트인 경우 멀티헤더 확인</p>
+<ul>
+<li>사전등록 update ( Word = WordSite</li>
+</ul>
+<p>UPDATE _TCADictionary</p>
+<p>SET Word = WordSite</p>
+<p>WHERE LanguageSeq = 6</p>
+<p>AND Word = ''</p>
+<p>AND ISNULL(WordSite,'') \&lt;&gt; ''</p>
+<p>UPDATE _TCADictionaryCommon</p>
+<p>SET Word = WordSite</p>
+<p>WHERE LanguageSeq = 6</p>
+<p>AND Word = ''</p>
+<p>AND ISNULL(WordSite,'') \&lt;&gt; ''</p>
+  </article>
+</div>
+</body>
+</html>

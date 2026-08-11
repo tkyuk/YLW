@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.30 단암화면연결정보</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.30 단암화면연결정보</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-30</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241230">24.12.30 단암화면연결정보</h1>
+<p>--select * from _TCASQLScripts where SqlScriptid = 'danam_SSLPrePaymentBuyingSave'</p>
+<p>DROP PROC sys_SPgmLinkListQuery</p>
+<p>GO</p>
+<p>CREATE PROC sys_SPgmLinkListQuery</p>
+<p>@ServiceSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>AS</p>
+<p>DECLARE @OriPgmSeq INT,</p>
+<p>@OriServiceSeq INT,</p>
+<p>@OriSqlScriptSeq INT</p>
+<p>SELECT @OriPgmSeq = ISNULL(A.OriPgmSeq , 0),</p>
+<p>@OriServiceSeq = ISNULL(A.OriServiceSeq , 0),</p>
+<p>@OriSqlScriptSeq = ISNULL(A.OriSqlScriptSeq, 0)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>IF (@OriPgmSeq + @OriServiceSeq + @OriSqlScriptSeq) = 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock</p>
+<p>(</p>
+<p>Sort1 INT, Sort2 INT,</p>
+<p>PgmID NVARCHAR(100), PgmName NVARCHAR(100), PgmSeq INT,</p>
+<p>PgmMethodID NVARCHAR(100), PgmMethodSeq INT,</p>
+<p>BizServiceID NVARCHAR(100), BizServiceName NVARCHAR(100), BizServiceSeq INT,</p>
+<p>BizMethodID NVARCHAR(100), BizMethodName NVARCHAR(100), BizMethodSeq INT,</p>
+<p>DatServiceID NVARCHAR(100), DatServiceName NVARCHAR(100), DatServiceSeq INT,</p>
+<p>DatMethodID NVARCHAR(100), DatMethodName NVARCHAR(100), DatMethodSeq INT,</p>
+<p>SqlScriptID NVARCHAR(100), SqlScriptName NVARCHAR(100), SqlScriptSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock</p>
+<p>(</p>
+<p>Sort1, Sort2,</p>
+<p>PgmID, PgmName, PgmSeq, PgmMethodID, PgmMethodSeq,</p>
+<p>BizServiceID, BizServiceName, BizServiceSeq, BizMethodID, BizMethodName, BizMethodSeq,</p>
+<p>DatServiceID, DatServiceName, DatServiceSeq, DatMethodID, DatMethodName, DatMethodSeq,</p>
+<p>SqlScriptID, SqlScriptName, SqlScriptSeq</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>C.ExecuteSeq, F.OrderSeq,</p>
+<p>A.PgmID, A.Caption PgmName, A.PgmSeq, B.PgmMethodName AS PgmMethodID, B.PgmMethodSeq,</p>
+<p>D.ServiceID BizServiceID, D.ServiceName BizServiceName, D.ServiceSeq BizServiceSeq, E.MethodID BizMethodID, E.MethodName BizMethodName, E.MethodSeq BizMethodSeq,</p>
+<p>G.ServiceID DatServiceID, G.ServiceName DatServiceName, G.ServiceSeq DatServiceSeq, H.MethodID DatMethodID, H.MethodName DatMethodName, H.MethodSeq DatMethodSeq,</p>
+<p>J.SqlScriptID SqlScriptID, J.SqlScriptName SqlScriptName, J.SqlScriptSeq SqlScriptSeq</p>
+<p>FROM SYSDEVCommon.._TCAPgm AS A</p>
+<p>JOIN SYSDEVCommon.._TCAPgmMethod AS B ON A.CompanySeq = B.CompanySeq AND A.PgmSeq = B.PgmSeq</p>
+<p>JOIN SYSDEVCommon.._TCAPgmMethodItem AS C ON B.CompanySeq = C.CompanySeq AND B.PgmSeq = C.PgmSeq AND B.PgmMethodSeq = C.PgmMethodSeq AND C.ServiceSeq \&lt;&gt; 0 AND ISNULL(C.ExecuteYN, '') = '1'</p>
+<p>JOIN SYSDEVCommon.._TCAService AS D ON C.CompanySeq = D.CompanySeq AND C.ServiceSeq = D.ServiceSeq AND D.ServiceLayer = 130002</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethod AS E ON C.CompanySeq = E.CompanySeq AND C.ServiceSeq = E.ServiceSeq AND C.MethodSeq = E.MethodSeq AND ISNULL(E.WFType, 0) \&lt;&gt; 228002 -- SQL_WF</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethodKWF AS F ON E.CompanySeq = F.CompanySeq AND E.ServiceSeq = F.ServiceSeq AND E.MethodSeq = F.MethodSeq AND F.ProcessServiceSeq \&lt;&gt; 0 AND ISNULL(F.NotUse, '') \&lt;&gt; '1'</p>
+<p>JOIN SYSDEVCommon.._TCAService AS G ON F.CompanySeq = G.CompanySeq AND F.ProcessServiceSeq = G.ServiceSeq</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethod AS H ON F.CompanySeq = H.CompanySeq AND F.ProcessServiceSeq = H.ServiceSeq AND F.ProcessMethodSeq = H.MethodSeq</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethodScript AS I ON H.CompanySeq = I.CompanySeq AND H.ServiceSeq = I.ServiceSeq AND H.MethodSeq = I.MethodSeq AND ISNULL(I.SqlScriptSeq, 0) \&lt;&gt; 0</p>
+<p>JOIN SYSDEVCommon.._TCASQLScripts AS J ON I.CompanySeq = J.CompanySeq AND I.SqlScriptSeq = J.SqlScriptSeq</p>
+<p>WHERE A.CompanySeq = 0</p>
+<p>AND (@OriPgmSeq = 0 OR A.PgmSeq = @OriPgmSeq)</p>
+<p>AND (@OriServiceSeq = 0 OR (C.ServiceSeq = @OriServiceSeq) OR (G.ServiceSeq = @OriServiceSeq))</p>
+<p>AND (@OriSqlScriptSeq = 0 OR J.SqlScriptSeq = @OriSqlScriptSeq)</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock</p>
+<p>(</p>
+<p>Sort1, Sort2,</p>
+<p>PgmID, PgmName, PgmSeq, PgmMethodID, PgmMethodSeq,</p>
+<p>BizServiceID, BizServiceName, BizServiceSeq, BizMethodID, BizMethodName, BizMethodSeq,</p>
+<p>DatServiceID, DatServiceName, DatServiceSeq, DatMethodID, DatMethodName, DatMethodSeq,</p>
+<p>SqlScriptID, SqlScriptName, SqlScriptSeq</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>C.ExecuteSeq, 0 OrderSeq,</p>
+<p>A.PgmID, A.Caption PgmName, A.PgmSeq, B.PgmMethodName AS PgmMethodID, B.PgmMethodSeq,</p>
+<p>D.ServiceID BizServiceID, D.ServiceName BizServiceName, D.ServiceSeq BizServiceSeq, E.MethodID BizMethodID, E.MethodName BizMethodName, E.MethodSeq BizMethodSeq,</p>
+<p>'' DatServiceID, '' DatServiceName, 0 DatServiceSeq, '' DatMethodID, '' DatMethodName, 0 DatMethodSeq,</p>
+<p>J.SqlScriptID SqlScriptID, J.SqlScriptName SqlScriptName, J.SqlScriptSeq SqlScriptSeq</p>
+<p>FROM SYSDEVCommon.._TCAPgm AS A</p>
+<p>JOIN SYSDEVCommon.._TCAPgmMethod AS B ON A.CompanySeq = B.CompanySeq AND A.PgmSeq = B.PgmSeq</p>
+<p>JOIN SYSDEVCommon.._TCAPgmMethodItem AS C ON B.CompanySeq = C.CompanySeq AND B.PgmSeq = C.PgmSeq AND B.PgmMethodSeq = C.PgmMethodSeq AND C.ServiceSeq \&lt;&gt; 0 AND ISNULL(C.ExecuteYN, '') = '1'</p>
+<p>JOIN SYSDEVCommon.._TCAService AS D ON C.CompanySeq = D.CompanySeq AND C.ServiceSeq = D.ServiceSeq AND D.ServiceLayer = 130001</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethod AS E ON C.CompanySeq = E.CompanySeq AND C.ServiceSeq = E.ServiceSeq AND C.MethodSeq = E.MethodSeq AND ISNULL(E.WFType, 0) \&lt;&gt; 228002 -- SQL_WF</p>
+<p>--JOIN SYSDEVCommon.._TCAServiceMethodKWF AS F ON E.CompanySeq = F.CompanySeq AND E.ServiceSeq = F.ServiceSeq AND E.MethodSeq = F.MethodSeq AND F.ProcessServiceSeq \&lt;&gt; 0</p>
+<p>--JOIN SYSDEVCommon.._TCAService AS G ON F.CompanySeq = G.CompanySeq AND F.ProcessServiceSeq = G.ServiceSeq</p>
+<p>--JOIN SYSDEVCommon.._TCAServiceMethod AS H ON F.CompanySeq = H.CompanySeq AND F.ServiceSeq = H.ServiceSeq AND F.ProcessMethodSeq = H.MethodSeq</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethodScript AS I ON E.CompanySeq = I.CompanySeq AND E.ServiceSeq = I.ServiceSeq AND E.MethodSeq = I.MethodSeq AND ISNULL(I.SqlScriptSeq, 0) \&lt;&gt; 0</p>
+<p>JOIN SYSDEVCommon.._TCASQLScripts AS J ON I.CompanySeq = J.CompanySeq AND I.SqlScriptSeq = J.SqlScriptSeq</p>
+<p>WHERE A.CompanySeq = 0</p>
+<p>AND (@OriPgmSeq = 0 OR A.PgmSeq = @OriPgmSeq)</p>
+<p>AND (@OriServiceSeq = 0 OR C.ServiceSeq = @OriServiceSeq)</p>
+<p>AND (@OriSqlScriptSeq = 0 OR J.SqlScriptSeq = @OriSqlScriptSeq)</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock</p>
+<p>(</p>
+<p>Sort1, Sort2,</p>
+<p>PgmID, PgmName, PgmSeq, PgmMethodID, PgmMethodSeq,</p>
+<p>BizServiceID, BizServiceName, BizServiceSeq, BizMethodID, BizMethodName, BizMethodSeq,</p>
+<p>DatServiceID, DatServiceName, DatServiceSeq, DatMethodID, DatMethodName, DatMethodSeq,</p>
+<p>SqlScriptID, SqlScriptName, SqlScriptSeq</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>C.ExecuteSeq, F.OrderSeq,</p>
+<p>A.PgmID, A.Caption PgmName, A.PgmSeq, B.PgmMethodName AS PgmMethodID, B.PgmMethodSeq,</p>
+<p>D.ServiceID BizServiceID, D.ServiceName BizServiceName, D.ServiceSeq BizServiceSeq, E.MethodID BizMethodID, E.MethodName BizMethodName, E.MethodSeq BizMethodSeq,</p>
+<p>'' DatServiceID, '' DatServiceName, 0 DatServiceSeq, '' DatMethodID, '' DatMethodName, 0 DatMethodSeq,</p>
+<p>J.SqlScriptID SqlScriptID, J.SqlScriptName SqlScriptName, J.SqlScriptSeq SqlScriptSeq</p>
+<p>FROM SYSDEVCommon.._TCAPgm AS A</p>
+<p>JOIN SYSDEVCommon.._TCAPgmMethod AS B ON A.CompanySeq = B.CompanySeq AND A.PgmSeq = B.PgmSeq</p>
+<p>JOIN SYSDEVCommon.._TCAPgmMethodItem AS C ON B.CompanySeq = C.CompanySeq AND B.PgmSeq = C.PgmSeq AND B.PgmMethodSeq = C.PgmMethodSeq AND C.ServiceSeq \&lt;&gt; 0 AND ISNULL(C.ExecuteYN, '') = '1'</p>
+<p>JOIN SYSDEVCommon.._TCAService AS D ON C.CompanySeq = D.CompanySeq AND C.ServiceSeq = D.ServiceSeq AND D.ServiceLayer = 130002</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethod AS E ON C.CompanySeq = E.CompanySeq AND C.ServiceSeq = E.ServiceSeq AND C.MethodSeq = E.MethodSeq AND ISNULL(E.WFType, 0) = 228002 -- SQL_WF</p>
+<p>JOIN SYSDEVCommon.._TCAServiceMethodKWF AS F ON E.CompanySeq = F.CompanySeq AND E.ServiceSeq = F.ServiceSeq AND E.MethodSeq = F.MethodSeq AND F.SqlScriptSeq \&lt;&gt; 0 AND ISNULL(F.NotUse, '') \&lt;&gt; '1'</p>
+<p>--JOIN SYSDEVCommon.._TCAService AS G ON F.CompanySeq = G.CompanySeq AND F.ProcessServiceSeq = G.ServiceSeq</p>
+<p>--JOIN SYSDEVCommon.._TCAServiceMethod AS H ON F.CompanySeq = H.CompanySeq AND F.ServiceSeq = H.ServiceSeq AND F.ProcessMethodSeq = H.MethodSeq</p>
+<p>--JOIN SYSDEVCommon.._TCAServiceMethodScript AS I ON H.CompanySeq = I.CompanySeq AND H.ServiceSeq = I.ServiceSeq AND H.MethodSeq = I.MethodSeq</p>
+<p>JOIN SYSDEVCommon.._TCASQLScripts AS J ON F.CompanySeq = J.CompanySeq AND F.SqlScriptSeq = J.SqlScriptSeq</p>
+<p>WHERE A.CompanySeq = 0</p>
+<p>AND (@OriPgmSeq = 0 OR A.PgmSeq = @OriPgmSeq)</p>
+<p>AND (@OriServiceSeq = 0 OR C.ServiceSeq = @OriServiceSeq)</p>
+<p>AND (@OriSqlScriptSeq = 0 OR J.SqlScriptSeq = @OriSqlScriptSeq)</p>
+<p>SELECT A.*</p>
+<p>FROM #BIZ_OUT_DataBlock AS A</p>
+<p>ORDER BY PgmID, PgmName, PgmSeq, PgmMethodID, PgmMethodSeq, Sort1,</p>
+<p>BizServiceID, BizServiceName, BizServiceSeq, BizMethodID, BizMethodName, BizMethodSeq, Sort2,</p>
+<p>DatServiceID, DatServiceName, DatServiceSeq, DatMethodID, DatMethodName, DatMethodSeq,</p>
+<p>SqlScriptID, SqlScriptName, SqlScriptSeq</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, OriPgmSeq INT, OriServiceSeq INT, OriSqlScriptSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, OriPgmSeq INT, OriServiceSeq INT, OriSqlScriptSeq INT, PgmID NVARCHAR(100), PgmName NVARCHAR(100), PgmSeq INT, PgmMethodID NVARCHAR(100), PgmMethodSeq INT, BizServiceID NVARCHAR(100), BizServiceName NVARCHAR(100), BizServiceSeq INT, BizMethodID NVARCHAR(100), BizMethodName NVARCHAR(100), BizMethodSeq INT, DatServiceID NVARCHAR(100), DatServiceName NVARCHAR(100), DatServiceSeq INT, DatMethodID NVARCHAR(100), DatMethodName NVARCHAR(100), DatMethodSeq INT, SqlScriptID NVARCHAR(100), SqlScriptName NVARCHAR(100), SqlScriptSeq INT, SPScript NVARCHAR(MAX)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, OriPgmSeq, OriServiceSeq, OriSqlScriptSeq)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'1', N'', N'', N'', N'592'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--select * from DANAMTEMPCommon.dbo._TCASQLScripts where SqlScriptid = '_SHRBasTravelRecQuery'</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 86920125</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 1</p>
+<p>SET @PgmSeq = 86920091</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC danam_SPgmLinkListQuery</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+  </article>
+</div>
+</body>
+</html>

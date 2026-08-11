@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>루아 메세지박스 줄바꿈</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>루아 메세지박스 줄바꿈</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">루아 메세지박스 줄바꿈</h1>
+<p>local msg1 = '[일비/숙박비/연박비의 경우 [계산] 버튼을 통해 자동계산 됩니다.'</p>
+<p>local msg2 = '[계산] 버튼을 누르셨습니까?'</p>
+<p>local message = msg1 .. '\n' .. msg2</p>
+<p>rtnType = MessageBox(message,'', 'MsgBoxTypeYesNo')</p>
+<p>if rtnType ~= 1 then</p>
+<blockquote>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

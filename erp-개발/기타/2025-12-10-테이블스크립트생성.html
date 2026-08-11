@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테이블스크립트생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>테이블스크립트생성</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">테이블스크립트생성</h1>
+<p>CREATE PROCEDURE sys_SWCACreateTableScriptQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>SET @CompanySeq = 0</p>
+<p>SET NOCOUNT ON</p>
+<p>DECLARE @TableName NVARCHAR(200),</p>
+<p>@DropTable NCHAR(1)='0',</p>
+<p>@IsText NCHAR(1)='0',</p>
+<p>@IsTextLog NCHAR(1)='0',</p>
+<p>@IsPrimary NCHAR(1)='0',</p>
+<p>@IsLogTableAdd NCHAR(1)='0'</p>
+<p>SELECT @TableName = ISNULL(TableName , '0'),</p>
+<p>@DropTable = ISNULL(DropTable , '0'),</p>
+<p>@IsText = ISNULL(IsText , '0'),</p>
+<p>@IsTextLog = ISNULL(IsTextLog , '0'),</p>
+<p>@IsPrimary = ISNULL(IsPrimary , '0'),</p>
+<p>@IsLogTableAdd = ISNULL(IsLogTableAdd, '0')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>DECLARE @TableSeq INT,</p>
+<p>@fieldName VARCHAR(200),</p>
+<p>@Type VARCHAR(200),</p>
+<p>@Type2 VARCHAR(200),</p>
+<p>@length INT,</p>
+<p>@DecLength INT,</p>
+<p>@NullType INT,</p>
+<p>@KeyYN INT,</p>
+<p>@ColumnCaption NVARCHAR(200),</p>
+<p>@sqlText VARCHAR(MAX),</p>
+<p>@sqlTextLog VARCHAR(MAX),</p>
+<p>@sql4 VARCHAR(MAX),</p>
+<p>@sqlkey4 VARCHAR(MAX),</p>
+<p>@sqlPrikey4 VARCHAR(MAX),</p>
+<p>@sqlIndex VARCHAR(MAX),</p>
+<p>@sqlIndexLog VARCHAR(MAX),</p>
+<p>@sqlPrimaryKey VARCHAR(MAX),</p>
+<p>@sqlLogTableAdd VARCHAR(MAX),</p>
+<p>@MaxLength INT</p>
+<p>SELECT @sql4 = '', @sqlText = '', @sqlTextLog = '', @sqlIndex = '', @sqlIndexLog = '', @sqlkey4 = '', @sqlPrikey4 = ''</p>
+<p>SELECT @TableSeq = TableSeq, @TableName = TableName FROM _TCATables WHERE TableName = @TableName</p>
+<p>SELECT @MaxLength = ((CEILING(MAX(LEN(ISNULL(b.ColumnName,'')))) / 4) + 1) * 4</p>
+<p>FROM _TCATables a</p>
+<p>INNER JOIN _TCAColumns b ON (b.CompanySeq = @CompanySeq AND a.TableSeq = b.TableSeq)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.TableSeq = @TableSeq</p>
+<p>DECLARE Tables_Cursor CURSOR FOR</p>
+<p>SELECT ISNULL(b.ColumnName,'') as fieldName,</p>
+<p>ISNULL(C.MinorName,'') as Type,</p>
+<p>ISNULL(B.length,0), ISNULL(B.DecLength,0), ISNULL(B.NullType,0),</p>
+<p>B.KeyYN AS KeyYN,</p>
+<p>B.Remark AS ColumnCaption</p>
+<p>FROM _TCATables a</p>
+<p>INNER JOIN _TCAColumns b ON (b.CompanySeq = @CompanySeq AND a.TableSeq = b.TableSeq)</p>
+<p>LEFT OUTER JOIN _TCAMinor C ON(C.CompanySeq = @CompanySeq AND B.DataType = C.MinorSeq AND C.LanguageSeq=1)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.TableSeq = @TableSeq</p>
+<p>ORDER BY KeyYN DESC, b.ColumnSort</p>
+<p>IF @DropTable = '1' -- DropTable문장넣기</p>
+<p>BEGIN</p>
+<p>SET @sqlText = 'IF EXISTS (SELECT * FROM SYSOBJECTS WHERE Name = ''' + @TableName + ''' AND xtype = ''U'' )' + char(13) + char(10)</p>
+<p>SET @sqlText = @sqlText + ' DROP TABLE ' + @TableName + char(13) + char(10) + char(13) + char(10)</p>
+<p>SET @sqlTextLog = 'IF EXISTS (SELECT * FROM SYSOBJECTS WHERE Name = ''' + @TableName + 'Log'' AND xtype = ''U'' )' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + ' DROP TABLE ' + @TableName + 'Log' + char(13) + char(10) + char(13) + char(10)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SET @sqlText = @sqlText + 'IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE Name = ''' + @TableName + ''' AND xtype = ''U'' )' + char(13) + char(10)</p>
+<p>SET @sqlText = @sqlText + 'BEGIN' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + 'IF NOT EXISTS (SELECT * FROM SYSOBJECTS WHERE Name = ''' + @TableName + 'Log' + ''' AND xtype = ''U'' )' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + 'BEGIN' + char(13) + char(10)</p>
+<p>END</p>
+<p>SET @sqlText = @sqlText + 'CREATE TABLE ' + @TableName + char(13) + char(10) + '(' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + 'CREATE TABLE ' + @TableName + 'Log' + char(13) + char(10) + '(' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + SUBSTRING(' LogSeq' + SPACE(@MaxLength), 1, @MaxLength + 4) + 'INT IDENTITY(1,1) NOT NULL, ' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + SUBSTRING(' LogUserSeq' + SPACE(@MaxLength), 1, @MaxLength + 4) + 'INT NOT NULL, ' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + SUBSTRING(' LogDateTime' + SPACE(@MaxLength), 1, @MaxLength + 4) + 'DATETIME NOT NULL, ' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + SUBSTRING(' LogType' + SPACE(@MaxLength), 1, @MaxLength + 4) + 'NCHAR(1) NOT NULL, ' + char(13) + char(10)</p>
+<p>SET @sqlTextLog = @sqlTextLog + SUBSTRING(' LogPgmSeq' + SPACE(@MaxLength), 1, @MaxLength + 4) + 'INT NULL, ' + char(13) + char(10)</p>
+<p>IF @IsPrimary = '1'</p>
+<p>SET @sqlPrimaryKey = 'CONSTRAINT PK' + @TableName + ' PRIMARY KEY CLUSTERED ('</p>
+<p>ELSE</p>
+<p>SET @sqlIndex = 'CREATE UNIQUE CLUSTERED INDEX IDXTemp' + @TableName + ' ON ' + @TableName + '('</p>
+<p>SET @sqlIndexLog = 'CREATE UNIQUE CLUSTERED INDEX IDXTemp' + @TableName + 'Log' + ' ON ' + @TableName + 'Log ' + '(LogSeq)' + char(13) + char(10)</p>
+<p>OPEN Tables_Cursor</p>
+<p>FETCH NEXT FROM Tables_Cursor INTO @fieldName, @Type, @length, @DecLength , @NullType, @KeyYN, @ColumnCaption</p>
+<p>WHILE @@FETCH_STATUS = 0</p>
+<p>BEGIN</p>
+<p>IF @Type in ('char', 'varchar', 'nchar', 'nvarchar')</p>
+<p>BEGIN</p>
+<p>IF (@length = -1)</p>
+<p>SELECT @sql4 = @sql4 + SPACE(4) + SUBSTRING(@fieldName + SPACE(@MaxLength), 1, @MaxLength) + UPPER(@Type) + '(MAX) '</p>
+<p>ELSE</p>
+<p>SELECT @sql4 = @sql4 + SPACE(4) + SUBSTRING(@fieldName + SPACE(@MaxLength), 1, @MaxLength) + UPPER(@Type) + '(' + CONVERT(VARCHAR(30), @length) + ') '</p>
+<p>END</p>
+<p>ELSE -- 숫자타입인경우</p>
+<p>BEGIN</p>
+<p>IF @Type in ('decimal', 'numeric' )</p>
+<p>SELECT @sql4 = @sql4 + SPACE(4) + SUBSTRING(@fieldName + SPACE(@MaxLength), 1, @MaxLength) + UPPER(@Type) + '(' + CONVERT(varchar(30), @length) + ',' + CONVERT(varchar(30), @DecLength) + ') '</p>
+<p>ELSE</p>
+<p>SELECT @sql4 = @sql4 + SPACE(4) + SUBSTRING(@fieldName + SPACE(@MaxLength), 1, @MaxLength) + UPPER(@Type) + ' '</p>
+<p>END</p>
+<p>SELECT @sql4 = @sql4 + CASE WHEN @Type = 'NVARCHAR' THEN SPACE(5 - (CASE WHEN @length = -1 THEN 3 ELSE LEN(CONVERT(VARCHAR(5), @length)) END))</p>
+<p>WHEN @Type = 'INT' THEN SPACE(12)</p>
+<p>WHEN @Type = 'NCHAR' THEN SPACE(7)</p>
+<p>WHEN @Type = 'BIT' THEN SPACE(8)</p>
+<p>WHEN @Type = 'DATETIME' THEN SPACE(7)</p>
+<p>WHEN @Type = 'DECIMAL' THEN SPACE(2)</p>
+<p>WHEN @Type = 'IMAGE' THEN SPACE(8)</p>
+<p>WHEN @Type = 'BIGINT' THEN SPACE(8)</p>
+<p>ELSE SPACE(1)</p>
+<p>END</p>
+<p>IF (@KeyYN = 1 )</p>
+<p>BEGIN</p>
+<p>SELECT @sqlkey4 = @sqlkey4 + @fieldName + ', '</p>
+<p>SELECT @sqlPrikey4 = @sqlPrikey4 + @fieldName + ' ASC, '</p>
+<p>END</p>
+<p>IF (@NullType = 1)</p>
+<p>SELECT @sql4 = @sql4 + ' NULL, '</p>
+<p>ELSE</p>
+<p>SELECT @sql4 = @sql4 + 'NOT NULL, '</p>
+<p>SELECT @sql4 = @sql4 + char(13) + char(10)</p>
+<p>FETCH NEXT FROM Tables_Cursor INTO @fieldName, @Type, @length , @DecLength, @NullType, @KeyYN, @ColumnCaption</p>
+<p>END</p>
+<p>CLOSE Tables_Cursor</p>
+<p>DEALLOCATE Tables_Cursor</p>
+<p>SET @sqlPrimaryKey = @sqlPrimaryKey + @sqlPrikey4</p>
+<p>SET @sqlPrimaryKey = substring(@sqlPrimaryKey, 1, datalength(@sqlPrimaryKey)-2)</p>
+<p>SET @sqlPrimaryKey = @sqlPrimaryKey + ')' + char(13) + char(10)</p>
+<p>SET @sqlText = @sqlText + @sql4</p>
+<p>SET @sqlText = substring(@sqlText, 1, datalength(@sqlText)-4)</p>
+<p>IF @IsPrimary = '1'</p>
+<p>SET @sqlText = @sqlText + ', ' + char(13) + char(10) + @sqlPrimaryKey + ')'</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SET @sqlText = @sqlText + char(13) + char(10) + ')' + char(13) + char(10)</p>
+<p>SET @sqlIndex = @sqlIndex + @sqlkey4</p>
+<p>SET @sqlIndex = substring(@sqlIndex, 1, datalength(@sqlIndex)-2)</p>
+<p>SET @sqlIndex = @sqlIndex + ')' + char(13) + char(10)</p>
+<p>END</p>
+<p>IF @DropTable != '1' -- DropTable 아닌 경우에만 테이블 추가에 END 구문 넣어준다.</p>
+<p>BEGIN</p>
+<p>SET @sqlText = @sqlText + 'END' + char(13) + char(10)</p>
+<p>END</p>
+<p>-- WBS용 로그를 남기기 위해서 로그테이블 넣어주는 스크립트</p>
+<p>IF @IsLogTableAdd = '1'</p>
+<p>BEGIN</p>
+<p>SET @sqlLogTableAdd = 'IF NOT EXISTS (SELECT 1 FROM _TCOMTableLogInfo WHERE TableSeq = ' + RTRIM(CONVERT(NCHAR(10), @TableSeq)) + ')' + NCHAR(13)</p>
+<p>SET @sqlLogTableAdd = @sqlLogTableAdd + 'BEGIN' + NCHAR(13)</p>
+<p>SET @sqlLogTableAdd = @sqlLogTableAdd + SPACE(4) + 'INSERT _TCOMTableLogInfo (TableName, CompanySeq, TableSeq, UseLog, LastUserSeq, LastDateTime)' + NCHAR(13)</p>
+<p>SET @sqlLogTableAdd = @sqlLogTableAdd + SPACE(4) + 'SELECT ''' + @TableName + ''', 1, ' + RTRIM(CONVERT(NCHAR(10), @TableSeq)) + ', ''1'', 1, GETDATE()' + NCHAR(13)</p>
+<p>SET @sqlLogTableAdd = @sqlLogTableAdd + + 'END' + NCHAR(13)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SET @sqlLogTableAdd = ''</p>
+<p>END</p>
+<p>SET @sqlTextLog = @sqlTextLog + @sql4</p>
+<p>SET @sqlTextLog = substring(@sqlTextLog, 1, datalength(@sqlTextLog)-4)</p>
+<p>SET @sqlTextLog = @sqlTextLog + char(13) + char(10) + ')' + char(13) + char(10)</p>
+<p>IF @DropTable != '1' -- DropTable 아닌 경우에만 테이블 추가에 END 구문 넣어준다.</p>
+<p>BEGIN</p>
+<p>SET @sqlTextLog = @sqlTextLog + 'END' + char(13) + char(10)</p>
+<p>END</p>
+<p>IF @IsText = 1 AND @IsTextLog = 1</p>
+<p>SELECT @sqlText + char(13) + char(10) + @sqlIndex + char(13) + char(10) + @sqlTextLog + char(13) + char(10) + @sqlIndexLog + NCHAR(13) + @sqlLogTableAdd + ' ' as TableSql</p>
+<p>ELSE IF @IsText = 1 AND @IsTextLog = 0</p>
+<p>SELECT @sqlText + char(13) + char(10) + @sqlIndex + NCHAR(13) + @sqlLogTableAdd + ' ' as TableSql</p>
+<p>ELSE IF @IsText = 0 AND @IsTextLog = 1</p>
+<p>SELECT @sqlTextLog + char(13) + char(10) + @sqlIndexLog + NCHAR(13) + @sqlLogTableAdd + ' ' as TableSql</p>
+<p>ELSE</p>
+<p>SELECT '' as TableSql</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, TableName NVARCHAR(200), IsText NCHAR(1), IsTextLog NCHAR(1), DropTable NCHAR(1), IsPrimary NCHAR(1), IsLogTableAdd NCHAR(1)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, TableName NVARCHAR(200), IsText NCHAR(1), IsTextLog NCHAR(1), DropTable NCHAR(1), IsPrimary NCHAR(1), IsLogTableAdd NCHAR(1), TableSql NVARCHAR(4000)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, TableName, IsText, IsTextLog, DropTable, IsPrimary, IsLogTableAdd)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'0', N'', N'svs_TSIASServiceRepairClient', N'1', N'0', N'1', N'1', N'1'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 18820580</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 27292</p>
+<p>SET @PgmSeq = 18820687</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC sys_SWCACreateTableScriptQuery</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+  </article>
+</div>
+</body>
+</html>

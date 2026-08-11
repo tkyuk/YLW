@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 진행 연결</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 진행 연결</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">제뉴인 진행 연결</h1>
+<p>-- 품목 중복인지 체크</p>
+<p>BEGIN TRAN</p>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>,@UserSeq INT = 1</p>
+<p>CREATE TABLE #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName NVARCHAR(100),</p>
+<p>ToSeq INT,</p>
+<p>ToSerl INT,</p>
+<p>ToSubSerl INT,</p>
+<p>FromTableName NVARCHAR(100),</p>
+<p>FromSeq INT,</p>
+<p>FromSerl INT,</p>
+<p>FromSubSerl INT,</p>
+<p>ToQty DECIMAL(19,5),</p>
+<p>ToStdQty DECIMAL(19,5),</p>
+<p>ToAmt DECIMAL(19,5),</p>
+<p>ToVAT DECIMAL(19,5),</p>
+<p>FromQty DECIMAL(19,5),</p>
+<p>FromSTDQty DECIMAL(19,5),</p>
+<p>FromAmt DECIMAL(19,5),</p>
+<p>FromVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>-- 진행연결(구매발주 =&gt; 구매납품)</p>
+<p>INSERT INTO #SComSourceDailyBatch</p>
+<p>SELECT '_TSLSalesItem' AS ToTableName, B.SalesSeq AS ToSeq, B.SalesSerl AS ToSerl, 0,</p>
+<p>'_TSLInvoiceItem' AS FromTableName, A.InvoiceSeq AS FromSeq, A.InvoiceSerl AS FromSerl, 0,</p>
+<p>B.Qty, B.Qty, B.CurAmt, B.CurVAT,</p>
+<p>A.Qty, A.STDQty, A.CurAmt, A.CurVAT</p>
+<p>FROM _TSLInvoiceItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TSLSalesItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.SalesSeq = 32414</p>
+<p>AND A.InvoiceSeq = 32556</p>
+<p>SELECT * FROM #SComSourceDailyBatch</p>
+<p>-- 진행연결</p>
+<p>EXEC _SComSourceDailyBatch 'A', @CompanySeq, @UserSeq</p>
+<p>SELECT *</p>
+<p>FROM _TCOMSourceDaily AS A</p>
+<p>JOIN #SComSourceDailyBatch AS B ON B.FromSeq = A.FromSeq</p>
+<p>AND B.FromSerl = A.FromSerl</p>
+<p>AND B.ToSeq = A.ToSeq</p>
+<p>AND B.ToSerl = A.ToSerl</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>색 (합계, 소계)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>색 (합계, 소계)</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">색 (합계, 소계)</h1>
+<p>for row = 0, SS1.DataRowCnt -1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1</p>
+</blockquote>
+<p>SS1.ActiveColumnName = 'Gubn'         </p>
+<blockquote>
+<p>if CellText(SS1, row, 'Gubn') == '2' then</p>
+<p>SS1.ActiveCellBackColor= -136743</p>
+<p>elseif CellText(SS1, row, 'Gubn') == '3' then</p>
+<p>SS1.ActiveCellBackColor = -10027111</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

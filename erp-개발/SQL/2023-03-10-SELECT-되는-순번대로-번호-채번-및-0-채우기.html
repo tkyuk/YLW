@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SELECT 되는 순번대로 번호 채번 및 0 채우기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SELECT 되는 순번대로 번호 채번 및 0 채우기</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="select-0">SELECT 되는 순번대로 번호 채번 및 0 채우기</h1>
+<p>ROW_NUMBER() OVER(ORDER BY (SELECT 1)</p>
+<p>RIGHT('00' + CAST(ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS NVARCHAR), 2)</p>
+<p>RIGHT('000' + CAST(99 AS NVARCHAR), 3)</p>
+  </article>
+</div>
+</body>
+</html>

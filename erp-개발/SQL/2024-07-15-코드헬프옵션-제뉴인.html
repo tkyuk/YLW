@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드헬프옵션 - 제뉴인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드헬프옵션 - 제뉴인</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">코드헬프옵션 - 제뉴인</h1>
+<p>CREATE PROCEDURE cymc_SCACodeHelpErrorCode</p>
+<p>@WorkingTag NVARCHAR(1),</p>
+<p>@LanguageSeq INT,</p>
+<p>@CodeHelpSeq INT,</p>
+<p>@DefQueryOption INT, -- 2: direct search</p>
+<p>@CodeHelpType TINYINT,</p>
+<p>@PageCount INT = 20,</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@Keyword NVARCHAR(50) = '',</p>
+<p>@Param1 NVARCHAR(50) = '', --</p>
+<p>@Param2 NVARCHAR(50) = '', --</p>
+<p>@Param3 NVARCHAR(50) = '',</p>
+<p>@Param4 NVARCHAR(50) = '',</p>
+<blockquote>
+<p>@SubConditionSql        INT = 0</p>
+</blockquote>
+<p>AS</p>
+<p>SET ROWCOUNT @PageCount</p>
+<p>DECLARE @ErrorCode NVARCHAR(100),</p>
+<p>@ErrorCodeSeq INT,</p>
+<p>@ModuleSeq INT</p>
+<p>SELECT @Param1 = ISNULL(LTRIM(RTRIM(@Param1)), ''),</p>
+<p>@Param2 = ISNULL(LTRIM(RTRIM(@Param2)), ''),</p>
+<p>@Param3 = ISNULL(LTRIM(RTRIM(@Param3)), ''),</p>
+<p>@Param4 = ISNULL(LTRIM(RTRIM(@Param4)), '')</p>
+<p>IF @DefQueryOption = 0 SELECT @ErrorCodeSeq = CONVERT(INT, REPLACE(@Keyword, '%', ''))</p>
+<p>IF @DefQueryOption = 1 SELECT @ErrorCode = ISNULL(@Keyword, '')</p>
+<p>SELECT @ModuleSeq = CONVERT(INT, @Param1)</p>
+<p>SELECT A.ErrorCodeSeq AS ErrorCode, A.ErrorCode AS ErrorName, A.Condition</p>
+<p>FROM CYMC_TPjtCSErrorCode AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ((@DefQueryOption = 0 AND (@ErrorCodeSeq = 0 OR A.ErrorCodeSeq = @ErrorCodeSeq)) -- 에러내부코드</p>
+<p>OR (@DefQueryOption = 1 AND A.ErrorCode LIKE @ErrorCode + '%')) -- 에러코드</p>
+<p>AND (@ModuleSeq = 0 OR A.ModuleSeq = @ModuleSeq)</p>
+<p>ORDER BY A.ErrorCodeSeq</p>
+<p>SET ROWCOUNT 0</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

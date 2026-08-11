@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>241112 라온 분개전표 그룹웨어 연동 항목 명칭</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>241112 라온 분개전표 그룹웨어 연동 항목 명칭</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241112">241112 라온 분개전표 그룹웨어 연동 항목 명칭</h1>
+<hr />
+<p>-- #Temp_Detail</p>
+<hr />
+<p>AccUnitName -- 회계단위</p>
+<p>SlipKindName -- 전표유형</p>
+<p>RegDeptName -- 등록부서</p>
+<p>RegDate -- 기표일자</p>
+<p>SlipNo -- 기표일련번호</p>
+<p>RegEmpName --등록자</p>
+<p>AccDateFull -- 회계일자</p>
+<p>SetSlipNo -- 승인번호</p>
+<p>RowNo -- 행번호</p>
+<p>AccName -- 계정과목</p>
+<p>EvidName -- 증빙</p>
+<p>CostCCtrName -- 활동센터</p>
+<p>RemValue1 -- 관리항목값1</p>
+<p>RemValue2 -- 관리항목값2</p>
+<p>RemValue3 -- 관리항목값3</p>
+<p>RemValue4 -- 관리항목값4</p>
+<p>RemValue5 -- 관리항목값5</p>
+<p>RemValue6 -- 관리항목값6</p>
+<p>RemValue7 -- 관리항목값7</p>
+<p>RemValue8 -- 관리항목값8</p>
+<p>Summary -- 적요</p>
+<p>CostDeptName -- 귀속부서</p>
+<p>DrAmt -- 차변금액</p>
+<p>CrAmt -- 대변금액</p>
+<p>CurrName -- 통화</p>
+<p>ExRate -- 환율</p>
+<p>DrForAmt -- 외화차변금액</p>
+<p>CrForAmt -- 외화대변금액</p>
+<p>SlipUnitName -- 전표관리단위</p>
+<p>SlipMstID -- 기표번호</p>
+<p>Remark -- 적요</p>
+<p>SlipID -- 전표기표번호</p>
+<p>RowSlipUnit -- 행별전표관리단위</p>
+<p>UMCostType -- 비용구분</p>
+<p>SMDrOrCr -- 차대구분</p>
+<p>DivExRate -- 나누기 환율</p>
+<p>NDVATAmt -- 불공제세액</p>
+<p>IsSet -- 승인여부</p>
+<p>AccNo -- 계정번호</p>
+<p>CurrUnit -- 통화표시단위</p>
+<p>TaxKindName -- 세무구분코드</p>
+<p>CashItemName -- 현금흐름표과목코드</p>
+<p>SMCostItemKindName -- 원가항목유형</p>
+<p>CostItemName -- 원가항목</p>
+<p>BgtDeptName -- 예산부서</p>
+<p>BgtCCtrName -- 예산활동센터</p>
+<p>BgtName -- 예산과목코드</p>
+<p>SMInOrOut</p>
+<p>IsCash -- 출납처리여부</p>
+<p>CashDate -- 출납예정일</p>
+<p>SMCashMethod -- 출납방법</p>
+<p>CustInfo -- '출납거래처정보'</p>
+<p>RegDateTime -- 전표 작성일</p>
+<p>FullRegDateTime --전표작성일시분초</p>
+<p>ApprovalDateTime --실제승인일시분초</p>
+<p>RTSetAccDate --8자리의 실제승인일자</p>
+<p>TaxNoAlias        -- 사업자번호명</p>
+<hr />
+<p>-- #Temp_Detail</p>
+<hr />
+<p>SELECT REPLACE('AccUnitName ',' ',''),REPLACE('회계단위 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('SlipKindName ',' ',''),REPLACE('전표유형 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RegDeptName ',' ',''),REPLACE('등록부서 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RegDate ',' ',''),REPLACE('기표일자 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('SlipNo ',' ',''),REPLACE('기표일련번호',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RegEmpName ',' ',''),REPLACE('등록자 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('AccDateFull ',' ',''),REPLACE('회계일자 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('SetSlipNo ',' ',''),REPLACE('승인번호 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RowNo ',' ',''),REPLACE('행번호 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('AccName ',' ',''),REPLACE('계정과목 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('EvidName ',' ',''),REPLACE('증빙 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('CostCCtrName ',' ',''),REPLACE('활동센터 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue1 ',' ',''),REPLACE('관리항목값1 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue2 ',' ',''),REPLACE('관리항목값2 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue3 ',' ',''),REPLACE('관리항목값3 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue4 ',' ',''),REPLACE('관리항목값4 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue5 ',' ',''),REPLACE('관리항목값5 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue6 ',' ',''),REPLACE('관리항목값6 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue7 ',' ',''),REPLACE('관리항목값7 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('RemValue8 ',' ',''),REPLACE('관리항목값8 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('Summary ',' ',''),REPLACE('적요 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('CostDeptName ',' ',''),REPLACE('귀속부서 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('DrAmt ',' ',''),REPLACE('차변금액 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('CrAmt ',' ',''),REPLACE('대변금액 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('CurrName ',' ',''),REPLACE('통화 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('ExRate ',' ',''),REPLACE('환율 ',' ','')</p>
+<p>UNION ALL SELECT REPLACE('DrForAmt ',' ',''),REPLACE('외화차변금액',' ','')</p>
+<p>UNION ALL SELECT REPLACE('CrForAmt ',' ',''),REPLACE('외화대변금액',' ','')</p>
+<p>UNION ALL SELECT REPLACE('SlipUnitName ',' ',''),REPLACE('전표관리단위',' ','')</p>
+<p>UNION ALL SELECT REPLACE('SlipMstID ',' ',''),REPLACE('기표번호 ',' ','')</p>
+  </article>
+</div>
+</body>
+</html>

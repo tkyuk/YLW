@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뷰테이블 권한</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>뷰테이블 권한</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">뷰테이블 권한</h1>
+<p>GRANT SELECT ON CYMC_VPUORDPOItem TO onepart</p>
+<p>GRANT VIEW DEFINITION ON CYMC_VPUORDPOItem TO onepart</p>
+<p>go</p>
+<p>use master</p>
+<p>go</p>
+<p>GRANT EXECUTE ON sp_helptext TO onepart</p>
+<p><span class="mark">-- ACE 25.12.02</span></p>
+<p>drop PROC sys_SSYSUserGrant</p>
+<p>go</p>
+<p>CREATE PROC sys_SSYSUserGrant</p>
+<p>AS</p>
+<p>SET NOCOUNT ON;</p>
+<p>/*</p>
+<p>SELECT B.Name AS UserName, C.Name AS ObjectName, A.Permission_Name AS PermissionName,</p>
+<p>'UNION SELECT '+</p>
+<p>N'''' + B.Name COLLATE Korean_Wansung_CS_AS + N''' AS UserName, ' +</p>
+<p>N'''' + C.Name COLLATE Korean_Wansung_CS_AS + N''' AS ObjectName, ' +</p>
+<p>N'''' + A.Permission_Name COLLATE Korean_Wansung_CS_AS + N''' AS PermissionName' AS [InsertData],</p>
+<p>A.state_desc COLLATE Korean_Wansung_CS_AS + ' '</p>
+<p>+ A.permission_name COLLATE Korean_Wansung_CS_AS + ' ON OBJECT::'</p>
+<p>+ C.name COLLATE Korean_Wansung_CS_AS + ' TO '</p>
+<p>+ B.name COLLATE Korean_Wansung_CS_AS as GRANT_SQL</p>
+<p>FROM sys.database_permissions AS A</p>
+<p>JOIN sys.database_principals AS B ON B.Principal_ID = A.Grantee_Principal_ID</p>
+<p>JOIN sys.objects AS C ON C.Object_ID = A.Major_ID</p>
+<p>WHERE A.Class = 1</p>
+<p>AND B.Type = 'S'</p>
+<p>AND A.state_desc = 'GRANT'</p>
+<p>AND B.Name NOT IN ('public', 'guest')</p>
+<p>AND B.Name = 'mes'</p>
+<p>ORDER BY B.Name, C.Name, A.Permission_Name</p>
+<p>*/</p>
+<p>DECLARE @IDX_NO INT,</p>
+<p>@Sql NVARCHAR(1000),</p>
+<p>@UserName NVARCHAR(100),</p>
+<p>@ObjectName NVARCHAR(100),</p>
+<p>@PermissionName NVARCHAR(100)</p>
+<p>CREATE TABLE #TSYSUserGrant</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1, 1),</p>
+<p>UserName NVARCHAR(100),</p>
+<p>ObjectName NVARCHAR(100),</p>
+<p>PermissionName NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TSYSUserGrant(UserName, ObjectName, PermissionName)</p>
+<p>-- VIEW 테이블 권한 부여</p>
+<p>SELECT 'mes' AS UserName, 'gnst_VDASMinor' AS ObjectName, 'SELECT' AS PermissionName</p>
+<blockquote>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDAUMinor' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDAItemAssetView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDAUnitView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDAEmp' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDATaxUnitView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDABizUnitView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VPDBaseWorkCenterView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDADept' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDAWH' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VPDBaseProcessView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDAItemView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VDACustView' AS ObjectName, 'SELECT' AS PermissionName</p>
+</blockquote>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_VPDBOMView' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESOrderIF' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESOrderIF' AS ObjectName, 'INSERT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESOrderIF' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESOrderIF' AS ObjectName, 'DELETE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESInvoiceIF' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESInvoiceIF' AS ObjectName, 'INSERT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESInvoiceIF' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESInvoiceIF' AS ObjectName, 'DELETE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkOrderIF' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkOrderIF' AS ObjectName, 'INSERT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkOrderIF' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkOrderIF' AS ObjectName, 'DELETE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESPUDelvReqIF' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESPUDelvReqIF' AS ObjectName, 'INSERT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESPUDelvReqIF' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESPUDelvReqIF' AS ObjectName, 'DELETE' AS PermissionName</p>
+<p>--UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkReportIF' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>--UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkReportIF' AS ObjectName, 'INSERT' AS PermissionName</p>
+<p>--UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkReportIF' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>--UNION SELECT 'mes' AS UserName, 'gnst_TMESWorkReportIF' AS ObjectName, 'DELETE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESEBOMIF' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESEBOMIF' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESMBOMIF' AS ObjectName, 'SELECT' AS PermissionName</p>
+<p>UNION SELECT 'mes' AS UserName, 'gnst_TMESMBOMIF' AS ObjectName, 'UPDATE' AS PermissionName</p>
+<p>SELECT @IDX_NO = 0</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@IDX_NO = A.IDX_NO,</p>
+<p>@UserName = '',</p>
+<p>@ObjectName = '',</p>
+<p>@PermissionName = ''</p>
+<p>FROM #TSYSUserGrant AS A</p>
+<p>WHERE A.IDX_NO &gt; @IDX_NO</p>
+<p>ORDER BY A.IDX_NO ASC</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>SELECT @UserName = A.UserName,</p>
+<p>@ObjectName = A.ObjectName,</p>
+<p>@PermissionName = A.PermissionName</p>
+<p>FROM #TSYSUserGrant AS A</p>
+<p>WHERE A.IDX_NO = @IDX_NO</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM sys.database_principals AS B WITH(NOLOCK) WHERE B.Name = @UserName)</p>
+<p>AND EXISTS(SELECT TOP 1 1 FROM sys.objects AS C WITH(NOLOCK) WHERE C.Name = @ObjectName)</p>
+<p>BEGIN</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1</p>
+<p>FROM sys.database_permissions AS A WITH(NOLOCK)</p>
+<p>JOIN sys.database_principals AS B WITH(NOLOCK) ON B.Principal_ID = A.Grantee_Principal_ID</p>
+<p>JOIN sys.objects AS C WITH(NOLOCK) ON C.Object_ID = A.Major_ID</p>
+<p>WHERE A.Permission_Name = @PermissionName</p>
+<p>AND B.Name = @UserName</p>
+<p>AND C.Name = @ObjectName</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @Sql = N'GRANT ' + @PermissionName + N' ON OBJECT::' + @ObjectName + N' TO ' + @UserName</p>
+<p>EXEC sp_executeSql @Sql</p>
+<p>PRINT @Sql</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>DROP TABLE #TSYSUserGrant</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>EXEC sys_SSYSUserGrant</p>
+  </article>
+</div>
+</body>
+</html>

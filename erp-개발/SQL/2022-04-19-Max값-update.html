@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Max값 update</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>Max값 update</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="max-update">Max값 update</h1>
+<p><img alt="" src="assets/Max값-update/image6.png" /></p>
+<p>--저장 시 중복 키 에러</p>
+<p>--=&gt; 마이그레이션 (덮어쓰는 과정)에서 max값이 제대로 안 들어간 경우</p>
+<p>-- MAX 값 업데이트 해줘야한다</p>
+<p>-- MAX 채번 테이블 MAX값 확인</p>
+<p>SELECT * FROM _TCOMCreateSeqMax WHERE TableName = '테이블명'</p>
+<p>-- 실제 MAX값 확인</p>
+<p>SELECT MAX(테이블키)</p>
+<p>FROM 테이블명</p>
+<p>SELECT *</p>
+<p>FROM 테이블명</p>
+<p>WHERE 테이블키 = 1001</p>
+<p>-- 실제 MAX값으로 업데이트</p>
+<p>UPDATE _TCOMCreateSeqMax</p>
+<p>SET MaxSeq = 1001</p>
+<p>WHERE TableName = '테이블명'</p>
+  </article>
+</div>
+</body>
+</html>

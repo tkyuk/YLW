@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트초기화 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트초기화 SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">시트초기화 SP</h1>
+<p>/*</p>
+<blockquote>
+<p>DELETE OCASheetMasterSetting WHERE PgmSeq = @PgmSeq AND ControlID = @ControlID AND CompanySeq = @CompanySeq</p>
+<p>DELETE OCASheetSetting WHERE PgmSeq = @PgmSeq AND ControlID = @ControlID AND CompanySeq = @CompanySeq</p>
+</blockquote>
+<p>*/</p>
+<p>BEGIN TRAN</p>
+<p>DELETE A</p>
+<p>FROM OCASheetMasterSetting AS A</p>
+<p>WHERE A.ControlID = 'SS1'</p>
+<p>AND A.PgmSeq IN (SELECT A.PgmSeq</p>
+<p>FROM _TCAPgm AS A</p>
+<p>WHERE A.Caption IN('수주입력_gcos','수주품목조회','수주품목조회_gcos','출하의뢰품목조회_gcos','출하의뢰품목조회','출하의뢰입력','거래명세서품목조회_gcos','거래명세서품목조회','거래명세서입력'</p>
+<p>,'수출Order입력_gcos','수출Order입력','수출Order품목조회_gcos','수출Order품목조회','수출출하의뢰품목조회_gcos','수출출하의뢰품목조회','수출출하의뢰입력'</p>
+<p>,'수출Invoice입력','수출Invoice품목조회')</p>
+<p>)</p>
+<p>DELETE A</p>
+<p>FROM OCASheetSetting AS A</p>
+<p>WHERE A.ControlID = 'SS1'</p>
+<p>AND A.PgmSeq IN (SELECT A.PgmSeq</p>
+<p>FROM _TCAPgm AS A</p>
+<p>WHERE A.Caption IN('수주입력_gcos','수주품목조회','수주품목조회_gcos','출하의뢰품목조회_gcos','출하의뢰품목조회','출하의뢰입력','거래명세서품목조회_gcos','거래명세서품목조회','거래명세서입력'</p>
+<p>,'수출Order입력_gcos','수출Order입력','수출Order품목조회_gcos','수출Order품목조회','수출출하의뢰품목조회_gcos','수출출하의뢰품목조회','수출출하의뢰입력'</p>
+<p>,'수출Invoice입력','수출Invoice품목조회')</p>
+<p>)</p>
+<p>ROLLBACK TRAN</p>
+<p>-- 특정 시트의 특정 컬럼</p>
+<p>select * from _TCAPgm where Caption like '작업실적입력%kl' -- 117820020</p>
+<p>select *</p>
+<p>from OCASheetSetting</p>
+<p>where PgmSeq = 39820418</p>
+<p>AND ControlID = 'SSCareer'</p>
+<p>AND DataField IN ('UMCareerTypeName','AppCarPer','UMRetReasonName','AppCarTerm')</p>
+<p>BEGIN TRAN</p>
+<p>DELETE A</p>
+<p>FROM OCASheetMasterSetting AS A</p>
+<p>WHERE A.ControlID = 'SSWorkReport'</p>
+<p>AND A.PgmSeq = 117820020</p>
+<p>DELETE A</p>
+<p>FROM OCASheetSetting AS A</p>
+<p>WHERE A.PgmSeq = 39820418</p>
+<p>AND A.ControlID = 'SSCareer'</p>
+<p>AND A.DataField IN ('UMCareerTypeName','AppCarPer','UMRetReasonName','AppCarTerm')</p>
+<p>ROLLBACK TRAN</p>
+<p>select * from _TCAPgm where Caption like '작업실적입력%kl' -- 117820020</p>
+<p>select * from OCASheetMasterSetting where PgmSeq = 117820020</p>
+<p>select * from OCASheetSetting where PgmSeq = 117820020</p>
+<p>BEGIN TRAN</p>
+<p>DELETE A</p>
+<p>FROM OCASheetMasterSetting AS A</p>
+<p>WHERE A.ControlID = 'SSWorkReport'</p>
+<p>AND A.PgmSeq = 117820020</p>
+<p>DELETE A</p>
+<p>FROM OCASheetSetting AS A</p>
+<p>WHERE A.ControlID = 'SSWorkReport'</p>
+<p>AND A.PgmSeq =117820020</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

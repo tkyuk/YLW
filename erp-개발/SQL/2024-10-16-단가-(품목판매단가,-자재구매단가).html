@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단가 (품목판매단가, 자재구매단가)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>단가 (품목판매단가, 자재구매단가)</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">단가 (품목판매단가, 자재구매단가)</h1>
+<p>-- 품목판매단가 구하기.</p>
+<p>SELECT B.ItemSeq, B.UnitSeq, MAX(B.StdPrice) Price</p>
+<p>INTO #GoodItemPrice</p>
+<p>FROM (SELECT DISTINCT GoodItemSeq AS ItemSeq</p>
+<p>FROM #Input) AS A JOIN _TSLItemUnitPrice AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND @STDDate BETWEEN B.SDate AND B.EDate</p>
+<p>AND B.CurrSeq = @DomCurrSeq</p>
+<p>GROUP BY B.ItemSeq, B.UnitSeq</p>
+<p>-- 자재구매단가 구하기.</p>
+<p>SELECT A.ItemSeq AS MatItemSeq, MAX(B.Price) AS MatPrice</p>
+<p>INTO #MatItemPrice</p>
+<p>FROM (SELECT DISTINCT MatItemSeq AS ItemSeq, MatUnitSeq AS UnitSeq</p>
+<p>FROM #Input) AS A JOIN _TDAItemDefUnit AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND C.UMModuleSeq = 1116001 -- 구매단위 select * from _TDASMinor where MajorSeq = 1116</p>
+<p>JOIN _TPUBASEBuyPriceItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.UnitSeq = C.STDUnitSeq -- 구매단위로 변경</p>
+<p>AND B.CurrSeq = @DomCurrSeq</p>
+<p>GROUP BY A.ItemSeq</p>
+  </article>
+</div>
+</body>
+</html>

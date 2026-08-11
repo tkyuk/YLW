@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한글금액(합계액)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>한글금액(합계액)</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">한글금액(합계액)</h1>
+<blockquote>
+<p>CREATE TABLE #HapAmt ( OrderSeq INT,HapAmt DECIMAL(19,5))</p>
+<p>INSERT INTO #HapAmt</p>
+<p>SELECT A.OrderSeq, SUM(A.CurAmt) + SUM(A.CurVAT)</p>
+<p>FROM _TSLOrderItem AS A WITH (NOLOCK)</p>
+<p>JOIN #BIZ_IN_DataBlock1 AS B ON A.OrderSeq = B.OrderSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>GROUP BY A.OrderSeq</p>
+</blockquote>
+<p>JOIN #HapAmt                                AS X ON A.OrderSeq = X.OrderSeq</p>
+<p>REPLACE(dbo._fnSLConvertHanAmt( ISNULL(X.HapAmt,0)),'영','') AS HapAmtKor, -- 합계액한글</p>
+  </article>
+</div>
+</body>
+</html>

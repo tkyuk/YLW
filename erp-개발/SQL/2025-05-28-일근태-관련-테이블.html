@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일근태 관련 테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>일근태 관련 테이블</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">일근태 관련 테이블</h1>
+<p>_TXPRWkEmpWorkTime -- 근무내역 CompanySeq, WkDate, EmpSeq, Seq _SXPRWkEmpWorkTimeCheck / _SXPRWkEmpWorkTimeSave</p>
+<p>_TXPRWkEmpOut -- 외출내역 CompanySeq, WkDate, EmpSeq, Seq</p>
+<p>_TXPRWkAbsence -- 결근내역 CompanySeq, AbsDate, EmpSeq, Seq</p>
+<p>--_SXPRWkGetEmpWkTypeQuery -- 사원별근무유형별정보조회</p>
+<p>_TDASMinor WHERE MajorSeq = 3116</p>
+<p>-- 시간외내역 시간계산 _SXPRWkCalcTime (확정후처리)_SXPRWkOverTimeAppCfm</p>
+<p>_TXPRWkOverTimeApp WHERE OTAppSeq = 630 -- CompanySeq, OTAppSeq _SXPRWkOverTimeAppCheck / _SXPRWkOverTimeAppSave</p>
+<p>_TXPRWkOverTimeAppDtl WHERE OTAppSeq = 630 -- CompanySeq, OTAppSeq, Seq _SXPRWkOverTimeAppDtlCheck / _SXPRWkOverTimeAppDtlSave</p>
+<p>_TXPRWkOverTimeAppWkKind WHERE OTAppSeq = 630 -- CompanySeq, OTAppSeq, Seq, SMWkKindSeq</p>
+<p>-- 실근태내역생성_근무내역생성처리</p>
+<p>_SXPRWkEmpWorkStatusProc</p>
+<p>_TXPRWkEmpWorkStatus -- 근무상태내역 CompanySeq, WkDate, EmpSeq</p>
+<p>_TXPRWkEmpOutStatus -- 외출내역 CompanySeq, WkDate, EmpSeq</p>
+<p>-- 급여용근태생성</p>
+<p>_SXPRWkPayEmpDdProc</p>
+<p>-- 실근태</p>
+<p>_TPRWkEmpDd -- 급여용근태</p>
+<p>_TPRWkAbsEmp -- 결근내역(결근내역 단순집계)</p>
+  </article>
+</div>
+</body>
+</html>

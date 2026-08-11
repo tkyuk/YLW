@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.11.29 영풍제지 퇴직충당금 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.11.29 영풍제지 퇴직충당금 처리</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241129">24.11.29 영풍제지 퇴직충당금 처리</h1>
+<p>[퇴직충당금처리(Z)] 화면에서 1년연차수당에 대한 값이 끌려오지 않고 있습니다.</p>
+<p>[퇴직충당금처리(Z)] 화면 '충당금내역생성' sp 의 경우</p>
+<p>자체 개발 sp로 확인하였습니다. (sp : Z_SPRRetEstProc)</p>
+<p>해당 sp에 년차,월차 금액 계산에 대한 부분이 주석처리되어있습니다.</p>
+<p>주석해제 후 생성 시 정상적으로 데이터 생성됩니다.</p>
+<p>SELECT *</p>
+<p>FROM _TPRRetEstMst</p>
+<p>WHERE ISNULL(Y1YyAmt,0) \&lt;&gt; 0</p>
+<p>OR ISNULL(Y1MmAmt,0) \&lt;&gt; 0</p>
+<p>/*******************************************************************************************************************************</p>
+<p>설 명 - 퇴직충당금 처리</p>
+<p>작 성 일 - 2009.01.00</p>
+<p>작 성 자 - CREATEd by</p>
+<p>수정내역 - 중간정산후 1년미만자 조건이 퇴직기산일이 1년이상대상과 차이가 없어서 수정(2011.10.31)</p>
+<p>- 월/일급여계산시 퇴직처리와 동일하게 수정</p>
+<p>예)3916001:1개월/3개월일 때 기존 : 3개월급여 * (1.0 / 3.0) -&gt; 변경 : 3개월급여 * 1.0 / 3.0(2011.11.17)</p>
+<p>- 1년미만자이지만 중간정산기산일이 있는 경우 대상 수정(2012.10.22)</p>
+<p>-&gt; 해당 중간정산기산일이 추계일자이전인 경우에 포함되도록</p>
+<p>- 퇴직금계산기준설정:근속처리단위가 '처리안함'일 경우 근속년수 계산 (원래는 ELSE 0 으로 처리되었음)</p>
+<p>- 중도정산지급액 컬럼 추가해서 전월추계액 공식 변경</p>
+<p>이전 : 전월에 계산된 퇴직추계액 + 전월기타지급액 -&gt; 전월에 계산된 퇴직추계액 + 전월기타지급액 - 전월중도정산지급액</p>
+<p>- 2017.01.16 : 서비스요청[201701130168]퇴직누진년수표의 적용기간범위 옵션 추가</p>
+<p>- 2018.10.16 : 상여,연월차 1년합계시 퇴직기산일보다 큰일자만 집계할수 있도록 수정</p>
+<blockquote>
+<p>-2020.04.28 : 이동헌 // Z로 생성함.</p>
+</blockquote>
+<p>- 임원(이사,상무,전무,대표이사는 퇴직금 추계액 산정시 1년치의 임금을 구하고 그 금액의 10%가 퇴직 추계액 1개월분이 된다. )</p>
+<blockquote>
+<p>- 임원은 위에서 구한 금액에서</p>
+<p>회장,부회장 : 3.0배를 곱하여 지급한다.</p>
+<p>대표이사 : 2.5배를 곱하여 지급한다.</p>
+<p>전무 : 2.0배를 곱하여 지급한다.</p>
+<p>상무 : 1.5배를 곱하여 지급한다.</p>
+<p>이사 : 1.0배를 곱하여 지급한다.</p>
+<p>- 직원은 3개월평균금액에에 일금액을 구해진것을 가지고 퇴직 추계액을 구한다.</p>
+<p>- 직원은 중간정산일로부터 근속년수가 5년초과(61개월~120개월) 일경우 1년치</p>
+<p>10년 초과(121개월~180개월)인경우 2년치</p>
+<p>15년 초과(181개월이상~) 인경우 4년치를 추가로 지급한다.</p>
+<p>- 이내용은 2020.04.24 송하은주임과 회의에서 나온 내용이며 이를 토대로 계산 로직을 반영한다.</p>
+</blockquote>
+<p>********************************************************************************************************************************/</p>
+<p>-- SP파라미터들</p>
+<p>CREATE PROCEDURE [dbo].[Z_SPRRetEstProc]</p>
+<p>@xmlDocument NVARCHAR(MAX) , -- : 화면의 정보를 XML로 전달</p>
+<p>@xmlFlags INT = 0 , -- : 해당 XML의 Type</p>
+<p>@ServiceSeq INT = 0 , -- : 서비스 번호</p>
+<p>@WorkingTag NVARCHAR(10) = '', -- : WorkingTag</p>
+<p>@CompanySeq INT = 1 , -- : 회사 번호</p>
+<p>@LanguageSeq INT = 1 , -- : 언어 번호</p>
+<p>@UserSeq INT = 0 , -- : 사용자 번호</p>
+<p>@PgmSeq INT = 0 -- : 프로그램 번호</p>
+<p>AS</p>
+<p>-- 사용할 변수를 선언한다.</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<p>@RetEstYm NCHAR(6), -- 추계년월</p>
+<p>@EmpSeq INT,</p>
+<p>@DeptSeq INT,</p>
+<p>@c1RetSeq INT,</p>
+<p>@IsUnder NCHAR(1), -- 1년미만자포함</p>
+<p>@RetDate NCHAR(8), -- 추계일자</p>
+<p>@PayBaseYm NCHAR(6), -- 급여기준월</p>
+<p>@BnsBaseYm NCHAR(6), -- 상여기준월</p>
+<p>@BnsAppRate DECIMAL(19, 5), -- 상여적용율</p>
+<p>@FromPayYM NCHAR(6), -- 3개월급여시작월</p>
+<p>@ToPayYM NCHAR(6), -- 3개월급여종료월</p>
+<p>@FromPayYM_Boss NCHAR(6), -- 12개월급여시작월</p>
+<p>@ToPayYM_Boss NCHAR(6), -- 12개월급여종료월</p>
+<p>@RetSeq INT, -- 퇴직기준</p>
+<p>@BnsOptType INT, -- 상여생성기준</p>
+<p>@YymmOptType INT, -- 년월차적용기준</p>
+<p>@BegDate NCHAR(8), -- 평균임금산정시작일</p>
+<p>@EndDate NCHAR(8), -- 평균임금산정종료일</p>
+<p>-- 퇴직처리적용기준</p>
+<p>@SMAvgWageType INT, -- 평균임금계산기준(3914001:일평균임금*1개월일수*근속년수, 3914002:월평균임금*근속년수)</p>
+<p>@SMM3BnsType INT, -- 3개월상여계산방식(3915001:평균임금산정일수/365, 3915002:3개월 /12개월)</p>
+<p>@SMM3YyAmtType INT, -- 3개월연차계산방식(3915001:평균임금산정일수/365, 3915002:3개월 /12개월)</p>
+<p>@SMM1PayType INT, -- 1개월급여계산방식(3916001:1개월/3개월, 3916002:30일/평균임금산정일수)</p>
+<p>@SMM1BnsType INT, -- 1개월상여계산방식(3917001:1개월/12개월, 3917002:30/365, 3917003:1개월/3개, 3917004:30/평균임금산정일수)</p>
+<p>@SMM1YyAmtType INT, -- 1개월연차계산방식(3917001:1개월/12개월, 3917002:30/365)</p>
+<p>@SMApplyDaysType INT, -- 일평균임금적용방식(3919001:평균임금산정일수, 3919002:90일)</p>
+<p>@RetApplyDays DECIMAL(19,5), -- 1개월적용일수</p>
+<p>@SMAvgAmtPosType INT, -- 평균임금금액처리단위</p>
+<p>@SMAvgAmtPrcType INT, -- 평균임금금액처리방식</p>
+<p>@SMRetAmtPosType INT, -- 퇴직금금액처리단위</p>
+<p>@SMRetAmtPrcType INT, -- 퇴직금금액처리방식</p>
+<p>@SMBnsTrmType INT, -- 평균임금생성시상여기준(3913001:3개월, 3913002:1년)</p>
+<p>@nCntDay INT, -- 산정기간일수</p>
+<p>@SMWhichWkTrm INT, -- 근속년수표시방식</p>
+<p>@SMWkTrmDesc INT, -- 근속년수소수점자리수코드</p>
+<p>@SMWkTrmPrcType INT, -- 근속처리방식</p>
+<p>@IsNotProc NCHAR(1), -- 근속처리단위 사용안함</p>
+<p>-- 개인별사용</p>
+<p>@c1EmpSeq INT,</p>
+<p>@c1RetCntDate NCHAR(8), -- 퇴직기산일</p>
+<p>@c1M3AvgPayAmt DECIMAL(19, 5), -- 3개월평균급여</p>
+<p>@c1BnsAmt DECIMAL(19, 5), -- 1년상여금</p>
+<p>@c1Y1YyAmt DECIMAL(19, 5), -- 1년연차수당</p>
+<p>@c1Y1MmAmt DECIMAL(19, 5), -- 1년월차수당</p>
+<p>@c1WkTrm NCHAR(6), -- 근속기간</p>
+<p>@c1TotWkDays INT, -- 총근무일수</p>
+<p>@c1AddWkTrmY DECIMAL(19, 5), -- 추가근속년수</p>
+<p>@c1WkCnt DECIMAL(19, 5), -- 근속년수</p>
+<blockquote>
+<p>@c1WkCnt_BOSS float, -- 근속년수(임원용)</p>
+</blockquote>
+<p>@IsCum NCHAR(1), -- 누진적용</p>
+<p>@SMCumGrpType INT, -- 누진적용그룹코드</p>
+<p>@SMCumMth INT, -- 누진적용방식코드</p>
+<p>@CumGrpSeq INT, -- 사원적용그룹</p>
+<blockquote>
+<p>@PosName                                NCHAR(30),</p>
+</blockquote>
+<p>@TotMM INT, -- 근속월수</p>
+<p>@c1M3AvgBnsAmt DECIMAL(19, 5), -- 3개월평균상여금</p>
+<p>@c1M3AvgYyAmt DECIMAL(19, 5), -- 3개월평균연차</p>
+<p>@c1M3AvgMmAmt DECIMAL(19, 5), -- 3개월평균월차</p>
+<p>@c1M3AvgWage DECIMAL(19, 5), -- 3개월평균임금</p>
+<p>@c1D1AvgWage DECIMAL(19, 5), -- 일평균임금</p>
+<p>@c1M1AvgPayAmt DECIMAL(19, 5), -- 월평균급여</p>
+<p>@c1M1AvgBnsAmt DECIMAL(19, 5), -- 월평균상여금</p>
+<p>@c1M1AvgYyAmt DECIMAL(19, 5), -- 월평균연차수당</p>
+<p>@c1M1AvgMmAmt DECIMAL(19, 5), -- 월평균월차수당</p>
+<p>@c1M1AvgWage DECIMAL(19, 5), -- 월평균임금</p>
+<p>@c1TotRetAmt DECIMAL(19, 5), -- 퇴직금총액</p>
+<p>@c1SMExcMth INT, -- 평균임금예외적용방식</p>
+<p>@c1ExcAmt DECIMAL(19, 5), -- 평균임금예외금액</p>
+<p>@PayRate DECIMAL(19,5),</p>
+<p>@SMMMChkType INT -- 월수체크기준 가져오기(이상~미만 : 3035001, 초과~이하 : 3035002)</p>
+<p>CREATE TABLE #PRRetEst (WorkingTag NCHAR(1) NULL) --</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#PRRetEst' --</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPRRetEstMst', -- 원테이블명 _TPRBasPulog</p>
+<p>'#PRRetEst', -- 템프테이블명</p>
+<p>'RetEstYm, EmpSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq, RetEstYm, EmpSeq, RetCntDate, RetDate, WkTrm,</p>
+<p>TotWkDays, WkYearCnt, AddWkTrm, BnsAmt, Y1YyAmt,</p>
+<p>Y1MmAmt, M1AvgPayAmt, M1AvgBnsAmt, M1AvgYyAmt, M1AvgMmAmt,</p>
+<p>M1AvgWage, M3AvgPayAmt, M3AvgBnsAmt, M3AvgYyAmt, M3AvgMmAmt,</p>
+<p>M3AvgWage, D1AvgWage, TotRetAmt, EtcAllowAmt, PrevTotRetAmt,</p>
+<p>LastUserSeq, LastDateTime, PayRetAmt, RetSeq, AdjRetAmt'</p>
+<p>SELECT @RetEstYm = RetEstYm, @EmpSeq = ISNULL(EmpSeq, 0), @DeptSeq = ISNULL(DeptSeq, 0), @c1RetSeq = ISNULL(RetSeq, 0)</p>
+<p>FROM #PRRetEst</p>
+<p>--================================================================================================</p>
+<p>-- SELECT @RetSeq = RetSeq,</p>
+<p>-- @SMAvgWageType = SMAvgWageType , -- 평균임금계산기준코드</p>
+<p>-- @SMM3BnsType = SMM3BnsType , -- 3개월상여계산방식코드</p>
+<p>-- @SMM3YyAmtType = SMM3YyAmtType , -- 3개월연차계산방식코드</p>
+<p>-- @SMM1PayType = SMM1PayType , -- 1개월급여계산방식</p>
+<p>-- @SMM1BnsType = SMM1BnsType , -- 1개월상여계산방식</p>
+<p>-- @SMM1YyAmtType = SMM1YyAmtType , -- 1개월연차계산방식</p>
+<p>-- @SMAvgAmtPosType = SMAvgAmtPosType , -- 평균임금금액처리단위코드</p>
+<p>-- @SMAvgAmtPrcType = SMAvgAmtPrcType , -- 평균임금금액처리방식코드</p>
+<p>-- @SMApplyDaysType = SMApplyDaysType , -- 일평균임금적용일수코드</p>
+<p>-- @RetApplyDays = RetApplyDays , -- 1개월적용일수</p>
+<p>-- @SMRetAmtPosType = SMRetAmtPosType , -- 퇴직금금액처리단위</p>
+<p>-- @SMRetAmtPrcType = SMRetAmtPrcType , -- 퇴직금금액처리방식</p>
+<p>-- @SMWhichWkTrm = SMWhichWkTrm , -- 근속년수표시방식</p>
+<p>-- @IsCum = IsCum , -- 누진적용</p>
+<p>-- @SMCumGrpType = SMCumGrpType , -- 누진적용그룹코드</p>
+<p>-- @SMCumMth = SMCumMth , -- 누진적용방식코드</p>
+<p>-- @SMWkTrmPrcType = SMWkTrmPrcType , -- 근속처리방식</p>
+<p>-- @SMWkTrmDesc = SMWkTrmDesc , -- 근속년수소수점자리수코드</p>
+<p>-- @SMBnsTrmType = SMBnsTrmType -- 평균임금생성시상여기준코드</p>
+<p>-- FROM _TPRRetBase WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND RetSeq = (SELECT MAX(RetSeq) FROM _TPRRetBase WITH(NOLOCK) WHERE CompanySeq = @CompanySeq)</p>
+<p>--set transaction isolation level read uncommitted</p>
+<p>SELECT @IsUnder = IsUnder,</p>
+<p>@RetDate = RetDate,</p>
+<p>@BegDate = BegDate,</p>
+<p>@EndDate = EndDate,</p>
+<p>@PayBaseYm = PayBaseYm,</p>
+<p>@BnsBaseYm = BnsBaseYm,</p>
+<p>@BnsOptType = BnsOptType,</p>
+<p>@BnsAppRate = BnsAppRate,</p>
+<p>@YymmOptType = YymmOptType,</p>
+<p>@nCntDay = CONVERT(INT,DATEDIFF(DAY, BegDate, EndDate)) + 1</p>
+<p>FROM _TPRRetEstBase WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetEstYm = @RetEstYm</p>
+<p>--=====================================================================================================================</p>
+<p>-- 필수입력오류</p>
+<p>--=====================================================================================================================</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1 , -- @1을(를) 입력하세요. (SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1)</p>
+<p>@LanguageSeq ,</p>
+<p>2015,'추계년월' -- SELECT * FROM _TCADictionary WHERE Word like '%적용년월%'</p>
+<p>UPDATE #PRRetEst</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #PRRetEst AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND (A.RetEstYm = '' OR A.RetEstYm IS NULL)</p>
+<p>--=====================================================================================================================</p>
+<p>-- 전표발생존재..</p>
+<p>--=====================================================================================================================</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>15 , -- 전표처리가 완료된 건입니다.확인하기바랍니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 15)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'' -- SELECT * FROM _TCADictionary WHERE Word like '%전표처리%'</p>
+<p>UPDATE #PRRetEst</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #PRRetEst AS A</p>
+<p>INNER JOIN _TPRRetEstAccSlip AS B WITH(NOLOCK) ON A.RetEstYm = B.RetEstYm</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(B.SlipSeq, 0) \&lt;&gt; 0</p>
+<p>--=====================================================================================================================</p>
+<p>-- 대상자생성</p>
+<p>--=====================================================================================================================</p>
+<p>CREATE TABLE #EstEmp</p>
+<p>( EmpSeq INT, -- 사원코드</p>
+<p>EmpID NVARCHAR(20), -- 사번</p>
+<p>EntDate NCHAR(8), -- 입사일</p>
+<p>RetEmpDate NCHAR(8), -- 퇴직기산일자</p>
+<p>EmpDate NCHAR(8), -- 퇴직일</p>
+<p>RetSeq INT , -- 퇴직금기준</p>
+<p>CumGrpSeq INT -- 누진적용그룹별 사원의 그룹코드</p>
+<blockquote>
+<p>, PosName NCHAR(30) -- 임원/직원 구분용. -- 이동헌 추가함.</p>
+</blockquote>
+<p>)</p>
+<p>IF @IsUnder = '1' -- 1년미만자포함</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EstEmp</p>
+<p>(EmpSeq, EmpID, EntDate, RetEmpDate, EmpDate, RetSeq, CumGrpSeq, PosName)</p>
+<p>SELECT A.EmpSeq AS EmpSeq, -- 사원코드</p>
+<p>A.EmpID AS EmpID, -- 사번</p>
+<p>A.EntDate AS EntDate, -- 입사일</p>
+<p>B.RetAmtCntDate AS RetEmpDate, -- 퇴직기산일</p>
+<p>A.RetireDate AS EmpDate, -- 퇴사일</p>
+<p>ISNULL(C.RetSeq,0) AS RetSeq,</p>
+<p>CASE WHEN SMCumGrpType = 3013002 THEN A.PuSeq -- 급여작업군</p>
+<p>WHEN SMCumGrpType = 3013003 THEN A.DeptSeq -- 부서</p>
+<p>WHEN SMCumGrpType = 3013004 THEN A.PosSeq -- 포지션</p>
+<p>WHEN SMCumGrpType = 3013005 THEN A.UMJpSeq -- 직위</p>
+<p>WHEN SMCumGrpType = 3013006 THEN A.UMPgSeq -- 직급</p>
+<p>WHEN SMCumGrpType = 3013007 THEN A.UMJdSeq -- 직책</p>
+<p>WHEN SMCumGrpType = 3013008 THEN A.UMJoSeq -- 직종</p>
+<p>WHEN SMCumGrpType = 3013009 THEN A.PtSeq -- 급여형태</p>
+<p>WHEN SMCumGrpType = 3013010 THEN A.UMWsSeq -- 근무상태</p>
+<p>WHEN SMCumGrpType = 3013011 THEN A.SMSexSeq-- 남녀</p>
+<p>ELSE -1 -- 전체그룹</p>
+<p>END AS CumGrpSeq</p>
+<blockquote>
+<p>, A.PosName -- 이동헌 추가함.</p>
+</blockquote>
+<p>FROM _fnAdmEmpOrd(@CompanySeq, @RetDate) AS A</p>
+<p>JOIN _fnDAEmpDate(@CompanySeq) AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRBasEmpPayInfo AS C ON (A.EmpSeq = C.EmpSeq</p>
+<p>AND C.CompanySeq = @CompanySeq)</p>
+<p>JOIN _TPRRetBase AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.RetSeq = D.RetSeq</p>
+<p>WHERE A.RetireDate &gt;= @RetDate</p>
+<p>AND A.EntDate \&lt;= @RetDate</p>
+<p>AND ISNULL(A.EntDate,'') \&lt;&gt; ''</p>
+<p>AND ISNULL(B.RetAmtCntDate,'') \&lt;&gt; ''</p>
+<p>AND (A.EmpSeq = @EmpSeq OR @EmpSeq = 0)</p>
+<p>AND (A.DeptSeq = @DeptSeq OR @DeptSeq = 0)</p>
+<p>AND (C.RetSeq = @c1RetSeq OR @c1RetSeq = 0)</p>
+<p>AND A.OrdDate \&lt;&gt; '' -- 발령이 없는 사람은 제외</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 퇴직기산일이 1년이상대상</p>
+<p>INSERT INTO #EstEmp</p>
+<p>(EmpSeq, EmpID, EntDate, RetEmpDate, EmpDate, RetSeq, CumGrpSeq, PosName)</p>
+<p>SELECT A.EmpSeq AS EmpSeq, -- 사원코드</p>
+<p>A.EmpID AS EmpID, -- 사번</p>
+<p>A.EntDate AS EntDate, -- 입사일</p>
+<p>B.RetAmtCntDate AS RetEmpDate, -- 퇴직기산일자</p>
+<p>A.RetireDate AS EmpDate, -- 퇴사일</p>
+<p>ISNULL(C.RetSeq,0) AS RetSeq,</p>
+<p>CASE WHEN SMCumGrpType = 3013002 THEN A.PuSeq -- 급여작업군</p>
+<p>WHEN SMCumGrpType = 3013003 THEN A.DeptSeq -- 부서</p>
+<p>WHEN SMCumGrpType = 3013004 THEN A.PosSeq -- 포지션</p>
+<p>WHEN SMCumGrpType = 3013005 THEN A.UMJpSeq -- 직위</p>
+<p>WHEN SMCumGrpType = 3013006 THEN A.UMPgSeq -- 직급</p>
+<p>WHEN SMCumGrpType = 3013007 THEN A.UMJdSeq -- 직책</p>
+<p>WHEN SMCumGrpType = 3013008 THEN A.UMJoSeq -- 직종</p>
+<p>WHEN SMCumGrpType = 3013009 THEN A.PtSeq -- 급여형태</p>
+<p>WHEN SMCumGrpType = 3013010 THEN A.UMWsSeq -- 근무상태</p>
+<p>WHEN SMCumGrpType = 3013011 THEN A.SMSexSeq-- 남녀</p>
+<p>ELSE -1 -- 전체그룹</p>
+<p>END AS CumGrpSeq</p>
+<blockquote>
+<p>,A.PosName -- 이동헌 추가함.</p>
+</blockquote>
+<p>FROM _fnAdmEmpOrd(@CompanySeq, @RetDate) AS A</p>
+<p>JOIN _fnDAEmpDate(@CompanySeq) AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRBasEmpPayInfo AS C ON (A.EmpSeq = C.EmpSeq</p>
+<p>AND C.CompanySeq = @CompanySeq)</p>
+<p>JOIN _TPRRetBase AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.RetSeq = D.RetSeq</p>
+<p>WHERE A.RetireDate &gt; @RetDate</p>
+<p>AND A.EntDate \&lt;= @RetDate</p>
+<p>AND ISNULL(A.EntDate,'') \&lt;&gt; ''</p>
+<p>AND ISNULL(B.RetAmtCntDate,'') \&lt;&gt; ''</p>
+<p>AND B.RetAmtCntDate \&lt;= CONVERT(NCHAR(8),DATEADD(YY, -1 , @RetDate)+1,112) -- 1년이상</p>
+<p>AND (A.EmpSeq = @EmpSeq OR @EmpSeq = 0)</p>
+<p>AND (A.DeptSeq = @DeptSeq OR @DeptSeq = 0)</p>
+<p>AND (C.RetSeq = @c1RetSeq OR @c1RetSeq = 0)</p>
+<p>AND A.OrdDate \&lt;&gt; '' -- 발령이 없는 사람은 제외</p>
+<p>-- AND DATEDIFF(DD, B.RetAmtCntDate, @RetDate) &gt;= 365 -- 1년이상</p>
+<p>-- 중간정산후 1년미만자 Default 추가</p>
+<p>-- 해당 부분은 필요함. 중간정산 받아서 기산일이 1년미만이 될수도 있어서 입사일 기준으로도 가져옴!</p>
+<p>-- 입사일이 1년이상인 사람(2011.10.31)</p>
+<p>INSERT INTO #EstEmp</p>
+<p>(EmpSeq, EmpID, EntDate, RetEmpDate, EmpDate, RetSeq, CumGrpSeq, PosName)</p>
+<p>SELECT A.EmpSeq AS EmpSeq, -- 사원코드</p>
+<p>A.EmpID AS EmpID, -- 사번</p>
+<p>A.EntDate AS EntDate, -- 입사일</p>
+<p>B.RetAmtCntDate AS RetEmpDate, -- 퇴직기산일자</p>
+<p>A.RetireDate AS EmpDate, -- 퇴사일</p>
+<p>ISNULL(C.RetSeq,0) AS RetSeq,</p>
+<p>CASE WHEN SMCumGrpType = 3013002 THEN A.PuSeq -- 급여작업군</p>
+<p>WHEN SMCumGrpType = 3013003 THEN A.DeptSeq -- 부서</p>
+<p>WHEN SMCumGrpType = 3013004 THEN A.PosSeq -- 포지션</p>
+<p>WHEN SMCumGrpType = 3013005 THEN A.UMJpSeq -- 직위</p>
+<p>WHEN SMCumGrpType = 3013006 THEN A.UMPgSeq -- 직급</p>
+<p>WHEN SMCumGrpType = 3013007 THEN A.UMJdSeq -- 직책</p>
+<p>WHEN SMCumGrpType = 3013008 THEN A.UMJoSeq -- 직종</p>
+<p>WHEN SMCumGrpType = 3013009 THEN A.PtSeq -- 급여형태</p>
+<p>WHEN SMCumGrpType = 3013010 THEN A.UMWsSeq -- 근무상태</p>
+<p>WHEN SMCumGrpType = 3013011 THEN A.SMSexSeq-- 남녀</p>
+<p>ELSE -1 -- 전체그룹</p>
+<p>END AS CumGrpSeq</p>
+<blockquote>
+<p>,A.PosName</p>
+</blockquote>
+<p>FROM _fnAdmEmpOrd(@CompanySeq, @RetDate) AS A</p>
+<p>JOIN _fnDAEmpDate(@CompanySeq) AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRBasEmpPayInfo AS C WITH(NOLOCK) ON (A.EmpSeq = C.EmpSeq</p>
+<p>AND C.CompanySeq = @CompanySeq)</p>
+<p>JOIN _TPRRetBase AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.RetSeq = D.RetSeq</p>
+<p>WHERE A.RetireDate &gt; @RetDate</p>
+<p>AND A.EntDate \&lt;= @RetDate</p>
+<p>AND ISNULL(A.EntDate,'') \&lt;&gt; ''</p>
+<p>AND ISNULL(B.RetAmtCntDate, '') \&lt;&gt; ''</p>
+<p>AND B.EntDate \&lt;= CONVERT(NCHAR(8),DATEADD(YY, -1 , @RetDate)+1,112) -- 1년이상</p>
+<p>-- AND DATEDIFF(DD, A.EntDate, @RetDate) &gt;= 365 -- 1년이상</p>
+<p>AND NOT EXISTS (SELECT EmpSeq FROM #EstEmp WHERE EmpSeq = A.EmpSeq)</p>
+<p>AND (A.EmpSeq = @EmpSeq OR @EmpSeq = 0)</p>
+<p>AND (A.DeptSeq = @DeptSeq OR @DeptSeq = 0)</p>
+<p>AND (C.RetSeq = @c1RetSeq OR @c1RetSeq = 0)</p>
+<p>AND A.OrdDate \&lt;&gt; '' -- 발령이 없는 사람은 제외</p>
+<p>-- 입사일이 1년미만이지만 중간정산기산일이 있는사람(2011.10.31)</p>
+<p>-- 그 중간정산기산일이 퇴직추계일자기준으로 이전에 있는 경우 대상이 된다.(2012.10.22)</p>
+<p>INSERT INTO #EstEmp(EmpSeq ,</p>
+<p>EmpID ,</p>
+<p>EntDate ,</p>
+<p>RetEmpDate,</p>
+<p>EmpDate ,</p>
+<p>RetSeq ,</p>
+<p>CumGrpSeq,</p>
+<blockquote>
+<p>PosName</p>
+</blockquote>
+<p>)</p>
+<p>SELECT A.EmpSeq AS EmpSeq , -- 사원</p>
+<p>A.EmpID AS EmpID , -- 사번</p>
+<p>A.EntDate AS EntDate , -- 입사일</p>
+<p>B.RetAmtCntDate AS RetEmpDate, -- 퇴직기산일</p>
+<p>A.RetireDate AS EmpDate , -- 퇴사일</p>
+<p>ISNULL(C.RetSeq, 0) AS RetSeq ,</p>
+<p>CASE WHEN SMCumGrpType = 3013002 THEN A.PuSeq -- 급여작업군</p>
+<p>WHEN SMCumGrpType = 3013003 THEN A.DeptSeq -- 부서</p>
+<p>WHEN SMCumGrpType = 3013004 THEN A.PosSeq -- 포지션</p>
+<p>WHEN SMCumGrpType = 3013005 THEN A.UMJpSeq -- 직위</p>
+<p>WHEN SMCumGrpType = 3013006 THEN A.UMPgSeq -- 직급</p>
+<p>WHEN SMCumGrpType = 3013007 THEN A.UMJdSeq -- 직책</p>
+<p>WHEN SMCumGrpType = 3013008 THEN A.UMJoSeq -- 직종</p>
+<p>WHEN SMCumGrpType = 3013009 THEN A.PtSeq -- 급여형태</p>
+<p>WHEN SMCumGrpType = 3013010 THEN A.UMWsSeq -- 근무상태</p>
+<p>WHEN SMCumGrpType = 3013011 THEN A.SMSexSeq-- 남녀</p>
+<p>ELSE -1 -- 전체그룹</p>
+<p>END AS CumGrpSeq</p>
+<blockquote>
+<p>, A.PosName</p>
+</blockquote>
+<p>FROM _fnAdmEmpOrd(@CompanySeq, @RetDate) AS A JOIN _fnDAEmpDate(@CompanySeq) AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRBasEmpPayInfo AS C ON A.EmpSeq = C.EmpSeq</p>
+<p>AND C.CompanySeq = @CompanySeq</p>
+<p>JOIN _TPRRetBase AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.RetSeq = D.RetSeq</p>
+<p>WHERE A.RetireDate &gt; @RetDate</p>
+<p>AND A.EntDate \&lt;= @RetDate</p>
+<p>AND ISNULL(A.EntDate,'') \&lt;&gt; ''</p>
+<p>AND ISNULL(B.RetAmtCntDate, '') \&lt;&gt; ''</p>
+<p>AND ISNULL(B.RetMidDate , '') \&lt;&gt; '' -- 중간정산기산일이 있는 자(2011.10.31)</p>
+<p>AND ISNULL(B.RetMidDate , '') \&lt;= @RetDate -- 중간정산기산일이 퇴직추계일자보다 이전에 있는 경우(2012.10.22)</p>
+<p>AND B.EntDate &gt; CONVERT(NCHAR(8),DATEADD(YY, -1 , @RetDate)+1,112) -- 입사일이 1년미만이지만</p>
+<p>-- AND B.RetAmtCntDate \&lt;= CONVERT(NCHAR(8),DATEADD(YY, -1 , @RetDate)+1,112) -- 1년이상</p>
+<p>-- AND DATEDIFF(DD, A.EntDate, @RetDate) &gt;= 365 -- 1년이상</p>
+<p>AND NOT EXISTS (SELECT EmpSeq FROM #EstEmp WHERE EmpSeq = A.EmpSeq)</p>
+<p>AND (A.EmpSeq = @EmpSeq OR @EmpSeq = 0)</p>
+<p>AND (A.DeptSeq = @DeptSeq OR @DeptSeq = 0)</p>
+<p>AND (C.RetSeq = @c1RetSeq OR @c1RetSeq = 0)</p>
+<p>AND A.OrdDate \&lt;&gt; '' -- 발령이 없는 사람은 제외</p>
+<p>END</p>
+<p>-- 제외대상이면 삭제</p>
+<p>DELETE FROM #EstEmp WHERE EmpSeq IN (SELECT EmpSeq FROM _TPRRetEmpPayRate</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND BegYm \&lt;= @RetEstYm</p>
+<p>AND EndYm &gt;= @RetEstYm</p>
+<p>AND IsExEst = '1' )</p>
+<p>-- 퇴직금기준이 없는대상자가 존재하면 ERROR</p>
+<p>IF EXISTS (SELECT 1 FROM #EstEmp WITH(NOLOCK) WHERE ISNULL(RetSeq,0) = 0 )</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>7 , -- @1가(이) 등록되어 있지 않습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'퇴직금기준(급여용인사정보)' -- SELECT * FROM _TCADictionary WHERE Word like '%퇴직%'</p>
+<p>UPDATE #PRRetEst</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #PRRetEst AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>END</p>
+<p>-- 기준이 없는대상자</p>
+<p>IF EXISTS (SELECT 1 FROM #EstEmp A WITH(NOLOCK) WHERE ISNULL(A.RetSeq,0) \&lt;&gt; 0</p>
+<p>AND NOT EXISTS (SELECT * FROM _TPRRetBase WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND RetSeq = A.RetSeq ))</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>7 , -- @1가(이) 등록되어 있지 않습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'퇴직계산기준설정' -- SELECT * FROM _TCADictionary WHERE Word like '%퇴직%'</p>
+<p>UPDATE #PRRetEst</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #PRRetEst AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>END</p>
+<p>--=====================================================================================================================</p>
+<p>-- 오류발생시중지</p>
+<p>--=====================================================================================================================</p>
+<p>IF EXISTS (SELECT 1 FROM #PRRetEst WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #PRRetEst</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--=====================================================================================================================</p>
+<p>-- 기존내역삭제</p>
+<p>--=====================================================================================================================</p>
+<p>DELETE _TPRRetEstMst</p>
+<p>FROM _TPRRetEstMst AS A WITH(NOLOCK)</p>
+<p>INNER JOIN #PRRetEst AS B ON A.RetEstYm = B.RetEstYm</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.Status = 0</p>
+<p>--AND A.EmpSeq IN (SELECT EmpSeq FROM #EstEmp) -- 제외대상자는 기존내역 삭제 되지 않아 주석 처리</p>
+<p>--=====================================================================================================================</p>
+<p>-- 3개월평균임금 // 임원은 12개월을 구한다.</p>
+<p>--=====================================================================================================================</p>
+<p>SELECT @FromPayYM = CONVERT(NCHAR(6), DATEADD(MM, -2, @PayBaseYm + '01') + 1, 112), -- 3개월전</p>
+<p>@ToPayYM = @PayBaseYm</p>
+<p>CREATE TABLE #EstAmt</p>
+<p>( Seq INT, -- '1' : 3개월평균임금, '2' : 상여 '3' : 년차 '4' : 월차 '5':전월퇴직금</p>
+<p>EmpSeq INT,</p>
+<p>Amt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #Amt</p>
+<p>( Seq INT,</p>
+<p>EmpSeq INT,</p>
+<p>Amt DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 지급항목</p>
+<p>INSERT INTO #Amt</p>
+<p>(Seq, EmpSeq, Amt )</p>
+<p>SELECT 1 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(D.Amt, 0) + ISNULL(D.RetroAmt, 0)) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRBasPb AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 급상여구분이 급여만</p>
+<p>AND A.PbSeq = C.PbSeq</p>
+<p>AND C.SMPbType = 3001001 -- 3001001:급여, 3001002:상여, 3001003:특별상여, 3001004:연월차, 3001005:소급, 3001006:인센티브</p>
+<p>INNER JOIN _TPRPayPay AS D WITH(NOLOCK) ON A.CompanySeq= D.CompanySeq -- 지급내역</p>
+<p>AND A.PbYm = D.PbYM</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>AND NOT EXISTS (SELECT * FROM _TPRRetBaseYyAmt WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetSeq = B.RetSeq</p>
+<p>AND ItemSeq = D.ItemSeq )</p>
+<p>-- AND D.ItemSeq NOT IN (SELECT ItemSeq -- 년월차항목제외</p>
+<p>-- FROM _TPRRetBaseYyAmt WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND RetSeq = @RetSeq)</p>
+<p>INNER JOIN _TPRRetBasePayAmt AS E WITH(NOLOCK) ON D.CompanySeq= E.CompanySeq -- 퇴직평균임금구성항목</p>
+<p>AND D.ItemSeq = E.ItemSeq</p>
+<p>AND B.RetSeq = E.RetSeq</p>
+<p>AND ISNULL(E.IsRetEst,'0') = '1' -- 퇴직추계평균임금구성항목</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm BETWEEN @FromPayYM AND @ToPayYM</p>
+<blockquote>
+<p>AND B.PosName \&lt;&gt; '임원' -- 임원이 아닌경우만 먼저 구한다.</p>
+</blockquote>
+<p>GROUP BY A.EmpSeq</p>
+<p>---- 가상항목</p>
+<p>INSERT INTO #Amt</p>
+<p>(Seq, EmpSeq, Amt )</p>
+<p>SELECT 2 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(D.Amt, 0) + ISNULL(D.RetroAmt, 0)) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRBasPb AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 급상여구분이 급여만</p>
+<p>AND A.PbSeq = C.PbSeq</p>
+<p>AND C.SMPbType = 3001001 -- 3001001:급여, 3001002:상여, 3001003:특별상여, 3001004:연월차, 3001005:소급, 3001006:인센티브</p>
+<p>INNER JOIN _TPRPayCalc AS D WITH(NOLOCK) ON A.CompanySeq= D.CompanySeq -- 지급내역</p>
+<p>AND A.PbYm = D.PbYM</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>AND NOT EXISTS (SELECT * FROM _TPRRetBaseYyAmt WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetSeq = B.RetSeq</p>
+<p>AND ItemSeq = D.ItemSeq )</p>
+<p>-- AND D.ItemSeq NOT IN (SELECT ItemSeq -- 년월차항목제외</p>
+<p>-- FROM _TPRRetBaseYyAmt WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND RetSeq = @RetSeq)</p>
+<p>INNER JOIN _TPRRetBasePayAmt AS E WITH(NOLOCK) ON D.CompanySeq= E.CompanySeq -- 퇴직평균임금구성항목</p>
+<p>AND D.ItemSeq = E.ItemSeq</p>
+<p>AND B.RetSeq = E.RetSeq</p>
+<p>AND ISNULL(E.IsRetEstCalc,'0') = '1' -- 퇴직추계평균임금가상항목</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm BETWEEN @FromPayYM AND @ToPayYM</p>
+<blockquote>
+<p>AND B.PosName \&lt;&gt; '임원' -- 임원이 아닌경우만 먼저 구한다.</p>
+</blockquote>
+<p>GROUP BY A.EmpSeq</p>
+<blockquote>
+<p>--- 임원 12개월분</p>
+</blockquote>
+<p>SELECT @FromPayYM_Boss = CONVERT(NCHAR(6), DATEADD(MM, -11, @PayBaseYm + '01') + 1, 112), -- 12개월전</p>
+<p>@ToPayYM_Boss = @PayBaseYm</p>
+<p>-- 지급항목</p>
+<p>INSERT INTO #Amt</p>
+<p>(Seq, EmpSeq, Amt )</p>
+<p>SELECT 1 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(D.Amt, 0) + ISNULL(D.RetroAmt, 0)) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRBasPb AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 급상여구분이 급여만</p>
+<p>AND A.PbSeq = C.PbSeq</p>
+<p>AND C.SMPbType = 3001001 -- 3001001:급여, 3001002:상여, 3001003:특별상여, 3001004:연월차, 3001005:소급, 3001006:인센티브</p>
+<p>INNER JOIN _TPRPayPay AS D WITH(NOLOCK) ON A.CompanySeq= D.CompanySeq -- 지급내역</p>
+<p>AND A.PbYm = D.PbYM</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>AND NOT EXISTS (SELECT * FROM _TPRRetBaseYyAmt WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetSeq = B.RetSeq</p>
+<p>AND ItemSeq = D.ItemSeq )</p>
+<p>-- AND D.ItemSeq NOT IN (SELECT ItemSeq -- 년월차항목제외</p>
+<p>-- FROM _TPRRetBaseYyAmt WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND RetSeq = @RetSeq)</p>
+<p>INNER JOIN _TPRRetBasePayAmt AS E WITH(NOLOCK) ON D.CompanySeq= E.CompanySeq -- 퇴직평균임금구성항목</p>
+<p>AND D.ItemSeq = E.ItemSeq</p>
+<p>AND B.RetSeq = E.RetSeq</p>
+<p>AND ISNULL(E.IsRetEst,'0') = '1' -- 퇴직추계평균임금구성항목</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm BETWEEN @FromPayYM_Boss AND @ToPayYM_Boss</p>
+<blockquote>
+<p>AND B.PosName = '임원' -- 임원이 아닌경우만 먼저 구한다.</p>
+</blockquote>
+<p>GROUP BY A.EmpSeq</p>
+<p>---- 가상항목</p>
+<p>INSERT INTO #Amt</p>
+<p>(Seq, EmpSeq, Amt )</p>
+<p>SELECT 2 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(D.Amt, 0) + ISNULL(D.RetroAmt, 0)) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRBasPb AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 급상여구분이 급여만</p>
+<p>AND A.PbSeq = C.PbSeq</p>
+<p>AND C.SMPbType = 3001001 -- 3001001:급여, 3001002:상여, 3001003:특별상여, 3001004:연월차, 3001005:소급, 3001006:인센티브</p>
+<p>INNER JOIN _TPRPayCalc AS D WITH(NOLOCK) ON A.CompanySeq= D.CompanySeq -- 지급내역</p>
+<p>AND A.PbYm = D.PbYM</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>AND NOT EXISTS (SELECT * FROM _TPRRetBaseYyAmt WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetSeq = B.RetSeq</p>
+<p>AND ItemSeq = D.ItemSeq )</p>
+<p>-- AND D.ItemSeq NOT IN (SELECT ItemSeq -- 년월차항목제외</p>
+<p>-- FROM _TPRRetBaseYyAmt WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND RetSeq = @RetSeq)</p>
+<p>INNER JOIN _TPRRetBasePayAmt AS E WITH(NOLOCK) ON D.CompanySeq= E.CompanySeq -- 퇴직평균임금구성항목</p>
+<p>AND D.ItemSeq = E.ItemSeq</p>
+<p>AND B.RetSeq = E.RetSeq</p>
+<p>AND ISNULL(E.IsRetEstCalc,'0') = '1' -- 퇴직추계평균임금가상항목</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm BETWEEN @FromPayYM_Boss AND @ToPayYM_Boss</p>
+<blockquote>
+<p>AND B.PosName = '임원' -- 임원이 아닌경우만 먼저 구한다.</p>
+</blockquote>
+<p>GROUP BY A.EmpSeq</p>
+<p>INSERT INTO #EstAmt</p>
+<p>(Seq, EmpSeq, Amt)</p>
+<p>SELECT 1, EmpSeq, SUM(Amt)</p>
+<p>FROM #Amt</p>
+<p>GROUP BY EmpSeq</p>
+<p>--=====================================================================================================================</p>
+<p>-- 상여</p>
+<p>--=====================================================================================================================</p>
+<p>IF LTRIM(RTRIM(ISNULL(@BnsBaseYm, ''))) \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>IF @BnsOptType = 3928001 -- 3928001:기준월포함 전 1년합계, 3928002:기준상여월</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EstAmt</p>
+<p>(Seq, EmpSeq, Amt)</p>
+<p>SELECT 2 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(A.TotPayAmt, 0) + ISNULL(A.TotRetroPayAmt, 0)) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRRetBaseBnsAmt AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 상여적용급상여</p>
+<p>AND A.PbSeq = C.PbSeq</p>
+<p>AND B.RetSeq = C.RetSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm &gt;= CONVERT(NCHAR(6),DATEADD(MM, -11, @BnsBaseYm + '01'), 112)</p>
+<p>AND A.PbYm \&lt;= @BnsBaseYm -- 상여기준월</p>
+<p>AND A.PbYm &gt;= LEFT(B.RetEmpDate,6) -- 퇴직기산일보다 큰일자의 경우만 집계할수 있게 수정</p>
+<p>GROUP BY A.EmpSeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EstAmt</p>
+<p>(Seq, EmpSeq, Amt)</p>
+<p>SELECT 2 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(A.TotPayAmt, 0) + ISNULL(A.TotRetroPayAmt, 0)) * (@BnsAppRate * 0.01) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRRetBaseBnsAmt AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 상여적용급상여</p>
+<p>AND A.PbSeq = C.PbSeq</p>
+<p>AND B.RetSeq = C.RetSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm = @BnsBaseYm -- 상여기준월</p>
+<p>GROUP BY A.EmpSeq</p>
+<p>END</p>
+<p>END</p>
+<p>--=====================================================================================================================</p>
+<p>-- 년차</p>
+<p>--=====================================================================================================================</p>
+<p>/*IF @YymmOptType = 3929001 -- 3929001:기준월포함 전 1년합계, 3929002:적용안함</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EstAmt</p>
+<p>(Seq, EmpSeq, Amt)</p>
+<p>SELECT 3 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(D.Amt, 0) + ISNULL(D.RetroAmt, 0)) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRRetBaseYyAmt AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 년차항목</p>
+<p>AND B.RetSeq = C.RetSeq</p>
+<p>AND C.SMYMType = 3044001 -- 3044001:연차,3044002:월차</p>
+<p>INNER JOIN _TPRPayPay AS D WITH(NOLOCK) ON A.CompanySeq= D.CompanySeq -- 지급내역</p>
+<p>AND A.PbYm = D.PbYM</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>AND C.ItemSeq = D.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm BETWEEN CONVERT(NCHAR(6),DATEADD(MM, -11, @PayBaseYm + '01'), 112) AND @PayBaseYm</p>
+<p>AND A.PbYm &gt;= LEFT(B.RetEmpDate,6) -- 퇴직기산일보다 큰일자의 경우만 집계할수 있게 수정</p>
+<p>--AND A.PbYm &gt;= CONVERT(NCHAR(6),DATEADD(MM, -11, @PayBaseYm + '01'), 112)</p>
+<p>--AND A.PbYm \&lt;= @PayBaseYm -- 상여기준월</p>
+<p>GROUP BY A.EmpSeq</p>
+<p>END</p>
+<p>--=====================================================================================================================</p>
+<p>-- 월차</p>
+<p>--=====================================================================================================================</p>
+<p>IF @YymmOptType = 3929001 -- 3929001:기준월포함 전 1년합계, 3929002:적용안함</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EstAmt</p>
+<p>(Seq, EmpSeq, Amt)</p>
+<p>SELECT 4 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>SUM(ISNULL(D.Amt, 0) + ISNULL(D.RetroAmt, 0)) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) -- 급여결과</p>
+<p>INNER JOIN #EstEmp AS B ON A.EmpSeq = B.EmpSeq -- 대상자</p>
+<p>INNER JOIN _TPRRetBaseYyAmt AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq -- 월차항목</p>
+<p>AND B.RetSeq = C.RetSeq</p>
+<p>AND C.SMYMType = 3044002 -- 3044001:연차,3044002:월차</p>
+<p>INNER JOIN _TPRPayPay AS D WITH(NOLOCK) ON A.CompanySeq= D.CompanySeq -- 지급내역</p>
+<p>AND A.PbYm = D.PbYM</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>AND C.ItemSeq = D.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PbYm BETWEEN CONVERT(NCHAR(6),DATEADD(MM, -11, @PayBaseYm + '01'), 112) AND @PayBaseYm</p>
+<p>AND A.PbYm &gt;= LEFT(B.RetEmpDate,6) -- 퇴직기산일보다 큰일자의 경우만 집계할수 있게 수정</p>
+<p>--AND A.PbYm &gt;= CONVERT(NCHAR(6),DATEADD(MM, -11, @PayBaseYm + '01'), 112)</p>
+<p>--AND A.PbYm \&lt;= @PayBaseYm -- 상여기준월</p>
+<p>GROUP BY A.EmpSeq</p>
+<p>END</p>
+<blockquote>
+<p>*/</p>
+</blockquote>
+<p>--=====================================================================================================================</p>
+<p>-- 전월퇴직급여</p>
+<p>-- 2015.06.22 중도정산지급액 빼는 로직 추가 jjlee</p>
+<p>--=====================================================================================================================</p>
+<p>INSERT INTO #EstAmt</p>
+<p>(Seq, EmpSeq, Amt)</p>
+<p>SELECT 5 AS Seq,</p>
+<p>A.EmpSeq AS EmpSeq,</p>
+<p>ISNULL(C.PrevTotRetAmt, 0) AS Amt</p>
+<p>--ISNULL(B.TotRetAmt, 0) + ISNULL(B.EtcAllowAmt, 0) AS Amt -- 퇴직금추계액 + 기타퇴직추계액</p>
+<p>FROM #EstEmp AS A WITH(NOLOCK) -- 대상자</p>
+<p>LEFT OUTER JOIN _TPRRetEstMst AS B WITH(NOLOCK) ON A.EmpSeq = B.EmpSeq -- 충당금내역</p>
+<p>AND B.RetEstYm = @RetEstYm</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>--AND B.RetEstYm = CONVERT(NCHAR(6), DATEADD(MM, -1, @RetEstYm + '01'), 112)</p>
+<p>LEFT OUTER JOIN (SELECT EmpSeq AS EmpSeq,</p>
+<p>ISNULL(TotRetAmt, 0) + ISNULL(EtcAllowAmt, 0) - ISNULL(AdjRetAmt,0) AS PrevTotRetAmt</p>
+<p>FROM _TPRRetEstMst WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetEstYm = (SELECT MAX(RetEstYm)</p>
+<p>FROM _TPRRetEstBase WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetEstYm \&lt; @RetEstYm)</p>
+<p>) AS C ON A.EmpSeq = C.EmpSeq</p>
+<p>--=====================================================================================================================</p>
+<p>-- 사원내역생성</p>
+<p>--=====================================================================================================================</p>
+<p>INSERT INTO _TPRRetEstMst</p>
+<p>( CompanySeq, RetEstYm, EmpSeq, RetCntDate, RetDate, WkTrm, TotWkDays, WkYearCnt, AddWkTrm, BnsAmt,</p>
+<p>Y1YyAmt, Y1MmAmt, M1AvgPayAmt, M1AvgBnsAmt, M1AvgYyAmt, M1AvgMmAmt, M1AvgWage, M3AvgPayAmt, M3AvgBnsAmt, M3AvgYyAmt,</p>
+<p>M3AvgMmAmt, M3AvgWage, D1AvgWage, TotRetAmt, EtcAllowAmt, PrevTotRetAmt, LastUserSeq, LastDateTime, PayRetAmt, RetSeq, AdjRetAmt</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq, -- 법인내부코드</p>
+<p>@RetEstYm AS RetEstYm, -- 년월</p>
+<p>A.EmpSeq AS EmpSeq, -- 사번</p>
+<p>A.RetEmpDate AS RetCntDate, -- 퇴직금기산일</p>
+<p>@RetDate AS RetDate, -- 추계액처리일자</p>
+<p>'' AS WkTrm, -- 근속기간</p>
+<p>0 AS TotWkDays, -- 총근무일수</p>
+<p>0 AS WkYearCnt, -- 근속년수</p>
+<p>0 AS AddWkTrm, -- 추가근속년수</p>
+<p>C.Amt AS BnsAmt, -- 1년상여금</p>
+<p>D.Amt AS Y1YyAmt, -- 1년연차수당</p>
+<p>E.Amt AS Y1MmAmt, -- 1년월차수당</p>
+<p>0 AS M1AvgPayAmt, -- 월평균급여</p>
+<p>0 AS M1AvgBnsAmt, -- 월평균상여금</p>
+<p>0 AS M1AvgYyAmt, -- 월평균연차수당</p>
+<p>0 AS M1AvgMmAmt, -- 월평균월차수당</p>
+<p>0 AS M1AvgWage, -- 월평균임금</p>
+<p>B.Amt AS M3AvgPayAmt, -- 3개월평균급여</p>
+<p>0 AS M3AvgBnsAmt, -- 3개월평균상여금</p>
+<p>0 AS M3AvgYyAmt, -- 3개월평균연차</p>
+<p>0 AS M3AvgMmAmt, -- 3개월평균월차</p>
+<p>0 AS M3AvgWage, -- 3개월평균임금</p>
+<p>0 AS D1AvgWage, -- 일평균임금</p>
+<p>0 AS TotRetAmt, -- 퇴직금추계액</p>
+<p>0 AS EtcAllowAmt, -- 기타퇴직추계액</p>
+<p>F.Amt AS PrevTotRetAmt, -- 전월퇴직추계액</p>
+<p>@UserSeq AS LastUserSeq, -- 작업자</p>
+<p>GETDATE() AS LastDateTime, -- 작업일시</p>
+<p>0 AS PayRetAmt, -- 당월충당금액</p>
+<p>A.RetSeq AS RetSeq,</p>
+<p>0 AS AdjRetAmt -- 중도정산지급액</p>
+<p>FROM #EstEmp AS A</p>
+<p>LEFT OUTER JOIN #EstAmt AS B ON A.EmpSeq = B.EmpSeq -- 3개월평균급여</p>
+<p>AND B.Seq = 1</p>
+<p>LEFT OUTER JOIN #EstAmt AS C ON A.EmpSeq = C.EmpSeq -- 1년상여</p>
+<p>AND C.Seq = 2</p>
+<p>LEFT OUTER JOIN #EstAmt AS D ON A.EmpSeq = D.EmpSeq -- 1년연차</p>
+<p>AND D.Seq = 3</p>
+<p>LEFT OUTER JOIN #EstAmt AS E ON A.EmpSeq = E.EmpSeq -- 1년월차</p>
+<p>AND B.Seq = 4</p>
+<p>LEFT OUTER JOIN #EstAmt AS F ON A.EmpSeq = F.EmpSeq -- 전월퇴직충당금</p>
+<p>AND F.Seq = 5</p>
+<p>WHERE A.RetEmpDate \&lt;&gt; ''</p>
+<p>--WHERE ISNULL(A.RetEmpDate, '') \&lt;&gt; ''</p>
+<p>--=====================================================================================================================</p>
+<p>-- 사원별처리</p>
+<p>--=====================================================================================================================</p>
+<p>DECLARE CurEstAmt INSENSITIVE CURSOR FOR</p>
+<p>SELECT A.EmpSeq, A.RetCntDate, A.M3AvgPayAmt, A.BnsAmt, A.Y1YyAmt, A.Y1MmAmt, B.SMExcMth, B.Amt, C.RetSeq, C.CumGrpSeq, C.PosName</p>
+<p>FROM _TPRRetEstMst AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TPRRetEstExAvgAmt AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.RetEstYm = B.RetEstYm</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>JOIN #EstEmp AS C WITH(NOLOCK) ON A.EmpSeq = C.EmpSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.RetEstYm = @RetEstYm</p>
+<p>ORDER BY A.EmpSeq</p>
+<p>FOR READ ONLY</p>
+<p>OPEN CurEstAmt</p>
+<p>WHILE (1 = 1)</p>
+<p>BEGIN</p>
+<p>FETCH CurEstAmt</p>
+<p>INTO @c1EmpSeq, @c1RetCntDate, @c1M3AvgPayAmt, @c1BnsAmt, @c1Y1YyAmt, @c1Y1MmAmt, @c1SMExcMth, @c1ExcAmt, @RetSeq, @CumGrpSeq, @PosName</p>
+<p>IF (@@FETCH_STATUS != 0)</p>
+<p>BEGIN</p>
+<p>BREAK</p>
+<p>END</p>
+<p>--SELECT @RetSeq = RetSeq FROM _THRBasEmpPayInfo WHERE CompanySeq = @CompanySeq AND EmpSeq = @c1EmpSeq</p>
+<p>SELECT @SMAvgWageType = SMAvgWageType , -- 평균임금계산기준코드</p>
+<p>@SMM3BnsType = SMM3BnsType , -- 3개월상여계산방식코드</p>
+<p>@SMM3YyAmtType = SMM3YyAmtType , -- 3개월연차계산방식코드</p>
+<p>@SMM1PayType = SMM1PayType , -- 1개월급여계산방식</p>
+<p>@SMM1BnsType = SMM1BnsType , -- 1개월상여계산방식</p>
+<p>@SMM1YyAmtType = SMM1YyAmtType , -- 1개월연차계산방식</p>
+<p>@SMAvgAmtPosType = SMAvgAmtPosType , -- 평균임금금액처리단위코드</p>
+<p>@SMAvgAmtPrcType = SMAvgAmtPrcType , -- 평균임금금액처리방식코드</p>
+<p>@SMApplyDaysType = SMApplyDaysType , -- 일평균임금적용일수코드</p>
+<p>@RetApplyDays = RetApplyDays , -- 1개월적용일수</p>
+<p>@SMRetAmtPosType = SMRetAmtPosType , -- 퇴직금금액처리단위</p>
+<p>@SMRetAmtPrcType = SMRetAmtPrcType , -- 퇴직금금액처리방식</p>
+<p>@SMWhichWkTrm = SMWhichWkTrm , -- 근속년수표시방식</p>
+<p>@IsCum = IsCum , -- 누진적용</p>
+<p>@SMCumGrpType = SMCumGrpType , -- 누진적용그룹코드</p>
+<p>@SMCumMth = SMCumMth , -- 누진적용방식코드</p>
+<p>@SMWkTrmPrcType = SMWkTrmPrcType , -- 근속처리방식</p>
+<p>@SMWkTrmDesc = SMWkTrmDesc , -- 근속년수소수점자리수코드</p>
+<p>@SMBnsTrmType = SMBnsTrmType , -- 평균임금생성시상여기준코드</p>
+<p>@IsNotProc = IsNotProc -- 근속처리단위 사용안함</p>
+<p>FROM _TPRRetBase WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetSeq = @RetSeq</p>
+<p>-- 근속관련 초기화</p>
+<p>SELECT @c1TotWkDays = 0,</p>
+<p>@c1WkTrm = 0,</p>
+<p>@c1WkCnt = 0,</p>
+<blockquote>
+<p>@c1WkCnt_BOSS = 0,</p>
+</blockquote>
+<p>@c1AddWkTrmY = 0</p>
+<p>IF @c1RetCntDate &gt; @RetDate</p>
+<p>CONTINUE</p>
+<p>EXEC _SCOMWorkCntCalc @c1RetCntDate, @RetDate, @c1WkTrm OUTPUT</p>
+<p>IF ISDATE(@c1RetCntDate) \&lt;&gt; '0' AND ISDATE(@RetDate) \&lt;&gt; '0' --&gt; DateType 확인</p>
+<p>BEGIN</p>
+<p>-- 총근무일수</p>
+<p>SELECT @c1TotWkDays = DATEDIFF(DAY, @c1RetCntDate, @RetDate) + 1</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @c1TotWkDays = 0</p>
+<p>END</p>
+<p>-- 근속년수구하기</p>
+<p>--3918001:년-일, 3918002:년-월, 3918003:년-월-일, 3918004:총일수/365</p>
+<p>IF @SMWhichWkTrm = 3918001 -- 년-일(월-일을 일수로 계산하여 365로 나눈다.)</p>
+<p>BEGIN</p>
+<p>SELECT @c1WkCnt = CONVERT(DECIMAL(19, 5), SUBSTRING(@c1WkTrm, 1, 2))</p>
+<p>+ ( ( DATEDIFF(DAY, @c1RetCntDate, @RetDate) + 1</p>
+<p>- DATEDIFF(DAY, @c1RetCntDate, CONVERT(CHAR(8), DATEADD (YY, CONVERT(INT,SUBSTRING(@c1WkTrm, 1, 2)), @c1RetCntDate), 112) )</p>
+<p>) / CONVERT(Float, DATEDIFF(DAY, LEFT(@RetDate, 4) + '0101', LEFT(@RetDate, 4) + '1231')+1) )</p>
+<p>-- ) / 365.0)</p>
+<p>--+ ((CONVERT(INT, SUBSTRING(@c1WkTrm, 3, 2)) * 30) + CONVERT(INT,SUBSTRING(@c1WkTrm, 5, 2))) / 365.0</p>
+<p>END</p>
+<p>ELSE IF @SMWhichWkTrm = 3918002 -- 년-월(일수가 있으면 월수를 추가한다.)</p>
+<p>BEGIN</p>
+<p>SELECT @c1WkCnt = CONVERT(DECIMAL(19, 5), SUBSTRING(@c1WkTrm, 1, 2))</p>
+<p>+ CASE WHEN SUBSTRING(@c1WkTrm, 5, 2) \&lt;&gt; '00' THEN (CONVERT(INT,SUBSTRING(@c1WkTrm, 3, 2)) + 1) / 12.0</p>
+<p>ELSE CONVERT(INT,SUBSTRING(@c1WkTrm, 3, 2)) / 12.0</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE IF @SMWhichWkTrm = 3918003 -- 년-월-일</p>
+<p>BEGIN</p>
+<p>SELECT @c1WkCnt = CONVERT(DECIMAL(19, 5), SUBSTRING(@c1WkTrm, 1, 2))</p>
+<p>+ CONVERT(DECIMAL(19, 5),SUBSTRING(@c1WkTrm, 3, 2)) / 12.0</p>
+<p>+ CONVERT(DECIMAL(19, 5),SUBSTRING(@c1WkTrm, 5, 2)) / (DATEDIFF(DAY, LEFT(@RetDate, 4) + '0101', LEFT(@RetDate, 4) + '1231')+1)</p>
+<p>END</p>
+<p>ELSE -- IF @SMWhichWkTrm = 3918004</p>
+<p>BEGIN</p>
+<blockquote>
+<p>if @PosName = '임원'</p>
+<p>BEGIN</p>
+<p>SELECT @c1WkCnt_BOSS = CONVERT(float, SUBSTRING(@c1WkTrm, 1, 2))</p>
+</blockquote>
+<p>+ CASE WHEN SUBSTRING(@c1WkTrm, 5, 2) \&lt;&gt; '00' THEN (CONVERT(INT,SUBSTRING(@c1WkTrm, 3, 2)) + 1)*1000000 / 12.0 / 1000000</p>
+<p>ELSE CONVERT(INT,SUBSTRING(@c1WkTrm, 3, 2))*1000000 / 12.0/1000000</p>
+<p>END</p>
+<blockquote>
+<p>SELECT @c1WkCnt = @c1WkCnt_BOSS</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @c1WkCnt = @c1TotWkDays / 365.0</p>
+<p>END</p>
+</blockquote>
+<p>END</p>
+<p>IF ISNULL(@IsNotProc,'0') = '0'</p>
+<p>BEGIN</p>
+<p>-- 근속년수소숫점적용</p>
+<p>SELECT @c1WkCnt = CASE WHEN @SMWkTrmDesc = 1023001 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, 4)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt * 10000) / 10000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt * 10000) / 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1WkCnt, 4)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023002 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, 3)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt * 1000) / 1000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt * 1000) / 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1WkCnt, 3)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023003 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, 2)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt * 100) / 100.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt * 100) / 100.0</p>
+<p>ELSE ROUND(@c1WkCnt, 2)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023004 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, 1)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt * 10) / 10.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt * 10) / 10.0</p>
+<p>ELSE ROUND(@c1WkCnt, 1)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023005 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, 0)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt)</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt)</p>
+<p>ELSE ROUND(@c1WkCnt, 0)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023006 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, -1)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt / 10) * 10.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt / 10) * 10.0</p>
+<p>ELSE ROUND(@c1WkCnt, -1)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023007 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, -2)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt / 100) * 100.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt / 100) * 100.0</p>
+<p>ELSE ROUND(@c1WkCnt, -2)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023008 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, -3)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt / 1000) * 1000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt / 1000) * 1000.0</p>
+<p>ELSE ROUND(@c1WkCnt, -3)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023009 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1WkCnt, -4)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1WkCnt / 10000) * 10000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1WkCnt / 10000) * 10000.0</p>
+<p>ELSE ROUND(@c1WkCnt, -4)</p>
+<p>END</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>END</p>
+<p>-- 월수체크기준 가져오기(이상~미만 : 3035001, 초과~이하 : 3035002):2017.01.16 [서비스요청:201701130168]</p>
+<p>SELECT @SMMMChkType = SMMMChkType FROM _TPRRetCumYearTableChk WHERE CompanySeq = @CompanySeq AND RetSeq = @RetSeq</p>
+<p>-- 누진근속년수구하기</p>
+<p>IF @IsCum = '1'</p>
+<p>BEGIN</p>
+<p>-- 근속기간을 월수로변경</p>
+<p>SELECT @TotMM = CONVERT(INT, SUBStRING(@c1WkTrm, 1, 2)) * 12</p>
+<p>+ CONVERT(INT, SUBStRING(@c1WkTrm, 3, 2))</p>
+<p>+ CASE WHEN SUBStRING(@c1WkTrm, 5, 2) \&lt;&gt; '00' THEN 1 ELSE 0 END</p>
+<p>-- 인사함수로 인하여 루프가 돌면서 시간이 오래 걸려서 대상자생성 시에 미리 값을 가지고 있도록 수정.</p>
+<p>---- 누진적용그룹별 사원의 그룹코드</p>
+<p>--SELECT @CumGrpSeq = CASE WHEN @SMCumGrpType = 3013002 THEN A.PuSeq -- 급여작업군</p>
+<p>-- WHEN @SMCumGrpType = 3013003 THEN A.DeptSeq -- 부서</p>
+<p>-- WHEN @SMCumGrpType = 3013004 THEN A.PosSeq -- 포지션</p>
+<p>-- WHEN @SMCumGrpType = 3013005 THEN A.UMJpSeq -- 직위</p>
+<p>-- WHEN @SMCumGrpType = 3013006 THEN A.UMPgSeq -- 직급</p>
+<p>-- WHEN @SMCumGrpType = 3013007 THEN A.UMJdSeq -- 직책</p>
+<p>-- WHEN @SMCumGrpType = 3013008 THEN A.UMJoSeq -- 직종</p>
+<p>-- WHEN @SMCumGrpType = 3013009 THEN A.PtSeq -- 급여형태</p>
+<p>-- WHEN @SMCumGrpType = 3013010 THEN A.UMWsSeq -- 근무상태</p>
+<p>-- WHEN @SMCumGrpType = 3013011 THEN A.SMSexSeq-- 남녀</p>
+<p>-- ELSE -1 -- 전체그룹</p>
+<p>-- END</p>
+<p>-- FROM _fnAdmEmpOrd(@CompanySeq, @RetDate) AS A</p>
+<p>-- WHERE A.EmpSeq = @c1EmpSeq</p>
+<p>---- 누진적용방식(3921001:추가월수, 3921002:비율)</p>
+<p>--SELECT @c1AddWkTrmY = CASE WHEN @SMCumMth = 3921002 THEN -- 비율</p>
+<p>-- CASE WHEN ISNULL(WkRate, 0) = 0 THEN 0</p>
+<p>-- ELSE (ISNULL(WkRate, 0) * 0.01) * @c1WkCnt</p>
+<p>-- END</p>
+<p>-- ELSE -- @SMCumMth = 3921001 THEN -- 추가월수</p>
+<p>-- CASE WHEN ISNULL(WkMMCnt, 0) = 0 THEN 0</p>
+<p>-- ELSE ISNULL(WkMMCnt, 0) / 12.0</p>
+<p>-- END</p>
+<p>-- END</p>
+<p>-- FROM _TPRRetCumYearTable WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND RetSeq = @RetSeq</p>
+<p>-- AND CumGrpSeq = @CumGrpSeq</p>
+<p>-- AND @TotMM BETWEEN BegMMCnt AND EndMMCnt</p>
+<p>SELECT @c1AddWkTrmY = CASE WHEN @SMCumMth = 3921001 THEN -- 추가월수</p>
+<p>CASE WHEN @SMMMChkType = 3035001 THEN -- 이상~미만</p>
+<p>(SELECT CASE WHEN ISNULL(WkMMCnt, 0) = 0 THEN 0</p>
+<p>ELSE ISNULL(WkMMCnt, 0) / 12.0</p>
+<p>END</p>
+<p>FROM _TPRRetCumYearTable</p>
+<p>WHERE CompanySeq = @CompanySeq AND RetSeq = @RetSeq AND CumGrpSeq = @CumGrpSeq</p>
+<p>AND @TotMM &gt;= BegMMCnt</p>
+<p>AND @TotMM \&lt; EndMMCnt)</p>
+<p>ELSE</p>
+<p>(SELECT CASE WHEN ISNULL(WkMMCnt, 0) = 0 THEN 0</p>
+<p>ELSE ISNULL(WkMMCnt, 0) / 12.0</p>
+<p>END</p>
+<p>FROM _TPRRetCumYearTable</p>
+<p>WHERE CompanySeq = @CompanySeq AND RetSeq = @RetSeq AND CumGrpSeq = @CumGrpSeq</p>
+<p>AND @TotMM &gt; BegMMCnt</p>
+<p>AND @TotMM \&lt;= EndMMCnt)</p>
+<p>END</p>
+<p>WHEN @SMCumMth = 3921002 THEN -- 비율</p>
+<p>CASE WHEN @SMMMChkType = 3035001 THEN -- 이상~미만</p>
+<p>(SELECT CASE WHEN ISNULL(WkRate, 0) = 0 THEN 0</p>
+<p>ELSE (ISNULL(WkRate, 0) * 0.01) * @c1WkCnt</p>
+<p>END</p>
+<p>FROM _TPRRetCumYearTable</p>
+<p>WHERE CompanySeq = @CompanySeq AND RetSeq = @RetSeq AND CumGrpSeq = @CumGrpSeq</p>
+<p>AND @TotMM &gt;= BegMMCnt</p>
+<p>AND @TotMM \&lt; EndMMCnt)</p>
+<p>ELSE</p>
+<p>(SELECT CASE WHEN ISNULL(WkRate, 0) = 0 THEN 0</p>
+<p>ELSE (ISNULL(WkRate, 0) * 0.01) * @c1WkCnt</p>
+<p>END</p>
+<p>FROM _TPRRetCumYearTable</p>
+<p>WHERE CompanySeq = @CompanySeq AND RetSeq = @RetSeq AND CumGrpSeq = @CumGrpSeq</p>
+<p>AND @TotMM &gt; BegMMCnt</p>
+<p>AND @TotMM \&lt;= EndMMCnt)</p>
+<p>END</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>END</p>
+<p>IF ISNULL(@IsNotProc,'0') = '0'</p>
+<p>BEGIN</p>
+<p>-- 누진근속년수소숫점적용</p>
+<p>SELECT @c1AddWkTrmY = CASE WHEN @SMWkTrmDesc = 1023001 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, 4)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY * 10000) / 10000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY * 10000) / 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1AddWkTrmY, 4)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023002 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, 3)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY * 1000) / 1000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY * 1000) / 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1AddWkTrmY, 3)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023003 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, 2)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY * 100) / 100.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY * 100) / 100.0</p>
+<p>ELSE ROUND(@c1AddWkTrmY, 2)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023004 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, 1)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY * 10) / 10.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY * 10) / 10.0</p>
+<p>ELSE ROUND(@c1AddWkTrmY, 1)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023005 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, 0)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY)</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY)</p>
+<p>ELSE ROUND(@c1AddWkTrmY, 0)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023006 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, -1)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY / 10) * 10.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY / 10) * 10.0</p>
+<p>ELSE ROUND(@c1AddWkTrmY, -1)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023007 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, -2)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY / 100) * 100.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY / 100) * 100.0</p>
+<p>ELSE ROUND(@c1AddWkTrmY, -2)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023008 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, -3)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY / 1000) * 1000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY / 1000) * 1000.0</p>
+<p>ELSE ROUND(@c1AddWkTrmY, -3)</p>
+<p>END</p>
+<p>WHEN @SMWkTrmDesc = 1023009 THEN CASE WHEN @SMWkTrmPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1AddWkTrmY, -4)</p>
+<p>WHEN @SMWkTrmPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1AddWkTrmY / 10000) * 10000.0</p>
+<p>WHEN @SMWkTrmPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1AddWkTrmY / 10000) * 10000.0</p>
+<p>ELSE ROUND(@c1AddWkTrmY, -4)</p>
+<p>END</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>END</p>
+<p>-- 평균임금및 추계액 생성</p>
+<p>SELECT @c1M3AvgBnsAmt = 0, -- 3개월상여</p>
+<p>@c1M3AvgYyAmt = 0, -- 3개월년차</p>
+<p>@c1M3AvgMmAmt = 0, -- 3개월월차</p>
+<p>@c1M3AvgWage = 0, -- 3개월평균임금</p>
+<p>@c1D1AvgWage = 0, -- 1일평균임금</p>
+<p>@c1M1AvgPayAmt = 0, -- 1개월급여</p>
+<p>@c1M1AvgBnsAmt = 0, -- 1개월상여</p>
+<p>@c1M1AvgYyAmt = 0, -- 1개월년차</p>
+<p>@c1M1AvgMmAmt = 0, -- 1개월월차</p>
+<p>@c1M1AvgWage = 0, -- 월평균임금</p>
+<p>@c1TotRetAmt = 0 -- 퇴직금</p>
+<p>IF @SMAvgWageType = 3914001 -- 일평균임금</p>
+<p>BEGIN</p>
+<p>SELECT @c1M3AvgPayAmt = ISNULL(@c1M3AvgPayAmt, 0)</p>
+<p>-- 상여기준</p>
+<p>IF @SMM3BnsType = 3915001 -- 평균임금산정일수/365.0</p>
+<p>BEGIN</p>
+<p>--SELECT @c1M3AvgBnsAmt = @c1BnsAmt * (CONVERT(INT,DATEDIFF(DAY, @BegDate, @EndDate)) + 1 / 365.0)</p>
+<p>SELECT @c1M3AvgBnsAmt = (@c1BnsAmt * (CONVERT(INT,DATEDIFF(DAY, @BegDate, @EndDate)) + 1) / 365.0) -- (2011.11.17)</p>
+<p>END</p>
+<p>ELSE -- 3개월 / 12 개월</p>
+<p>BEGIN</p>
+<p>SELECT @c1M3AvgBnsAmt = ISNULL(@c1BnsAmt, 0) * 3.0 / 12.0 -- (2011.11.17)</p>
+<p>END</p>
+<p>-- 3개월년월차</p>
+<p>IF @SMM3YyAmtType = 3915001 -- 평균임금산정일수/365.0</p>
+<p>BEGIN</p>
+<p>SELECT @c1M3AvgYyAmt = ISNULL(@c1Y1YyAmt, 0) * (CONVERT(INT,DATEDIFF(DAY, @BegDate, @EndDate)) + 1) / 365.0,</p>
+<p>@c1M3AvgMmAmt = ISNULL(@c1Y1MmAmt, 0) * (CONVERT(INT,DATEDIFF(DAY, @BegDate, @EndDate)) + 1) / 365.0</p>
+<p>END</p>
+<p>ELSE -- 3개월 / 12 개월</p>
+<p>BEGIN</p>
+<p>SELECT @c1M3AvgYyAmt = ISNULL(@c1Y1YyAmt, 0) * 3.0 / 12.0, -- (2011.11.17)</p>
+<p>@c1M3AvgMmAmt = ISNULL(@c1Y1MmAmt, 0) * 3.0 / 12.0 -- (2011.11.17)</p>
+<p>END</p>
+<p>-- 3개월 평균임금</p>
+<p>SELECT @c1M3AvgWage = (ISNULL(@c1M3AvgPayAmt, 0) + ISNULL(@c1M3AvgBnsAmt, 0) + ISNULL(@c1M3AvgYyAmt, 0) + ISNULL(@c1M3AvgMmAmt,0))</p>
+<blockquote>
+<p>-- 임원인경우 3개월 평균임금에서 10%를 구한것이 임금이다.</p>
+<p>IF @PosName = '임원'</p>
+<p>BEGIN</p>
+<p>SELECT @c1D1AvgWage = (@c1M3AvgPayAmt + @c1BnsAmt) / 10.0 -- 3개월평균금액의 10%가 평균월급여가 된다.</p>
+<p>SELECT @c1TotRetAmt = ISNULL(@c1D1AvgWage, 0) * (ISNULL(@c1WkCnt_BOSS, 0)) * ISNULL(@c1AddWkTrmY, 0)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 일평균임금 -- 일평균임금적용방식(3919001:평균임금산정일수, 3919002:90일)</p>
+<p>SELECT @c1D1AvgWage = @c1M3AvgWage / CASE WHEN @SMApplyDaysType = 3919001 THEN</p>
+<p>CONVERT(INT, DATEDIFF(DAY, @BegDate, @EndDate)) + 1</p>
+<p>ELSE 90</p>
+<p>END</p>
+<p>-- 평균임금금액처리적용</p>
+<p>SELECT @c1D1AvgWage = CASE WHEN @SMAvgAmtPosType = 1023001 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, 4)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage * 10000) / 10000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage * 10000) / 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, 4)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023002 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, 3)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage * 1000) / 1000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage * 1000) / 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, 3)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023003 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, 2)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage * 100) / 100.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage * 100) / 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, 2)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023004 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, 1)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage * 10) / 10.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage * 10) / 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, 1)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023005 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, 0)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage)</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, 0)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023006 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림 -- 1단위에서</p>
+<p>ROUND(@c1D1AvgWage, -1)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage / 10) * 10.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage / 10) * 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, -1)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023007 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, -2)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage / 100) * 100.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage / 100) * 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, -2)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023008 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, -3)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage / 1000) * 1000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage / 1000) * 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, -3)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023009 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1D1AvgWage, -4)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1D1AvgWage / 10000) * 10000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1D1AvgWage / 10000) * 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1D1AvgWage, -4)</p>
+<p>END</p>
+<p>ELSE ROUND(@c1D1AvgWage, 1)</p>
+<p>END        </p>
+<p>-- 평균임금예외적용(3037001:일정금액, 3037002:가감금액)</p>
+<p>SELECT @c1D1AvgWage = CASE WHEN @c1SMExcMth = 3037001 THEN ISNULL(@c1ExcAmt, 0)</p>
+<p>WHEN @c1SMExcMth = 3037002 THEN ISNULL(@c1D1AvgWage, 0) + ISNULL(@c1ExcAmt, 0)</p>
+<p>ELSE @c1D1AvgWage</p>
+<p>END</p>
+<p>-- 퇴직금총액</p>
+<p>SELECT @c1TotRetAmt = ISNULL(@c1D1AvgWage, 0) * (ISNULL(@c1WkCnt, 0) + ISNULL(@c1AddWkTrmY, 0) ) * ISNULL(@RetApplyDays, 0)</p>
+<p>END</p>
+</blockquote>
+<p>-- 지급율이 존재하면</p>
+<p>SELECT @PayRate = 0</p>
+<p>SELECT @PayRate = PayRate FROM _TPRRetEmpPayRate</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = @c1EmpSeq</p>
+<p>AND BegYm \&lt;= @RetEstYm</p>
+<p>AND EndYm &gt;= @RetEstYm</p>
+<p>IF ISNULL(@PayRate,0) \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<blockquote>
+<p>SELECT @c1TotRetAmt = ISNULL(@c1TotRetAmt,0) * ISNULL(@PayRate,0) * 0.01</p>
+</blockquote>
+<p>END</p>
+<p>SELECT @c1TotRetAmt = CASE WHEN @SMRetAmtPosType = 1023001 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 4)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 10000) / 10000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 10000) / 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 4)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023002 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 3)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 1000) / 1000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 1000) / 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 3)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023003 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 2)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 100) / 100.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 100) / 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 2)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023004 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 1)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 10) / 10.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 10) / 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 1)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023005 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 0)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt)</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt)</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 0)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023006 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림 -- 1단위에서</p>
+<p>ROUND(@c1TotRetAmt, -1)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 10) * 10.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 10) * 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -1)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023007 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, -2)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 100) * 100.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 100) * 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -2)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023008 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, -3)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 1000) * 1000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 1000) * 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -3)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023009 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, -4)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 10000) * 10000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 10000) * 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -4)</p>
+<p>END</p>
+<p>ELSE ROUND(@c1TotRetAmt, 1)</p>
+<p>END</p>
+<p>UPDATE _TPRRetEstMst</p>
+<p>SET WkTrm = @c1WkTrm, -- 근속기간</p>
+<p>TotWkDays = @c1TotWkDays, -- 총근무일수</p>
+<p>WkYearCnt = @c1WkCnt, -- 근속년수</p>
+<p>AddWkTrm = @c1AddWkTrmY, -- 추가근속년수</p>
+<p>-- M3AvgPayAmt = @c1M3AvgPayAmt, -- 3개월평균급여</p>
+<p>M3AvgBnsAmt = @c1M3AvgBnsAmt, -- 3개월평균상여금</p>
+<p>M3AvgYyAmt = @c1M3AvgYyAmt, -- 3개월평균연차</p>
+<p>M3AvgMmAmt = @c1M3AvgMmAmt, -- 3개월평균월차</p>
+<p>M3AvgWage = @c1M3AvgWage, -- 3개월평균임금</p>
+<p>D1AvgWage = @c1D1AvgWage, -- 일평균임금</p>
+<p>TotRetAmt = @c1TotRetAmt, -- 퇴직금추계액</p>
+<p>PayRetAmt = @c1TotRetAmt - ISNULL(PrevTotRetAmt, 0) -- 당월충당금액</p>
+<p>FROM _TPRRetEstMst WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetEstYm = @RetEstYm</p>
+<p>AND EmpSeq = @c1EmpSeq</p>
+<p>END</p>
+<p>ELSE -- 월평균임금</p>
+<p>BEGIN</p>
+<p>-- 급여</p>
+<p>SELECT @c1M1AvgPayAmt = CASE WHEN @SMM1PayType = 3916002 THEN -- 30일/평균임금산정일수</p>
+<p>@c1M3AvgPayAmt * 30.0 / (CONVERT(INT, DATEDIFF(DAY, @BegDate, @EndDate)) + 1) -- (2011.11.17)</p>
+<p>ELSE -- 1개월/3개월</p>
+<p>@c1M3AvgPayAmt * 1.0 / 3.0 -- (2011.11.17)</p>
+<p>END</p>
+<p>-- 상여</p>
+<p>SELECT @c1M1AvgBnsAmt = CASE WHEN @SMBnsTrmType = 3913002 THEN -- 1년</p>
+<p>CASE WHEN @SMM1BnsType = 3917002 THEN -- 30/365</p>
+<p>@c1BnsAmt * 30.0 / 365.0 -- (2011.11.17)</p>
+<p>ELSE -- 1개월/12개월</p>
+<p>@c1BnsAmt * 1.0 / 12.0 -- (2011.11.17)</p>
+<p>END</p>
+<p>ELSE -- 3개월</p>
+<p>CASE WHEN @SMM1BnsType = 3917004 THEN -- 30/평균임금산정일수</p>
+<p>@c1BnsAmt * 30.0 / (CONVERT(INT, DATEDIFF(DAY, @BegDate, @EndDate)) + 1) -- (2011.11.17)</p>
+<p>ELSE -- 1개월/3개월</p>
+<p>@c1BnsAmt * 1.0 / 3.0 -- (2011.11.17)</p>
+<p>END</p>
+<p>END</p>
+<p>-- 연차</p>
+<p>SELECT @c1M1AvgYyAmt = CASE WHEN @SMM1YyAmtType = 3917002 THEN -- 30/365</p>
+<p>@c1Y1YyAmt * 30.0 / 365.0 -- (2011.11.17)</p>
+<p>ELSE -- 1개월/12개월</p>
+<p>@c1Y1YyAmt * 1.0 / 12.0 -- (2011.11.17)</p>
+<p>END</p>
+<p>-- 월차</p>
+<p>SELECT @c1M1AvgMmAmt = CASE WHEN @SMM1YyAmtType = 3917002 THEN -- 30/365</p>
+<p>@c1Y1MmAmt * 30.0 / 365.0 -- (2011.11.17)</p>
+<p>ELSE -- 1개월/12개월</p>
+<p>@c1Y1MmAmt * 1.0 / 12.0 -- (2011.11.17)</p>
+<p>END</p>
+<p>-- 월평균임금</p>
+<p>SELECT @c1M1AvgWage = ISNULL(@c1M1AvgPayAmt, 0) + ISNULL(@c1M1AvgBnsAmt, 0) + ISNULL(@c1M1AvgYyAmt, 0) + ISNULL(@c1M1AvgMmAmt, 0)</p>
+<p>SELECT @c1M1AvgWage = CASE WHEN @SMAvgAmtPosType = 1023001 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, 4)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage * 10000) / 10000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage * 10000) / 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, 4)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023002 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, 3)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage * 1000) / 1000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage * 1000) / 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, 3)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023003 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, 2)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage * 100) / 100.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage * 100) / 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, 2)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023004 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, 1)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage * 10) / 10.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage * 10) / 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, 1)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023005 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, 0)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage)</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, 0)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023006 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림 -- 1단위에서</p>
+<p>ROUND(@c1M1AvgWage, -1)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage / 10) * 10.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage / 10) * 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, -1)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023007 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, -2)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage / 100) * 100.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage / 100) * 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, -2)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023008 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, -3)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage / 1000) * 1000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage / 1000) * 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, -3)</p>
+<p>END</p>
+<p>WHEN @SMAvgAmtPosType = 1023009 THEN CASE WHEN @SMAvgAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1M1AvgWage, -4)</p>
+<p>WHEN @SMAvgAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1M1AvgWage / 10000) * 10000.0</p>
+<p>WHEN @SMAvgAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1M1AvgWage / 10000) * 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1M1AvgWage, -4)</p>
+<p>END</p>
+<p>ELSE ROUND(@c1M1AvgWage, 1)</p>
+<p>END</p>
+<p>-- 평균임금예외적용(3037001:일정금액, 3037002:가감금액)</p>
+<p>SELECT @c1M1AvgWage = CASE WHEN @c1SMExcMth = 3037001 THEN ISNULL(@c1ExcAmt, 0)</p>
+<p>WHEN @c1SMExcMth = 3037002 THEN ISNULL(@c1M1AvgWage, 0) + ISNULL(@c1ExcAmt, 0)</p>
+<p>ELSE @c1M1AvgWage</p>
+<p>END</p>
+<p>-- 퇴직금총액</p>
+<p>SELECT @c1TotRetAmt = ISNULL(@c1M1AvgWage, 0) * (ISNULL(@c1WkCnt, 0) + ISNULL(@c1AddWkTrmY, 0) )</p>
+<p>-- 지급율이 존재하면</p>
+<p>SELECT @PayRate = 0</p>
+<p>SELECT @PayRate = PayRate FROM _TPRRetEmpPayRate</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = @c1EmpSeq</p>
+<p>AND BegYm \&lt;= @RetEstYm</p>
+<p>AND EndYm &gt;= @RetEstYm</p>
+<p>IF ISNULL(@PayRate,0) \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @c1TotRetAmt = ISNULL(@c1TotRetAmt,0) * ISNULL(@PayRate,0) * 0.01</p>
+<p>END</p>
+<p>SELECT @c1TotRetAmt = CASE WHEN @SMRetAmtPosType = 1023001 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 4)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 10000) / 10000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 10000) / 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 4)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023002 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 3)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 1000) / 1000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 1000) / 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 3)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023003 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 2)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 100) / 100.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 100) / 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 2)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023004 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 1)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt * 10) / 10.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt * 10) / 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 1)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023005 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, 0)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt)</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt)</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, 0)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023006 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림 -- 1단위에서</p>
+<p>ROUND(@c1TotRetAmt, -1)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 10) * 10.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 10) * 10.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -1)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023007 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, -2)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 100) * 100.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 100) * 100.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -2)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023008 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, -3)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 1000) * 1000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 1000) * 1000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -3)</p>
+<p>END</p>
+<p>WHEN @SMRetAmtPosType = 1023009 THEN CASE WHEN @SMRetAmtPrcType = 1003001 THEN -- 반올림</p>
+<p>ROUND(@c1TotRetAmt, -4)</p>
+<p>WHEN @SMRetAmtPrcType = 1003002 THEN -- 절사</p>
+<p>FLOOR(@c1TotRetAmt / 10000) * 10000.0</p>
+<p>WHEN @SMRetAmtPrcType = 1003003 THEN -- 올림</p>
+<p>CEILING(@c1TotRetAmt / 10000) * 10000.0</p>
+<p>ELSE</p>
+<p>ROUND(@c1TotRetAmt, -4)</p>
+<p>END</p>
+<p>ELSE ROUND(@c1TotRetAmt, 1)</p>
+<p>END</p>
+<p>UPDATE _TPRRetEstMst</p>
+<p>SET WkTrm = @c1WkTrm, -- 근속기간</p>
+<p>TotWkDays = @c1TotWkDays, -- 총근무일수</p>
+<p>WkYearCnt = @c1WkCnt, -- 근속년수</p>
+<p>AddWkTrm = @c1AddWkTrmY, -- 추가근속년수</p>
+<p>M1AvgPayAmt = @c1M1AvgPayAmt, -- 월평균급여</p>
+<p>M1AvgBnsAmt = @c1M1AvgBnsAmt, -- 월평균상여금</p>
+<p>M1AvgYyAmt = @c1M1AvgYyAmt, -- 월평균연차수당</p>
+<p>M1AvgMmAmt = @c1M1AvgMmAmt, -- 월평균월차수당</p>
+<p>M1AvgWage = @c1M1AvgWage, -- 월평균임금</p>
+<p>TotRetAmt = @c1TotRetAmt, -- 퇴직금추계액</p>
+<p>PayRetAmt = @c1TotRetAmt - ISNULL(PrevTotRetAmt, 0) -- 당월충당금액</p>
+<p>FROM _TPRRetEstMst WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND RetEstYm = @RetEstYm</p>
+<p>AND EmpSeq = @c1EmpSeq</p>
+<p>END -- 월평균임금끝</p>
+<p>END -- WHILE</p>
+<p>CLOSE CurEstAmt</p>
+<p>DEALLOCATE CurEstAmt</p>
+<p>SELECT * FROM #PRRetEst</p>
+<p>RETURN</p>
+<p>--SELECT *</p>
+<p>-- fROM _TPRRetEstMst</p>
+<p>-- WHERE ISNULL(Y1YyAmt,0) \&lt;&gt; 0</p>
+<p>-- OR ISNULL(Y1MmAmt,0) \&lt;&gt; 0</p>
+  </article>
+</div>
+</body>
+</html>

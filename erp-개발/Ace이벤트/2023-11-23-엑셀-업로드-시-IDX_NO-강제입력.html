@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>엑셀 업로드 시 IDX_NO 강제입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>엑셀 업로드 시 IDX_NO 강제입력</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="idx_no">엑셀 업로드 시 IDX_NO 강제입력</h1>
+<p>FrmPJTResrcBOMUpload_ets 제뉴인</p>
+<p>FrmWSLOrderUpload_shilla 에이스</p>
+<p>-- IDX_NO 강제 입력 23.11.23 SJPARK</p>
+<p>local row, IDX_NO</p>
+<p>SetDataColFill(m_SendXml, 'DataBlock3', 'IDX_NO', 0)</p>
+<p>for row = 0 , GetDataBlock(m_SendXml.Data, 'DataBlock3').Rows.Count - 1 do</p>
+<blockquote>
+<p>IDX_NO = row + 1</p>
+<p>SetDataSetValue(m_SendXml.Data, 'DataBlock3', 'IDX_NO', row, IDX_NO)</p>
+</blockquote>
+<p>end</p>
+<p><img alt="" src="assets/엑셀-업로드-시-IDX_NO-강제입력/image69.png" /></p>
+  </article>
+</div>
+</body>
+</html>

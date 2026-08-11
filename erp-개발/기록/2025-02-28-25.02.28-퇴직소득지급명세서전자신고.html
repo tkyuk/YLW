@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.02.28 퇴직소득지급명세서전자신고</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.02.28 퇴직소득지급명세서전자신고</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250228">25.02.28 퇴직소득지급명세서전자신고</h1>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>SELECT ISNULL(dbo._FWCOMDecrypt(A.ResidID, '_TDAEmp', 'ResidID', 1),'') , EmpName,Empid</p>
+<p>FROM _TDAEmp AS A</p>
+<p>WHERE ISNULL(dbo._FWCOMDecrypt(A.ResidID, '_TDAEmp', 'ResidID', 1),'') = '9604032580913'</p>
+<p>/*</p>
+<p>/*</p>
+<blockquote>
+<p>SELECT        A.Seq                                                AS Seq                                -- 내부코드</p>
+<p>,B.RecordType                                AS RecordType                -- 레코드구분</p>
+<p>,B.Record                                        AS Record                        -- 레코드</p>
+<p>,I.RecordName                                AS RecordName                -- 항목</p>
+<p>,I.ValueType                                AS ValueType                -- 특성</p>
+<p>,I.Lenth                                        AS Lenth                        -- 길이</p>
+<p>,I.AccrueLenth                                AS AccrueLenth                -- 누적길이</p>
+<p>,I.SMCrType                                        AS SMCrType                 -- 생성방식코드</p>
+<p>,ISNULL(S1.MinorName, '')        AS SMCrTypeName         -- 생성방식</p>
+<p>,B.Value                                        AS Value                        -- 값</p>
+<p>,B.ChgValue                                        AS ChgValue                 -- 변환값</p>
+<p>,B.Amt                                                AS Amt                                -- 금액</p>
+<p>,B.PageSeq                                        AS PageSeq                        -- 현재페이지</p>
+<p>,I.Remark                                        AS Remark                        -- 점검내용</p>
+<p>FROM _TXPRFileRetRecordMst AS A WITH(NOLOCK)</p>
+<p>JOIN _TXPRFileRetRecordResult        AS B WITH(NOLOCK) ON A.Seq                                = B.Seq</p>
+<p>AND A.SMFileType                = B.SMFileType</p>
+<p>AND A.CompanySeq                = B.CompanySeq</p>
+<p>JOIN _TXPRFileRetRecordItem                AS I WITH(NOLOCK) ON B.StdYM                        = I.StdYM</p>
+<p>AND B.RecordItemSeq        = I.RecordItemSeq</p>
+<p>AND B.CompanySeq                = I.CompanySeq</p>
+<p>LEFT JOIN _VWXBMSMinor                        AS S1 WITH(NOLOCK) ON I.SMCrType                = S1.MinorSeq</p>
+<p>AND S1.LanguageSeq        = 1</p>
+<p>AND I.CompanySeq                = S1.CompanySeq                                                                        </p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.Seq                = 16</p>
+<p>AND A.SMFileType        = 7103007 -- 퇴직소득 지급명세서</p>
+</blockquote>
+<p>AND B.Record IN ('C11','C12','C29','C31')</p>
+<blockquote>
+<p>ORDER BY B.PageSeq, B.RecordType, B.Serl, I.DispSeq</p>
+</blockquote>
+<p>*/</p>
+<p>CREATE TABLE #Tmp_Minor</p>
+<p>(</p>
+<p>MinorSeq INT ,</p>
+<p>Serl INT ,</p>
+<p>ValueText NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_Minor</p>
+<blockquote>
+<p>SELECT         B.PageSeq                                        AS PageSeq                        -- 현재페이지</p>
+</blockquote>
+<p>, CASE WHEN B.Record = 'C11' THEN 15000001</p>
+<p>WHEN B.Record = 'C12' THEN 15000002</p>
+<p>WHEN B.Record = 'C29' THEN 15000003</p>
+<p>WHEN B.Record = 'C31' THEN 15000004 END</p>
+<p>--B.Record                                        AS Record                        -- 레코드</p>
+<blockquote>
+<p>,B.Value                                        AS Value                        -- 값</p>
+<p>FROM _TXPRFileRetRecordMst AS A WITH(NOLOCK)</p>
+<p>JOIN _TXPRFileRetRecordResult        AS B WITH(NOLOCK) ON A.Seq                                = B.Seq</p>
+<p>AND A.SMFileType                = B.SMFileType</p>
+<p>AND A.CompanySeq                = B.CompanySeq</p>
+<p>JOIN _TXPRFileRetRecordItem                AS I WITH(NOLOCK) ON B.StdYM                        = I.StdYM</p>
+<p>AND B.RecordItemSeq        = I.RecordItemSeq</p>
+<p>AND B.CompanySeq                = I.CompanySeq</p>
+<p>LEFT JOIN _VWXBMSMinor                        AS S1 WITH(NOLOCK) ON I.SMCrType                = S1.MinorSeq</p>
+<p>AND S1.LanguageSeq        = 1</p>
+<p>AND I.CompanySeq                = S1.CompanySeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.Seq                = 16</p>
+<p>AND A.SMFileType        = 7103007 -- 퇴직소득 지급명세서</p>
+</blockquote>
+<p>AND B.Record IN ('C11','C12','C29','C31')</p>
+<blockquote>
+<p>ORDER BY B.PageSeq, B.RecordType, B.Serl, I.DispSeq</p>
+</blockquote>
+<p>SELECT * FROM #Tmp_Minor</p>
+<p>CREATE TABLE #TMP(</p>
+<p>Seq INT</p>
+<p>,EmpName NVARCHAR(100)</p>
+<p>,ResidID NVARCHAR(400)</p>
+<p>,Amt1 DECIMAL(19,5)</p>
+<p>,Amt2 DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #TMP</p>
+<p>SELECT MinorSeq AS UMMngType , -- 기기명</p>
+<p>[15000001] AS EquipName , -- 검사항목</p>
+<p>[15000002] AS InspectionItem, -- 단위</p>
+<p>[15000003] AS UnitName , -- 기준값</p>
+<p>[15000004] AS STDValue</p>
+<p>FROM (SELECT Serl,MinorSeq,ValueText FROM #Tmp_Minor) AS B</p>
+<p>PIVOT (</p>
+<p>MIN(ValueText)</p>
+<p>FOR Serl</p>
+<p>--IN ([15000001],[15000002],[15000003],[15000004])</p>
+<p>IN ([15000001],[15000002],[15000003],[15000004])</p>
+<p>) AS A</p>
+<p>ORDER BY MinorSeq</p>
+<p>DROP TABLE #Tmp_Minor</p>
+<p>SELECT * FROM #TMP ORDER BY Seq</p>
+<p>*/</p>
+<p>/*</p>
+<blockquote>
+<p>SELECT        S2.EmpSeq, S2.EmpName, ISNULL(dbo._FWCOMDecrypt(S2.ResidID, '_TDAEmp', 'ResidID', 1),'')</p>
+<p>FROM _TXPRFileRetRecordMst AS A WITH(NOLOCK)</p>
+<p>JOIN _TXPRFileRetRecordResult        AS B WITH(NOLOCK) ON A.Seq                                = B.Seq</p>
+<p>AND A.SMFileType                = B.SMFileType</p>
+<p>AND A.CompanySeq                = B.CompanySeq</p>
+<p>JOIN _TXPRFileRetRecordItem                AS I WITH(NOLOCK) ON B.StdYM                        = I.StdYM</p>
+<p>AND B.RecordItemSeq        = I.RecordItemSeq</p>
+<p>AND B.CompanySeq                = I.CompanySeq</p>
+<p>LEFT JOIN _VWXBMSMinor                        AS S1 WITH(NOLOCK) ON I.SMCrType                = S1.MinorSeq</p>
+<p>AND S1.LanguageSeq        = 1</p>
+<p>AND I.CompanySeq                = S1.CompanySeq                                                                        </p>
+<p>OUTER APPLY (SELECT MAX(EmpSeq) AS EmpSeq, ISNULL(dbo._FWCOMDecrypt(S2.ResidID, '_TDAEmp', 'ResidID', 1),'') AS ResidID, EmpName</p>
+</blockquote>
+<p>FROM _TDAEmp AS S2</p>
+<p>WHERE B.Value = ISNULL(dbo._FWCOMDecrypt(S2.ResidID, '_TDAEmp', 'ResidID', 1),'')</p>
+<p>AND B.Record = 'C12'</p>
+<p>GROUP BY EmpName,ISNULL(dbo._FWCOMDecrypt(S2.ResidID, '_TDAEmp', 'ResidID', 1),'')</p>
+<p>) AS S2</p>
+<blockquote>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.Seq                = 16</p>
+<p>AND A.SMFileType        = 7103007 -- 퇴직소득 지급명세서</p>
+</blockquote>
+<p>AND B.Record IN ('C11','C12','C29','C31')</p>
+<blockquote>
+<p>ORDER BY B.PageSeq</p>
+</blockquote>
+<p>*/</p>
+<p>SELECT MAX(Empid) AS Empid, ISNULL(dbo._FWCOMDecrypt(A.ResidID, '_TDAEmp', 'ResidID', 1),'') AS ResidID</p>
+<p>INTO #TDAEmp</p>
+<p>FROM _TDAEmp AS A</p>
+<p>GROUP BY ISNULL(dbo._FWCOMDecrypt(A.ResidID, '_TDAEmp', 'ResidID', 1),'')</p>
+<p>SELECT A.Seq AS '페이지 번호'</p>
+<p>,A.EmpName AS '사원'        </p>
+<p>,B.Empid AS '사번'</p>
+<p>,A.ResidID AS '주민등록번호'        </p>
+<p>,A.Amt1         AS '퇴직급여'</p>
+<p>,A.Amt2 AS '과세대상퇴직급여'</p>
+<p>FROM #TMP AS A</p>
+<p>JOIN #TDAEmp AS B ON B.ResidID = A.ResidID</p>
+<p>ORDER BY SEQ</p>
+  </article>
+</div>
+</body>
+</html>

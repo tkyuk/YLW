@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>광림 그룹웨어 html 테스트 -\> 실서버 반영</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>광림 그룹웨어 html 테스트 -\> 실서버 반영</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="html-">광림 그룹웨어 html 테스트 -&gt; 실서버 반영</h1>
+<p>UPDATE A</p>
+<p>SET Body = B.Body</p>
+<p>FROM KL.DBO._TCOMEnvGroupWare AS A</p>
+<p>JOIN KLTest.DBO._TCOMEnvGroupWare AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.WorkKind = A.WorkKind</p>
+<p>WHERE A.WorkKind IN ('Estimate1','Estimate2')</p>
+  </article>
+</div>
+</body>
+</html>

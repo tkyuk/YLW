@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행 별 SUM / 컬럼값 SUM 함수</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>행 별 SUM / 컬럼값 SUM 함수</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sum-sum">행 별 SUM / 컬럼값 SUM 함수</h1>
+<ol>
+<li>반복문</li>
+</ol>
+<!-- -->
+
+<ol start="2">
+<li>함수</li>
+</ol>
+<p>-- 반제금액합계의 경우 수수료컬럼도 반영되도록 추가 24.02.14 SJPARK</p>
+<p>local SumData7, SumData8</p>
+<p>SumData7 = 0</p>
+<p>SumData8 = 0</p>
+<p>for row = 0, SS4.DataRowCnt - 1 do</p>
+<p>SumData7 = SumData7 + tonumber(CellText(SS4, row, 'ReturnAmt')) + tonumber(CellText(SS4, row, 'ServiceFeeCurAmt'))</p>
+<blockquote>
+<p>SumData8 = SumData8 + tonumber(CellText(SS4, row, 'ReturnDomAmt')) + tonumber(CellText(SS4, row, 'ServiceFeeDomAmt'))</p>
+</blockquote>
+<p>end</p>
+<p>fltTotReturnAmt.Text = SumData7</p>
+<p>fltTotalReturnDomAmt.Text = SumData8</p>
+<p>fnSLGetSheetSum(SS1, 'CurAmt', fltInvoiceAmt)</p>
+<p>fnSLGetSheetSum(SS1, 'DomAmt', fltInvoiceDomAmt)</p>
+<p>--fnSLGetSheetSum(SS4, 'ReturnAmt', fltTotReturnAmt)</p>
+<p>--fnSLGetSheetSum(SS4, 'ReturnDomAmt', fltTotalReturnDomAmt)</p>
+<p>ACE</p>
+<p>fnSLGetSheetSum(SS1, 'DomAmt', fltTotDomAmt,'')</p>
+<p>fnSLGetSheetSum(SS1, 'DomVAT', fltTotDomVAT,'')</p>
+<p>fnSLGetSheetSum(SS1, 'TotDomAmt', fltTotalDomAmt,'')</p>
+<p>(WBS)컬럼값SUM</p>
+<p><img alt="" src="assets/행-별-SUM-컬럼값-SUM-함수/image75.png" /></p>
+  </article>
+</div>
+</body>
+</html>

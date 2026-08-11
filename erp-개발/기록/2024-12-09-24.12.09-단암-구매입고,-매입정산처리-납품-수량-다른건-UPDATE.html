@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.09 단암 구매입고, 매입정산처리 -\> 납품 수량 다른건 UPDATE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.09 단암 구매입고, 매입정산처리 -\> 납품 수량 다른건 UPDATE</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241209-update">24.12.09 단암 구매입고, 매입정산처리 -&gt; 납품 수량 다른건 UPDATE</h1>
+<p>진행 테이블</p>
+<p>입고, 매입정산</p>
+<p>BEGIN TRAN</p>
+<p>SELECT A.Qty, B.FromQty, B.ToQty</p>
+<p>fROM _TPUDelvItem AS A</p>
+<p>JOIN _TCOMSourceDaily AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.FromSeq = A.DelvSeq</p>
+<p>AND B.FromSerl = A.DelvSerl</p>
+<p>AND FromTableSeq = 10</p>
+<p>WHERE B.FromSeq = 42461</p>
+<p>UPDATE B</p>
+<p>SET TOQty = A.Qty, FromQty = A.Qty</p>
+<p>fROM _TPUDelvItem AS A</p>
+<p>JOIN _TCOMSourceDaily AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.FromSeq = A.DelvSeq</p>
+<p>AND B.FromSerl = A.DelvSerl</p>
+<p>AND FromTableSeq = 10</p>
+<p>WHERE B.FromSeq = 42461</p>
+<p>AND A.Qty \&lt;&gt; B.FromQty</p>
+<p>SELECT A.Qty, B.FromQty, B.ToQty</p>
+<p>fROM _TPUDelvItem AS A</p>
+<p>JOIN _TCOMSourceDaily AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.FromSeq = A.DelvSeq</p>
+<p>AND B.FromSerl = A.DelvSerl</p>
+<p>AND FromTableSeq = 10</p>
+<p>WHERE B.FromSeq = 42461</p>
+<p>ROLLBACK TRAN</p>
+<p>BEGIN TRAN</p>
+<p>SELECT * FROM _TPUDelvInItem WHERE ProgFromSeq = 42461</p>
+<p>UPDATE c</p>
+<p>SET Qty = A.Qty</p>
+<p>FROM _TPUDelvItem AS A</p>
+<p>JOIN _TPUDelvInItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ProgFromSeq = A.DelvSeq</p>
+<p>AND B.ProgFromSerl = A.DelvSerl</p>
+<p>JOIN _TPUBuyingAcc AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.SourceSeq = B.DelvInSeq</p>
+<p>AND C.SourceSerl = B.DelvInSerl</p>
+<p>WHERE A.DelvSeq = 42461</p>
+<p>AND A.Qty \&lt;&gt; B.Qty</p>
+<p>UPDATE B</p>
+<p>SET Qty = A.Qty</p>
+<p>FROM _TPUDelvItem AS A</p>
+<p>JOIN _TPUDelvInItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ProgFromSeq = A.DelvSeq</p>
+<p>AND B.ProgFromSerl = A.DelvSerl</p>
+<p>WHERE A.DelvSeq = 42461</p>
+<p>AND A.Qty \&lt;&gt; B.Qty</p>
+<p>SELECT A.DelvSerl , A.Qty,B.Qty,c.Qty</p>
+<p>FROM _TPUDelvItem AS A</p>
+<p>JOIN _TPUDelvInItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ProgFromSeq = A.DelvSeq</p>
+<p>AND B.ProgFromSerl = A.DelvSerl</p>
+<p>JOIN _TPUBuyingAcc AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.SourceSeq = B.DelvInSeq</p>
+<p>AND C.SourceSerl = B.DelvInSerl</p>
+<p>WHERE A.DelvSeq = 42461</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

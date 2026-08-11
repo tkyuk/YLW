@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2023-03-17-untitled-3</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2023-03-17-untitled-3</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<ul>
+<li>
+<p>하위 BOM 계산</p>
+</li>
+<li>
+<p>현재고 구하기 (특정창고)</p>
+</li>
+<li>
+<p>구매요청, 구매품의, 구매발주 중단, 진행 안된 수량 구하기</p>
+</li>
+<li>
+<p>미검사 수량 가져오기</p>
+</li>
+<li>
+<p>구매단위 가져오기 및 수량 환산</p>
+</li>
+</ul>
+<blockquote></blockquote>
+<p>DROP PROC djb_SWLGMatShortList</p>
+<p>GO</p>
+<p>CREATE PROC djb_SWLGMatShortList</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @BizUnit INT , -- 사업단위</p>
+<p>@DVDateFr NCHAR(8) , -- 납기예정일Fr</p>
+<p>@DVDateTo NCHAR(8) , -- 납기예정일To</p>
+<p>@eessSeq INT , -- 납기예정기준</p>
+<p>@IsStkQty NCHAR(1) , -- 과부족건만 조회</p>
+<p>@UmUse INT , -- 사용처</p>
+<p>@ItemName NVARCHAR(100), -- 품명</p>
+<p>@ItemNo NVARCHAR(100), -- 품번</p>
+<p>@AssetSeq INT -- 자산분류</p>
+<p>SELECT @BizUnit = ISNULL(BizUnit , 0),</p>
+<p>@DVDateFr = ISNULL(DVDateFr ,''),</p>
+<p>@DVDateTo = ISNULL(DVDateTo ,''),</p>
+<p>@ProgressSeq = ISNULL(ProgressSeq , 0),</p>
+<p>@IsStkQty = ISNULL(IsStkQty ,''),</p>
+<p>@UmUse = ISNULL(UmUse , 0),</p>
+<p>@ItemName = ISNULL(ItemName ,''),</p>
+<p>@ItemNo = ISNULL(ItemNo ,''),</p>
+<p>@AssetSeq = ISNULL(AssetSeq , 0)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>IF @DVDateTo = '' SELECT @DVDateTo = '99991231'</p>
+<p>-- 1. 품목 구하기 (출고가능확인요청 / 수주)</p>
+<p>CREATE TABLE #TmpItem</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>AssetSeq INT</p>
+<p>)</p>
+<p>IF @ProgressSeq = '1' -- 출고가능확인요청 건 (확인된 건 / 중단건 제외 / 납기예정기준에 해당하는 건)</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TmpItem</p>
+<p>SELECT A.ItemSeq, A.Qty, B.AssetSeq</p>
+<p>FROM djb_TSLOrderCfmReq AS A</p>
+<p>JOIN _TDAItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.IsStop \&lt;&gt; '1'</p>
+<p>AND A.IsCfm = '1'</p>
+<p>AND A.DVDate BETWEEN @DVDateFr AND @DVDateTo</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>--AND (@ItemName = '' OR B.ItemName LIKE @ItemName + '%')</p>
+<p>--AND (@ItemNo = '' OR B.ItemNo LIKE @ItemNo + '%')</p>
+<p>--AND (@AssetSeq = 0 OR @AssetSeq = B.AssetSeq)</p>
+<p>END</p>
+<p>ELSE -- 수주 건 (중단건 제외 / 납기예정기준에 해당하는 건)</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TmpItem</p>
+<p>SELECT A.ItemSeq, A.Qty, B.AssetSeq</p>
+<p>FROM _TSLOrderItem AS A</p>
+<p>JOIN _TDAItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TCOMStop AS C ON C.TableSeq = 19</p>
+<p>AND C.StopSeq = A.OrderSeq</p>
+<p>AND C.StopSerl = A.OrderSerl</p>
+<p>WHERE ISNULL(C.IsStop,0) = '0'</p>
+<p>AND A.DVDate BETWEEN @DVDateFr AND @DVDateTo</p>
+<p>--AND (@ItemName = '' OR B.ItemName LIKE @ItemName + '%')</p>
+<p>--AND (@ItemNo = '' OR B.ItemNo LIKE @ItemNo + '%')</p>
+<p>--AND (@AssetSeq = 0 OR @AssetSeq = B.AssetSeq)</p>
+<p>END</p>
+<p>--=================================================================</p>
+<p>-- 품목 구하기 종료</p>
+<p>--=================================================================</p>
+<p>-- 2. 자산분류에 따라 임시테이블 2개 생성</p>
+<p>-- 제품/반제품 : 해당 품목의 최종차수 BOM을 풀어서, 하위 모든 레벨의 소요 자재(원자재/부자재/소모자재등… )를 계산하여 가져옴. (출고가능확인요청의 수량으로 소요량 계산)</p>
+<p>-- 상품, 원자재, 부자재 : 그대로 가져옴</p>
+<p>-- 상품, 원자재, 부자재 임시테이블 생성</p>
+<p>SELECT A.ItemSeq, SUM(A.Qty) AS Qty</p>
+<p>INTO #TDAItem1</p>
+<p>FROM #TmpItem AS A</p>
+<p>WHERE A.AssetSeq NOT IN (SELECT A.AssetSeq</p>
+<p>FROM _TDAItemAsset AS A WITH(NOLOCK)</p>
+<p>WHERE A.SMAssetGrp IN (6008002,6008004))</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>-- 제품/반제품 임시테이블 생성</p>
+<p>SELECT A.ItemSeq, SUM(A.Qty) AS Qty</p>
+<p>INTO #TMP_TDAItem2</p>
+<p>FROM #TmpItem AS A</p>
+<p>WHERE A.AssetSeq IN (SELECT A.AssetSeq</p>
+<p>FROM _TDAItemAsset AS A WITH(NOLOCK)</p>
+<p>WHERE A.SMAssetGrp IN (6008002,6008004))</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>CREATE TABLE #TDAGood</p>
+<p>(</p>
+<p>GoodItemSeq INT,</p>
+<p>ProcRev NVARCHAR(2),</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #TDAGood</p>
+<p>SELECT ItemSeq AS ItemSeq,</p>
+<p>'00' ProcRev,</p>
+<p>Qty</p>
+<p>FROM #TMP_TDAItem2</p>
+<p>UPDATE A</p>
+<p>SET ProcRev = B.ProcRev</p>
+<p>FROM #TDAGood AS A JOIN (SELECT A.GoodItemSeq, MAX(B.ProcRev) AS ProcRev</p>
+<p>FROM #TDAGood AS A JOIN _TPDROUItemProcMat AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.GoodItemSeq = B.ItemSeq</p>
+<p>AND B.BizUnit = @BizUnit</p>
+<p>GROUP BY A.GoodItemSeq) AS B ON A.GoodItemSeq = B.GoodItemSeq</p>
+<p>;WITH CTS_TPDBOM(GoodItemSeq, GoodVer, ItemSeq, ItemVer, SubItemSeq, SubItemVer, NeedQty, Lvl) AS -- 재귀함수....</p>
+<p>(</p>
+<p>SELECT A.GoodItemSeq, A.ProcRev, B.ItemSeq, CONVERT(NVARCHAR(2), B.ItemBomRev), B.SubItemSeq, CONVERT(NVARCHAR(2), B.SubItemBomRev),</p>
+<p>CONVERT(DECIMAL(19, 5), CASE WHEN NeedQtyDenominator = 0 THEN 0 ELSE NeedQtyNumerator / NeedQtyDenominator END * A.Qty),</p>
+<p>CONVERT(INT, 1)</p>
+<p>FROM #TDAGood A</p>
+<p>JOIN _TPDBOM AS B ON B.ItemSeq = A.GoodItemSeq AND B.ItemBomRev = A.ProcRev</p>
+<p>UNION ALL</p>
+<p>SELECT A.GoodItemSeq, GoodVer, B.ItemSeq, CONVERT(NVARCHAR(2), B.ItemBomRev), B.SubItemSeq, CONVERT(NVARCHAR(2), B.SubItemBomRev),</p>
+<p>CONVERT(DECIMAL(19, 5), CASE WHEN NeedQtyDenominator = 0 THEN 0 ELSE NeedQtyNumerator / NeedQtyDenominator END * A.NeedQty),</p>
+<p>CONVERT(INT, Lvl + 1)</p>
+<p>FROM CTS_TPDBOM AS A</p>
+<p>JOIN _TPDBOM AS B ON B.ItemSeq = A.SubItemSeq AND B.ItemBomRev = A.SubItemVer</p>
+<p>)</p>
+<p>SELECT A.SubItemSeq, A.NeedQty</p>
+<p>--B.ItemName AS GoodName, B.AssetSeq AS GoodAsset, C.ItemName AS ItemName, C.AssetSeq AS ItemAsset, D.ItemName AS SubItemName, D.AssetSeq AS SubItemAsset</p>
+<p>INTO #TDAItem2</p>
+<p>FROM CTS_TPDBOM AS A</p>
+<p>JOIN _TDAItem AS B ON B.ItemSeq = A.GoodItemSeq</p>
+<p>JOIN _TDAItem AS C ON C.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItem AS D ON D.ItemSeq = A.SubItemSeq</p>
+<p>WHERE D.AssetSeq NOT IN (SELECT A.AssetSeq</p>
+<p>FROM _TDAItemAsset AS A WITH(NOLOCK)</p>
+<p>WHERE A.SMAssetGrp IN (6008002,6008004))</p>
+<p>ORDER BY Lvl</p>
+<p>CREATE TABLE #TMP_ItemSeq</p>
+<p>(</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TMP_ResultItem</p>
+<p>(</p>
+<p>ItemSeq INT ,</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #ResultItem</p>
+<p>(</p>
+<p>ItemSeq INT ,</p>
+<p>StockQty DECIMAL(19,5), -- 현재고</p>
+<p>SafeQty DECIMAL(19,5), -- 안전재고</p>
+<p>NeedQty DECIMAL(19,5), -- 필요량</p>
+<p>POReqQty DECIMAL(19,5), -- 구매요청</p>
+<p>AppReqQty DECIMAL(19,5), -- 구매품의</p>
+<p>POQty DECIMAL(19,5), -- 구매발주</p>
+<p>QCWaitQty DECIMAL(19,5), -- 검사대기</p>
+<p>ExpectQty DECIMAL(19,5), -- 예상재고</p>
+<p>StkQty DECIMAL(19,5), -- 과부족</p>
+<p>POUnitSeq INT , -- 구매단위코드</p>
+<p>PoBaseQty DECIMAL(19,5) -- 발주산정량</p>
+<p>)</p>
+<p>INSERT INTO #TMP_ResultItem</p>
+<p>SELECT * FROM #TDAItem1</p>
+<p>UNION</p>
+<p>SELECT * FROM #TDAItem2</p>
+<p>-- 각 수량에 대해 Insert 시 사용할 품목테이블 생성</p>
+<p>INSERT INTO #TMP_ItemSeq</p>
+<p>SELECT A.ItemSeq</p>
+<p>FROM #TMP_ResultItem AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.UMajorItemClass = 2140257</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>WHERE (@UmUse = 0 OR @UmUse = B.UMItemClass) -- 사용처 조회조건 추가 (자재기타분류의 djb_사용처분류 값)</p>
+<p>AND (@ItemName = '' OR C.ItemName LIKE @ItemName + '%')</p>
+<p>AND (@ItemNo = '' OR C.ItemNo LIKE @ItemNo + '%')</p>
+<p>AND (@AssetSeq = 0 OR @AssetSeq = C.AssetSeq)</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>-- 최종 테이블</p>
+<p>INSERT INTO #ResultItem(ItemSeq, NeedQty)</p>
+<p>SELECT A.ItemSeq, SUM(A.Qty) AS Qty</p>
+<p>FROM #TMP_ResultItem AS A</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.UMajorItemClass = 2140257</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>WHERE (@UmUse = 0 OR @UmUse = B.UMItemClass) -- 사용처 조회조건 추가 (자재기타분류의 djb_사용처분류 값)</p>
+<p>AND (@ItemName = '' OR C.ItemName LIKE @ItemName + '%')</p>
+<p>AND (@ItemNo = '' OR C.ItemNo LIKE @ItemNo + '%')</p>
+<p>AND (@AssetSeq = 0 OR @AssetSeq = C.AssetSeq)</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>--=================================================================</p>
+<p>-- 필요량 구하기 종료</p>
+<p>--=================================================================</p>
+<p>--=================================================================</p>
+<p>-- 현재고(StockQty) 구하기 시작 (특정창고들의 현재고를 합산 : 사용자정의코드)</p>
+<p>--=================================================================</p>
+<p>-- 임시 테이블 생성</p>
+<p>CREATE TABLE #GetInOutItem (ItemSeq INT)</p>
+<p>CREATE TABLE #GetInOutStock</p>
+<p>(</p>
+<p>BizUnit INT ,</p>
+<p>WHSeq INT ,</p>
+<p>MainWHSeq INT ,</p>
+<p>ItemSeq INT ,</p>
+<p>UnitSeq INT ,</p>
+<p>PrevQty DECIMAL(19, 5),</p>
+<p>InQty DECIMAL(19, 5),</p>
+<p>OutQty DECIMAL(19, 5),</p>
+<p>StockQty DECIMAL(19, 5),</p>
+<p>STDPrevQty DECIMAL(19, 5),</p>
+<p>STDInQty DECIMAL(19, 5),</p>
+<p>STDOutQty DECIMAL(19, 5),</p>
+<p>STDStockQty DECIMAL(19, 5),</p>
+<p>StockAmt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>-- 대상 품목 수집</p>
+<p>INSERT INTO #GetInOutItem (ItemSeq)</p>
+<p>SELECT A.ItemSeq</p>
+<p>FROM #TMP_ItemSeq AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.AssetSeq = B.AssetSeq</p>
+<p>WHERE C.IsQty \&lt;&gt; '1'</p>
+<p>-- 재고조회</p>
+<p>EXEC _SWLGGetInOutStock @CompanySeq = @CompanySeq,</p>
+<p>@BizUnit = @BizUnit ,</p>
+<p>@DateFr = @DVDateFr,</p>
+<p>@DateTo = @DVDateTo,</p>
+<p>@WHSeq = 0 ,</p>
+<p>@SMWHKind = 0 ,</p>
+<p>@IsSubDisplay = '1' ,</p>
+<p>@IsOnlyStock = '1' ,</p>
+<p>@IsStockAmt = '0' ,</p>
+<p>@StockAmtType = 0 ,</p>
+<p>@UnitType = 1 ,</p>
+<p>@ConvUnitSeq = 0 ,</p>
+<p>@QryType = 'S' ,</p>
+<p>@IsTrustCust = ''</p>
+<p>-- 사용자정의코드(djb_현재고산출창고)에 등록된 창고만 품목별로 집계</p>
+<p>SELECT ItemSeq, SUM(StockQty) AS StockQty</p>
+<p>INTO #StockQty</p>
+<p>FROM #GetInOutStock AS A</p>
+<p>JOIN _TDAUMinorValue AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ValueSeq = A.WHSeq</p>
+<p>AND B.MajorSeq = 1000600</p>
+<p>GROUP BY ItemSeq</p>
+<p>-- 현재고</p>
+<p>INSERT INTO #ResultItem (ItemSeq, StockQty)</p>
+<p>SELECT A.ItemSeq, ISNULL(B.StockQty, 0)</p>
+<p>FROM #TMP_ItemSeq AS A</p>
+<p>LEFT OUTER JOIN #StockQty AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>--=================================================================</p>
+<p>-- 현재고 구하기 종료</p>
+<p>--=================================================================</p>
+<p>--=================================================================</p>
+<p>-- 안전재고 구하기 시작 (자재추가정보정의-안전재고_djb에서 가져오기)</p>
+<p>--=================================================================</p>
+<p>INSERT INTO #ResultItem (ItemSeq, SafeQty)</p>
+<p>SELECT A.ItemSeq, ISNULL(B.MngValText, 0)</p>
+<p>FROM #TMP_ItemSeq AS A</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND B.MngSerl = 1000147</p>
+<p>--=================================================================</p>
+<p>-- 안전재고 구하기 종료</p>
+<p>--=================================================================</p>
+<p>--=================================================================</p>
+<p>-- 구매요청수량 구하기 (중단건 제외 / 진행 안된 건 조회)</p>
+<p>--=================================================================</p>
+<p>INSERT INTO #ResultItem (ItemSeq,POReqQty)</p>
+<p>SELECT A.ItemSeq,SUM(ISNULL(B.Qty, 0))</p>
+<p>FROM #TMP_ItemSeq AS A</p>
+<p>LEFT OUTER JOIN _TPUORDPOReqItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN sys_TPUORDPOReq AS E WITH(NOLOCK) ON E.CompanySeq = B.CompanySeq</p>
+<p>AND E.POReqSeq = B.POReqSeq</p>
+<p>LEFT OUTER JOIN _TCOMStop AS C WITH(NOLOCK) ON C.TableSeq = 12</p>
+<p>AND C.StopSeq = B.POReqSeq</p>
+<p>AND C.StopSerl = B.POReqSerl</p>
+<p>LEFT OUTER JOIN _TCOMSourceDaily AS D WITH(NOLOCK) ON D.FromTableSeq = 12</p>
+<p>AND D.FromSeq = B.POReqSeq</p>
+<p>AND D.FromSerl = B.POReqSerl</p>
+<p>WHERE ISNULL(C.IsStop,0) = '0'</p>
+<p>AND D.CompanySeq IS NULL</p>
+<p>AND E.BizUnit = @BizUnit</p>
+<p>AND B.DelvDate BETWEEN @DVDateFr AND @DVDateTo</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>HAVING SUM(ISNULL(B.Qty, 0)) \&lt;&gt; 0</p>
+<p>--=================================================================</p>
+<p>-- 구매요청수량 구하기 종료</p>
+<p>--=================================================================</p>
+<p>--=================================================================</p>
+<p>-- 구매품의수량 구하기 (중단건 제외 / 진행 안된 건 조회)</p>
+<p>--=================================================================</p>
+<p>INSERT INTO #ResultItem (ItemSeq,AppReqQty)</p>
+<p>SELECT A.ItemSeq,SUM(ISNULL(B.Qty, 0))</p>
+<p>FROM #TMP_ItemSeq AS A</p>
+<p>LEFT OUTER JOIN _TPUORDApprovalReqItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN sys_TPUORDApprovalReq AS E WITH(NOLOCK) ON E.CompanySeq = B.CompanySeq</p>
+<p>AND E.ApproReqSeq = B.ApproReqSeq</p>
+<p>LEFT OUTER JOIN _TCOMStop AS C WITH(NOLOCK) ON C.TableSeq = 12</p>
+<p>AND C.StopSeq = B.ApproReqSeq</p>
+<p>AND C.StopSerl = B.ApproReqSerl</p>
+<p>LEFT OUTER JOIN _TCOMSourceDaily AS D WITH(NOLOCK) ON D.FromTableSeq = 12</p>
+<p>AND D.FromSeq = B.ApproReqSeq</p>
+<p>AND D.FromSerl = B.ApproReqSerl</p>
+<p>WHERE ISNULL(C.IsStop,0) = '0'</p>
+<p>AND D.CompanySeq IS NULL</p>
+<p>AND E.BizUnit = @BizUnit</p>
+<p>AND B.DelvDate BETWEEN @DVDateFr AND @DVDateTo</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>HAVING SUM(ISNULL(B.Qty, 0)) \&lt;&gt; 0</p>
+<p>--=================================================================</p>
+<p>-- 구매품의수량 구하기 종료</p>
+<p>--=================================================================</p>
+<p>--=================================================================</p>
+<p>-- 구매발주수량 구하기 (중단건 제외 / 진행 안된 건 조회)</p>
+<p>--=================================================================</p>
+<p>INSERT INTO #ResultItem (ItemSeq,POQty)</p>
+<p>SELECT A.ItemSeq,SUM(ISNULL(B.Qty, 0))</p>
+<p>FROM #TMP_ItemSeq AS A</p>
+<p>LEFT OUTER JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN sys_TPUORDPO AS E WITH(NOLOCK) ON E.CompanySeq = B.CompanySeq</p>
+<p>AND E.POSeq = B.POSeq</p>
+<p>LEFT OUTER JOIN _TCOMStop AS C WITH(NOLOCK) ON C.TableSeq = 13</p>
+<p>AND C.StopSeq = B.POSeq</p>
+<p>AND C.StopSerl = B.POSerl</p>
+<p>LEFT OUTER JOIN _TCOMSourceDaily AS D WITH(NOLOCK) ON D.FromTableSeq = 13</p>
+<p>AND D.FromSeq = B.POSeq</p>
+<p>AND D.FromSerl = B.POSerl</p>
+<p>WHERE ISNULL(C.IsStop,0) = '0'</p>
+<p>AND D.CompanySeq IS NULL</p>
+<p>AND E.BizUnit = @BizUnit</p>
+<p>AND B.DelvDate BETWEEN @DVDateFr AND @DVDateTo</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>HAVING SUM(ISNULL(B.Qty, 0)) \&lt;&gt; 0</p>
+<p>--=================================================================</p>
+<p>-- 구매발주수량 구하기 종료</p>
+<p>--=================================================================</p>
+<p>--=================================================================</p>
+<p>-- 검사대기 수량 구하기 (미검사 수량)</p>
+<p>--=================================================================</p>
+<p>-- 구매납품</p>
+<p>INSERT INTO #ResultItem (ItemSeq,QCWaitQty)</p>
+<p>SELECT B.ItemSeq, SUM(B.Qty) AS Qty</p>
+<p>FROM _TPUDelv AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.DelvSeq = A.DelvSeq</p>
+<p>JOIN #TMP_ItemSeq AS C ON C.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDQCTestReport AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.SourceSeq = B.DelvSeq</p>
+<p>AND D.SourceSerl = B.DelvSerl</p>
+<p>AND D.SourceType = 6097001 -- 구매검사</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>AND A.DelvDate BETWEEN @DVDateFr AND @DVDateTo</p>
+<p>AND A.SMImpType IN (8008001, 8008002, 8008003)</p>
+<p>AND ISNULL(D.SMTestResult, B.SMQcType) = 6035002 -- 미검사</p>
+<p>GROUP BY B.ItemSeq</p>
+<p>--=================================================================</p>
+<p>-- 검사대기 수량 구하기 종료</p>
+<p>--=================================================================</p>
+<p>-- 예상재고, 과부족 수량 구하기 전에 ItemSeq 집계</p>
+<p>SELECT A.ItemSeq ,</p>
+<p>SUM(ISNULL(A.StockQty ,0)) AS StockQty , -- 현재고</p>
+<p>SUM(ISNULL(A.SafeQty ,0)) AS SafeQty , -- 안전재고</p>
+<p>SUM(ISNULL(A.NeedQty ,0)) AS NeedQty , -- 필요량</p>
+<p>SUM(ISNULL(A.POReqQty ,0)) AS POReqQty , -- 구매요청</p>
+<p>SUM(ISNULL(A.AppReqQty,0)) AS AppReqQty, -- 구매품의</p>
+<p>SUM(ISNULL(A.POQty ,0)) AS POQty , -- 구매발주</p>
+<p>SUM(ISNULL(A.QCWaitQty,0)) AS QCWaitQty, -- 검사대기</p>
+<p>0 AS ExpectQty, -- 예상재고</p>
+<p>0 AS StkQty , -- 과부족</p>
+<p>0 AS POUnitSeq, -- 구매단위코드</p>
+<p>0 AS PoBaseQty -- 발주산정량</p>
+<p>INTO #Result</p>
+<p>FROM #ResultItem AS A</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>--=================================================================</p>
+<p>-- 예상재고 구하기 (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty)</p>
+<p>-- 과부족 구하기</p>
+<p>/*</p>
+<p>IF (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty) \&lt; 0                                                                                                                                                        </p>
+<blockquote>
+<p>--&gt; SafeQty + [(StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty)*-1]                                                                                                                                                </p>
+</blockquote>
+<p>ELSE                                                                                                                                                        </p>
+<blockquote>
+<p>IF SafeQty \&lt;= (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty)                                                                                                                                                </p>
+<p>--&gt; 0                                                                                                                                        </p>
+<p>IF SafeQty &gt; (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty)                                                                                                                                                </p>
+<p>--&gt; SafeQty - (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty)                                                                                                                                        </p>
+</blockquote>
+<p>*/</p>
+<p>--=================================================================</p>
+<p>UPDATE #Result</p>
+<p>SET ExpectQty = StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty,</p>
+<p>StkQty = CASE WHEN (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty) \&lt; 0</p>
+<p>THEN SafeQty + ((StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty)*-1)</p>
+<p>ELSE CASE WHEN SafeQty \&lt;= (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty)</p>
+<p>THEN 0</p>
+<p>ELSE SafeQty - (StockQty - NeedQty + POReqQty + AppReqQty + POQty + QCWaitQty) END END</p>
+<p>FROM #Result</p>
+<p>-- 발주산정량 구하기 : 과부족 수량을 구매단위로 환산한 수량</p>
+<p>DECLARE @GoodQtyDecLength INT</p>
+<p>EXEC @GoodQtyDecLength = dbo._SWCOMEnvR @CompanySeq, 5, @UserSeq, @@PROCID</p>
+<p>UPDATE #Result</p>
+<p>SET POUnitSeq = ISNULL(B.STDUnitSeq, 0),</p>
+<p>PoBaseQty = ROUND((CASE WHEN ISNULL(C.ConvDen,0) = 0 THEN 0 ELSE ISNULL(Z.StkQty,0) * ISNULL(C.ConvNum,0) / ISNULL(C.ConvDen,0) END), @GoodQtyDecLength)</p>
+<p>FROM #Result AS Z</p>
+<p>JOIN _TDAItem AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = Z.ItemSeq</p>
+<p>JOIN _TDAItemDefUnit AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItemUnit AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>AND C.UnitSeq = B.STDUnitSeq</p>
+<p>WHERE UMModuleSeq = 1116001 -- 구매</p>
+<p>AND A.AssetSeq NOT IN (2,4)</p>
+<blockquote>
+<p>--AND ISNULL(Z.StkQty,0) \&lt;&gt; 0</p>
+</blockquote>
+<p>SELECT ISNULL(F.ItemClassLName,'') AS UMItemClassLName, -- 대분류</p>
+<p>ISNULL(F.ItemClassLSeq , 0) AS UMItemClassL , -- 대분류코드</p>
+<p>ISNULL(F.ItemClassMName,'') AS UMItemClassMName, -- 중분류</p>
+<p>ISNULL(F.ItemClassMSeq , 0) AS UMItemClassM , -- 중분류코드</p>
+<p>ISNULL(F.ItemClassSName,'') AS UMItemClassName , -- 소분류</p>
+<p>ISNULL(F.ItemClassSSeq , 0) AS UMItemClass , -- 소분류코드</p>
+<p>ISNULL(B.ItemName ,'') AS ItemName , -- 품명</p>
+<p>ISNULL(B.ItemNo ,'') AS ItemNo , -- 품번</p>
+<p>ISNULL(B.Spec ,'') AS Spec , -- 규격</p>
+<p>ISNULL(A.ItemSeq , 0) AS ItemSeq , -- 품목코드</p>
+<p>ISNULL(C.UnitName , 0) AS UnitName , -- 기준단위</p>
+<p>ISNULL(B.UnitSeq , 0) AS UnitSeq , -- 단위코드</p>
+<p>ISNULL(D.DelvDay , 0) AS DelvDay , -- 평균조달기간</p>
+<p>ISNULL(A.StockQty , 0) AS StockQty , -- 현재고</p>
+<p>ISNULL(A.SafeQty , 0) AS SafeQty , -- 안전재고</p>
+<p>ISNULL(A.NeedQty , 0) AS NeedQty , -- 필요량</p>
+<p>ISNULL(A.POReqQty , 0) AS POReqQty , -- 구매요청</p>
+<p>ISNULL(A.AppReqQty , 0) AS AppReqQty , -- 구매품의</p>
+<p>ISNULL(A.POQty , 0) AS POQty , -- 구매발주</p>
+<p>ISNULL(A.QCWaitQty , 0) AS QCWaitQty , -- 검사대기</p>
+<p>ISNULL(A.ExpectQty , 0) AS ExpectQty , -- 예상재고</p>
+<p>ISNULL(A.StkQty , 0) AS StkQty , -- 과부족</p>
+<p>ISNULL(G.UnitName ,'') AS POUnit , -- 구매단위</p>
+<p>ISNULL(A.POUnitSeq , 0) AS POUnitSeq , -- 구매단위코드</p>
+<p>ISNULL(A.PoBaseQty , 0) AS PoBaseQty -- 발주산정량</p>
+<p>FROM #Result AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAUnit AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.UnitSeq = B.UnitSeq</p>
+<p>JOIN _TDAItemPurchase AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS E WITH(NOLOCK) ON E.CompanySeq = @CompanySeq</p>
+<p>AND E.ItemSeq = A.ItemSeq</p>
+<p>AND E.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS F WITH(NOLOCK) ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.ItemClassSSeq = E.UMItemClass</p>
+<p>LEFT OUTER JOIN _TDAUnit AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq</p>
+<p>AND G.UnitSeq = A.POUnitSeq</p>
+<p>WHERE @IsStkQty = '0' OR (@IsStkQty = '1' AND A.StkQty &gt; 0) -- 과부족건만 조회 체크 시 과부족이 0보다 큰 건만 조회</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

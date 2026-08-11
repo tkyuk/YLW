@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이동생성 연동 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>이동생성 연동 SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">이동생성 연동 SP</h1>
+<p>DROP PROC apro_SPDAMoveSave</p>
+<p>GO</p>
+<p>CREATE PROC apro_SPDAMoveSave</p>
+<p>@CompanySeq INT,</p>
+<p>@UserSeq INT,</p>
+<p>@ReqSeq INT</p>
+<p>AS</p>
+<p>SET NOCOUNT ON;</p>
+<p>INSERT INTO apro_TPDAParameterLog</p>
+<p>(</p>
+<p>LogType, LogDateTime, CompanySeq, UserSeq, ReqSeq</p>
+<p>)</p>
+<p>SELECT 'MOVE' AS LogType, GETDATE() AS LogDateTime, @CompanySeq, @UserSeq, @ReqSeq</p>
+<p>DECLARE @Ststus INT,</p>
+<p>@Message NVARCHAR(255),</p>
+<p>@CurrDate NVARCHAR(8),</p>
+<p>@PgmSeq INT,</p>
+<p>@GroupSeq INT,</p>
+<p>@InOutSeq INT,</p>
+<p>@InOutNo NVARCHAR(20),</p>
+<p>@InOutDate NVARCHAR(8),</p>
+<p>@LotNo NVARCHAR(30),</p>
+<p>@EmpSeq INT,</p>
+<p>@DeptSeq INT</p>
+<p>SELECT @CurrDate = CONVERT(NVARCHAR(8), GETDATE(), 112),</p>
+<p>@PgmSeq = 999999</p>
+<p>SELECT @Ststus = 0, @Message = '처리 되었습니다.',</p>
+<p>@CompanySeq = ISNULL(@CompanySeq, 0),</p>
+<p>@UserSeq = ISNULL(@UserSeq , 0),</p>
+<p>@ReqSeq = ISNULL(@ReqSeq , 0)</p>
+<p>SELECT @LotNo = LEFT(LTRIM(RTRIM(ISNULL(A.EnvValue, ''))), 30)</p>
+<p>FROM _TCOMEnv AS A WITH(NOLOCK)</p>
+<p>WHERE A.EnvSeq = 2000347</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>SELECT @EmpSeq = A.EmpSeq, @DeptSeq = A.DeptSeq</p>
+<p>FROM _TCAUser AS A WITH(NOLOCK)</p>
+<p>WHERE A.UserSeq = @UserSeq</p>
+<p>IF @CompanySeq = 0 OR @UserSeq = 0 OR @ReqSeq = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Ststus = 99999, @Message = '필수입력 항목을 입력하지 않았습니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>CREATE TABLE #TLGInOutDailyItem</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1, 1),</p>
+<p>WorkingTag NVARCHAR(1),</p>
+<p>Status INT,</p>
+<p>MessageType INT,</p>
+<p>Result NVARCHAR(255),</p>
+<p>IsMstGroup NVARCHAR(1),</p>
+<p>GroupSeq INT,</p>
+<p>GroupSerl INT,</p>
+<p>ReqSeq INT,</p>
+<p>ReqSerl INT,</p>
+<p>InOutSeq INT,</p>
+<p>InOutSerl INT,</p>
+<p>InOutType INT,</p>
+<p>InOutNo NVARCHAR(20),</p>
+<p>InOutDate NVARCHAR(8),</p>
+<p>BizUnit INT,</p>
+<p>ReqBizUnit INT,</p>
+<p>DeptSeq INT,</p>
+<p>EmpSeq INT,</p>
+<p>OutWHSeq INT,</p>
+<p>InWHSeq INT,</p>
+<p>IsTrans NVARCHAR(1),</p>
+<p>PJTSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>STDUnitSeq INT,</p>
+<p>STDQty DECIMAL(19,5),</p>
+<p>InOutKind INT,</p>
+<p>InOutDetailKind INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>Remark NVARCHAR(500)</p>
+<p>)</p>
+<p>INSERT INTO #TLGInOutDailyItem</p>
+<p>(</p>
+<p>WorkingTag, Status, MessageType, Result, IsMstGroup,</p>
+<p>GroupSeq,</p>
+<p>GroupSerl,</p>
+<p>ReqSeq, ReqSerl, InOutSeq, InOutSerl, InOutType, InOutNo,</p>
+<p>InOutDate, BizUnit, DeptSeq, EmpSeq,</p>
+<p>ReqBizUnit,</p>
+<p>OutWHSeq,</p>
+<p>InWHSeq, IsTrans,</p>
+<p>PJTSeq, ItemSeq, UnitSeq, Qty, STDUnitSeq, STDQty,</p>
+<p>InOutKind, InOutDetailKind, LotNo, Remark</p>
+<p>)</p>
+<p>SELECT 'A' AS WorkingTag, 0 AS Status, 0 AS MessageType, '' AS Result, '0' AS IsMstGroup,</p>
+<p>DENSE_RANK() OVER(ORDER BY A.IsTrans, A.BizUnit, A.TransBizUnit, A.OutWHSeq, A.InWHSeq, A.ReqSeq) AS GroupSeq,</p>
+<p>ROW_NUMBER() OVER(PARTITION BY A.IsTrans, A.BizUnit, A.TransBizUnit, A.OutWHSeq, A.InWHSeq, A.ReqSeq</p>
+<p>ORDER BY A.IsTrans, A.BizUnit, A.TransBizUnit, A.OutWHSeq, A.InWHSeq, A.ReqSeq) AS GroupSerl,</p>
+<p>A.ReqSeq, B.ReqSerl, 0 AS InOutSeq, 0 AS InOutSerl, A.InOutReqType AS InOutType, '' AS InOutNo,</p>
+<p>@CurrDate AS InOutDate, A.BizUnit, @DeptSeq, @EmpSeq,</p>
+<p>CASE WHEN ISNULL(A.TransBizUnit, 0) = 0 THEN A.BizUnit ELSE A.TransBizUnit END AS ReqBizUnit,</p>
+<p>CASE WHEN ISNULL(A.OutWHSeq, 0) = 0 THEN D.WHSeq ELSE A.OutWHSeq END AS OutWHSeq,</p>
+<p>A.InWHSeq, A.IsTrans,</p>
+<p>CONVERT(INT, B.Dummy7) AS PJTSeq, B.ItemSeq, B.UnitSeq, B.Qty, C.UnitSeq AS STDUnitSeq, B.STDQty,</p>
+<p>B.InOutReqKind AS InOutKind, B.InOutReqDetailKind AS InOutDetailKind, B.LotNo, B.Remark</p>
+<p>FROM _TLGInOutReq AS A WITH(NOLOCK)</p>
+<p>JOIN _TLGInOutReqItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ReqSeq = A.ReqSeq</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>JOIN _TDAWH AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.BizUnit = A.BizUnit</p>
+<p>AND D.SMWHKind = 8002026 -- _TDASMinor WHERE MajorSeq = 8002</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ReqSeq = @ReqSeq</p>
+<p>AND A.InOutReqType IN (80, 81, 82, 83) -- 80:제품이동/81:제품적송/82:자재이동/83:자재적송</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Ststus = 99999, @Message = '이동요청건이 없습니다.'</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF EXISTS(SELECT TOP 1 1</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>JOIN _TCOMSourceDailyTrace AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ToTableSeq = 14 -- _TCOMProgTable WHERE ProgTableName = '_TLGInOutDailyItem'</p>
+<p>AND B.FromTableSeq = 15 -- _TCOMProgTable WHERE ProgTableName = '_TLGInOutReqItem'</p>
+<p>AND B.FromSeq = A.ReqSeq</p>
+<p>AND B.FromSerl = A.ReqSerl</p>
+<p>WHERE A.Status = 0</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @Ststus = 99999, @Message = '이미 이동생성 된 건입니다 .'</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET LotNo = CASE WHEN LTRIM(RTRIM(ISNULL(C.PJTNo, ''))) \&lt;&gt; '' THEN LTRIM(RTRIM(ISNULL(C.PJTNo, '')))</p>
+<p>ELSE @LotNo</p>
+<p>END</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>JOIN _TDAItemStock AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.PJTSeq = A.PJTSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.IsLotMng = '1'</p>
+<p>AND LTRIM(RTRIM(ISNULL(A.LotNo, ''))) = '' -- LOTNo가 없으면!</p>
+<p>-- 수불 마감</p>
+<p>CREATE TABLE #TLGClosingCheck</p>
+<p>(</p>
+<p>IDX_NO INT ,</p>
+<p>InOutYM NCHAR(6) ,</p>
+<p>ItemSeq INT ,</p>
+<p>WHSeq INT ,</p>
+<p>MessageType INT ,</p>
+<p>Status INT ,</p>
+<p>Result NVARCHAR(255)</p>
+<p>)</p>
+<p>INSERT INTO #TLGClosingCheck</p>
+<p>(</p>
+<p>IDX_NO, InOutYM, ItemSeq, WHSeq,</p>
+<p>MessageType, Status, Result</p>
+<p>)</p>
+<p>SELECT A.IDX_NO, LEFT(A.InOutDate,6), A.ItemSeq, A.OutWHSeq,</p>
+<p>0 AS MessageType, 0 AS Status, '' AS Result</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>UNION</p>
+<p>SELECT A.IDX_NO, LEFT(A.InOutDate,6), A.ItemSeq, A.InWHSeq,</p>
+<p>0 AS MessageType, 0 AS Status, '' AS Result</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC _SWLGClosingCheck @CompanySeq, 1</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result,</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>JOIN #TLGClosingCheck AS B WITH(NOLOCK) ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.Status \&lt;&gt; 0</p>
+<p>DROP TABLE #TLGClosingCheck</p>
+<p>-- 납품 키값생성!</p>
+<p>SELECT @GroupSeq = 0 -- 초기화</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@GroupSeq = A.GroupSeq,</p>
+<p>@InOutDate = A.InOutDate</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.GroupSeq &gt; @GroupSeq</p>
+<p>ORDER BY A.GroupSeq</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>EXEC _SWCOMCreateNo 'LG', '_TLGInOutDaily', @CompanySeq, '', @InOutDate, @InOutNo OUTPUT -- InOutNo 생성</p>
+<p>EXEC @InOutSeq = _SWCOMCreateSeq @CompanySeq, '_TLGInOutDaily', 'InOutSeq', 1 -- InOutSeq 생성</p>
+<p>UPDATE A</p>
+<p>SET InOutNo = @InOutNo,</p>
+<p>InOutSeq = @InOutSeq + 1,</p>
+<p>InOutSerl = A.GroupSerl</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.GroupSeq = @GroupSeq</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET IsMstGroup = '1'</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>CROSS APPLY(SELECT TOP 1 Z.GroupSerl</p>
+<p>FROM #TLGInOutDailyItem AS Z</p>
+<p>WHERE Z.GroupSeq = A.GroupSeq</p>
+<p>ORDER BY Z.GroupSerl ASC</p>
+<p>) AS B</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.GroupSerl = B.GroupSerl</p>
+<p>-- 진행</p>
+<p>CREATE TABLE #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName NVARCHAR(100),</p>
+<p>ToSeq INT,</p>
+<p>ToSerl INT,</p>
+<p>ToSubSerl INT,</p>
+<p>FromTableName NVARCHAR(100),</p>
+<p>FromSeq INT,</p>
+<p>FromSerl INT,</p>
+<p>FromSubSerl INT,</p>
+<p>ToQty DECIMAL(19,5),</p>
+<p>ToStdQty DECIMAL(19,5),</p>
+<p>ToAmt DECIMAL(19,5),</p>
+<p>ToVAT DECIMAL(19,5),</p>
+<p>ToDOMAmt DECIMAL(19,5),</p>
+<p>ToDOMVAT DECIMAL(19,5),</p>
+<p>FromQty DECIMAL(19,5),</p>
+<p>FromSTDQty DECIMAL(19,5),</p>
+<p>FromAmt DECIMAL(19,5),</p>
+<p>FromVAT DECIMAL(19,5),</p>
+<p>FromDOMAmt DECIMAL(19,5),</p>
+<p>FromDOMVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 수불 반영</p>
+<p>CREATE TABLE #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>WorkingTag NVARCHAR(10),</p>
+<p>InOutType INT,</p>
+<p>InOutSeq INT,</p>
+<p>InOutSerl INT,</p>
+<p>InOutSubSerl INT,</p>
+<p>DataKind INT,</p>
+<p>MessageType INT,</p>
+<p>Result NVARCHAR(250),</p>
+<p>Status INT</p>
+<p>)</p>
+<p>CREATE TABLE #TLGInOutMonth</p>
+<p>(</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TLGInOutMonthLot</p>
+<p>(</p>
+<p>InOutYM NCHAR(6),</p>
+<p>WHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>BEGIN TRAN</p>
+<p>INSERT INTO _TLGInOutDaily</p>
+<p>(</p>
+<p>CompanySeq, InOutType, InOutSeq, BizUnit, InOutNo, FactUnit, ReqBizUnit,</p>
+<p>DeptSeq, EmpSeq, InOutDate, WCSeq, ProcSeq, CustSeq, OutWHSeq, InWHSeq, DVPlaceSeq,</p>
+<p>IsTrans,</p>
+<p>IsCompleted,</p>
+<p>CompleteDeptSeq,</p>
+<p>CompleteEmpSeq,</p>
+<p>CompleteDate,</p>
+<p>InOutDetailType, Remark, Memo, IsBatch,</p>
+<p>LastUserSeq, LastDateTime, UseDeptSeq, PgmSeq, IsAuto, FileSeq,</p>
+<p>MDummy1, MDummy2, MDummy3, MDummy4, MDummy5,</p>
+<p>MDummy6, MDummy7, MDummy8, MDummy9, MDummy10</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.InOutType, A.InOutSeq, A.BizUnit, A.InOutNo, 0 AS FactUnit, A.ReqBizUnit,</p>
+<p>A.DeptSeq, A.EmpSeq, A.InOutDate, 0 AS WCSeq, 0 AS ProcSeq, 0 AS CustSeq, A.OutWHSeq, A.InWHSeq, 0 AS DVPlaceSeq,</p>
+<p>A.IsTrans,</p>
+<p>CASE WHEN A.IsTrans \&lt;&gt; '1' THEN '1' ELSE '0' END AS IsCompleted,</p>
+<p>CASE WHEN A.IsTrans \&lt;&gt; '1' THEN A.DeptSeq ELSE 0 END AS CompleteDeptSeq,</p>
+<p>CASE WHEN A.IsTrans \&lt;&gt; '1' THEN A.EmpSeq ELSE 0 END AS CompleteEmpSeq,</p>
+<p>CASE WHEN A.IsTrans \&lt;&gt; '1' THEN A.InOutDate ELSE '' END AS CompleteDate,</p>
+<p>0 AS InOutDetailType, '[PDA 생성]' AS Remark, '' AS Memo, '' AS IsBatch,</p>
+<p>@UserSeq AS LastUserSeq, GETDATE() AS LastDateTime, 0 AS UseDeptSeq, @PgmSeq AS PgmSeq, '' AS IsAuto, 0 AS FileSeq,</p>
+<p>NULL AS MDummy1, NULL AS MDummy2, NULL AS MDummy3, NULL AS MDummy4, NULL AS MDummy5,</p>
+<p>NULL AS MDummy6, NULL AS MDummy7, NULL AS MDummy8, NULL AS MDummy9, NULL AS MDummy10</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.IsMstGroup = '1'</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Ststus = 99999, @Message = 'INSERT FAIL.'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO _TLGInOutDailyItem</p>
+<p>(</p>
+<p>CompanySeq, InOutType, InOutSeq, InOutSerl, ItemSeq, InOutRemark, CCtrSeq, DVPlaceSeq,</p>
+<p>InWHSeq, OutWHSeq, UnitSeq, Qty, STDQty, Amt, EtcOutAmt, EtcOutVAT,</p>
+<p>InOutKind, InOutDetailKind, LotNo, SerialNo, IsStockSales,</p>
+<p>OriUnitSeq, OriItemSeq, OriQty, OriSTDQty,</p>
+<p>LastUserSeq, LastDateTime, PJTSeq, OriLotNo, PgmSeq, WorkOrderSeq,</p>
+<p>Dummy1, Dummy2, Dummy3, Dummy4, Dummy5,</p>
+<p>Dummy6, Dummy7, Dummy8, Dummy9, Dummy10, ValiDate</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.InOutType, A.InOutSeq, A.InOutSerl, A.ItemSeq, A.Remark AS InOutRemark, 0 AS CCtrSeq, 0 AS DVPlaceSeq,</p>
+<p>A.InWHSeq, A.OutWHSeq, A.UnitSeq, A.Qty, A.STDQty, 0 AS Amt, 0 AS EtcOutAmt, 0 AS EtcOutVAT,</p>
+<p>A.InOutKind, A.InOutDetailKind, A.LotNo, '' AS SerialNo, '' AS IsStockSales,</p>
+<p>0 AS OriUnitSeq, 0 AS OriItemSeq, 0 AS OriQty, 0 AS OriSTDQty,</p>
+<p>@UserSeq AS LastUserSeq, GETDATE() AS LastDateTime, A.PJTSeq, '' AS OriLotNo, @PgmSeq, NULL AS WorkOrderSeq,</p>
+<p>'' AS Dummy1, '' AS Dummy2, '' AS Dummy3, '' AS Dummy4, '' AS Dummy5,</p>
+<p>'' AS Dummy6, 0 AS Dummy7, 0 AS Dummy8, 0 AS Dummy9, 0 AS Dummy10, '' AS ValiDate</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Ststus = 99999, @Message = 'INSERT FAIL.'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 구매납품 / 구매발주 진행 추가</p>
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>INSERT INTO #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName, ToSeq, ToSerl, ToSubSerl,</p>
+<p>FromTableName, FromSeq, FromSerl, FromSubSerl,</p>
+<p>ToQty, ToStdQty, ToAmt, ToVAT, ToDOMAmt, ToDOMVAT,</p>
+<p>FromQty, FromSTDQty, FromAmt, FromVAT, FromDOMAmt, FromDOMVAT</p>
+<p>)</p>
+<p>SELECT '_TLGInOutDailyItem' ToTableName, B.InOutSeq ToSeq, B.InOutSerl ToSerl, B.InOutType ToSubSerl,</p>
+<p>'_TLGInOutReqItem' FromTableName, C.ReqSeq FromSeq, C.ReqSerl FromSerl, 0 FromSubSerl,</p>
+<p>B.Qty ToQty, B.STDQty ToStdQty, 0 ToAmt, 0 ToVAT, 0 ToDOMAmt, 0 ToDOMVAT,</p>
+<p>C.Qty FromQty, C.STDQty FromSTDQty, 0 FromAmt, 0 FromVAT, 0 FromDOMAmt, 0 FromDOMVAT</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>JOIN _TLGInOutDailyItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.InOutSeq = A.InOutSeq</p>
+<p>AND B.InOutSerl = A.InOutSerl</p>
+<p>AND B.InOutType = A.InOutType</p>
+<p>JOIN _TLGInOutReqItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ReqSeq = A.ReqSeq</p>
+<p>AND C.ReqSerl = A.ReqSerl</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>EXEC dbo._SWComSourceDailyBatch N'A', @CompanySeq, @UserSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Ststus = 99999, @Message = 'INSERT FAIL.'</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 수불 반영</p>
+<p>-- 이동처리</p>
+<p>TRUNCATE TABLE #TLGInOutDailyBatch</p>
+<p>TRUNCATE TABLE #TLGInOutMonth</p>
+<p>TRUNCATE TABLE #TLGInOutMonthLot</p>
+<p>INSERT INTO #TLGInOutDailyBatch</p>
+<p>(</p>
+<p>WorkingTag, Status, MessageType, Result,</p>
+<p>InOutType, InOutSeq, InOutSerl, InOutSubSerl, DataKind</p>
+<p>)</p>
+<p>SELECT A.WorkingTag, A.Status, A.MessageType, A.Result,</p>
+<p>A.InOutType, A.InOutSeq, A.InOutSerl, 0 AS InOutSubSerl, 0 AS DataKind</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>EXEC dbo._SWLGInOutDailyDELETE @CompanySeq = @CompanySeq, @Level = 2, @LanguageSeq = 1 -- 수불 삭제</p>
+<p>EXEC dbo._SWLGInOutDailyINSERT @CompanySeq = @CompanySeq, @Level = 2, @LanguageSeq = 1 -- 수불 생성</p>
+<p>IF EXISTS(SELECT 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1 @Message = A.Result, @Ststus = A.Status</p>
+<p>FROM #TLGInOutDailyBatch AS A</p>
+<p>WHERE A.Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 창고재고 집계</p>
+<p>EXEC dbo._SWLGWHStockUPDATE @CompanySeq = @CompanySeq</p>
+<p>-- (-)재고 체크</p>
+<p>EXEC dbo._SWLGInOutMinusCheck @CompanySeq = @CompanySeq, @TableName = N'#TLGInOutDailyBatch', @LanguageSeq = 1</p>
+<p>EXEC dbo._SWLGInOutLotMinusCheck @CompanySeq = @CompanySeq, @TableName = N'#TLGInOutDailyBatch', @LanguageSeq = 1</p>
+<p>IF EXISTS(SELECT 1 FROM #TLGInOutDailyBatch WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1 @Message = A.Result, @Ststus = A.Status</p>
+<p>FROM #TLGInOutDailyBatch AS A</p>
+<p>WHERE A.Status \&lt;&gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>GOTO RESULT_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>COMMIT TRAN</p>
+<p>/******************************************************************************************************************************************************/</p>
+<p>RESULT_PROC:</p>
+<p>SELECT @Ststus AS Ststus, @Message AS Message</p>
+<p>RETURN</p>
+<p>-- GO</p>
+<p>-- EXEC apro_SPDAMoveSave @CompanySeq = 1, @UserSeq = 1, @ReqSeq = 3</p>
+  </article>
+</div>
+</body>
+</html>

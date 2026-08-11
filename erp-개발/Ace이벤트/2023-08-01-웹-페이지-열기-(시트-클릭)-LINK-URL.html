@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>웹 페이지 열기 (시트 클릭) LINK / URL</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>웹 페이지 열기 (시트 클릭) LINK / URL</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="link-url">웹 페이지 열기 (시트 클릭) LINK / URL</h1>
+<p><img alt="" src="assets/웹-페이지-열기-(시트-클릭)-LINK-URL/image54.png" /></p>
+<p><img alt="" src="assets/웹-페이지-열기-(시트-클릭)-LINK-URL/image55.png" /></p>
+<p><img alt="" src="assets/웹-페이지-열기-(시트-클릭)-LINK-URL/image56.png" /></p>
+<p>if CellText(SS1, SS1.ActiveRow, 'PackingSheetLink') == '' then</p>
+<blockquote>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>local strAddress --, IsExplorer, UseDB, strSSOType, strKeyData, strData, IsTest</p>
+<p>strAddress = CellText(SS1, SS1.ActiveRow, 'PackingSheetLink')</p>
+<p>--strKeyData = 'keydata'</p>
+<p>--strSSOType = ''</p>
+<p>--IsExplorer = true</p>
+<p>--UseDB = false</p>
+<p>--IsTest = false</p>
+<p>--Data</p>
+<p>--strData = ''</p>
+<p>--load</p>
+<p>--WebOpenPost(strAddress,IsExplorer, UseDB, strSSOType, strKeyData, strData, IsTest)</p>
+<p>WebOpen(strAddress, true, false)</p>
+  </article>
+</div>
+</body>
+</html>

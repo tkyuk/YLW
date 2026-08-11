@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여러 건 번호 생성 (시트에서 각각 생성 / 날짜별)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>여러 건 번호 생성 (시트에서 각각 생성 / 날짜별)</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">여러 건 번호 생성 (시트에서 각각 생성 / 날짜별)</h1>
+<p>-- 여러건 번호 생성</p>
+<hr />
+<p>-- INSERT 번호부여(맨 마지막 처리)</p>
+<hr />
+<p>SELECT @Count = COUNT(1) FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq, 'emk_TTMSOrder', 'OrderSeq', @Count</p>
+<p>-- Temp Table 에 생성된 키값 UPDATE</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET OrderSeq = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>SELECT @Date = ISNULL(MAX(ReqDate),REPLACE(CONVERT(CHAR(10),GETDATE(),121),'-',''))</p>
+<p>FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>DECLARE @Start NCHAR(8),</p>
+<p>@iDate NCHAR(8),</p>
+<p>@End NCHAR(8)</p>
+<p>DECLARE @StartSeq INT,</p>
+<p>@EndSeq INT</p>
+<p>SELECT @StartSeq = MIN(A.DataSeq)</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>SELECT @EndSeq = MAX(A.DataSeq)</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>SELECT @iDate = @StartSeq</p>
+<p>--반복처리</p>
+<p>WHILE (@StartSeq \&lt;= @EndSeq)</p>
+<p>BEGIN</p>
+<p>SELECT @Date = A.ReqDate</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.DataSeq = @StartSeq</p>
+<p>-- 번호생성코드부분 시작</p>
+<p>EXEC dbo._SWCOMCreateNo 'SL', 'emk_TTMSOrder', @CompanySeq, 0, @Date, @MaxNo OUTPUT</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET OrderNo = @MaxNo</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.DataSeq = @StartSeq</p>
+<p>SELECT @StartSeq = @StartSeq + 1</p>
+<p>END</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>에스디 WMS 연동 관련 테이블 SELECT</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>에스디 WMS 연동 관련 테이블 SELECT</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="wms-select">에스디 WMS 연동 관련 테이블 SELECT</h1>
+<p>SELECT * FROM _TLGInOutReq WHERE ReqSeq = 25537</p>
+<p>SELECT Qty,* FROM _TLGInOutReqItem WHERE ReqSeq = 25537 AND ReqSerl = 1</p>
+<p>SELECT Qty,* FROM _TLGInOutReqItem WHERE ReqSeq = 25418 AND ReqSerl = 1</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGInItemReqWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 입고예정</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGOutItemReqWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 출고예정</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGInItemReqWH_IF WHERE ReqSeq = 25418 AND ReqSerl = 1 -- 입고예정</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGOutItemReqWH_IF WHERE ReqSeq = 25418 AND ReqSerl = 1 -- 출고예정</p>
+<p>SELECT TOP 500 RegDateTime,IsWorkingTag,Qty,* FROM SD_TLGInItemReqWH_IF WHERE InReqTypeName = '창고이동(제상품)' ORDER BY 1 DESC</p>
+<p>SELECT TOP 500 RegDateTime,IsWorkingTag,Qty,* FROM SD_TLGOutItemReqWH_IF WHERE OutReqTypeName = '창고이동(제상품)' ORDER BY 1 DESC</p>
+<p>SELECT RegDateTime,Qty,* FROM SD_TLGInItemReqWH_IF WHERE IsWorkingTag ='U' AND InReqTypeName = '창고이동(제상품)' ORDER BY 1 DESC</p>
+<p>SELECT RegDateTime,Qty,* FROM SD_TLGOutItemReqWH_IF WHERE IsWorkingTag ='U' AND OutReqTypeName = '창고이동(제상품)' ORDER BY 1 DESC</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGInItemReqWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 입고예정</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGOutItemReqWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 출고예정</p>
+<p>SELECT Qty,InSeq ,* FROM SD_TLGInItemWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 입고예정 16644</p>
+<p>SELECT Qty,OutSeq,* FROM SD_TLGOutItemWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 출고예정 16651</p>
+<p>SELECT Qty,InSeq ,* FROM SD_TLGInItemWH_IF WHERE ReqSeq = 25418 AND ReqSerl = 1 -- 입고예정 16466</p>
+<p>SELECT Qty,OutSeq,* FROM SD_TLGOutItemWH_IF WHERE ReqSeq = 25418 AND ReqSerl = 1 -- 출고예정 16461</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE InOutType = 80 AND InOutSeq = 16644</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE InOutType = 80 AND InOutSeq = 16651</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE InOutType = 80 AND InOutSeq = 16813</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE InOutType = 80 AND InOutSeq = 16811</p>
+<p>EXEC _SWCOMGetTableLog '_TLGInOutDailyItem', 1, 'InOutSeq', 16644</p>
+<p>EXEC _SWCOMGetTableLog '_TLGInOutDailyItem', 1, 'InOutSeq', 16461</p>
+<p>SELECT TOP 100 A.*</p>
+<p>FROM SD_TLGOutItemWH_IF AS A</p>
+<p>LEFT OUTER JOIN _TLGInOutDailyItem AS B ON B.InOutSeq = A.OutSeq</p>
+<p>AND B.InOutType = 80</p>
+<p>WHERE A.OutSeq \&lt;&gt; 0</p>
+<p>AND B.CompanySeq IS NULL</p>
+<p>AND A.OutReqTypeName = '창고이동(제상품)'</p>
+<p>ORDER BY A.ProcDateTime DESC</p>
+<p>SELECT SUM(Qty) FROM _TLGInOutReqItem WHERE ReqSeq = 25537</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGInItemReqWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 입고예정</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGOutItemReqWH_IF WHERE ReqSeq = 25537 AND ReqSerl = 1 -- 출고예정</p>
+<p>SELECT SUM(Qty),InSeq FROM SD_TLGInItemWH_IF WHERE ReqSeq = 25537 GROUP BY InSeq-- 입고처리</p>
+<p>SELECT SUM(Qty),OutSeq FROM SD_TLGOutItemWH_IF WHERE ReqSeq = 25537 GROUP BY OutSeq-- 출고처리</p>
+<p>SELECT SUM(Qty),InOutSeq FROM _TLGInOutDailyItem WHERE InOutType = 80 AND InOutSeq = 16813 GROUP BY InOutSeq</p>
+<p>SELECT SUM(Qty),InOutSeq FROM _TLGInOutDailyItem WHERE InOutType = 80 AND InOutSeq = 16811 GROUP BY InOutSeq</p>
+<p>--=================================================</p>
+<p>SELECT * FROM _TLGInOutReq WHERE ReqSeq = 24955</p>
+<p>SELECT * FROM _TLGInOutReqItem WHERE ReqSeq = 24955</p>
+<p>SELECT SUM(Qty) FROM _TLGInOutReqItem WHERE ReqSeq = 24955</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGInItemReqWH_IF WHERE ReqSeq = 24955 AND ReqSerl = 1 -- 입고예정</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGOutItemReqWH_IF WHERE ReqSeq = 24955 AND ReqSerl = 1 -- 출고예정</p>
+<p>SELECT * FROM SD_TLGInItemWH_IF WHERE ReqSeq = 24955 --GROUP BY InSeq-- 입고처리</p>
+<p>SELECT * FROM SD_TLGOutItemWH_IF WHERE ReqSeq = 24955 --GROUP BY OutSeq-- 출고처리</p>
+<p>/*</p>
+<p>입고, 출고 예정 둘다 있는건 SD_SSI_WMS_InDailyRecv</p>
+<p>입고, 출고 처리 둘다 있는건 SD_SSI_WMS_InDailyRecv</p>
+<p>=&gt; (입고)창고 -&gt; (출고)물류센터 ==&gt; 입고를 생성안함 / 출고만 있다</p>
+<p>입고, 예정만 있는건</p>
+<p>입고, 처리만 있는건</p>
+<p>입고 =&gt; 입고창고가 물류센터인 건만 담기 SD_WMS_WCS_BATCH</p>
+<p>출고 =&gt; 출고창고가 물류센터인 건만 담기 SD_WMS_WCS_BATCH</p>
+<p>예상 - 입고창고가 물류센터인 건 (41,42)</p>
+<p>*/</p>
+<p>SELECT *</p>
+<p>FROM SD_TLGInItemReqWH_IF AS A</p>
+<p>JOIN _TLGInOutReq AS B ON B.ReqSeq = A.ReqSeq</p>
+<p>JOIN SD_TLGInItemWH_IF AS C ON C.ReqSeq = A.ReqSeq</p>
+<p>WHERE B.OutWHSeq NOT IN (41,42)</p>
+<p>AND A.InReqType = 700002008</p>
+<p>AND C.InType = 80</p>
+<p>AND C.InSeq \&lt;&gt; 0</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGInItemReqWH_IF WHERE ReqSeq = 24986 -- 입고예정</p>
+<p>SELECT Qty,IsWorkingTag,* FROM SD_TLGOutItemReqWH_IF WHERE ReqSeq = 24986 -- 출고예정</p>
+<p>SELECT * FROM SD_TLGInItemWH_IF WHERE ReqSeq = 24986 --GROUP BY InSeq-- 입고처리</p>
+<p>SELECT * FROM SD_TLGOutItemWH_IF WHERE ReqSeq = 24986 --GROUP BY OutSeq-- 출고처리</p>
+  </article>
+</div>
+</body>
+</html>

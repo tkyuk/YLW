@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.02.12 유베이스 심야수당산출</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.02.12 유베이스 심야수당산출</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250212">25.02.12 유베이스 심야수당산출</h1>
+<p>-- ubase_SXPRNightAllowDtlQuery_TTEST</p>
+<p>-- 심야수당산출_ubase</p>
+<p>-- 2025-02-11 12:54:40.720</p>
+<p>SELECT NightDTCnt,*</p>
+<p>FROM ubase_TPRNightAllow</p>
+<p>WHERE EmpSeq = 82023</p>
+<p>AND WkDate = '20250204'</p>
+<p>-- 시간외근무신청확정_ubase</p>
+<p>-- 2025-02-11 16:39:23.783</p>
+<p>SELECT *</p>
+<p>FROM ubase_TXPRWkOverTimeApp AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCOMConfirm AS E ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.OTAppSeq = E.CfmSeq</p>
+<p>AND E.ConfirmSeq = 15000005 -- 시간외근무</p>
+<p>WHERE OTAppSeq = 516179</p>
+<p>SELECT *</p>
+<p>FROM _TXPRBasRuleEmpAmt</p>
+<p>WHERE EmpSeq = 82023</p>
+<p>AND BegYm = '20250204'</p>
+<p>SELECT * FROM _TCAPgm WHERE PgmSeq = 39820486</p>
+<p>/*</p>
+<p>ubase_TPRNightAllow</p>
+<p>ubase_SXPRNightAllowApply -- NightAllow 심야수당 재계산</p>
+<p>ubase_SXPRNightAllowCheck</p>
+<p>ubase_SXPRNightAllowDelete</p>
+<p>ubase_SXPRNightAllowGetData</p>
+<p>ubase_SXPRNightAllowSave</p>
+<p>*/</p>
+<p>SELECT B.EmpSeq, B.WkDate, B.WkItemSeq, B.DTCnt</p>
+<p>FROM _TPRWkEmpDd AS B WITH(NOLOCK)</p>
+<p>--LEFT OUTER JOIN ubase_TPRNightAllow AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>-- AND C.EmpSeq = B.EmpSeq</p>
+<p>-- AND C.WkDate = B.WkDate</p>
+<p>WHERE B.CompanySeq = 1</p>
+<p>AND B.EmpSeq = 82023</p>
+<p>AND B.WkDate &gt;= '20250204'</p>
+<p>AND B.WkDate \&lt;= '20250204'</p>
+<p>SELECT CONVERT(INT, EnvValue) FROM _TCOMEnv WITH(NOLOCK) WHERE EnvSeq = 2000005 AND CompanySeq = 1</p>
+<p>-- 기간별근무내역 9분 + 시간외근무신청조회 9분 = 18분 으로 [심야수당산출_ubase] 화면에서 0.15가 아닌 0.3으로 조회 되어야 합니다.</p>
+<p>--SELECT * FROM _TCOMTableLog WHERE TableName = '_TCOMEnv'</p>
+<p>-- 테이블 키값으로만 가능(빠름) : 테이블, CompanySeq, 테이블 키, 테이블 키 값</p>
+<p>EXEC _SWCOMGetTableLog '_TCOMEnv', 1, 'EnvSeq', 2000005</p>
+  </article>
+</div>
+</body>
+</html>

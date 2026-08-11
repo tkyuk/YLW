@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>콤보 추가 (ex.진행, 미진행) progress</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>콤보 추가 (ex.진행, 미진행) progress</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ex-progress">콤보 추가 (ex.진행, 미진행) progress</h1>
+<p>신선생산입고조회_evc</p>
+<p>txtProgress        TextBox        출하진행여부        DataBlock1        Progress        ProgressSeq</p>
+<p>-- sp</p>
+<p>ㅇ</p>
+<p>--Init에 추가</p>
+<p>local columnSchema</p>
+<p>local ds</p>
+<p>local addData</p>
+<p>columnSchema = '{필드명1111, string}{필드키1111, int}'</p>
+<p>ds = CreateDataSet(ds, 'DataBlock1', columnSchema)</p>
+<p>addData = ''</p>
+<p>addData = ''..''..CNST_SP..'0'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'미진행'..CNST_SP..'1'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'진행'..CNST_SP..'2'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>DataSetClear(m_SendXml.Data, '')</p>
+<p>MergeDataSet(m_SendXml, ds)</p>
+<p>SetAddCombo(명칭1111, ds, 'DataBlock1', false)</p>
+<p>명칭1111.Value = 0</p>
+  </article>
+</div>
+</body>
+</html>

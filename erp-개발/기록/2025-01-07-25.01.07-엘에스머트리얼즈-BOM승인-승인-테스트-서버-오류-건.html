@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.01.07 엘에스머트리얼즈 BOM승인 - 승인 테스트 서버 오류 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.01.07 엘에스머트리얼즈 BOM승인 - 승인 테스트 서버 오류 건</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250107-bom-">25.01.07 엘에스머트리얼즈 BOM승인 - 승인 테스트 서버 오류 건</h1>
+<p>DROP PROC sys_SWPDBOMCfmSave_TTEST</p>
+<p>GO</p>
+<p>CREATE PROC sys_SWPDBOMCfmSave_TTEST</p>
+<p>@xmlDocument NVARCHAR(MAX) ,</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<p>@ItemSeq INT,</p>
+<p>@XmlDoc NVARCHAR(MAX),</p>
+<p>@ItemBOMRev NCHAR(2),</p>
+<p>@OriItemBOMRev NCHAR(2),</p>
+<p>@StdDate NCHAR(8)</p>
+<p>-- 서비스 마스타 등록 생성</p>
+<p>CREATE TABLE #TPDBOMManagement (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TPDBOMManagement'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>ALTER TABLE #TPDBOMManagement ADD Serl INT</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>0,''</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Result = N'이미 BOM이 구성된 품목입니다.',</p>
+<p>MessageType = @MessageType ,</p>
+<p>Status = @Status</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeqTree</p>
+<p>AND B.ItemBOMRev = A.ItemBomRevTree</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('A','U')</p>
+<p>-- 실테이블 기준으로 체크하도록 'sys_TPDBOMReqManagement' JOIN 절 추가 23.12.29 SJPARK</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'' -- SELECT * FROM _TCADictionary WHERE Word like '%거래처%'</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Result = CASE WHEN ISNULL(B.Agree1,'0') = '0' THEN N'합의1 승인하지 않았습니다.'</p>
+<p>WHEN ISNULL(B.Agree2,'0') = '0' THEN N'합의2 승인하지 않았습니다.'</p>
+<p>WHEN ISNULL(B.Agree3,'0') = '0' THEN N'합의3 승인하지 않았습니다.'</p>
+<p>--WHEN ISNULL(CheckDelvTeamManager,'0') = '0' THEN N'개발팀장 승인하지 않았습니다.'</p>
+<p>ELSE '' END,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReqManagement AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.BOMReqSeq = A.BOMReqSeq</p>
+<p>WHERE WorkingTag IN ('A','U')</p>
+<p>AND Status = 0</p>
+<p>AND ((ISNULL(B.Agree1,'0') = '0')</p>
+<p>OR (ISNULL(B.Agree2,'0') = '0')</p>
+<p>OR (ISNULL(B.Agree3,'0') = '0')</p>
+<p>--OR (ISNULL(CheckDelvTeamManager,'0') = '0')</p>
+<p>)</p>
+<p>IF EXISTS ( SELECT 1 FROM #TPDBOMManagement WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #TPDBOMManagement</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 20240709.역전개 로직 추가</p>
+<p>CREATE TABLE #ReversedBOM</p>
+<p>(</p>
+<p>CompanySeq INT NOT NULL,</p>
+<p>Seq INT NOT NULL,</p>
+<p>ParentSeq INT NOT NULL,</p>
+<p>ItemSeq INT NOT NULL,</p>
+<p>Sort INT NOT NULL,</p>
+<p>TreeLevel INT NOT NULL,</p>
+<p>ItemRev CHAR(4) NOT NULL,</p>
+<p>NeedQtyNumerator DECIMAL(20,10) null,</p>
+<p>NeedQtyDenominator DECIMAL(20,10) null,</p>
+<p>TextLevel NVARCHAR(60) null</p>
+<p>)</p>
+<p>-- 역전개 통해 상위 품목에 대한 정보 가져오기</p>
+<p>SELECT @ItemSeq = A.ItemSeqTree,</p>
+<p>@ItemBOMRev = A.ItemBomRevTree</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>--AND A.WorkingTag = 'D'</p>
+<p>-- 승인취소</p>
+<p>IF EXISTS ( SELECT 1 FROM #TPDBOMManagement WHERE Status = 0 AND WorkingTag = 'D')</p>
+<p>BEGIN</p>
+<p>--SELECT @ItemBOMRev = RIGHT('00' + CONVERT(NVARCHAR, CONVERT(INT, @ItemBOMRev) -1),2)</p>
+<p>INSERT INTO #ReversedBOM</p>
+<p>SELECT @CompanySeq, 1, 0, @ItemSeq, 1, 1, @ItemBOMRev, 1, 1, '1'</p>
+<p>EXEC _SPDReversBOM @CompanySeq, @ItemSeq, @ItemBOMRev, 1, 1, 0, '1'</p>
+<p>DELETE #ReversedBOM FROM #ReversedBOM WHERE NeedQtyDenominator = 0 -- 소요량이 필수이기 때문에 분모가 0인 건은 삭제</p>
+<p>END</p>
+<p>-- 승인처리</p>
+<p>IF EXISTS ( SELECT 1 FROM #TPDBOMManagement WHERE Status = 0 AND WorkingTag = 'A')</p>
+<p>BEGIN</p>
+<p>SELECT @OriItemBOMRev = RIGHT('00' + CONVERT(NVARCHAR, CONVERT(INT, @ItemBOMRev) -1),2)</p>
+<p>INSERT INTO #ReversedBOM</p>
+<p>SELECT @CompanySeq, 1, 0, @ItemSeq, 1, 1, @OriItemBOMRev, 1, 1, '1'</p>
+<p>EXEC _SPDReversBOM @CompanySeq, @ItemSeq, @OriItemBOMRev, 1, 1, 0, '1'</p>
+<p>DELETE #ReversedBOM FROM #ReversedBOM WHERE NeedQtyDenominator = 0 -- 소요량이 필수이기 때문에 분모가 0인 건은 삭제</p>
+<p>END</p>
+<p>SELECT @StdDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>-- 승인 취소</p>
+<p>IF EXISTS ( SELECT 1 FROM #TPDBOMManagement WHERE Status = 0 AND WorkingTag = 'D')</p>
+<p>BEGIN</p>
+<p>DELETE _TPDBOMRemarks</p>
+<p>FROM _TPDBOMRemarks AS A</p>
+<p>JOIN sys_TPDBOMRemarksReq C WITH(NOLOCK) ON A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ItemBomRev = C.ItemBomRev</p>
+<p>AND A.CompanySeq = C.CompanySeq</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeqTree</p>
+<p>--AND A.Serl = B.Serl</p>
+<p>WHERE B.WorkingTag = 'D'</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>--AND A.ItemBomRev = '00'</p>
+<p>AND A.ItemBomRev = B.ItemBomRevTree</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DELETE _TPDBOMProc</p>
+<p>FROM _TPDBOMProc AS A</p>
+<p>JOIN sys_TPDBOMProcReq C WITH(NOLOCK) ON A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ItemBomRev = C.ItemBomRev</p>
+<p>AND A.CompanySeq = C.CompanySeq</p>
+<p>AND A.SubItemSeq = C.SubItemSeq</p>
+<p>AND A.SubItemBomRev = C.SubItemBomRev</p>
+<p>AND A.GoodSeq = C.GoodSeq</p>
+<p>AND A.GoodBomRev = C.GoodBomRev</p>
+<p>AND A.ProcRev = C.ProcRev</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeqTree</p>
+<p>WHERE B.WorkingTag = 'D'</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>--AND A.ItemBomRev = '00'</p>
+<p>AND A.ItemBomRev = B.ItemBomRevTree</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DELETE _TPDBOM</p>
+<p>FROM _TPDBOM AS A</p>
+<p>JOIN sys_TPDBOMReq C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ItemBomRev = C.ItemBomRev</p>
+<p>AND A.SubItemSeq = C.SubItemSeq</p>
+<p>AND A.SubItemBomRev = C.SubItemBomRev</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeqTree</p>
+<p>--AND A.Serl = B.Serl</p>
+<p>WHERE B.WorkingTag = 'D'</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>--AND A.ItemBomRev = '00'</p>
+<p>AND A.ItemBomRev = B.ItemBomRevTree</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 하위품목 삭제시 모품목 Management에 최종수정일 업데이트 -- 11.07.08 BY 김세호</p>
+<p>UPDATE _TPDBOMManagement</p>
+<p>SET LastUptDate = CONVERT(NCHAR(8), GETDATE(),112)</p>
+<p>FROM _TPDBOMManagement A WITH(NOLOCK)</p>
+<p>JOIN #TPDBOMManagement B ON A.ItemSeq = B.ItemSeqTree</p>
+<p>WHERE A.ItemBomRev = B.ItemBomRevTree</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>-- 하위품목 모두 삭제 됐을경우 모품목 BOMManagement 데이터 삭제 -- 11.07.08 BY 김세호</p>
+<p>IF NOT EXISTS(SELECT 1</p>
+<p>FROM _TPDBOM AS A</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeqTree</p>
+<p>--AND A.Serl = B.Serl</p>
+<p>WHERE B.WorkingTag = 'D'</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>--AND A.ItemBomRev = '00'</p>
+<p>AND A.ItemBomRev = B.ItemBomRevTree</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>-- 차수정보 로그 남기기</p>
+<p>SELECT DISTINCT A.*,</p>
+<p>CONVERT(NVARCHAR(10),'D') AS WorkingTag,</p>
+<p>CONVERT(INT, 0) AS Status</p>
+<p>INTO #TPDBOMManagement1</p>
+<p>FROM _TPDBOMManagement AS A</p>
+<p>JOIN #TPDBOMManagement AS B ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeqTree</p>
+<p>AND A.ItemBomRev = '00'</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDBOMManagement', -- 원테이블명</p>
+<p>'#TPDBOMManagement1', -- 템프테이블명</p>
+<p>'ItemSeq, ItemBomRev' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq, ItemSeq, ItemBomRev, RegDate, LastUptDate, FrTermValidity, ToTermValidity, BatchSize, Remark, LastUserSeq, LastDateTime, FileSeq, ItemBOMRevRemark, RegDateTime'</p>
+<p>DELETE _TPDBOMManagement</p>
+<p>FROM _TPDBOMManagement A</p>
+<p>JOIN #TPDBOMManagement B ON A.ItemSeq = B.ItemSeqTree</p>
+<p>WHERE A.ItemBomRev = '00'</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>-- 20240709.Upper BOM 삭제</p>
+<p>DELETE FROM #ReversedBOM WHERE ItemSeq = @ItemSeq AND ItemRev = @ItemBOMRev</p>
+<p>SELECT A.*,</p>
+<p>CONVERT(NVARCHAR(10),'D') AS WorkingTag,</p>
+<p>CONVERT(INT, 0) AS Status</p>
+<p>INTO #TPDBOMLog</p>
+<p>FROM _TPDBOM AS A</p>
+<p>JOIN #ReversedBOM C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ItemBomRev = C.ItemRev</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDBOM', -- 원테이블명</p>
+<p>'#TPDBOMLog', -- 템프테이블명</p>
+<p>'ItemSeq, ItemBomRev, Serl' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq,ItemSeq,ItemBomRev,Serl,UserSeq,SubItemSeq,SubItemBomRev,UnitSeq,SubUnitSeq,NeedQtyNumerator,NeedQtyDenominator,HaveChild,InLossRate,OutLossRate,</p>
+<p>ECOSeq,ECOItemSerl,ECOChangeSerl,ECOApplySerl,FrApplyDate,ToApplyDate,Location,Remark,IsCfm,LastUserSeq,LastDateTime,SMDelvType,PgmSeq'</p>
+<p>SELECT A.*,</p>
+<p>CONVERT(NVARCHAR(10),'D') AS WorkingTag,</p>
+<p>CONVERT(INT, 0) AS Status</p>
+<p>INTO #TPDBOMManagementLog</p>
+<p>FROM _TPDBOMManagement AS A</p>
+<p>JOIN #ReversedBOM C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ItemBomRev = C.ItemRev</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDBOMManagement', -- 원테이블명</p>
+<p>'#TPDBOMManagementLog', -- 템프테이블명</p>
+<p>'ItemSeq, ItemBomRev' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq, ItemSeq, ItemBomRev, RegDate, LastUptDate, FrTermValidity, ToTermValidity, BatchSize, Remark, LastUserSeq, LastDateTime, FileSeq, ItemBOMRevRemark, RegDateTime'</p>
+<p>DELETE _TPDBOM</p>
+<p>FROM _TPDBOM AS A</p>
+<p>JOIN #ReversedBOM C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ItemBomRev = C.ItemRev</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DELETE _TPDBOMManagement</p>
+<p>FROM _TPDBOMManagement AS A</p>
+<p>JOIN #ReversedBOM C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND A.ItemBomRev = C.ItemRev</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>SELECT * FROM #TPDBOMManagement</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF EXISTS ( SELECT 1 FROM #TPDBOMManagement WHERE Status = 0 AND WorkingTag = 'A')</p>
+<p>BEGIN</p>
+<p>-- 내부코드 채번</p>
+<p>DECLARE @Count INT,</p>
+<p>@Seq INT ,</p>
+<p>@Date NCHAR(8),</p>
+<p>@MaxNo NVARCHAR(50)</p>
+<p>SELECT @Count = COUNT(1) FROM #TPDBOMManagement WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>SELECT @Date = CONVERT(VARCHAR,GETDATE(),112)</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TPDBOM', 'Serl', @Count</p>
+<p>SELECT @Seq = ISNULL(@Seq, 0)</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Serl = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>END</p>
+<p>--_TPDBOMManagement</p>
+<p>INSERT INTO _TPDBOMManagement</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ItemBomRev , RegDate , LastUptDate ,</p>
+<p>FrTermValidity , ToTermValidity , BatchSize , Remark , LastUserSeq ,</p>
+<p>LastDateTime , FileSeq , ItemBOMRevRemark , RegDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,B.ItemSeq ,A.ItemBomRevTree , B.RegDate,B.LastUptDate ,</p>
+<p>B.FrTermValidity ,B.ToTermValidity ,B.BatchSize , B.Remark ,@UserSeq ,</p>
+<p>GETDATE() ,B.FileSeq ,B.ItemBOMRevRemark, GETDATE()</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReqManagement AS B WITH(NOLOCK) ON A.ItemSeqTree = B.ItemSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemBomRevTree = B.ItemBOMRevRemark</p>
+<p>LEFT OUTER JOIN _TPDBOMManagement AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>AND B.ItemBOMRevRemark = C.ItemBomRev</p>
+<p>WHERE A.WorkingTag IN ('A','U')</p>
+<p>AND A.Status = 0</p>
+<p>AND C.CompanySeq IS NULL</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- _TPDBOM</p>
+<p>INSERT INTO _TPDBOM</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ItemBomRev , Serl , UserSeq ,</p>
+<p>SubItemSeq , SubItemBomRev , UnitSeq , SubUnitSeq , NeedQtyNumerator ,</p>
+<p>NeedQtyDenominator , HaveChild , InLossRate , OutLossRate , ECOSeq ,</p>
+<p>ECOItemSerl , ECOChangeSerl , ECOApplySerl ,</p>
+<p>FrApplyDate , ToApplyDate , Location , Remark , IsCfm ,</p>
+<p>LastUserSeq , LastDateTime , SMDelvType, PgmSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,B.ItemSeq ,B.ItemBomRev ,B.Serl ,B.UserSeq ,</p>
+<p>B.SubItemSeq ,B.SubItemBomRev ,B.UnitSeq ,B.SubUnitSeq ,B.NeedQtyNumerator ,</p>
+<p>B.NeedQtyDenominator ,B.HaveChild ,B.InLossRate ,B.OutLossRate ,B.ECOSeq ,</p>
+<p>B.ECOItemSerl , B.ECOChangeSerl , B.ECOApplySerl ,</p>
+<p>B.FrApplyDate ,B.ToApplyDate ,B.Location ,B.Remark ,B.IsCfm ,</p>
+<p>@UserSeq ,GETDATE() , B.SMDelvType ,@PgmSeq</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReq B ON B.ItemSeq = A.ItemSeqTree AND B.ItemBomRev = A.ItemBomRevTree AND B.CompanySeq = @CompanySeq</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDBOM WHERE CompanySeq = @CompanySeq AND ItemSeq = A.ItemSeqTree AND ItemBomRev = A.ItemBomRevTree)</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--UPDATE P</p>
+<p>-- SET HaveChild = '1'</p>
+<p>-- FROM _TPDBOM AS P</p>
+<p>-- JOIN #TPDBOMManagement AS A ON P.SubItemSeq = A.ItemSeq</p>
+<p>-- AND P.SubItemBomRev = '00'</p>
+<p>-- WHERE P.CompanySeq = @CompanySeq</p>
+<p>-- IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- UPDATE P</p>
+<p>-- SET HaveChild = '1'</p>
+<p>-- FROM _TPDBOM AS P</p>
+<p>-- JOIN (SELECT A.ItemSeq, '00' AS ItemBomRev, A.SubItemSeq, A.SubItemBomRev</p>
+<p>-- FROM #TPDBOMManagement AS A</p>
+<p>-- JOIN _TPDBOM AS B WITH(NOLOCK) ON B.ItemSeq = A.SubItemSeq</p>
+<p>-- AND B.ItemBomRev = '00'</p>
+<p>-- WHERE B.CompanySeq = @CompanySeq</p>
+<p>-- ) AS O ON P.ItemSeq = O.ItemSeq</p>
+<p>-- AND P.ItemBOMRev = O.ItemBomRev</p>
+<p>-- AND P.SubItemSeq = O.SubItemSeq</p>
+<p>-- AND P.SubItemBOMRev = O.SubItemBomRev</p>
+<p>-- WHERE P.CompanySeq = @CompanySeq</p>
+<p>-- IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--_TPDBOMProc</p>
+<p>INSERT INTO _TPDBOMProc</p>
+<p>(</p>
+<p>CompanySeq,GoodSeq,GoodBomRev,ItemSeq,ItemBomRev,SubItemSeq,SubItemBomRev,</p>
+<p>ProcRev,ProcSeq,WorkCenterSeq,LastUserSeq,LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,A.GoodSeq,A.GoodBomRev,A.ItemSeq ,A.ItemBomRev ,A.SubItemSeq ,A.SubItemBomRev ,</p>
+<p>A.ProcRev ,A.ProcSeq ,ISNULL(A.WorkCenterSeq, 0) ,@UserSeq ,GETDATE()</p>
+<p>FROM sys_TPDBOMProcReq AS A</p>
+<p>JOIN #TPDBOMManagement R WITH(NOLOCK) ON A.ItemSeq = R.ItemSeqTree</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON A.SubItemSeq = I.ItemSeq</p>
+<p>AND I.CompanySeq = @CompanySeq</p>
+<p>JOIN _TDAItemAsset AS S WITH(NOLOCK) ON I.AssetSeq = S.AssetSeq</p>
+<p>AND I.CompanySeq = S.CompanySeq</p>
+<p>WHERE R.WorkingTag IN ('A','U')</p>
+<p>AND R.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProcRev &gt; ''</p>
+<p>AND A.ProcSeq &gt; 0</p>
+<p>AND S.SMAssetGrp IN (6008004, 6008005)</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDBOMProc WHERE CompanySeq = @CompanySeq</p>
+<p>AND GoodSeq = A.GoodSeq -- 송기연 추가 공정품이 여러제품에 쓰일 경우 업데이트가 안되어 추가 20100402</p>
+<p>AND GoodBOmRev = A.GoodBomRev -- 송기연 추가 공정품이 여러제품에 쓰일 경우 업데이트가 안되어 추가 20100402</p>
+<p>AND ItemSeq = A.ItemSeq</p>
+<p>AND ItemBomRev = A.ItemBomRev</p>
+<p>AND SubItemSeq = A.SubItemSeq</p>
+<p>AND SubItemBomRev = A.SubItemBomRev)</p>
+<p>--AND ProcRev = A.ProcRev )</p>
+<p>AND EXISTS (SELECT 1 FROM _TPDROUItemProcRev WHERE CompanySeq = @CompanySeq</p>
+<p>AND ItemSeq = A.GoodSeq</p>
+<p>AND ItemSeq &gt; 0 )</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--_TPDBOMRemarks</p>
+<p>INSERT INTO _TPDBOMRemarks</p>
+<p>(</p>
+<p>CompanySeq,ItemSeq,ItemBomRev,Serl,</p>
+<p>Remark1,Remark2,Remark3,Remark4,Remark5,</p>
+<p>Remark6,Remark7,Remark8,Remark9,Remark10,</p>
+<p>LastUserSeq,LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,A.ItemSeq ,A.ItemBomRev ,B.Serl ,</p>
+<p>ISNULL(A.Remark1,''),ISNULL(A.Remark2,''),ISNULL(A.Remark3,''),ISNULL(A.Remark4,''),ISNULL(A.Remark5,''),</p>
+<p>ISNULL(A.Remark6,''),ISNULL(A.Remark7,''),ISNULL(A.Remark8,''),ISNULL(A.Remark9,''),ISNULL(A.Remark10,''),</p>
+<p>@UserSeq ,GETDATE()</p>
+<p>FROM sys_TPDBOMRemarksReq AS A</p>
+<p>JOIN #TPDBOMManagement B ON A.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeqTree</p>
+<p>WHERE B.WorkingTag IN ('A','U')</p>
+<p>AND B.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDBOMRemarks WHERE CompanySeq = @CompanySeq</p>
+<p>AND ItemSeq = A.ItemSeq</p>
+<p>AND ItemBomRev = A.ItemBomRev</p>
+<p>AND Serl = B.Serl )</p>
+<p>AND A.ItemBomRev = B.ItemBomRevTree</p>
+<p>AND (A.Remark1 &gt; ''</p>
+<p>OR A.Remark2 &gt; ''</p>
+<p>OR A.Remark3 &gt; ''</p>
+<p>OR A.Remark4 &gt; ''</p>
+<p>OR A.Remark5 &gt; ''</p>
+<p>OR A.Remark6 &gt; ''</p>
+<p>OR A.Remark7 &gt; ''</p>
+<p>OR A.Remark8 &gt; ''</p>
+<p>OR A.Remark9 &gt; ''</p>
+<p>OR A.Remark10 &gt; '')</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 20240709.역전개 통해 생성된 BOM 생성</p>
+<p>SELECT A.ItemSeq,</p>
+<p>A.ItemRev AS OriItemRev,</p>
+<p>CONVERT(NCHAR(2), '') AS ItemRev</p>
+<p>INTO #CreateUpperBom</p>
+<p>FROM #ReversedBOM AS A</p>
+<p>WHERE A.ItemSeq \&lt;&gt; @ItemSeq</p>
+<p>-- @@@@ 업데이트 안됨</p>
+<p>UPDATE A</p>
+<p>SET ItemRev = RIGHT('00' + CONVERT(NVARCHAR, CONVERT(INT, B.MaxItemBomRev) + 1),2)</p>
+<p>FROM #CreateUpperBom AS A</p>
+<p>JOIN (SELECT A.ItemSeq, MAX(A.ItemBomRev) AS MaxItemBomRev</p>
+<p>FROM _TPDBOMManagement AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq IN (SELECT DISTINCT ItemSeq FROM #CreateUpperBom)</p>
+<p>GROUP BY A.ItemSeq) AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>INSERT INTO _TPDBOMManagement</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ItemBomRev , RegDate , LastUptDate ,</p>
+<p>FrTermValidity , ToTermValidity , BatchSize , Remark , LastUserSeq ,</p>
+<p>LastDateTime , FileSeq , ItemBOMRevRemark , RegDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.ItemSeq, A.ItemRev, @StdDate, @StdDate,</p>
+<p>'' , '' , 0 , '' , @UserSeq,</p>
+<p>GETDATE() , 0 , A.ItemRev, GETDATE()</p>
+<p>FROM #CreateUpperBom AS A</p>
+<p>JOIN _TPDBOMManagement AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.OriItemRev = B.ItemBomRev</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO _TPDBOM</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ItemBomRev , Serl , UserSeq,</p>
+<p>SubItemSeq , SubItemBomRev, UnitSeq , SubUnitSeq , NeedQtyNumerator,</p>
+<p>NeedQtyDenominator, HaveChild , InLossRate , OutLossRate, ECOSeq,</p>
+<p>ECOItemSerl , ECOChangeSerl, ECOApplySerl, FrApplyDate, ToApplyDate,</p>
+<p>Location , Remark , IsCfm , LastUserSeq, LastDateTime,</p>
+<p>SMDelvType , PgmSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq , A.ItemSeq , B.ItemRev , A.Serl , A.UserSeq ,</p>
+<p>CASE WHEN ISNULL(C.ItemSeq,0) = 0 THEN A.SubItemSeq ELSE C.ItemSeq END AS SubItemSeq,</p>
+<p>CASE WHEN A.SubItemSeq = @ItemSeq AND A.SubItemBomRev = @OriItemBOMRev THEN @ItemBOMRev ELSE (CASE WHEN ISNULL(C.ItemSeq,0) = 0 THEN A.SubItemBomRev ELSE C.ItemRev END) END AS SubItemBomRev,</p>
+<p>A.UnitSeq , A.SubUnitSeq , A.NeedQtyNumerator ,</p>
+<p>A.NeedQtyDenominator, A.HaveChild , A.InLossRate , A.OutLossRate, A.ECOSeq ,</p>
+<p>A.ECOItemSerl , A.ECOChangeSerl, A.ECOApplySerl, A.FrApplyDate, A.ToApplyDate,</p>
+<p>A.Location , A.Remark , A.IsCfm , @UserSeq , GETDATE(),</p>
+<p>A.SMDelvType , @PgmSeq</p>
+<p>FROM _TPDBOM AS A WITH(NOLOCK)</p>
+<p>JOIN #CreateUpperBom AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.ItemBomRev = B.OriItemRev</p>
+<p>LEFT OUTER JOIN #CreateUpperBom AS C ON A.SubItemSeq = C.ItemSeq</p>
+<p>AND A.SubItemBomRev = C.OriItemRev</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq IN (SELECT DISTINCT ItemSeq FROM #CreateUpperBom)</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>SELECT * FROM #TPDBOMManagement</p>
+<p>RETURN</p>
+<p>END</p>
+<p>RETURN</p>
+<p>/*</p>
+<p>GO</p>
+<p>BEGIN TRAN</p>
+<p>SELECT * FROM _TPDBOM WHERE ItemSeq IN (169890,169891,170138)</p>
+<p>exec sys_SWPDBOMCfmSave @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;D\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;IsAppl&gt;0\&lt;/IsAppl&gt;</p>
+<p>\&lt;BOMReqNo&gt;202404230006\&lt;/BOMReqNo&gt;</p>
+<p>\&lt;RegDate&gt;20240423\&lt;/RegDate&gt;</p>
+<p>\&lt;Agree1&gt;1\&lt;/Agree1&gt;</p>
+<p>\&lt;Agree1Remark /&gt;</p>
+<p>\&lt;Agree2&gt;1\&lt;/Agree2&gt;</p>
+<p>\&lt;Agree2Remark /&gt;</p>
+<p>\&lt;Agree3&gt;1\&lt;/Agree3&gt;</p>
+<p>\&lt;Agree3Remark /&gt;</p>
+<p>\&lt;CheckDelvTeamManager&gt;0\&lt;/CheckDelvTeamManager&gt;</p>
+<p>\&lt;DelvTeamManagerRemark /&gt;</p>
+<p>\&lt;LastEmpName /&gt;</p>
+<p>\&lt;LastUptDate&gt;20240709\&lt;/LastUptDate&gt;</p>
+<p>\&lt;RegEmpName&gt;윤태윤\&lt;/RegEmpName&gt;</p>
+<p>\&lt;ItemName&gt;FIL-원통형LT02 3V 3000F NH AN-4\&lt;/ItemName&gt;</p>
+<p>\&lt;ItemNo&gt;6204637\&lt;/ItemNo&gt;</p>
+<p>\&lt;Spec&gt;FIL\&lt;/Spec&gt;</p>
+<p>\&lt;ItemSClassName&gt;대형Cell\&lt;/ItemSClassName&gt;</p>
+<p>\&lt;AssetName&gt;반제품(제조)\&lt;/AssetName&gt;</p>
+<p>\&lt;ItemSeqTree&gt;169890\&lt;/ItemSeqTree&gt;</p>
+<p>\&lt;BOMReqSeq&gt;84\&lt;/BOMReqSeq&gt;</p>
+<p>\&lt;ItemBomRevTree&gt;01\&lt;/ItemBomRevTree&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;TableName&gt;sys_TPDBOMReqManagement\&lt;/TableName&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=54620078,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=54620072</p>
+<p>SELECT * FROM _TPDBOM WHERE ItemSeq IN (169890,169891,170138)</p>
+<p>ROLLBACK TRAN</p>
+<p>*/</p>
+<p>GO</p>
+<p>begin tran</p>
+<p>exec sys_SWPDBOMCfmSave_TTEST @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;2\&lt;/IDX_NO&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;IsAppl&gt;1\&lt;/IsAppl&gt;</p>
+<p>\&lt;BOMReqNo&gt;202501070001\&lt;/BOMReqNo&gt;</p>
+<p>\&lt;RegDate&gt;20250107\&lt;/RegDate&gt;</p>
+<p>\&lt;Agree1&gt;1\&lt;/Agree1&gt;</p>
+<p>\&lt;Agree1Remark /&gt;</p>
+<p>\&lt;Agree2&gt;1\&lt;/Agree2&gt;</p>
+<p>\&lt;Agree2Remark /&gt;</p>
+<p>\&lt;Agree3&gt;1\&lt;/Agree3&gt;</p>
+<p>\&lt;Agree3Remark /&gt;</p>
+<p>\&lt;CheckDelvTeamManager&gt;0\&lt;/CheckDelvTeamManager&gt;</p>
+<p>\&lt;DelvTeamManagerRemark /&gt;</p>
+<p>\&lt;LastEmpName /&gt;</p>
+<p>\&lt;LastUptDate /&gt;</p>
+<p>\&lt;RegEmpName&gt;최지웅\&lt;/RegEmpName&gt;</p>
+<p>\&lt;ItemName&gt;LSUM 048R6C 0083F EA YJ-외주04\&lt;/ItemName&gt;</p>
+<p>\&lt;ItemNo&gt;6209895\&lt;/ItemNo&gt;</p>
+<p>\&lt;Spec&gt;UC모듈\&lt;/Spec&gt;</p>
+<p>\&lt;ItemSClassName&gt;대형모듈\&lt;/ItemSClassName&gt;</p>
+<p>\&lt;AssetName&gt;반제품(제조)\&lt;/AssetName&gt;</p>
+<p>\&lt;ItemSeqTree&gt;169993\&lt;/ItemSeqTree&gt;</p>
+<p>\&lt;BOMReqSeq&gt;226\&lt;/BOMReqSeq&gt;</p>
+<p>\&lt;ItemBomRevTree&gt;02\&lt;/ItemBomRevTree&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;TableName&gt;sys_TPDBOMReqManagement\&lt;/TableName&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=54620078,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=54620072</p>
+<p>rollback tran</p>
+<p><img alt="" src="assets/25.01.07-엘에스머트리얼즈-BOM승인-승인-테스트-서버-오류-건/image124.png" /></p>
+  </article>
+</div>
+</body>
+</html>

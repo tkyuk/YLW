@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소수점 파라미터 공백일 때 에러 수정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>소수점 파라미터 공백일 때 에러 수정</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">소수점 파라미터 공백일 때 에러 수정</h1>
+<p>alter PROCEDURE test240229</p>
+<p>@YourNumericParam VARCHAR(100) -- 먼저 문자열로 받음</p>
+<p>AS</p>
+<p>BEGIN</p>
+<p>-- 문자열이 비어 있는지 확인하고, 비어 있다면 NULL로 변환</p>
+<p>IF @YourNumericParam = ''</p>
+<p>BEGIN</p>
+<p>SET @YourNumericParam = NULL;</p>
+<p>END</p>
+<p>-- 이후 NUMERIC 유형으로 변환</p>
+<p>DECLARE @NumericValue NUMERIC(18, 2);</p>
+<p>SET @NumericValue = NULLIF(@YourNumericParam, '');</p>
+<p>-- 나머지 로직</p>
+<p>END</p>
+<p>go</p>
+<p>exec test240229 ''</p>
+  </article>
+</div>
+</body>
+</html>

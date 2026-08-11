@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24/03/22 세금계산서일괄전표처리_KGC</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24/03/22 세금계산서일괄전표처리_KGC</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="240322-_kgc">24/03/22 세금계산서일괄전표처리_KGC</h1>
+<p>DROP PROC KGC_SSLBillAccSave_tTEST</p>
+<p>GO</p>
+<p>CREATE PROC KGC_SSLBillAccSave_tTEST</p>
+<p>@xmlDocument NVARCHAR(MAX),</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@Seq INT</p>
+<p>DECLARE @BizUnit INT,</p>
+<p>@BillYM NCHAR(6),</p>
+<p>@DeptSeq INT,</p>
+<p>@EmpSeq INT,</p>
+<p>@UMSalesUnit INT</p>
+<p>DECLARE @SlipDeptSeq INT,</p>
+<p>@SlipEmpSeq INT,</p>
+<p>@SlipAccUnit INT,</p>
+<p>@SlipAccDate NCHAR(8),</p>
+<p>@SlipSlipUnit INT,</p>
+<p>@AccUnit INT,</p>
+<p>@SlipMstID NVARCHAR(30),</p>
+<p>@SlipNo NVARCHAR(4),</p>
+<p>@SlipKind INT,</p>
+<p>@SlipMstSeq INT,</p>
+<p>@Count INT,</p>
+<p>@SlipEnvSeq INT,</p>
+<p>@OwnCurr INT,</p>
+<p>@RowNum INT,</p>
+<p>@MaxRow INT,</p>
+<p>@iRow INT,</p>
+<p>@RemValue NVARCHAR(100),</p>
+<p>@MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>CREATE TABLE #TSLBillAcc (WorkingTag NCHAR(1) NULL)</p>
+<p>ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TSLBillAcc'</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>SELECT @BizUnit = BizUnit, @BillYM = BillYM, @DeptSeq = ISNULL(DeptSeq, 0), @EmpSeq = ISNULL(EmpSeq, 0), @UMSalesUnit = ISNULL(UMSalesUnit, 0)</p>
+<p>FROM #TSLBillAcc</p>
+<p>CREATE TABLE #TSLBill</p>
+<p>(</p>
+<p>DataSeq INT IDENTITY(1,1),</p>
+<p>BillSeq INT,</p>
+<p>BillDate NCHAR(8),</p>
+<p>SlipMstSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TSLBillData</p>
+<p>(</p>
+<p>DataSeq INT IDENTITY(1,1),</p>
+<p>BillSeq INT,</p>
+<p>BillNo NVARCHAR(100),</p>
+<p>BillDate NCHAR(8),</p>
+<p>DeptSeq INT,</p>
+<p>EmpSeq INT,</p>
+<p>CustSeq INT,</p>
+<p>CurrSeq INT,</p>
+<p>ExRate INT,</p>
+<p>TaxNo NVARCHAR(20), --사업자번호</p>
+<p>AccSeq INT, --계정</p>
+<p>SMDrOrCr INT,</p>
+<p>TaxUnit INT,</p>
+<p>AccUnit INT,</p>
+<p>SlipUnit INT,</p>
+<p>EvidSeq INT, --증빙</p>
+<p>DomAmt DECIMAL(19,5), --원화금액</p>
+<p>CurAmt DECIMAL(19,5), --외화금액</p>
+<p>SupplyDomAmt DECIMAL(19,5), --공급가액(원화)</p>
+<p>SupplyAmt DECIMAL(19,5), --공급가액(외화)</p>
+<p>Remark NVARCHAR(100),</p>
+<p>AccType NCHAR(1),</p>
+<p>SlipSeq INT,</p>
+<p>SlipID NVARCHAR(40),</p>
+<p>RowNo NVARCHAR(4),</p>
+<p>CCtrSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TSLBillAccSlip</p>
+<p>(</p>
+<p>DataSeq INT Identity(1,1),</p>
+<p>BillSeq INT,</p>
+<p>BillNo NVARCHAR(100),</p>
+<p>BillDate NCHAR(8),</p>
+<p>DeptSeq INT,</p>
+<p>EmpSeq INT,</p>
+<p>CustSeq INT,</p>
+<p>CurrSeq INT,</p>
+<p>ExRate INT,</p>
+<p>TaxNo INT, --사업자번호</p>
+<p>AccSeq INT, --계정</p>
+<p>SMDrOrCr INT,</p>
+<p>TaxUnit INT,</p>
+<p>AccUnit INT,</p>
+<p>SlipUnit INT,</p>
+<p>EvidSeq INT, --증빙</p>
+<p>DomAmt DECIMAL(19,5), --원화금액</p>
+<p>CurAmt DECIMAL(19,5), --외화금액</p>
+<p>SupplyDomAmt DECIMAL(19,5), --공급가액(원화)</p>
+<p>SupplyAmt DECIMAL(19,5), --공급가액(외화)</p>
+<p>Remark NVARCHAR(100),</p>
+<p>AccType NCHAR(1),</p>
+<p>SlipSeq INT,</p>
+<p>SlipID NVARCHAR(40),</p>
+<p>RowNo NVARCHAR(4),</p>
+<p>CCtrSeq INT</p>
+<p>)</p>
+<p>/* 채번 테이블 */</p>
+<p>CREATE TABLE #TSLBillSlipNo</p>
+<p>(</p>
+<p>BillSeq INT,</p>
+<p>SlipMstSeq INT,</p>
+<p>SlipNo NVARCHAR(4),</p>
+<p>SlipSeq INT,</p>
+<p>SlipID NVARCHAR(40),</p>
+<p>DataSeq INT,</p>
+<p>DataIdx INT,</p>
+<p>)</p>
+<p>CREATE TABLE #TSLBillTemp</p>
+<p>(</p>
+<p>DataSeq INT Identity(1,1),</p>
+<p>BillSeq INT ,</p>
+<p>SlipSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TACSlipRemCheck</p>
+<p>(</p>
+<p>AccSeq INT,</p>
+<p>OffRemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #TACSlipRemTemp</p>
+<p>(</p>
+<p>AccSeq INT,</p>
+<p>SlipSeq INT,</p>
+<p>RemSeq INT,</p>
+<p>RemValSeq INT NULL,</p>
+<p>RemValText NVARCHAR(100) NULL</p>
+<p>)</p>
+<p>-- 영업부문 일자 가지고 오기</p>
+<p>DECLARE @SalesUnitDate NVARCHAR(8),</p>
+<p>@BillDate NCHAR(8)</p>
+<p>SELECT @BillDate = @BillYM + '31'</p>
+<p>EXEC KGC_SSLSalesUnitDate @CompanySeq, @BillDate, @PgmSeq, @SalesUnitDate OUTPUT -- @StdDate 화면의 ToDate를 바꾸면 됨.</p>
+<p>---------------------- 조직도 연결 여부</p>
+<p>DECLARE @SMOrgSortSeq INT, @OrgStdDate NCHAR(8)</p>
+<p>--IF @OrderDateTo = '99991231'</p>
+<p>-- SELECT @OrgStdDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>--ELSE</p>
+<p>SELECT @OrgStdDate = @BillYM + '01'</p>
+<p>SELECT @SMOrgSortSeq = 0</p>
+<p>SELECT @SMOrgSortSeq = SMOrgSortSeq</p>
+<p>FROM _TCOMOrgLinkMng</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PgmSeq = @PgmSeq</p>
+<p>DECLARE @DeptTable Table</p>
+<p>( DeptSeq INT)</p>
+<p>INSERT @DeptTable</p>
+<p>SELECT DISTINCT DeptSeq</p>
+<p>FROM dbo._fnOrgDept(@CompanySeq, @SMOrgSortSeq, @DeptSeq, @OrgStdDate)</p>
+<p>---------------------- 조직도 연결 여부</p>
+<p>--BillSeq만 담기</p>
+<p>INSERT INTO #TSLBill</p>
+<p>SELECT DISTINCT A.BillSeq, A.BillDate , 0</p>
+<p>FROM _TSLBill AS A JOIN _TSLSalesBillRelation AS B ON A.CompanySeq = B.CompanySeq AND A.BillSeq = B.BillSeq</p>
+<p>JOIN _TSLSalesItem AS C ON B.CompanySeq = C.CompanySeq AND B.SalesSeq = C.SalesSeq AND B.SalesSerl = C.SalesSerl</p>
+<p>LEFT OUTER JOIN KGC_fnSalesUnit(@CompanySeq, @SalesUnitDate) AS SUD ON A.DeptSeq = SUD.DeptSeq -- 영업부문</p>
+<p>WHERE ISNULL(A.SlipSeq, 0) = 0</p>
+<p>-- AND A.BillID = 2 --매출 세금계산서만 담기 --수출 데이터가 처리 되지 않아서 조건 제거 2014.05.28 성의재</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.BizUnit = @BizUnit</p>
+<p>AND A.BillDate Like @BillYM + '%'</p>
+<p>--AND (@DeptSeq = 0 OR A.DeptSeq = @DeptSeq)</p>
+<p>---------- 조직도 연결 변경 부분</p>
+<p>AND (@DeptSeq = 0</p>
+<p>OR (@SMOrgSortSeq = 0 AND A.DeptSeq = @DeptSeq)</p>
+<p>OR (@SMOrgSortSeq &gt; 0 AND A.DeptSeq IN (SELECT DeptSeq FROM @DeptTable)))</p>
+<p>---------- 조직도 연결 변경 부분</p>
+<p>AND (@EmpSeq = 0 OR A.EmpSeq = @EmpSeq) -- 2012.09.15 이성덕 추가: 담당자 조회조건</p>
+<p>AND (@UMSalesUnit = 0 OR ISNULL(SUD.UMSalesUnit,0) = @UMSalesUnit) -- 영업부문</p>
+<p>GROUP BY A.BillSeq, A.BillDate</p>
+<p>HAVING SUM(C.DomAmt + C.DomVat) \&lt;&gt; 0 -- +/- 0 인것은 제외</p>
+<p>--세금계산서 데이터담기 (외상매출금)</p>
+<p>INSERT INTO #TSLBillData</p>
+<p>SELECT A.BillSeq, A.BillNo, A.BillDate, A.DeptSeq, A.EmpSeq, A.CustSeq, A.CurrSeq, A.ExRate, ISNULL(A.TaxUnit, 0) ,</p>
+<p>A.OppAccSeq, 1, 0, 0, 0, 0,</p>
+<p>SUM(C.DomAmt+C.DomVAT), SUM(C.CurAmt + C.CurVAT), SUM(C.DomAmt), SUM(C.CurAmt), '', '0', 0, '','', 0</p>
+<p>FROM #TSLBill AS M JOIN _TSLBill AS A ON A.CompanySeq = @CompanySeq AND M.BillSeq = A.BillSeq</p>
+<p>JOIN _TSLSalesBillRelation AS B ON A.CompanySeq = B.CompanySeq AND A.BillSeq = B.BillSeq</p>
+<p>JOIN _TSLSalesItem AS C ON B.CompanySeq = C.CompanySeq AND B.SalesSeq = C.SalesSeq AND B.SalesSerl = C.SalesSerl</p>
+<p>GROUP BY A.BillSeq, A.BillNo, A.BillDate, A.DeptSeq, A.EmpSeq, A.CustSeq, A.CurrSeq, A.ExRate, A.TaxUnit,</p>
+<p>A.OppAccSeq, A.EvidSeq</p>
+<p>--세금계산서 데이터담기(부가세)</p>
+<p>INSERT INTO #TSLBillData</p>
+<p>SELECT A.BillSeq, A.BillNo, A.BillDate, A.DeptSeq, A.EmpSeq, A.CustSeq, A.CurrSeq, A.ExRate, ISNULL(A.TaxUnit, 0) ,</p>
+<p>A.VatAccSeq, -1, 0, 0, 0,</p>
+<p>CASE WHEN ISNULL(A.EvidSeq,0) = 0 THEN ISNULL(D.ValueSeq,0) ELSE ISNULL(A.EvidSeq,0) END,-- 증빙</p>
+<p>SUM(C.DomVAT), SUM(B.CurVAT), SUM(C.DomAmt), SUM(C.CurAmt), '', '1', 0, '','', 0</p>
+<p>FROM #TSLBill AS M</p>
+<p>JOIN _TSLBill AS A ON A.CompanySeq = @CompanySeq AND M.BillSeq = A.BillSeq</p>
+<p>JOIN _TSLSalesBillRelation AS B ON A.CompanySeq = B.CompanySeq AND A.BillSeq = B.BillSeq</p>
+<p>JOIN _TSLSalesItem AS C ON B.CompanySeq = C.CompanySeq AND B.SalesSeq = C.SalesSeq AND B.SalesSerl = C.SalesSerl</p>
+<p>LEFT OUTER JOIN _TDASMinorValue AS D ON A.CompanySeq = D.CompanySeq AND A.SMBillType = D.MinorSeq AND D.Serl = 1003</p>
+<p>GROUP BY A.BillSeq, A.BillNo, A.BillDate, A.DeptSeq, A.EmpSeq, A.CustSeq, A.CurrSeq, A.ExRate, A.TaxUnit,</p>
+<p>A.VatAccSeq, CASE WHEN ISNULL(A.EvidSeq,0) = 0 THEN ISNULL(D.ValueSeq,0) ELSE ISNULL(A.EvidSeq,0) END</p>
+<p>----세금계산서 데이터담기(매출계정)</p>
+<p>INSERT INTO #TSLBillData</p>
+<p>SELECT A.BillSeq, A.BillNo, A.BillDate,</p>
+<p>SM.DeptSeq, -- 세금계산서 부서로 수정 20131129 KG</p>
+<p>A.EmpSeq, A.CustSeq, A.CurrSeq, A.ExRate, ISNULL(A.TaxUnit, 0) ,</p>
+<p>S.AccSeq, -1, 0, 0, 0, 0,</p>
+<p>SUM(S.DomAmt), SUM(S.CurAmt), SUM(S.DomAmt), SUM(S.CurAmt), '', '2', 0, '','', ISNULL(CCtrSeq,0)</p>
+<p>FROM #TSLBill AS M JOIN _TSLBill AS A ON A.CompanySeq = @CompanySeq AND M.BillSeq = A.BillSeq</p>
+<p>JOIN _TSLSalesBillRelation AS B ON A.CompanySeq = B.CompanySeq AND A.BillSeq = B.BillSeq</p>
+<p>JOIN _TSLSalesItem AS S ON B.CompanySeq = S.CompanySeq AND B.SalesSeq = S.SalesSeq AND B.SalesSerl = S.SalesSerl</p>
+<p>JOIN _TSLSales AS SM ON B.CompanySeq = SM.CompanySeq AND B.SalesSeq = SM.SalesSeq</p>
+<p>LEFT OUTER JOIN _THROrgDeptCCtr AS DC ON S.CompanySeq = DC.CompanySeq AND S.DeptSeq = DC.DeptSeq AND DC.IsLast = '1'</p>
+<p>GROUP BY A.BillSeq, A.BillNo, A.BillDate, SM.DeptSeq, A.EmpSeq, A.CustSeq, A.CurrSeq, A.ExRate, A.TaxUnit,</p>
+<p>S.AccSeq, A.EvidSeq, ISNULL(CCtrSeq,0)</p>
+<p>--========================================================================================================================</p>
+<p>--========================================================================================================================</p>
+<p>DECLARE @DataSeq INT, @BillSeq INT , @BillCnt INT, @Getdate NCHAR(8)</p>
+<p>SELECT @Seq = 0, @DataSeq = 0</p>
+<p>-- 전표담당자, 전표부서 가져오기</p>
+<p>SELECT @SlipEmpSeq = dbo._FCACompanyMultiUser(@CompanySeq, @UserSeq)</p>
+<p>SELECT @Getdate = CONVERT(CHAR(8), GETDATE(), 112)</p>
+<p>SELECT @SlipDeptSeq = A.DeptSeq,</p>
+<p>@SlipAccUnit = B.AccUnit,</p>
+<p>@SlipSlipUnit = B.SlipUnit</p>
+<p>FROM dbo._FDAGetDept(@CompanySeq, @SlipEmpSeq, @Getdate) A JOIN _TDADept B ON B.CompanySeq = @CompanySeq AND A.DeptSeq = B.DeptSeq</p>
+<p>SELECT @SlipKind = SlipKind</p>
+<p>FROM _TACSlipKind WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND SlipKindNo = 'FrmSLBillAccDlg'</p>
+<p>DECLARE @Word1 NVARCHAR(100),</p>
+<p>@Word2 NVARCHAR(100)</p>
+<p>-- 체크1 : 전표부서 @SlipDeptSeq 이 없을 때</p>
+<p>IF ISNULL(@SlipDeptSeq,0) = 0</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>133 , -- 필수항목이 누락되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE LanguageSeq = 1 AND MessageSeq = 133)</p>
+<p>@LanguageSeq ,</p>
+<p>'',''</p>
+<p>-- 전표부서</p>
+<p>SELECT @Word1 = Word FROM _TCADictionary WHERE LanguageSeq = @LanguageSeq AND WordSeq = 9</p>
+<p>SELECT @Word2 = Word FROM _TCADictionary WHERE LanguageSeq = @LanguageSeq AND WordSeq = 5</p>
+<p>UPDATE #TSLBillAcc</p>
+<p>SET Result = @Results + ' (' + @Word1 + @Word2 + ')',</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TSLBillAcc</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 체크1 : 전표부서 @SlipDeptSeq 이 없을 때</p>
+<p>-- 체크2 : 회계단위 @SlipAccUnit 이 없을 때</p>
+<p>IF ISNULL(@SlipAccUnit,0) = 0</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>133 , -- 필수항목이 누락되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE LanguageSeq = 1 AND MessageSeq = 133)</p>
+<p>@LanguageSeq ,</p>
+<p>'',''</p>
+<p>-- 회계단위</p>
+<p>SELECT @Word1 = Word FROM _TCADictionary WHERE LanguageSeq = @LanguageSeq AND WordSeq = 1</p>
+<p>UPDATE #TSLBillAcc</p>
+<p>SET Result = @Results + ' (' + @Word1 + ')',</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TSLBillAcc</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 체크2 : 회계단위 @SlipAccUnit 이 없을 때</p>
+<p>-- 체크3 : 전표단위 @SlipSlipUnit 이 없을 때</p>
+<p>IF ISNULL(@SlipSlipUnit,0) = 0</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>133 , -- 필수항목이 누락되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE LanguageSeq = 1 AND MessageSeq = 133)</p>
+<p>@LanguageSeq ,</p>
+<p>'',''</p>
+<p>-- 전표단위</p>
+<p>SELECT @Word1 = Word FROM _TCADictionary WHERE LanguageSeq = @LanguageSeq AND WordSeq = 2025</p>
+<p>UPDATE #TSLBillAcc</p>
+<p>SET Result = @Results + ' (' + @Word1 + ')',</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TSLBillAcc</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 체크3 : 전표단위 @SlipSlipUnit 이 없을 때</p>
+<p>--================================================================================================================================================</p>
+<p>--&gt; 채번 미리 해놓기요~</p>
+<p>--================================================================================================================================================</p>
+<p>SELECT @BillCnt = COUNT(1) FROM #TSLBill</p>
+<p>--SlipMstSeq 내부키 채번하기</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TACSlip', 'SlipMstSeq', @BillCnt</p>
+<p>--전표연동키 채번</p>
+<p>EXEC @SlipEnvSeq = dbo._SCOMCreateSeq @CompanySeq, '_TACSlipAutoTempEnvKey', 'SlipEnvSeq', 1</p>
+<p>SELECT @SlipEnvSeq = @SlipEnvSeq + 1</p>
+<p>--SlipMstSeq 미리 담아두기</p>
+<p>UPDATE #TSLBill</p>
+<p>SET SlipMstSeq = @Seq + DataSeq</p>
+<p>SELECT @Count = COUNT(1) FROM #TSLBillData</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>EXEC @Seq = dbo._SCOMCreateSeq @CompanySeq, '_TACSlipRow', 'SlipSeq', @Count</p>
+<p>END</p>
+<p>UPDATE #TSLBillData</p>
+<p>SET SlipSeq = @Seq + DataSeq</p>
+<p>--================================================================================================================================================</p>
+<p>--================================================================================================================================================</p>
+<p>--&gt; 여기서부터는 루프돌리면서 세금계산서 한건당 전표 하나씩 만드는 부분임.</p>
+<p>--================================================================================================================================================</p>
+<p>BEGIN TRAN</p>
+<p>SELECT @MaxRow = COUNT(1) FROM #TSLBill</p>
+<p>SELECT @iRow = 1</p>
+<p>WHILE (@iRow \&lt;= @MaxRow)</p>
+<p>BEGIN</p>
+<p>SELECT @DataSeq = DataSeq, @BillSeq = BillSeq, @SlipAccDate = BillDate</p>
+<p>FROM #TSLBill</p>
+<p>WHERE DataSeq = @iRow</p>
+<p>SELECT @SlipNo = '', @SlipMstID = ''</p>
+<p>EXEC dbo._SCOMCreateNo</p>
+<p>@WorkModule = 'AC' , -- 회계(HR/AC/SL/PD/ESM/PMS/SI/SITE)</p>
+<p>@TableName = '_TACSlip' , -- 테이블</p>
+<p>@CompanySeq = @CompanySeq , -- 법인코드</p>
+<p>@FirstUnit = @SlipAccUnit , -- 회계단위</p>
+<p>@BaseDate = @SlipAccDate , -- 회계일</p>
+<p>@MaxNo = @SlipMstID OUTPUT,</p>
+<p>@SecondUnit = @SlipSlipUnit ,</p>
+<p>@ThirdUnit = 0 ,</p>
+<p>@MaxSerl = @SlipNo OUTPUT,</p>
+<p>@NoColumnName = 'SlipMstID'</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- (표준)전표 _TACSlip : 전표분개유형 : 세금계산서일괄전표(10233)</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>INSERT INTO _TACSlip (CompanySeq, SlipMstSeq, SlipMstID, AccUnit, SlipUnit, AccDate, SlipNo, SlipKind,</p>
+<p>RegEmpSeq, RegDeptSeq, Remark, SMCurrStatus, AptDate, AptEmpSeq, AptDeptSeq, AptRemark,</p>
+<p>SMCheckStatus, CheckOrigin, IsSet, SetSlipNo, SetEmpSeq, SetDeptSeq, LastUserSeq, LastDateTime,</p>
+<p>RegDateTime, RegAccDate, SetSlipID)</p>
+<p>SELECT @CompanySeq, SlipMstSeq, @SlipMstID, @SlipAccUnit, @SlipSlipUnit, @SlipAccDate, @SlipNo, @SlipKind,</p>
+<p>@SlipEmpSeq, @SlipDeptSeq, '' AS Remark, 0 AS SMCurrStatus, '' AS AptDate, 0 AS AptEmpSeq, 0 AS AptDeptSeq, '' AS AptRemark,</p>
+<p>0 AS SMCheckStatus, 0 AS CheckOrgin, '0' AS IsSet, '' AS SetSlipNo, 0 AS SetEmpSeq, 0 AS SetDeptSeq, @UserSeq, GETDATE(),</p>
+<p>GETDATE(), @SlipAccDate, ''</p>
+<p>FROM #TSLBill</p>
+<p>WHERE BillSeq = @BillSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>DELETE FROM #TSLBillTemp</p>
+<p>INSERT INTO #TSLBillTemp</p>
+<p>SELECT BillSeq, SlipSeq</p>
+<p>FROM #TSLBillData</p>
+<p>WHERE BillSeq = @BillSeq</p>
+<p>ORDER BY BillSeq , AccType</p>
+<p>--미리 채번해서 담아놓기</p>
+<p>INSERT INTO #TSLBillSlipNo (BillSeq, SlipMstSeq, SlipNo, SlipSeq, SlipID, DataSeq, DataIdx)</p>
+<p>SELECT @BillSeq, B.SlipMstSeq, @SlipNo, A.SlipSeq, @SlipMstID, A.DataSeq, ROW_NUMBER() OVER(PARTITION BY A.BillSeq ORDER BY A.BillSeq ) DataIdx</p>
+<p>FROM #TSLBillTemp AS A JOIN #TSLBill AS B ON A.BillSeq = B.BillSeq</p>
+<p>WHERE A.BillSeq = @BillSeq</p>
+<p>SELECT @iRow = @iRow + 1</p>
+<p>END</p>
+<p>/*******************************************************/</p>
+<p>--20141007 장성균추가</p>
+<p>-- 외화 외상매출금계정 가져오기 아래 Update안되도록</p>
+<p>SELECT CONVERT(INT,EnvValue) AS AccSeq</p>
+<p>INTO #AccType</p>
+<p>FROM kgc_TCOMEnv</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND EnvSeq = 58</p>
+<p>/*******************************************************/</p>
+<p>SELECT @DataSeq = 0</p>
+<p>SELECT @iRow = 1</p>
+<p>WHILE (@iRow \&lt;= @MaxRow)</p>
+<p>BEGIN</p>
+<p>SELECT @DataSeq = DataSeq, @BillSeq = BillSeq, @SlipAccDate = BillDate</p>
+<p>FROM #TSLBill</p>
+<p>WHERE DataSeq = @iRow</p>
+<p>/*</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- (표준)전표 _TACSlip : 전표분개유형 : 세금계산서일괄전표(10233)</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>INSERT INTO _TACSlip (CompanySeq, SlipMstSeq, SlipMstID, AccUnit, SlipUnit, AccDate, SlipNo, SlipKind,</p>
+<p>RegEmpSeq, RegDeptSeq, Remark, SMCurrStatus, AptDate, AptEmpSeq, AptDeptSeq, AptRemark,</p>
+<p>SMCheckStatus, CheckOrigin, IsSet, SetSlipNo, SetEmpSeq, SetDeptSeq, LastUserSeq, LastDateTime,</p>
+<p>RegDateTime, RegAccDate, SetSlipID)</p>
+<p>SELECT DISTINCT @CompanySeq, SlipMstSeq, SlipID, @SlipAccUnit, @SlipSlipUnit, @SlipAccDate, SlipNo, @SlipKind,</p>
+<p>@SlipEmpSeq, @SlipDeptSeq, '' AS Remark, 0 AS SMCurrStatus, '' AS AptDate, 0 AS AptEmpSeq, 0 AS AptDeptSeq, '' AS AptRemark,</p>
+<p>0 AS SMCheckStatus, 0 AS CheckOrgin, '0' AS IsSet, '' AS SetSlipNo, 0 AS SetEmpSeq, 0 AS SetDeptSeq, @UserSeq, GETDATE(),</p>
+<p>GETDATE(), @SlipAccDate, ''</p>
+<p>FROM #TSLBillSlipNo</p>
+<p>WHERE BillSeq = @BillSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>*/</p>
+<p>DELETE FROM #TSLBillAccSlip</p>
+<p>INSERT INTO #TSLBillAccSlip</p>
+<p>SELECT BillSeq ,BillNo ,BillDate ,DeptSeq ,EmpSeq ,CustSeq ,CurrSeq</p>
+<p>,ExRate ,TaxNo ,AccSeq ,SMDrOrCr ,TaxUnit ,AccUnit ,SlipUnit</p>
+<p>,EvidSeq ,DomAmt ,CurAmt ,SupplyDomAmt, SupplyAmt</p>
+<p>,Remark , AccType ,SlipSeq ,SlipID ,RowNo, CCtrSeq</p>
+<p>FROM #TSLBillData</p>
+<p>WHERE BillSeq = @BillSeq</p>
+<p>ORDER BY BillSeq , AccType</p>
+<p>UPDATE A</p>
+<p>SET TaxUnit = D.TaxUnit,</p>
+<p>AccUnit = D.AccUnit,</p>
+<p>SlipUnit = D.SlipUnit,</p>
+<p>Remark = (A.BillDate + C.CustName)</p>
+<p>FROM #TSLBillAccSlip A JOIN _TDACust AS C ON C.CompanySeq = @CompanySeq AND A.CustSeq = C.CustSeq</p>
+<p>JOIN _TDADept AS D ON D.CompanySeq = @CompanySeq AND A.DeptSeq = D.DeptSeq</p>
+<p>--자국통화일 경우에는 외화금액이 0으로 넣는다.</p>
+<p>UPDATE A</p>
+<p>SET CurAmt = 0, SupplyAmt = 0, ExRate = 0</p>
+<p>FROM #TSLBillAccSlip A</p>
+<p>WHERE CurrSeq = (SELECT CONVERT(INT, ISNULL(EnvValue,0)) From _TCOMEnv where CompanySEq = 1 and EnvSeq = 13 )</p>
+<p>AND A.AccSeq NOT IN (SELECT AccSeq FROM #AccType)</p>
+<hr />
+<hr />
+<hr />
+<p>--환경설정값 : \&lt;분개전표&gt; 전표행번호자리수 가져와서 행번호자릿수 세팅</p>
+<p>SELECT @RowNum = EnvValue FROM _TCOMEnv WHERE CompanySeq = 1 AND EnvSeq = 4011</p>
+<p>--TACSlipRow 에 넣기 위한 사전작업?</p>
+<p>UPDATE #TSLBillAccSlip</p>
+<p>SET SlipSeq = B.SlipSeq,</p>
+<p>SlipID = B.SlipId + '-' + RIGHT('0000' + CONVERT(NVARCHAR(4), B.DataIdx), @RowNum),</p>
+<p>RowNo = RIGHT('0000' + CONVERT(NVARCHAR(4), B.DataIdx), @RowNum)</p>
+<p>FROM #TSLBillAccSlip AS A JOIN #TSLBillSlipNo AS B ON A.BillSeq = B.BillSeq AND A.DataSeq = B.DataSeq</p>
+<p>WHERE A.BillSeq = @BillSeq</p>
+<p>--=====================================================================================================================</p>
+<p>DELETE FROM #TACSlipRemCheck</p>
+<p>DELETE FROM #TACSlipRemTemp</p>
+<p>SET @RemValue = ''</p>
+<p>INSERT INTO #TACSlipRemCheck</p>
+<p>SELECT A.AccSeq, B.OffRemSeq</p>
+<p>FROM #TSLBillAccSlip AS A JOIN _TDAAccount AS B ON B.CompanySeq = @CompanySeq AND A.AccSeq = B.AccSeq</p>
+<p>WHERE ISNULL(B.OffRemSeq, 0) \&lt;&gt; 0</p>
+<p>INSERT INTO #TACSlipRemTemp(AccSeq, SlipSeq, RemSeq, RemValSeq, RemValText)</p>
+<p>SELECT A.AccSeq,</p>
+<p>A.SlipSeq,</p>
+<p>B.RemSeq,</p>
+<p>CASE B.RemSeq WHEN 1001 THEN A.DeptSeq</p>
+<p>WHEN 1002 THEN A.EmpSeq</p>
+<p>WHEN 1013 THEN A.TaxNo</p>
+<p>WHEN 1017 THEN A.CustSeq</p>
+<p>WHEN 3009 THEN ''</p>
+<p>WHEN 3019 THEN ''</p>
+<p>WHEN 9040 THEN 0</p>
+<p>WHEN 1044 THEN A.CCtrSeq -- 활동센터</p>
+<p>ELSE '' END AS RemVal,</p>
+<p>CASE B.RemSeq WHEN 3009 THEN CONVERT(NVARCHAR(100), A.SupplyDomAmt)</p>
+<p>WHEN 3014 THEN A.BillDate -- 거래일자 추가 : 2012.10.24 이성덕</p>
+<p>WHEN 3019 THEN ''</p>
+<p>WHEN 3113 THEN CONVERT(NVARCHAR(100), A.SupplyAmt)</p>
+<p>ELSE '' END AS RemText</p>
+<p>FROM #TSLBillAccSlip AS A</p>
+<p>JOIN _TDAAccountSub AS B ON B.CompanySeq = @CompanySeq AND A.AccSeq = B.AccSeq</p>
+<p>JOIN _TDAAccountRem AS C ON C.CompanySeq = @CompanySeq AND B.RemSeq = C.RemSeq</p>
+<p>WHERE A.BillSeq = @BillSeq</p>
+<p>SELECT @RemValue = ISNULL(A.RemValSeq, ISNULL(RemValText, ''))</p>
+<p>FROM #TACSlipRemTemp A JOIN #TACSlipRemCheck B ON A.AccSeq = B.AccSeq AND A.RemSeq = B.OffRemSeq</p>
+<p>IF ISNULL(@RemValue, '') = '' AND EXISTS(SELECT 1 FROM #TACSlipRemCheck WHERE ISNULL(OffRemSeq, 0) \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>133 , -- @1이(가) 일치하지 않습니다.(SELECT * FROM _TCAMessageLanguage WHERE LanguageSeq = 1 MessageSeq = 8)</p>
+<p>@LanguageSeq ,</p>
+<p>'','' -- SELECT * FROM _TCADictionary WHERE Wordseq =21523</p>
+<p>UPDATE #TSLBillAcc</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TSLBillAcc</p>
+<p>END</p>
+<p>--=====================================================================================================================</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- 전표Row INSERT</p>
+<p>--=================================================================================================================================</p>
+<p>-- Temp에서 만들어진 항목 : A.SlipSeq, A.SlipID, A.RowNo, A.Remark</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>-- UMCostType , TaxKindSeq , NDVATAmt무슨값?</p>
+<p>INSERT INTO _TACSlipRow (CompanySeq, SlipSeq, SlipMstSeq, SlipID, AccUnit, SlipUnit, AccDate, SlipNo,</p>
+<p>RowNo, RowSlipUnit, AccSeq, UMCostType, SMDrOrCr, DrAmt, CrAmt, DrForAmt, CrForAmt,</p>
+<p>CurrSeq, ExRate, DivExRate, EvidSeq, TaxKindSeq, NDVATAmt, CashItemSeq, SMCostItemKind,</p>
+<p>CostItemSeq, Summary, BgtDeptSeq, BgtCCtrSeq, BgtSeq, IsSet, CoCustSeq, LastDateTime, LastUserSeq)</p>
+<p>SELECT @CompanySeq, A.SlipSeq, B.SlipMstSeq, A.SlipID, @SlipAccUnit, @SlipSlipUnit, @SlipAccDate, B.SlipNo,</p>
+<p>A.RowNo, @SlipSlipUnit, A.AccSeq, 0, A.SMDrOrCr,</p>
+<p>CASE WHEN A.SMDrOrCr = 1 THEN A.DomAmt ELSE 0 END, CASE WHEN A.SMDrOrCr = -1 THEN A.DomAmt ELSE 0 END,</p>
+<p>CASE WHEN A.SMDrOrCr = 1 THEN A.CurAmt ELSE 0 END, CASE WHEN A.SMDrOrCr = -1 THEN A.CurAmt ELSE 0 END,</p>
+<p>A.CurrSeq, A.ExRate, 0, A.EvidSeq, 0, 0, 0, 0,</p>
+<p>0, ISNULL(A.Remark, ''),</p>
+<p>0, 0, 0, '0', 0, GETDATE(), @UserSeq</p>
+<p>FROM #TSLBillAccSlip AS A JOIN #TSLBillSlipNo AS B ON A.BillSeq = B.BillSeq AND A.DataSeq = B.DataSeq</p>
+<p>WHERE A.BillSeq = @BillSeq</p>
+<p>ORDER BY AccType</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- 전표Rem INSERT</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>INSERT INTO _TACSlipRem (CompanySeq, SlipSeq, RemSeq, RemValSeq, RemValText)</p>
+<p>SELECT @CompanySeq, SlipSeq, RemSeq, RemValSeq, RemValText</p>
+<p>FROM #TACSlipRemTemp</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- 전표Cost INSERT</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>-- CCtrSeq : 0 =&gt; 부서의 활동센터로 변경 24.03.22 SJPARK</p>
+<p>INSERT INTO _TACSlipCost (CompanySeq, SlipSeq, Serl, CostDeptSeq, CostCCtrSeq, DivRate,</p>
+<p>DrAmt, CrAmt, DrForAmt, CrForAmt)</p>
+<p>SELECT @CompanySeq, A.SlipSeq, 1, A.DeptSeq, T.CCtrSeq, 100,</p>
+<p>CASE WHEN A.SMDrOrCr = 1 THEN A.DomAmt ELSE 0 END, CASE WHEN A.SMDrOrCr = -1 THEN A.DomAmt ELSE 0 END,</p>
+<p>CASE WHEN A.SMDrOrCr = 1 THEN A.CurAmt ELSE 0 END, CASE WHEN A.SMDrOrCr = -1 THEN A.CurAmt ELSE 0 END</p>
+<p>FROM #TSLBillAccSlip AS A</p>
+<p>-- 부서의 활동센터 가져오기 24.03.22 SJPARK</p>
+<p>LEFT OUTER JOIN _THROrgDeptCCtr AS T WITH(NOLOCK) ON @CompanySeq = T.CompanySeq</p>
+<p>AND A.DeptSeq = T.DeptSeq</p>
+<p>AND T.IsLast = '1'</p>
+<p>WHERE BillSeq = @BillSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- _TACSlipON INSERT</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>INSERT INTO _TACSlipON (CompanySeq, SlipSeq, RemSeq, RemValSeq, OnAmt, OnForAmt, CurrSeq, ExRate, DivExRate)</p>
+<p>SELECT @CompanySeq, A.SlipSeq, B.RemSeq, RemValSeq, A.DomAmt, A.CurAmt, A.CurrSeq, A.ExRate, 0</p>
+<p>FROM #TSLBillAccSlip AS A JOIN _TACSlipRem AS B ON B.CompanySeq = @CompanySeq AND A.SlipSeq = B.SlipSeq</p>
+<p>WHERE A.BillSeq = @BillSeq</p>
+<p>AND A.AccType = '0'</p>
+<p>AND B.RemSeq = 1017</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- 전표연동키 데이터 FrmSLBillAccDlg</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>INSERT INTO _TACSlipAutoTempEnvKey (CompanySeq, SlipKindNo, SlipEnvSeq, Serl,</p>
+<p>KeyColumn1, KeyColumnName1, KeyColumn2, KeyColumnName2, KeyColumn3, KeyColumnName3,</p>
+<p>KeyColumn4, KeyColumnName4, KeyColumn5, KeyColumnName5,</p>
+<p>OrgRowNo, SlipSeq, LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq, 'FrmSLBill2', @SlipEnvSeq, A.DataSeq,</p>
+<p>A.BillSeq, 'BillSeq', '', '', '', '',</p>
+<p>'', '', '', '',</p>
+<p>A.DataSeq, A.SlipSeq, @UserSeq, GETDATE()</p>
+<p>FROM #TSLBillAccSlip AS A</p>
+<p>WHERE BillSeq = @BillSeq</p>
+<p>AND A.AccType = '0'</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<hr />
+<p>-- 실테이블 UPDATE</p>
+<hr />
+<p>--▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</p>
+<p>UPDATE _TSLBill</p>
+<p>SET SlipSeq = B.SlipSeq ,</p>
+<p>LastUserSeq = @UserSeq ,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM _TSLBill AS A JOIN #TSLBillAccSlip AS B</p>
+<p>ON A.BillSeq = B.BillSeq</p>
+<p>WHERE B.BillSeq = @BillSeq</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND B.AccType = '0'</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>SELECT @iRow = @iRow + 1</p>
+<p>END</p>
+<p>COMMIT TRAN</p>
+<p>UPDATE #TSLBillAcc</p>
+<p>SET Status = 0</p>
+<p>WHERE Status IS NULL</p>
+<p>SELECT * FROM #TSLBillAcc</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>BEGIN TRAN</p>
+<p>exec KGC_SSLBillAccCheck @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;1\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;BizUnit&gt;1\&lt;/BizUnit&gt;</p>
+<p>\&lt;BizUnitName&gt;KG케미칼\&lt;/BizUnitName&gt;</p>
+<p>\&lt;BillYM&gt;202401\&lt;/BillYM&gt;</p>
+<p>\&lt;UMSalesUnit&gt;1009063034\&lt;/UMSalesUnit&gt;</p>
+<p>\&lt;DeptSeq /&gt;</p>
+<p>\&lt;DeptName /&gt;</p>
+<p>\&lt;EmpSeq /&gt;</p>
+<p>\&lt;EmpName /&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=1019659,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1017610</p>
+<p>go</p>
+<p>exec KGC_SSLBillAccSave_tTEST @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;BizUnitName&gt;KG케미칼\&lt;/BizUnitName&gt;</p>
+<p>\&lt;BizUnit&gt;1\&lt;/BizUnit&gt;</p>
+<p>\&lt;BillYM&gt;202401\&lt;/BillYM&gt;</p>
+<p>\&lt;DeptName /&gt;</p>
+<p>\&lt;DeptSeq&gt;0\&lt;/DeptSeq&gt;</p>
+<p>\&lt;EmpName /&gt;</p>
+<p>\&lt;EmpSeq&gt;0\&lt;/EmpSeq&gt;</p>
+<p>\&lt;UMSalesUnit&gt;1009063034\&lt;/UMSalesUnit&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=1019659,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1017610</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

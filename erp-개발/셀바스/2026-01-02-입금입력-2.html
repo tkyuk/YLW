@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>-\> 입금입력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>-\> 입금입력</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">-&gt; 입금입력</h1>
+<p>서브폼 패치</p>
+<blockquote>
+<p>입금입력 -&gt; 입금통보조회Dlg_svs</p>
+<p>-- _TCAPgmSubForm 생성</p>
+<p>INSERT INTO _TCAPgmSubForm(CompanySeq, PgmSeq, SubPgmSeq)</p>
+<p>SELECT 0, 500871, 149710142</p>
+<p>WHERE NOT EXISTS (SELECT 1 FROM _TCAPgmSubForm WITH(NOLOCK) WHERE PgmSeq = 500871 AND SubPgmSeq = 149710142)</p>
+<p>-- 권한재집계</p>
+<p>IF EXISTS(SELECT 1 FROM sysobjects WHERE name = 'OTCAUserCheckGathering')</p>
+<p>BEGIN</p>
+<p>UPDATE A SET A.ChgWorkDate = GETDATE(), A.IsWork = 0 FROM OTCAUserCheckGathering AS A</p>
+<p>END</p>
+</blockquote>
+<p>전표 세팅 추가</p>
+  </article>
+</div>
+</body>
+</html>

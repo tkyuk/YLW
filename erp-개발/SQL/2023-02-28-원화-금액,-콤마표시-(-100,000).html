@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\\ 원화 금액, 콤마표시 (\100,000)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\\ 원화 금액, 콤마표시 (\100,000)</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="100000">\ 원화 금액, 콤마표시 (\100,000)</h1>
+<p>'(' +Cu.CurrUnit+CONVERT(NVARCHAR(100),FORMAT(CEILING(D1.TotAmt),'#,#')) + ')'</p>
+<p>-- format 함수 지원 안되는 경우</p>
+<p>'\ +REPLACE(CONVERT(VARCHAR, CONVERT(MONEY, A.InPutAmt), 1), '.00', '') AS OutPriceAmt, -- 출고금액(단가기준),</p>
+<p>LEFT(CONVERT(NVARCHAR(100), CAST(ROUND(Qty , 0) AS MONEY), 1), CHARINDEX('.', CONVERT(NVARCHAR(100), CAST(Qty AS MONEY), 1))-1) AS Qty ,</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기준단위 수량 계산</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>기준단위 수량 계산</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">기준단위 수량 계산</h1>
+<p>--기준단위수량 계산 2010.02.05 by 허승남</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET STDQty = ROUND((CASE WHEN ISNULL(B.ConvDen,0) = 0 THEN 0 ELSE ISNULL(A.Qty,0) * ISNULL(B.ConvNum,0) / ISNULL(B.ConvDen,0) END), @GoodQtyDecLength)</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAItemUnit AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>JOIN _TDAItemStock AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(A.Qty,0) \&lt;&gt; 0</p>
+<p>AND ISNULL(C.IsQtyChange,'') \&lt;&gt; '1'</p>
+  </article>
+</div>
+</body>
+</html>

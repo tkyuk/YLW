@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.07.01 싸이맥스 - 프로젝트 구매발주 일괄생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.07.01 싸이맥스 - 프로젝트 구매발주 일괄생성</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="240701-">24.07.01 싸이맥스 - 프로젝트 구매발주 일괄생성</h1>
+<p>DROP PROC cymc_SPUORDCreatPOPJTSave</p>
+<p>GO</p>
+<p>/************************************************************</p>
+<p>설 명 - 구매납품저장</p>
+<p>작성일 - 2008년 8월 20일</p>
+<p>작성자 - 노영진</p>
+<p>수정일 - 2009년 4월 29일</p>
+<p>수정자 - 김현</p>
+<p>수정자 - 김용현 구매발주 확정 자동생성 부분 수정 2014.01.29</p>
+<p>- 메모1~8 저장되도록 컬럼 추가 by 20141006 조성환2014</p>
+<p>************************************************************/</p>
+<p>CREATE PROC cymc_SPUORDCreatPOPJTSave</p>
+<p>@xmlDocument NVARCHAR(MAX),</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 0,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>-- 구매요청의 MES 키 담을 임시테이블 생성 24.06.05 SJPARK</p>
+<p>CREATE TABLE #TMP_PUReqMES(</p>
+<p>POSeq INT</p>
+<p>,POSerl INT</p>
+<p>,MESKey NVARCHAR(100)</p>
+<p>,MESRevKey NVARCHAR(100)</p>
+<p>,MESSerl NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 변수 선언</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@LotSeq INT,</p>
+<p>@count INT,</p>
+<p>@PODate NCHAR(8),</p>
+<p>@EmpSeq INT,</p>
+<p>@DeptSeq INT,</p>
+<p>@TempKey INT,</p>
+<p>@TempKey2 INT,</p>
+<p>@TempItemKey INT,</p>
+<p>@CustSeq INT,</p>
+<p>@SMImpType INT,</p>
+<p>@CurrSeq INT,</p>
+<blockquote>
+<p>@WHSeq                        INT,</p>
+</blockquote>
+<p>@POSeq INT,</p>
+<p>@PONo NCHAR(12),</p>
+<p>@POSerl INT,</p>
+<p>@BizUnit INT,</p>
+<p>@ExRate DECIMAL(19,5)        ,</p>
+<p>@CustName NVARCHAR(100)        ,</p>
+<p>@SMImpTypeName NVARCHAR(100)        ,</p>
+<p>@IsPJT NCHAR(1)                ,</p>
+<p>@Remark NVARCHAR(1000)        ,</p>
+<p>@PJTSeq INT                                ,</p>
+<blockquote>
+<p>@EmpName                NVARCHAR(100)        ,</p>
+<p>@DeptName                NVARCHAR(100)        ,</p>
+<p>@HPNo                        NVARCHAR(100)        ,</p>
+<p>@EMail                        NVARCHAR(100)        ,</p>
+<p>@ProcResult        NVARCHAR(100)</p>
+</blockquote>
+<p>-- 임시 테이블 생성</p>
+<p>CREATE TABLE #TPUORDApprovalReq (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TPUORDApprovalReq'</p>
+<p>-- 프로젝트여부 가져오기</p>
+<p>SELECT TOP 1 @IsPJT = IsPJT FROM #TPUORDApprovalReq</p>
+<p>-- PgmSeq 작업 2014년 07월 20일 일괄 작업합니다. (추후 안정화 되면 삭제예정)</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects AS A JOIN syscolumns AS B ON A.id = B.id where A.Name = '_TPUORDPO' AND A.xtype = 'U' AND B.Name = 'PgmSeq')</p>
+<p>BEGIN</p>
+<p>ALTER TABLE _TPUORDPO ADD PgmSeq INT NULL</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects AS A JOIN syscolumns AS B ON A.id = B.id where A.Name = '_TPUORDPOLog' AND A.xtype = 'U' AND B.Name = 'PgmSeq')</p>
+<p>BEGIN</p>
+<p>ALTER TABLE _TPUORDPOLog ADD PgmSeq INT NULL</p>
+<p>END</p>
+<p>-- PgmSeq 작업 2014년 07월 20일 일괄 작업합니다. (추후 안정화 되면 삭제예정)</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects AS A JOIN syscolumns AS B ON A.id = B.id where A.Name = '_TPUORDPOItem' AND A.xtype = 'U' AND B.Name = 'PgmSeq')</p>
+<p>BEGIN</p>
+<p>ALTER TABLE _TPUORDPOItem ADD PgmSeq INT NULL</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT * FROM Sysobjects AS A JOIN syscolumns AS B ON A.id = B.id where A.Name = '_TPUORDPOItemLog' AND A.xtype = 'U' AND B.Name = 'PgmSeq')</p>
+<p>BEGIN</p>
+<p>ALTER TABLE _TPUORDPOItemLog ADD PgmSeq INT NULL</p>
+<p>END</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPUDelv', -- 원테이블명</p>
+<p>'#TPUORDApprovalReq' , -- 템프테이블명</p>
+<p>'DelvSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq,DelvSeq,BizUnit,DelvNo,SMImpType,</p>
+<p>DelvDate,DeptSeq,EmpSeq,CustSeq,CurrSeq,</p>
+<p>ExRate,SMDelvType,Remark,IsPJT,SMStkType,</p>
+<p>IsReturn,LastUserSeq,LastDateTime'</p>
+<p>SELECT @PODate = PODate ,@EmpSeq = EmpSeq ,@DeptSeq = DeptSeq FROM #TPUORDApprovalReq</p>
+<p>CREATE TABLE #TPUORDApprovalReqData01(</p>
+<p>TempKey INT IDENTITY,</p>
+<p>ApproReqSeq INT ,</p>
+<p>ApproReqNo NCHAR(12) ,</p>
+<p>ApproReqDate NCHAR(8) ,</p>
+<p>DeptSeq INT ,</p>
+<p>EmpSeq INT ,</p>
+<p>Remark NVARCHAR(1000) ,</p>
+<p>SMPayType INT ,</p>
+<p>ApproReqSerl INT ,</p>
+<p>ItemSeq INT ,</p>
+<p>MakerSeq INT ,</p>
+<p>UnitSeq INT ,</p>
+<p>Qty DECIMAL(19, 5) ,</p>
+<p>Price DECIMAL(19, 5),</p>
+<p>CurAmt DECIMAL(19, 5),</p>
+<p>CustSeq INT ,</p>
+<p>ItemRemark NVARCHAR(1000) ,</p>
+<p>ExRate DECIMAL(19, 6) ,</p>
+<p>CurrSeq INT ,</p>
+<p>DomAmt DECIMAL(19, 5) ,</p>
+<p>StdUnitSeq DECIMAL(19, 5) ,</p>
+<p>StdUnitQty DECIMAL(19, 5) ,</p>
+<p>DelvDate NCHAR(8) ,</p>
+<p>SMImpType INT ,</p>
+<p>DCRate DECIMAL(19, 5) ,</p>
+<p>OriginPrice DECIMAL(19, 5) ,</p>
+<p>SMPayTypeItem INT ,</p>
+<p>ElectronicSeq NCHAR(1),</p>
+<p>WHSeq INT,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>PJTSeq INT,</p>
+<p>WBSSeq INT,</p>
+<p>CurVAT DECIMAL(19,5),</p>
+<p>DomPrice DECIMAL(19,5),</p>
+<p>DomVAT DECIMAL(19,5),</p>
+<p>IsVAT NCHAR(1),</p>
+<p>DRemark NVARCHAR(100),</p>
+<p>SMPriceType INT,</p>
+<blockquote>
+<p>Memo1                 NVARCHAR(400),</p>
+<p>Memo2                 NVARCHAR(400),</p>
+<p>Memo3                 NVARCHAR(400),</p>
+<p>Memo4                 NVARCHAR(400),</p>
+<p>Memo5                 NVARCHAR(400),</p>
+<p>Memo6                 NVARCHAR(400),</p>
+<p>Memo7                 DECIMAL(19,5),</p>
+<p>Memo8                 DECIMAL(19,5),</p>
+</blockquote>
+<p>UMSupplyType INT,</p>
+<p>UMRegType INT,</p>
+<p>UMPartType INT,</p>
+<p>ProcStep NVARCHAR(20),</p>
+<p>ProdPlanSrtDate NVARCHAR(8),</p>
+<p>ProdPlanEndDate NVARCHAR(8),</p>
+<p>ProdPlanChgDate NVARCHAR(8),</p>
+<p>POReqSeq INT,</p>
+<p>POReqSerl INT</p>
+<p>,UpperPJTSeq INT -- 통합 프로젝트 추가 24.07.01 SJPARK</p>
+<p>)</p>
+<p>CREATE TABLE #TPUORDApprovalReqData02(</p>
+<p>TempKey INT IDENTITY,</p>
+<p>CustSeq INT,</p>
+<p>SMImpType INT,</p>
+<p>CurrSeq INT,</p>
+<p>PJTSeq INT</p>
+<p>,UpperPJTSeq INT -- 통합 프로젝트 추가 24.07.01 SJPARK</p>
+<p>)</p>
+<p>CREATE TABLE #TPUORDApprovalReqData03(</p>
+<p>POSeq                        INT                                ,</p>
+<blockquote>
+<p>PONO                        NCHAR(12)                ,</p>
+</blockquote>
+<p>SMImpType                INT                                ,</p>
+<p>SMImpTypeName        NVARCHAR(100)        ,</p>
+<p>CustSeq                        INT                                ,</p>
+<p>CustName                NVARCHAR(100) ,</p>
+<p>PJTSeq                        INT                                ,</p>
+<p>PJTName                        NVARCHAR(100)        ,</p>
+<blockquote>
+<p>EmpName                        NVARCHAR(100)        ,</p>
+<p>DeptName                NVARCHAR(100)        ,</p>
+<p>HPNo                        NVARCHAR(100)        ,</p>
+<p>EMail                        NVARCHAR(100)        ,</p>
+<p>ProcResult                NVARCHAR(100),</p>
+</blockquote>
+<p>SEL NCHAR(1) -- 20190129.체크 추가</p>
+<p>)</p>
+<p>-- 진행</p>
+<p>CREATE TABLE #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName NVARCHAR(100),</p>
+<p>ToSeq INT,</p>
+<p>ToSerl INT,</p>
+<p>ToSubSerl INT,</p>
+<p>FromTableName NVARCHAR(100),</p>
+<p>FromSeq INT,</p>
+<p>FromSerl INT,</p>
+<p>FromSubSerl INT,</p>
+<p>ToQty DECIMAL(19,5),</p>
+<p>ToStdQty DECIMAL(19,5),</p>
+<p>ToAmt DECIMAL(19,5),</p>
+<p>ToVAT DECIMAL(19,5),</p>
+<p>FromQty DECIMAL(19,5),</p>
+<p>FromSTDQty DECIMAL(19,5),</p>
+<p>FromAmt DECIMAL(19,5),</p>
+<p>FromVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>/**********************************************************************************************************************************</p>
+<p>구매품의 데이터 가져오기</p>
+<p>**********************************************************************************************************************************/</p>
+<p>INSERT INTO #TPUORDApprovalReqData01(ApproReqSeq ,ApproReqNo , ApproReqDate , DeptSeq , EmpSeq ,</p>
+<p>Remark , SMPayType , ApproReqSerl , ItemSeq , MakerSeq ,</p>
+<p>UnitSeq , Qty , Price , CurAmt , CustSeq ,</p>
+<p>ItemRemark , ExRate , CurrSeq , DomAmt , StdUnitSeq ,</p>
+<p>StdUnitQty , DelvDate , SMImpType , DCRate , OriginPrice ,</p>
+<p>SMPayTypeItem , ElectronicSeq , WHSeq , POSeq , POSerl , PJTSeq ,</p>
+<p>WBSSeq , CurVAT , DomPrice , DomVAT , IsVAT , DRemark ,</p>
+<p>SMPriceType , Memo1                        , Memo2                         , Memo3         , Memo4                 , Memo5                 ,</p>
+<blockquote>
+<p>Memo6                 , Memo7                        , Memo8 ,</p>
+</blockquote>
+<p>UMSupplyType, UMRegType, UMPartType, ProcStep, ProdPlanSrtDate, ProdPlanEndDate, ProdPlanChgDate, POReqSeq, POReqSerl</p>
+<p>,UpperPJTSeq</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>B.ApproReqSeq ,B.ApproReqNo ,B.ApproReqDate ,B.DeptSeq ,B.EmpSeq ,</p>
+<p>B.Remark ,B.SMPayType ,C.ApproReqSerl ,C.ItemSeq ,C.MakerSeq ,</p>
+<p>C.UnitSeq ,C.Qty ,C.Price ,C.CurAmt ,C.CustSeq ,</p>
+<p>C.Remark ,C.ExRate ,C.CurrSeq ,C.DomAmt ,C.StdUnitSeq ,</p>
+<p>C.StdUnitQty ,C.DelvDate ,C.SMImpType ,C.DCRate ,C.OriginPrice ,</p>
+<p>C.SMPayType ,C.ElectronicSeq ,C.WHSeq ,0 ,0 ,C.PJTSeq ,</p>
+<p>C.WBSSeq ,C.CurVAT ,C.DomPrice ,C.DomVAT ,C.IsVAT ,C.Remark ,</p>
+<p>C.SMPriceType         ,C.Memo1                 ,C.Memo2                         ,C.Memo3                 ,C.Memo4                 ,C.Memo5                 ,</p>
+<blockquote>
+<p>C.Memo6                 ,C.Memo7                 ,C.Memo8 ,</p>
+</blockquote>
+<p>C1.UMSupplyType, C1.UMRegType, C1.UMPartType, C1.ProcStep, C1.ProdPlanSrtDate, C1.ProdPlanEndDate, C1.ProdPlanChgDate, C1.POReqSeq, C1.POReqSerl</p>
+<p>-- LPM 인건 (cymc_장비분류 추가정보정의 'LPM여부' 체크된 건) 중에 상위 통합 프로젝트인 건 제외</p>
+<p>,CASE WHEN Z4.ValueText = '1' AND Z5.CompanySeq IS NOT NULL THEN Z5.PJTSeq ELSE C.PJTSeq END AS UpperPJTSeq</p>
+<p>FROM #TPUORDApprovalReq AS A</p>
+<p>JOIN _TPUORDApprovalReq AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ApproReqSeq = B.ApproReqSeq</p>
+<p>JOIN _TPUORDApprovalReqItem AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ApproReqSeq = C.ApproReqSeq</p>
+<p>JOIN cymc_TPUORDApprovalReqItem AS C1 ON C.CompanySeq = C1.CompanySeq</p>
+<p>AND C.ApproReqSeq = C1.ApproReqSeq</p>
+<p>AND C.ApproReqSerl = C1.ApproReqSerl</p>
+<p>LEFT OUTER JOIN cymc_TPJTProjectInfo AS Z WITH(NOLOCK) ON Z.CompanySeq = C.CompanySeq</p>
+<p>AND Z.PJTSeq = C.PJTSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS Z3 WITH(NOLOCK) ON Z.CompanySeq = Z3.CompanySeq</p>
+<p>AND Z.EquipType = Z3.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS Z4 WITH(NOLOCK) ON Z4.CompanySeq = Z3.CompanySeq</p>
+<p>AND Z4.MinorSeq = Z3.MinorSeq</p>
+<p>AND Z4.Serl = 1000001</p>
+<p>AND Z4.ValueText ='1'</p>
+<p>LEFT OUTER JOIN _TPJTWBSPJTUnion AS Z5 WITH(NOLOCK) ON Z5.CompanySeq = C.CompanySeq</p>
+<p>AND Z5.JoinPJTSeq = C.PJTSeq</p>
+<p>WHERE B.companySeq = @CompanySeq</p>
+<p>AND C.IsStop \&lt;&gt; '1' -- 2011. 9. 15 hkim 중단건은 발주 생성 되지 않도록</p>
+<p>ORDER BY B.ApproReqSeq, C.ApproReqSerl</p>
+<p>--SELECT '1',PJTSeq,UpperPJTSeq, CustSeq ,SMImpType,CurrSeq,* fROM #TPUORDApprovalReqData01</p>
+<p>--SELECT DISTINCT '1',UpperPJTSeq, CustSeq ,SMImpType,CurrSeq fROM #TPUORDApprovalReqData01</p>
+<p>/**********************************************************************************************************************************</p>
+<p>진행된 수량이 있는지 확인 하고 그 수량 만큼</p>
+<p>**********************************************************************************************************************************/</p>
+<hr />
+<p>--발주진행여부-----</p>
+<hr />
+<p>CREATE TABLE #TMP_PROGRESSTABLE(IDOrder INT, TABLENAME NVARCHAR(100))</p>
+<p>CREATE TABLE #Temp_Order(IDX_NO INT IDENTITY, OrderSeq INT, OrderSerl INT,IsPO NCHAR(1))</p>
+<p>CREATE TABLE #TCOMProgressTracking(IDX_NO INT, IDOrder INT, Seq INT,Serl INT, SubSerl INT,Qty DECIMAL(19, 5), StdQty DECIMAL(19,5) , Amt DECIMAL(19, 5),VAT DECIMAL(19,5))</p>
+<p>CREATE TABLE #OrderTracking(IDX_NO INT, Qty DECIMAL(19,5), POCurAmt DECIMAL(19,5), POCurVAT DECIMAL(19, 5), StdUnitQty DECIMAL(19,5))</p>
+<p>INSERT #TMP_PROGRESSTABLE SELECT 1, '_TPUORDPOItem' -- 구매발주</p>
+<p>-- 구매요청</p>
+<p>INSERT INTO #Temp_Order(OrderSeq, OrderSerl, IsPO)</p>
+<p>SELECT A.ApproReqSeq, A.ApproReqSerl, '2'</p>
+<p>FROM #TPUORDApprovalReqData01 AS A WITH(NOLOCK)</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUORDApprovalReqItem', '#Temp_Order', 'OrderSeq', 'OrderSerl', ''</p>
+<p>INSERT INTO #OrderTracking</p>
+<p>SELECT IDX_NO,</p>
+<p>SUM(CASE IDOrder WHEN 1 THEN Qty ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 1 THEN Amt ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 1 THEN VAT ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 1 THEN StdQty ELSE 0 END)</p>
+<p>FROM #TCOMProgressTracking</p>
+<p>GROUP BY IDX_No</p>
+<p>UPDATE #TPUORDApprovalReqData01</p>
+<p>SET Qty = ISNULL(A.Qty , 0) - ISNULL(D.Qty , 0),</p>
+<p>StdUnitQty = ISNULL(A.StdUnitQty , 0) - ISNULL(D.StdUnitQty , 0),</p>
+<p>CurAmt = ISNULL(A.CurAmt, 0) - ISNULL(D.POCurAmt, 0),</p>
+<p>CurVAT = ISNULL(A.CurVAT, 0) - ISNULL(D.POCurVAT, 0),</p>
+<p>DomAmt = ISNULL(A.DomAmt, 0) - ISNULL(D.POCurAmt, 0) * ISNULL(A.ExRate, '1'),</p>
+<p>DomVAT = ISNULL(A.DomVAT, 0) - ISNULL(D.POCurVAT, 0) * ISNULL(A.ExRate, '1')</p>
+<p>FROM #TPUORDApprovalReqData01 AS A</p>
+<p>JOIN #Temp_Order AS B ON A.ApproReqSeq = B.OrderSeq</p>
+<p>AND A.ApproReqSerl = B.OrderSerl</p>
+<p>JOIN #TCOMProgressTracking AS C ON B.IDX_No = C.IDX_No</p>
+<p>JOIN #OrderTracking AS D ON C.IDX_No = D.IDX_No</p>
+<p>-- 수량이 0인 품목 지우기</p>
+<p>DELETE A</p>
+<p>FROM #TPUORDApprovalReqData01 AS A</p>
+<p>WHERE A.Qty = 0</p>
+<p>/**********************************************************************************************************************************</p>
+<p>거래처,내외자구분,통화 묶기 (프로젝트추가)</p>
+<p>**********************************************************************************************************************************/</p>
+<p>-- PJTSeq -&gt; UpperPJTSeq 24.07.01 SJPARK</p>
+<p>INSERT INTO #TPUORDApprovalReqData02(CustSeq,SMImpType,CurrSeq, UpperPJTSeq)</p>
+<p>SELECT CustSeq,SMImpType,CurrSeq, UpperPJTSeq</p>
+<p>FROM #TPUORDApprovalReqData01</p>
+<p>GROUP BY CustSeq,SMImpType,CurrSeq, UpperPJTSeq</p>
+<p>/**********************************************************************************************************************************</p>
+<p>발주생성</p>
+<p>**********************************************************************************************************************************/</p>
+<p>SELECT @TempKey = 0</p>
+<p>WHILE(1=1)</p>
+<p>BEGIN</p>
+<p>SET ROWCOUNT 1</p>
+<p>SELECT @TempKey = TempKey,</p>
+<p>@CustSeq = A.CustSeq,</p>
+<p>@SMImpType = A.SMImpType,</p>
+<p>@CurrSeq = A.CurrSeq,</p>
+<p>@CustName = C.CustName,</p>
+<p>@SMImpTypeName = B.MinorName ,</p>
+<p>@PJTSeq = A.UpperPJTSeq        ,</p>
+<blockquote>
+<p>@EmpName          =        ISNULL(E.EmpName , ''),</p>
+<p>@DeptName         =        ISNULL(E.DeptName, ''),</p>
+<p>@HPNo                 =        ISNULL(E.MobileNo, ''),</p>
+<p>@EMail          =        ISNULL(E.EMail , ''),</p>
+<p>@ProcResult         =        ''</p>
+</blockquote>
+<p>FROM #TPUORDApprovalReqData02 AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySEq</p>
+<p>AND B.MinorSeq = A.SMImpType</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDACustEmpInfo AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.CustSeq = E.CustSeq</p>
+<p>AND E.EmpSerl = (SELECT MIN(EmpSerl) FROM _TDACustEmpInfo WHERE C.CompanySeq = CompanySeq AND C.CustSeq = CustSeq GROUP BY CompanySeq,CustSeq)</p>
+</blockquote>
+<p>WHERE TempKey &gt; @TempKey</p>
+<p>ORDER BY TempKey</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>BREAK</p>
+<p>END</p>
+<p>SET ROWCOUNT 0</p>
+<p>-- 키생성</p>
+<p>EXEC @POSeq = dbo._SCOMCreateSeq @CompanySeq, '_TPUORDPO', 'POSeq', 1</p>
+<p>SELECT @POSeq = @POSeq + 1</p>
+<p>EXEC dbo._SCOMCreateNo 'PU', '_TPUORDPO', @CompanySeq, @SMImpType, @PODate, @PONo OUTPUT</p>
+<p>-- 환율</p>
+<p>SELECT @ExRate = ExRate,</p>
+<p>@Remark = B.Remark</p>
+<p>FROM #TPUORDApprovalReqData02 AS A</p>
+<p>JOIN #TPUORDApprovalReqData01 AS B ON A.CustSeq = B.CustSeq</p>
+<p>AND A.SMImpType = B.SMImpType</p>
+<p>AND A.CurrSeq = B.CurrSeq</p>
+<p>AND A.UpperPJTSeq = B.UpperPJTSeq</p>
+<p>WHERE A.CustSeq = @CustSeq AND A.SMImpType = B.SMImpType AND A.CurrSeq = @CurrSeq AND A.UpperPJTSeq = @PJTSeq</p>
+<hr />
+<p>-- 발주마스터 --</p>
+<hr />
+<p>INSERT INTO _TPUORDPO (CompanySeq ,POSeq ,PONo ,SMImpType ,PODate ,</p>
+<p>DeptSeq ,EmpSeq ,CustSeq ,CurrSeq ,ExRate ,</p>
+<p>Payment ,Remark ,IsCustAccept ,POAmd ,IsDirectDelv ,</p>
+<p>UnitAssySeq ,IsConfirm ,ConfirmDate ,ConfirmEmpSeq,</p>
+<p>B2BTranCnt ,IsPJT ,POMngNo ,SMProgStatus ,ERP ,</p>
+<p>LastUserSeq ,LastDateTime ,PgmSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq, @POSeq, @PONo, @SMImpType, @PODate,</p>
+<p>@DeptSeq, @EmpSeq, @CustSeq, @CurrSeq, @ExRate,</p>
+<p>'', '', '', 0, 0,</p>
+<p>0, '', '', 0,</p>
+<p>0, @IsPJT, '', 0, '',</p>
+<p>@UserSeq, GETDATE() ,@PgmSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 내수가 아닌 건은 수입오더에 값을 넣어줌</p>
+<p>IF @SMImpType \&lt;&gt; 8008001</p>
+<p>BEGIN</p>
+<hr />
+<p>-- 수입오더마스터 --</p>
+<hr />
+<p>SELECT @BizUnit = BizUnit FROM _TDADept WHERE CompanySeq = @CompanySeq AND DeptSeq = @DeptSeq</p>
+<p>INSERT INTO _TSLImpOrder (CompanySeq, POSeq, BizUnit, POAmd, PORefNo,</p>
+<p>BKCustSeq , UMPriceTerms, UMPayment1, UMPayment2, Payment3,</p>
+<p>UMShipVia , Packing , LoadingPort, ETD, DischargingPort,</p>
+<p>ETA , Destination , CountryOfOrigin, Validity, Remark,</p>
+<p>LastUserSeq, LastDateTime, Memo, IsPJT</p>
+<p>)</p>
+<p>SELECT @CompanySeq, @POSeq , @BizUnit , '' , @PONo ,</p>
+<p>@CustSeq , 0 , 0 , 0 , '' ,</p>
+<p>0 , '' , '' , '' , 0 ,</p>
+<p>'' , '' , 0 , '' , @Remark ,</p>
+<p>@UserSeq , GETDATE() , '', @IsPJT</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- 구매발주 확정 데이터 생성</p>
+<p>IF EXISTS (SELECT 1 FROM _TCOMConfirmDef WHERE CompanySeq = @CompanySeq AND ConfirmTableSeq = 6329 AND IsNotUsed = '0')</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TPUORDPO_Confirm</p>
+<p>VALUES ( @CompanySeq, @POSeq, 0, 0, 6329, '0', '0', '', @UserSeq, 0, '', GETDATE() )</p>
+<p>END</p>
+<p>-- 구매발주에서 확정을 미사용할때 자동확정 데이터 생성</p>
+<p>IF EXISTS (SELECT 1 FROM _TCOMConfirmDef WHERE CompanySeq = @CompanySeq AND ConfirmTableSeq = 6329 AND IsNotUsed = '1')</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TPUORDPO_Confirm</p>
+<p>VALUES ( @CompanySeq, @POSeq, 0, 0, 6329, '1', '1', '', @UserSeq, 0, '', GETDATE() )</p>
+<p>END</p>
+<p>INSERT INTO #TPUORDApprovalReqData03(POSeq , PONO , SMImpType,         SMImpTypeName , CustSeq , CustName , PJTSeq, PJTName,</p>
+<blockquote>
+<p>EmpName, DeptName, HPNo, EMail, ProcResult, SEL -- 20190129.체크 추가</p>
+<p>)</p>
+</blockquote>
+<p>SELECT @POSeq,@PONo,@SMImpType,@SMImpTypeName,@CustSeq,@CustName , @PJTSeq, (SELECT PJTName FROM _TPJTProject WHERE CompanySeq = @CompanySeq AND PJTSeq = @PJTSeq),</p>
+<blockquote>
+<p>@EmpName, @DeptName, @HPNo, @EMail, @ProcResult, '1'</p>
+</blockquote>
+<p>UPDATE #TPUORDApprovalReqData01</p>
+<p>SET POSeq = @POSeq,</p>
+<p>POSerl = B.POSerl</p>
+<p>FROM #TPUORDApprovalReqData01 AS A</p>
+<p>JOIN (SELECT Z.TempKey,</p>
+<p>--ROW_NUMBER() OVER(ORDER BY Z.TempKey) AS POSerl</p>
+<p>ROW_NUMBER() OVER(ORDER BY Y.ItemNo) AS POSerl</p>
+<p>FROM #TPUORDApprovalReqData01 Z LEFT OUTER JOIN _TDAItem Y ON Y.CompanySeq = @CompanySeq</p>
+<p>AND Z.ItemSeq = Y.ItemSEq</p>
+<p>WHERE Z.CustSeq = @CustSeq AND Z.SMImpType = @SMImpType AND Z.CurrSeq = @CurrSeq AND Z.UpperPJTSeq = @PJTSeq) AS B ON A.TempKey = B.TempKey</p>
+<hr />
+<p>--발주품목--</p>
+<hr />
+<p>INSERT INTO _TPUORDPOItem( CompanySeq ,POSeq ,POSerl ,ItemSeq ,UnitSeq ,</p>
+<p>Qty ,Price ,CurAmt ,MakerSeq ,DelvDate , DelvDate2 ,</p>
+<p>DomAmt ,Remark1 ,Remark2 ,SMPriceType ,SMPayType ,</p>
+<p>POAmd ,WhSeq ,DelvTime ,POReqSeq ,POReqSerl ,</p>
+<p>StdUnitSeq ,StdUnitQty ,SourceType ,SourceSeq ,SourceSerl ,</p>
+<p>UnitAssySeq ,IsConfirm ,ConfirmDate ,ConfirmEmpSeq ,ChgDelvDate ,</p>
+<p>PJTSeq ,WBSSeq ,</p>
+<p>LastUserSeq ,LastDateTime ,</p>
+<p>CurVAT ,DomPrice ,DomVAT ,IsVAT                 ,IsStop                 ,</p>
+<blockquote>
+<p>PgmSeq                 ,Memo1                 ,Memo2                        ,Memo3                 ,Memo4                 ,</p>
+<p>Memo5                 ,Memo6                 ,Memo7                 ,Memo8</p>
+</blockquote>
+<p>)</p>
+<p>SELECT @CompanySeq, A.POSeq, A.POSerl, A.ItemSeq, A.UnitSeq,</p>
+<p>A.Qty, A.Price, A.CurAmt, A.MakerSeq, A.DelvDate, A.DelvDate,</p>
+<p>A.DomAmt, A.DRemark, A.DRemark, A.SMPriceType, A.SMPayType,</p>
+<p>0, A.WHSeq , '', 0, 0,</p>
+<p>A.StdUnitSeq, A.StdUnitQty, 0, 0, 0,</p>
+<p>0, '', '', 0, '',</p>
+<p>A.PJTSeq ,A.WBSSeq ,</p>
+<p>@UserSeq, GETDATE() ,</p>
+<p>A.CurVAT ,A.DomPrice ,A.DomVAT ,A.IsVAT         ,'0'                        ,@PgmSeq        ,</p>
+<blockquote>
+<p>A.Memo1                 ,A.Memo2                        ,A.Memo3                 ,A.Memo4         ,A.Memo5                ,A.Memo6        ,</p>
+<p>A.Memo7          ,A.Memo8</p>
+</blockquote>
+<p>FROM #TPUORDApprovalReqData01 AS A</p>
+<p>WHERE CustSeq = @CustSeq</p>
+<p>AND SMImpType = @SMImpType</p>
+<p>AND CurrSeq = @CurrSeq</p>
+<p>AND UpperPJTSeq = @PJTSeq</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>BREAK</p>
+<p>END</p>
+<p>INSERT INTO cymc_TPUORDPOItem(CompanySeq ,POSeq ,POSerl ,</p>
+<p>UMSupplyType, UMRegType, UMPartType, ProcStep, ProdPlanSrtDate, ProdPlanEndDate, ProdPlanChgDate, POReqSeq, POReqSerl,</p>
+<p>LastUserSeq ,LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq, A.POSeq, A.POSerl,</p>
+<p>A.UMSupplyType, A.UMRegType, A.UMPartType, A.ProcStep, A.ProdPlanSrtDate, A.ProdPlanEndDate, A.ProdPlanChgDate, A.POReqSeq, A.POReqSerl,</p>
+<p>@UserSeq, GETDATE()</p>
+<p>FROM #TPUORDApprovalReqData01 AS A</p>
+<p>WHERE A.CustSeq = @CustSeq</p>
+<p>AND A.SMImpType = @SMImpType</p>
+<p>AND A.CurrSeq = @CurrSeq</p>
+<p>AND A.UpperPJTSeq = @PJTSeq</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>BREAK</p>
+<p>END</p>
+<p>END -- Master WHILE END</p>
+<p>SET ROWCOUNT 0</p>
+<hr />
+<p>-- 진행연결--------</p>
+<hr />
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>-- 진행연결(생산실적 =&gt; 생산입고)</p>
+<p>INSERT INTO #SComSourceDailyBatch</p>
+<p>SELECT '_TPUORDPOItem', A.POSeq, A.POSerl, 0,</p>
+<p>'_TPUORDApprovalReqItem', A.ApproReqSeq, A.ApproReqSerl, 0,</p>
+<p>A.Qty, A.StdUnitQty, CurAmt, CurVAT,</p>
+<p>A.Qty, A.StdUnitQty, CurAmt, CurVAT</p>
+<p>FROM #TPUORDApprovalReqData01 AS A</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 진행연결</p>
+<p>EXEC _SComSourceDailyBatch 'A', @CompanySeq, @UserSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>SELECT * FROM #TPUORDApprovalReqData03</p>
+<p>-- 구매요청의 MES 키 생성 24.06.05 SJPARK</p>
+<p>INSERT INTO #TMP_PUReqMES(POSeq,POSerl,MESKey,MESRevKey,MESSerl)</p>
+<p>SELECT B.POSeq</p>
+<p>,B.POSerl</p>
+<p>,PARSENAME(REPLACE(D.Memo3, '_/', '.'), 3) AS MESKey</p>
+<p>,PARSENAME(REPLACE(D.Memo3, '_/', '.'), 2) AS MESRevKey</p>
+<p>,PARSENAME(REPLACE(D.Memo3, '_/', '.'), 1) AS MESSerl</p>
+<p>FROM #TPUORDApprovalReqData03 AS A</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.POSeq = A.POSeq</p>
+<p>JOIN _TPUORDApprovalReqItem AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ApproReqSeq = B.ProgFromSeq</p>
+<p>AND C.ApproReqSerl = B.ProgFromSerl</p>
+<p>AND B.ProgFromTableSeq = 11</p>
+<p>JOIN _TPUORDPOReqItem AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.POReqSeq = C.ProgFromSeq</p>
+<p>AND D.POReqSerl = C.ProgFromSerl</p>
+<p>AND C.ProgFromTableSeq = 2000028</p>
+<p>-- MES 연동 테이블에 구매발주 데이터 INSERT 24.06.04 SJPARK</p>
+<p>INSERT INTO TN_INF022T(</p>
+<p>WorkingTag ,CompanySeq ,MESKey ,MESRevKey ,MESSerl ,--MESPOReqSerl ,</p>
+<p>POSeq ,POSerl ,</p>
+<p>SMImpType ,PODate ,DeptSeq ,EmpSeq ,CustSeq ,CurrSeq ,ExRate ,Payment ,</p>
+<p>Remark ,IsCustAccept ,IsDirectDelv ,PORev ,PORevEmpSeq ,PORevDate ,</p>
+<p>UnitSeq ,Qty ,Price ,ItemSeq ,CurAmt ,CurVAT ,DomPrice ,</p>
+<p>DomAmt ,DomVAT ,IsVAT ,MakerSeq ,DelvDate ,Remark1 ,Remark2 ,SMPriceType ,</p>
+<p>SMPayType ,POAmd ,WhSeq ,DelvTime ,POReqSeq ,POReqSerl ,StdUnitSeq ,StdUnitQty ,</p>
+<p>ChgDelvDate ,IsStop ,StopDate ,StopEmpSeq ,PJTSeq ,WBSSeq ,LastUserSeq ,LastDateTime ,</p>
+<p>DelvDate2 ,UMSupplyType ,UMRegType ,UMPartType ,ProcStep ,ProdPlanSrtDate,ProdPlanEndDate,ProdPlanChgDate,</p>
+<p>ProcYn ,ProcDateTime ,Status ,Result ,DelvCust_MES ,PONo ,CD_DELVCUST</p>
+<p>)</p>
+<p>SELECT 'A' AS WorkingTag</p>
+<p>,A.CompanySeq AS CompanySeq</p>
+<p>,ISNULL(D.MESKey ,'') AS MESKey</p>
+<p>,ISNULL(D.MESRevKey,'') AS MESRevKey</p>
+<p>,ISNULL(D.MESSerl ,'') AS MESSerl</p>
+<p>--,0 AS MESPOReqSerl</p>
+<p>,ISNULL(A.POSeq , 0) AS POSeq</p>
+<p>,ISNULL(B.POSerl , 0) AS POSerl</p>
+<p>,ISNULL(A.SMImpType , 0) AS SMImpType</p>
+<p>,ISNULL(A.PODate , '') AS PODate</p>
+<p>,ISNULL(A.DeptSeq , 0) AS DeptSeq</p>
+<p>,ISNULL(A.EmpSeq , 0) AS EmpSeq</p>
+<p>,ISNULL(A.CustSeq , 0) AS CustSeq</p>
+<p>,ISNULL(A.CurrSeq , 0) AS CurrSeq</p>
+<p>,ISNULL(A.ExRate , 0) AS ExRate</p>
+<p>,ISNULL(A.Payment , '') AS Payment</p>
+<p>,ISNULL(A.Remark , '') AS Remark</p>
+<p>,ISNULL(A.IsCustAccept , '') AS IsCustAccept</p>
+<p>,ISNULL(A.IsDirectDelv , '') AS IsDirectDelv</p>
+<p>,ISNULL(A.PORev , 0) AS PORev</p>
+<p>,ISNULL(A.PORevEmpSeq , 0) AS PORevEmpSeq</p>
+<p>,ISNULL(A.PORevDate , '') AS PORevDate</p>
+<p>,ISNULL(B.UnitSeq , 0) AS UnitSeq</p>
+<p>,ISNULL(B.Qty , 0) AS Qty</p>
+<p>,ISNULL(B.Price , 0) AS Price</p>
+<p>,ISNULL(B.ItemSeq , 0) AS ItemSeq</p>
+<p>,ISNULL(B.CurAmt , 0) AS CurAmt</p>
+<p>,ISNULL(B.CurVAT , 0) AS CurVAT</p>
+<p>,ISNULL(B.DomPrice , 0) AS DomPrice</p>
+<p>,ISNULL(B.DomAmt , 0) AS DomAmt</p>
+<p>,ISNULL(B.DomVAT , 0) AS DomVAT</p>
+<p>,ISNULL(B.IsVAT , '') AS IsVAT</p>
+<p>,ISNULL(B.MakerSeq , 0) AS MakerSeq</p>
+<p>,ISNULL(B.DelvDate , '') AS DelvDate</p>
+<p>,ISNULL(B.Remark1 , '') AS Remark1</p>
+<p>,ISNULL(B.Remark2 , '') AS Remark2</p>
+<p>,ISNULL(B.SMPriceType , 0) AS SMPriceType</p>
+<p>,ISNULL(B.SMPayType , 0) AS SMPayType</p>
+<p>,ISNULL(A.POAmd , 0) AS POAmd</p>
+<p>,ISNULL(B.WhSeq , 0) AS WhSeq</p>
+<p>,ISNULL(B.DelvTime , '') AS DelvTime</p>
+<p>,ISNULL(B.POReqSeq , 0) AS POReqSeq</p>
+<p>,ISNULL(B.POReqSerl , 0) AS POReqSerl</p>
+<p>,ISNULL(B.StdUnitSeq , 0) AS StdUnitSeq</p>
+<p>,ISNULL(B.StdUnitQty , 0) AS StdUnitQty</p>
+<p>,ISNULL(B.ChgDelvDate , '') AS ChgDelvDate</p>
+<p>,ISNULL(B.IsStop , '') AS IsStop</p>
+<p>,ISNULL(B.StopDate , '') AS StopDate</p>
+<p>,ISNULL(B.StopEmpSeq , 0) AS StopEmpSeq</p>
+<p>,ISNULL(B.PJTSeq , 0) AS PJTSeq</p>
+<p>,ISNULL(B.WBSSeq , 0) AS WBSSeq</p>
+<p>,ISNULL(A.LastUserSeq , 0) AS LastUserSeq</p>
+<p>,ISNULL(A.LastDateTime , '') AS LastDateTime</p>
+<p>,ISNULL(B.DelvDate2 , '') AS DelvDate2</p>
+<p>,ISNULL(C.UMSupplyType , 0) AS UMSupplyType</p>
+<p>,ISNULL(C.UMRegType , 0) AS UMRegType</p>
+<p>,ISNULL(C.UMPartType , 0) AS UMPartType</p>
+<p>,ISNULL(C.ProcStep , 0) AS ProcStep</p>
+<p>,ISNULL(C.ProdPlanSrtDate, '') AS ProdPlanSrtDate</p>
+<p>,ISNULL(C.ProdPlanEndDate, '') AS ProdPlanEndDate</p>
+<p>,ISNULL(C.ProdPlanChgDate, '') AS ProdPlanChgDate</p>
+<p>,0 AS ERPProcYn</p>
+<p>,NULL AS ERPProcDateTime</p>
+<p>,0 AS Status</p>
+<p>,NULL AS Result</p>
+<p>,'' AS DelvCust_MES</p>
+<p>,ISNULL(A.PONo , '') AS PONo</p>
+<p>,ISNULL(B.Memo6 , '') AS CD_DELVCUST</p>
+<p>FROM #TPUORDApprovalReqData03 AS Z</p>
+<p>JOIN _TPUORDPO AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = Z.POSeq</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.POSeq = A.POSeq</p>
+<p>JOIN cymc_TPUORDPOItem AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.POSeq = B.POSeq</p>
+<p>AND C.POSerl = B.POSerl</p>
+<p>LEFT OUTER JOIN #TMP_PUReqMES AS D WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND D.POSeq = B.POSeq</p>
+<p>AND D.POSerl = B.POSerl</p>
+<p>-- SELECT LastDateTime,* FROM _TPUORDPO WHERE CONVERT(NCHAR(8),LastDateTime,112) = '20240701' ORDER BY 1 DESC</p>
+<p>-- SELECT LastDateTime,* FROM _TPUORDPOItem WHERE CONVERT(NCHAR(8),LastDateTime,112) = '20240701' ORDER BY 1 DESC</p>
+<p>RETURN</p>
+<p>--GO</p>
+<p>--BEGIN TRAN</p>
+<p>--exec cymc_SPUORDCreatPOPJTSave @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>-- \&lt;DataBlock1&gt;</p>
+<p>-- \&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>-- \&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>-- \&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>-- \&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>-- \&lt;Selected&gt;0\&lt;/Selected&gt;</p>
+<p>-- \&lt;ApproReqSerl&gt;2\&lt;/ApproReqSerl&gt;</p>
+<p>-- \&lt;ApproReqSeq&gt;149229\&lt;/ApproReqSeq&gt;</p>
+<p>-- \&lt;ApproReqNo&gt;202406040001\&lt;/ApproReqNo&gt;</p>
+<p>-- \&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>-- \&lt;PODate&gt;20240701\&lt;/PODate&gt;</p>
+<p>-- \&lt;EmpSeq&gt;1\&lt;/EmpSeq&gt;</p>
+<p>-- \&lt;DeptSeq&gt;66\&lt;/DeptSeq&gt;</p>
+<p>-- \&lt;IsPJT&gt;1\&lt;/IsPJT&gt;</p>
+<p>-- \&lt;/DataBlock1&gt;</p>
+<p>-- \&lt;DataBlock1&gt;</p>
+<p>-- \&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>-- \&lt;IDX_NO&gt;2\&lt;/IDX_NO&gt;</p>
+<p>-- \&lt;DataSeq&gt;2\&lt;/DataSeq&gt;</p>
+<p>-- \&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>-- \&lt;Selected&gt;0\&lt;/Selected&gt;</p>
+<p>-- \&lt;ApproReqSerl&gt;2\&lt;/ApproReqSerl&gt;</p>
+<p>-- \&lt;ApproReqSeq&gt;149232\&lt;/ApproReqSeq&gt;</p>
+<p>-- \&lt;ApproReqNo&gt;202406070003\&lt;/ApproReqNo&gt;</p>
+<p>-- \&lt;PODate&gt;20240701\&lt;/PODate&gt;</p>
+<p>-- \&lt;EmpSeq&gt;1\&lt;/EmpSeq&gt;</p>
+<p>-- \&lt;DeptSeq&gt;66\&lt;/DeptSeq&gt;</p>
+<p>-- \&lt;IsPJT&gt;1\&lt;/IsPJT&gt;</p>
+<p>-- \&lt;/DataBlock1&gt;</p>
+<p>--\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=13120008,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=13120006</p>
+<p>--ROLLBACK TRAN</p>
+<p>INSERT INTO _TCOMUserDefine(CompanySeq, TableName, DefineUnitSeq, TitleSerl, Title, IsEss, CodeHelpConst, CodeHelpParams, SMInputType, MaskAndCaption, QrySort, IsFix, DataFieldID, IsCodeHelpTitle, LastUserSeq, LastDateTime, DecLen, WordSeq)</p>
+<p>SELECT 1 AS CompanySeq, N'_TDAUMajor' AS TableName, 2100232 AS DefineUnitSeq, 1000001 AS TitleSerl, N'LPM 여부' AS Title, N'0' AS IsEss, 0 AS CodeHelpConst, N'' AS CodeHelpParams, 1027006 AS SMInputType, N'' AS MaskAndCaption, 1 AS QrySort, N'0' AS IsFix, N'' AS DataFieldID, N'0' AS IsCodeHelpTitle, 1 AS LastUserSeq, '2024-07-01 15:04:54.197' AS LastDateTime, 0 AS DecLen, NULL AS WordSeq</p>
+<p>--cymc_SPUORDCreatPOPJTSave</p>
+<p>/*</p>
+<p>202406040001</p>
+<p>202406070003</p>
+<p>*/</p>
+<p>SELECT</p>
+<p>(A.JoinPJTSeq)*(-1) AS Seq,</p>
+<p>A.WBSSeq AS ParentSeq,</p>
+<p>B.PJTName AS NodeName,</p>
+<p>1 AS IsFile,</p>
+<p>'' AS NodeImg,</p>
+<p>ISNULL(A.QrySort,0) AS Sort,</p>
+<p>3 AS Level --트리 필수 컬럼</p>
+<p>FROM _TPJTWBSPJTUnion AS A WITH (NOLOCK)</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.JoinPJTSeq = B.PJTSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.JoinPJTSeq = 199889</p>
+<p>/*</p>
+<p>199889</p>
+<p>198648</p>
+<p>*/</p>
+<p>SELECT TOP 1 * FROM _TDAUMinorValue ORDER BY LastDateTime DESC</p>
+<p>SELECT COUNT(*),A.PJTSeq</p>
+<p>FROM _TPJTProject AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN cymc_TPJTProjectInfo AS Z WITH(NOLOCK) ON Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.PJTSeq = A.PJTSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS Z3 WITH(NOLOCK) ON Z.CompanySeq = Z3.CompanySeq</p>
+<p>AND Z.EquipType = Z3.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS Z4 WITH(NOLOCK) ON Z4.CompanySeq = Z3.CompanySeq</p>
+<p>AND Z4.MinorSeq = Z3.MinorSeq</p>
+<p>AND Z4.Serl = 1000001</p>
+<p>AND Z4.ValueText ='1'</p>
+<p>LEFT OUTER JOIN _TPJTWBSPJTUnion AS Z5 WITH(NOLOCK) ON Z5.CompanySeq = A.CompanySeq</p>
+<p>AND Z5.JoinPJTSeq = A.PJTSeq</p>
+<p>WHERE Z4.ValueText ='1'</p>
+<p>AND Z5.CompanySeq IS NOT NULL -- 상위 통합 프로젝트 제외</p>
+<p>GROUP BY a.PJTSeq</p>
+<p>order by 1 desc</p>
+<p>SELECT * FROM _TDAUMinor WHERE MinorName ='LPM'</p>
+<p>SELECT * FROM _TDAUMajor WHERE MajorSeq IN(2001,2100231,2100232,2100260)</p>
+<p>SELECT * FROM _TPJTWBSPJTUnion WHERE PJTSeq = 199889</p>
+<p>SELECT * FROM _TPJTWBSPJTUnion WHERE JoinPJTSeq = 199889</p>
+<p>SELECT * FROM _TPJTProject WHERE PJTSEQ IN (199889,199886)</p>
+<p>SELECT TOP 500 A.PJTSeq,B.PJTSeq</p>
+<p>FROM _TPJTProject AS A</p>
+<p>LEFT OUTER JOIN _TPJTWBSPJTUnion AS B ON B.JoinPJTSeq = A.PJTSeq</p>
+<p>WHERE B.PJTSeq IS NOT NULL</p>
+  </article>
+</div>
+</body>
+</html>

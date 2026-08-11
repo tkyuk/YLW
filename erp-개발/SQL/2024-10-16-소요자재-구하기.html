@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소요자재 구하기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>소요자재 구하기</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">소요자재 구하기</h1>
+<hr />
+<p>-- 소요자재 수량 대비 투입수량을 보여주기 위해서 로직 추가</p>
+<p>-- 소요자재 가져오기</p>
+<hr />
+<p>CREATE TABLE #MatNeed_GoodItem</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>BizUnit INT,</p>
+<p>ItemSeq INT, -- 제품코드</p>
+<p>ProcRev NCHAR(2), -- 공정흐름차수</p>
+<p>ProcSeq INT, -- 공정코드</p>
+<p>AssyItemSeq INT, -- 공정품코드</p>
+<p>UnitSeq INT, -- 단위코드 (공정품코드가 있으면 공정품단위코드, 없으면 제품단위코드)</p>
+<p>Qty DECIMAL(19,5), -- 제품수량 (공정품코드가 있으면 공정품수량)</p>
+<p>ProdPlanSeq INT, -- 생산계획내부번호 (생산의뢰에서 추가된 옵션자재를 가져오기위해)</p>
+<p>WorkOrderSeq INT, -- 작업지시내부번호 (작업지시에서 추가자재로 등록된 자재를 가져오기위해)</p>
+<p>WorkOrderSerl INT, -- 작업지시내부순번(작업지시에서추가자재로등록된자재를가져오기위해)</p>
+<p>IsOut NCHAR(1) -- 로스율 적용에 사용 '1'이면 OutLossRate 적용</p>
+<p>, WorkReportSeq INT</p>
+<p>, OSPDelvInSeq INT</p>
+<p>, OSPDelvInSerl INT</p>
+<p>)</p>
+<p>CREATE TABLE #MatNeed_MatItem_Result</p>
+<p>(</p>
+<p>IDX_NO INT, -- IDX</p>
+<p>MatItemSeq INT, -- 자재코드</p>
+<p>UnitSeq INT, -- 자재단위</p>
+<p>NeedQty DECIMAL(19,5), -- 소요량</p>
+<p>STDUnitSeq INT, -- 기준단위내부코드</p>
+<p>STDNeedQty DECIMAL(19,5), -- 기준단위소요량</p>
+<p>InputType INT, -- 자재투입구분 6042</p>
+<p>SMDelvType INT, -- 조달구분 6032</p>
+<p>SMAddType INT, -- 가감구분 6048</p>
+<p>)</p>
+<p>-- 생산건 담기</p>
+<p>INSERT INTO #MatNeed_GoodItem</p>
+<p>( BizUnit,ItemSeq,ProcRev,ProcSeq,AssyItemSeq</p>
+<p>, UnitSeq</p>
+<p>, Qty,ProdPlanSeq,WorkOrderSeq,WorkOrderSerl</p>
+<p>, IsOut, WorkReportSeq, OSPDelvInSeq, OSPDelvInSerl</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>A.BizUnit, B.GoodItemSeq, ISNULL(B.ProcRev, N'00'), B.ProcSeq, B.AssyItemSeq</p>
+<p>, CASE ISNULL(B.ProdUnitSeq, 0) WHEN 0 THEN D.UnitSeq ELSE B.ProdUnitSeq END --2023.03.14 김남익 추가</p>
+<p>, B.ProdQty, 0, B.WorkOrderSeq, B.WorkOrderSerl</p>
+<p>, 0, A.WorkReportSeq, A.OSPDelvInSeq, A.OSPDelvInSerl</p>
+<p>FROM #Input AS A</p>
+<p>JOIN _TPDSFCWorkReport AS B WITH(NOLOCK) ON A.WorkReportSeq = B.WorkReportSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>JOIN _TDAItem AS D WITH(NOLOCK) ON B.GoodItemSeq = D.ItemSeq</p>
+<p>AND D.CompanySeq = @CompanySeq</p>
+<p>WHERE A.WorkReportSeq \&lt;&gt; 0</p>
+<p>-- 소요자재 가져오기</p>
+<p>EXEC dbo._SWPDMMGetItemNeedQty</p>
+<p>@CompanySeq = @CompanySeq ,</p>
+<p>@SMDelvType = '0' ,</p>
+<p>@IsMRP = '0' , -- MRP여부</p>
+<p>@IsOutsourcing = '1' , -- 외주여부</p>
+<p>@IsMatAdd = '0' -- 추가자재만조회</p>
+<p>CREATE INDEX IDX_Input ON #Input(IDX_No, MatItemSeq)</p>
+<p>CREATE INDEX IDX_MatNeed_MatItem_Result ON #MatNeed_MatItem_Result(IDX_No, MatItemSeq)</p>
+<hr />
+<p>-- 소요자재 가져오기 끝</p>
+<hr />
+  </article>
+</div>
+</body>
+</html>

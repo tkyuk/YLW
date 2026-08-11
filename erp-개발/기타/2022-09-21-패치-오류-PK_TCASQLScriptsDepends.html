@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>패치 오류 PK_TCASQLScriptsDepends</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>패치 오류 PK_TCASQLScriptsDepends</h1>
+    <div class="meta">
+      <span class="note-date">2022-09-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="pk_tcasqlscriptsdepends">패치 오류 PK_TCASQLScriptsDepends</h1>
+<p>_TCASqlScripts 테이블에 _FWPDGetDecPointQty 명칭을 가진 건이 2개 존재 =&gt; 1개 삭제</p>
+<p>SELECT * fROM _TCASQLScripts where SqlScriptID ='_FWPDGetDecPointQty'</p>
+<p>SELECT * fROM _TCASqlScripts_BACKUP20240201 where SqlScriptID ='_FWPDGetDecPointQty'</p>
+<p>PRIMARY KEY 제약 조건 'PK_TCASQLScriptsDepends'을(를) 위반했습니다. 개체 'dbo._TCASQLScriptsDepends'에 중복 키를 삽입할 수 없습니다. 중복 키 값은 (70320276, _FWPDGetDecPointQty)입니다.</p>
+<p><img alt="" src="assets/패치-오류-PK_TCASQLScriptsDepends/image32.png" /></p>
+  </article>
+</div>
+</body>
+</html>

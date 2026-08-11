@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중단 SP 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>중단 SP 추가</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">중단 SP 추가</h1>
+<p>CREATE TABLE #TCOMStop</p>
+<p>(</p>
+<p>IDX_NO INT</p>
+<p>, StopSeq INT</p>
+<p>, StopSerl INT</p>
+<p>, StopSubSerl INT</p>
+<p>, IsStop NCHAR(1)</p>
+<p>, UMStopReason INT</p>
+<p>, StopReason NVARCHAR(500)</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, DataSeq INT</p>
+<p>)</p>
+<p>-- SELECT SourceSeq, SourceSerl,InOutType,SourceType FROM #BIZ_OUT_DATABLOCK2</p>
+<p>INSERT INTO #TCOMStop(IDX_NO, StopSeq, StopSerl, StopSubSerl, IsStop, UMStopReason, StopReason, Result, MessageType, Status, DataSeq)</p>
+<p>SELECT IDX_NO, SourceSeq, SourceSerl, 0, '1', 0, '', NULL, NULL, 0, DataSeq</p>
+<p>FROM #BIZ_OUT_DATABLOCK2 AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.SourceType = '0'</p>
+<p>AND A.InOutType = 80</p>
+<p>EXEC _SWCOMStop</p>
+<p>@CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>, @UserSeq = @UserSeq</p>
+<p>, @PgmSeq = 500587 -- 수주품목조회</p>
+  </article>
+</div>
+</body>
+</html>

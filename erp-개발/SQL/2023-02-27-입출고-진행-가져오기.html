@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>입출고 진행 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>입출고 진행 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">입출고 진행 가져오기</h1>
+<p>DECLARE @BizUnit INT,</p>
+<p>@InOutNo NVARCHAR(30),</p>
+<p>-- @DeptSeq INT,</p>
+<p>@DeptName NVARCHAR(100), -- 처리부서 조회조건 코드도움에서 TEXT로 변경 221201 HCWOO</p>
+<p>@EmpSeq INT,</p>
+<p>@InOutDateFr NCHAR(8),</p>
+<p>@InOutDateTo NCHAR(8),</p>
+<p>@CustSeq INT,</p>
+<p>@OutWHSeq INT,</p>
+<p>@InWHSeq INT,</p>
+<p>@InOutDetailKind INT,</p>
+<p>@InOutTypeF INT,</p>
+<p>@ItemName NVARCHAR(200),</p>
+<p>@ItemNo NVARCHAR(100),</p>
+<p>@Spec NVARCHAR(200),</p>
+<p>@CCtrSeq INT,</p>
+<p>@AssetSeq INT,</p>
+<p>@ReqNo NVARCHAR(30),</p>
+<p>@UseDeptSeq INT, -- 사용부서</p>
+<p>@IsCompleted NCHAR(1),</p>
+<p>@SMIsIn INT,</p>
+<p>@CompleteDateFr NCHAR(8),</p>
+<p>@CompleteDateTo NCHAR(8),</p>
+<p>@ReqBizUnit INT,</p>
+<p>@InOutKind INT,</p>
+<p>@MoveTransKind INT,</p>
+<p>@CompleteDeptSeq INT,</p>
+<p>@CompleteEmpSeq INT,</p>
+<p>@MoveName NVARCHAR(100),</p>
+<p>@TransName NVARCHAR(100),</p>
+<p>@ReturnType         INT,</p>
+<blockquote>
+<p>@ItemClassLSeq                 INT,</p>
+<p>@ItemClassMSeq                 INT,</p>
+<p>@ItemClassSSeq                 INT,</p>
+<p>@InOutType2 INT,</p>
+</blockquote>
+<p>@Return                 INT,</p>
+<p>@SMProgressType INT,</p>
+<p>@CommissionCustSeq INT,</p>
+<p>@SalesCustSeq INT,</p>
+<p>@InvoiceNo NVARCHAR(20)</p>
+<p>-- 진행</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMProgressTracking</p>
+<p>( IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5) ,</p>
+<p>VAT DECIMAL(19, 5) ,</p>
+<p>DOMAmt DECIMAL(19, 5) ,</p>
+<p>DOMVAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_InOutItemProg(IDX_NO INT IDENTITY, InOutType INT, InOutSeq INT, InOutSerl INT, CompleteCHECK INT,</p>
+<p>SMProgressType INT NULL, IsStop NCHAR(1), Amt DECIMAL(19, 5),</p>
+<p>ReqSeq INT, ReqNo NVARCHAR(100), ReqDeptSeq INT, ReqEmpSeq INT, Qty DECIMAL(19,5), --2022.07.08 요청부서, 요청자, 요청수량 추가 :: 우승현</p>
+<p>InvoiceNo NVARCHAR(20)) --2022.08.10 거래명세서번호 추가 :: 우승현</p>
+<blockquote>
+<p>INSERT INTO #Temp_InOutItemProg(InOutType, InOutSeq, InOutSerl, CompleteCHECK, IsStop)</p>
+</blockquote>
+<p>SELECT A.InOutType, A.InOutSeq, A.InOutSerl, -1, '0'</p>
+<p>FROM _TLGInOutDailyItem                                AS A WITH(NOLOCK)</p>
+<blockquote>
+<p>JOIN _TLGInOutDaily                                AS B WITH(NOLOCK) ON A.CompanySeq                = B.CompanySeq</p>
+<p>AND A.InOutType                = B.InOutType</p>
+<p>AND A.InOutSeq                        = B.InOutSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItem                AS C WITH(NOLOCK) ON A.CompanySeq                = C.CompanySeq</p>
+<blockquote>
+<p>AND A.ItemSeq                        = C.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemSales        AS D WITH(NOLOCK) ON D.CompanySeq                = C.CompanySeq</p>
+<p>AND D.ItemSeq                        = C.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass        AS E WITH(NOLOCK) ON C.CompanySeq                = E.CompanySeq</p>
+<p>AND C.ItemSeq                        = E.ItemSeq</p>
+<p>AND E.UMajorItemClass IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass        AS F WITH(NOLOCK) ON F.CompanySeq                = C.CompanySeq</p>
+<p>AND F.ItemClassSSeq        = E.UMItemClass</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDADept AS G WITH(NOLOCK) ON B.CompanySeq = G.CompanySeq</p>
+<p>AND B.DeptSeq = G.DeptSeq</p>
+<p>WHERE (@InOutType = 0</p>
+<p>OR A.InOutType = @InOutType</p>
+<p>OR ( (A.InOutType IN (80, 81) AND @InOutType = 80)</p>
+<p>OR (A.InOutType IN (82, 83) AND @InOutType = 82)</p>
+<p>OR (A.InOutType IN (70, 71) AND @InOutType = 70)</p>
+<p>OR (A.InOutType IN (72, 73) AND @InOutType = 72)</p>
+<p>OR (A.InOutType IN (50, 51) AND @InOutType = 50)</p>
+<blockquote>
+<p>OR (A.InOutType = 600 AND @InOutType = 30 AND D.IsSet = '1')                --기타출고입력(세트품) : 20170612 장경선</p>
+<p>OR (A.InOutType = 610 AND @InOutType = 40 AND D.IsSet = '1'))         --기타입고입력(세트품) : 20170612 장경선</p>
+<p>)</p>
+</blockquote>
+<p>AND (@BizUnit = 0 OR B.BizUnit = @BizUnit)</p>
+<p>AND (@InOutDateFr = '' OR B.InOutDate &gt;= @InOutDateFr)</p>
+<p>AND (@InOutDateTo = '' OR B.InOutDate \&lt;= @InOutDateTo)</p>
+<p>AND (@InOutNo = '' OR B.InOutNo LIKE @InOutNo + N'%')</p>
+<p>-- AND (@DeptSeq = 0 OR B.DeptSeq = @DeptSeq) -- 처리부서 조회조건 코드도움에서 TEXT로 변경 221201 HCWOO</p>
+<p>AND (@DeptName = '' OR G.DeptName LIKE @DeptName + N'%') -- 처리부서 조회조건 코드도움에서 TEXT로 변경 221201 HCWOO</p>
+<p>AND (@EmpSeq = 0 OR B.EmpSeq = @EmpSeq)</p>
+<p>AND (@IsCompleted = '' OR B.IsCompleted = @IsCompleted)</p>
+<p>AND (@CompleteDeptSeq = 0 OR B.CompleteDeptSeq = @CompleteDeptSeq)</p>
+<p>AND (@CompleteEmpSeq = 0 OR B.CompleteEmpSeq = @CompleteEmpSeq)</p>
+<p>AND (@CustSeq = 0 OR B.CustSeq = @CustSeq)</p>
+<p>AND (@OutWHSeq = 0 OR B.OutWHSeq = @OutWHSeq)</p>
+<p>AND (@InWHSeq = 0 OR B.InWHSeq = @InWHSeq)</p>
+<p>AND (@InOutDetailKind = 0 OR A.InOutDetailKind = @InOutDetailKind)</p>
+<p>AND (@ItemName = '' OR C.ItemName LIKE @ItemName + N'%')</p>
+<p>AND (@ItemNo = '' OR C.ItemNo LIKE @ItemNo + N'%')</p>
+<p>AND (@Spec = '' OR C.Spec LIKE @Spec + N'%')</p>
+<p>AND (@CCtrSeq = 0 OR A.CCtrSeq = @CCtrSeq)</p>
+<p>AND (@UseDeptSeq = 0 OR B.UseDeptSeq = @UseDeptSeq)</p>
+<p>AND (@CompleteDateFr = '' OR B.CompleteDate &gt;= @CompleteDateFr)</p>
+<p>AND (@CompleteDateTo = '' OR B.CompleteDate \&lt;= @CompleteDateTo)</p>
+<p>AND (@ReqBizUnit = 0 OR B.ReqBizUnit = @ReqBizUnit)</p>
+<p>AND (@InOutKind = 0 OR A.InOutKind = @InOutKind)</p>
+<p>AND (@MoveTransKind = 0 OR (@MoveTransKind = 8099001 AND B.InOutType IN (80,82))</p>
+<p>OR (@MoveTransKind = 8099002 AND B.InOutType IN (81,83)))</p>
+<blockquote>
+<p>AND (@BizUnit = 0 OR B.BizUnit = @BizUnit)</p>
+<p>AND (@AssetSeq                = 0                OR C.AssetSeq                        = @AssetSeq)</p>
+</blockquote>
+<p>AND (@ItemClassSSeq        = 0                OR E.UMItemClass                = @ItemClassSSeq)</p>
+<blockquote>
+<p>AND (@ItemClassMSeq        = 0                OR F.ItemClassMSeq                = @ItemClassMSeq)</p>
+<p>AND (@ItemClassLSeq        = 0                OR F.ItemClassLSeq                = @ItemClassLSeq)</p>
+<p>AND (@InOutType2 = 0 OR (@InOutType2 = 8025001 AND A.InOutType IN (70, 72)) OR (@InOutType2 = 8025002 AND A.InOutType IN (71,73)))</p>
+</blockquote>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<blockquote>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 1,'_TSLInvoiceItem'</p>
+<p>UNION ALL</p>
+<p>SELECT 2,'_TLGInOutDailyItem'</p>
+<p>CREATE TABLE #Temp_CommitOutProg(IDX_NO INT, InOutSeq INT, InOutSerl INT)</p>
+<p>INSERT INTO #Temp_CommitOutProg</p>
+<p>SELECT IDX_NO,InOutSeq,InOutSerl</p>
+<p>FROM #Temp_InOutItemProg</p>
+<p>WHERE InOutType = 50</p>
+<p>EXEC _SWCOMProgressTracking @CompanySeq, '_TLGInOutDailyItem', '#Temp_CommitOutProg', 'InOutSeq', 'InOutSerl', ''</p>
+<p>-- 진행상태 1036004(물류진행) -&gt; 1036001(영업진행)으로 변경 : 20180606 장경선</p>
+<p>EXEC _SWCOMProgStatus @CompanySeq, '_TLGInOutDailyItem', 1036001, '#Temp_InOutItemProg', 'InOutSeq', 'InOutSerl', '', '', '', '', '', '', 'CompleteCHECK', 1, 'Qty', 'STDQty', '', '', 'InOutSeq', 'InOutSerl', '', '_TLGInOutDaily', 501148</p>
+<p>SELECT * INTO #Temp_InOutItemProg2 FROM #Temp_InOutItemProg</p>
+<p>EXEC _SWCOMProgStatus @CompanySeq, '_TLGInOutDailyItem', 1036012, '#Temp_InOutItemProg2', 'InOutSeq', 'InOutSerl', '', '', '', '', '', '', 'CompleteCHECK', 1, 'Qty', 'STDQty', '', '', 'InOutSeq', 'InOutSerl', '', '_TLGInOutDaily', 501148</p>
+<p>-- 위탁에서 거래명세서, 반품거래명세서 진행된 건 중복조회되어 추가 : 20170203 장경선</p>
+<p>--DELETE A</p>
+<p>-- FROM #TCOMProgressTracking                AS A</p>
+<p>--                JOIN #Temp_CommitOutProg        AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>--                JOIN _TLGInOutDailyItem                AS C WITH(NOLOCK) ON B.InOutSeq = C.InOutSeq</p>
+<p>--                                                                                                         AND B.InOutSerl = C.InOutSerl</p>
+<p>-- WHERE (A.Qty * C.Qty) \&lt; 0</p>
+<p>UPDATE #Temp_InOutItemProg</p>
+<p>SET SMProgressType = (SELECT CASE WHEN A.IsStop = '1' AND B.MinorSeq = 1037006 THEN 1037007 --진행중단</p>
+<p>WHEN A.IsStop = '1' THEN 1037005 -- 중단</p>
+<p>ELSE B.MinorSeq END)</p>
+<p>FROM #Temp_InOutItemProg AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.MajorSeq = 1037</p>
+<p>AND A.CompleteCHECK = B.Minorvalue</p>
+<p>UPDATE #Temp_InOutItemProg2</p>
+<p>SET SMProgressType = (SELECT CASE WHEN A.IsStop = '1' AND B.MinorSeq = 1037006 THEN 1037007 --진행중단</p>
+<p>WHEN A.IsStop = '1' THEN 1037005 -- 중단</p>
+<p>ELSE B.MinorSeq END)</p>
+<p>FROM #Temp_InOutItemProg2 AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.MajorSeq = 1037</p>
+<p>AND A.CompleteCHECK = B.Minorvalue</p>
+</blockquote>
+<p>--================================================</p>
+<p>-- 판매거래처 가져오기</p>
+<p>--================================================</p>
+<p>-- 원천테이블</p>
+<p>CREATE TABLE #TMP_SOURCETABLE (IDOrder INT, TABLENAME NVARCHAR(100))</p>
+<p>-- 원천 데이터 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking (IDX_NO INT, IDOrder INT, Seq INT, Serl INT, SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5), STDQty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5))</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1,'_TSLOrderItem' -- 수주입력</p>
+<p>UNION</p>
+<p>SELECT 2,'_TLGInOutReqItem' -- 위탁출고요청</p>
+<p>UNION</p>
+<p>SELECT 3,'_TSLInvoiceItem' -- 거래명세서</p>
+<p>EXEC _SWCOMSourceTracking @CompanySeq, '_TLGInOutDailyItem', '#Temp_InOutItemProg', 'InOutSeq', 'InOutSerl', ''</p>
+<hr />
+<p>/** ReqNo 찾기 2021.12.17 김기태 **/</p>
+<hr />
+<p>UPDATE #Temp_InOutItemProg</p>
+<p>SET ReqSeq = ISNULL(C.ReqSeq, 0)</p>
+<p>, ReqNo = ISNULL(C.ReqNo, '')</p>
+<blockquote>
+<p>, ReqDeptSeq = ISNULL(C.DeptSeq, 0)        </p>
+<p>, ReqEmpSeq = ISNULL(C.EmpSeq, 0)        </p>
+<p>, Qty         = ISNULL(D.Qty, 0)        </p>
+</blockquote>
+<p>FROM #Temp_InOutItemProg                        AS A</p>
+<p>JOIN #TCOMSourceTracking                        AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>AND B.IDOrder = 2</p>
+<p>JOIN _TLGInOutReq                                        AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq AND B.Seq = C.ReqSeq</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TLGInOutReqItem        AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq AND D.ReqSeq = C.ReqSeq</p>
+</blockquote>
+<p>--2022.08.10 InvoiceNo 찾기 :: 우승현</p>
+<p>UPDATE #Temp_InOutItemProg</p>
+<p>SET InvoiceNo = ISNULL(C.InvoiceNo, '')</p>
+<p>FROM #Temp_InOutItemProg AS A</p>
+<p>JOIN #TCOMSourceTracking AS B ON B.IDX_NO = A.IDX_NO</p>
+<p>AND B.IDOrder = 3</p>
+<p>JOIN _TSLInvoice AS C ON C.InvoiceSeq = B.Seq</p>
+<p>--[기타출고품목조회] 화면 금액 컬럼 수정 :: 22.04.07 우승현</p>
+<p>--[기타입고품목조회] InOutType조건 삭제 :: 22.06.17 방혁</p>
+<p>UPDATE #Temp_InOutItemProg</p>
+<p>SET Amt = ISNULL(C.Amt, 0)</p>
+<p>FROM #Temp_InOutItemProg AS A</p>
+<p>JOIN (</p>
+<p>SELECT A.InOutType, A.InOutSeq, A.InOutSerl, SUM(B.Amt) AS AMT</p>
+<p>FROM #Temp_InOutItemProg AS A</p>
+<p>JOIN _TLGInOutStock AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.InOutType = A.InOutType</p>
+<p>AND B.InOutSeq = A.InOutSeq</p>
+<p>AND B.InOutSerl = A.InOutSerl</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>--AND B.InOutType = 30</p>
+<p>GROUP BY A.InOutType, A.InOutSeq, A.InOutSerl</p>
+<p>) AS C ON C.InOutType = A.InOutType</p>
+<p>AND C.InOutSeq = A.InOutSeq</p>
+<p>AND C.InOutSerl = A.InOutSerl</p>
+<p>--WHERE A.InOutType = 30</p>
+  </article>
+</div>
+</body>
+</html>

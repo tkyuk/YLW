@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로그인 정책 초기화</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>로그인 정책 초기화</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">로그인 정책 초기화</h1>
+<p><strong>로그인 정책 초기화</strong></p>
+<p><strong>문제 상황</strong></p>
+<p>관리자 등의 사용자가 로그인할 수 없을 때</p>
+<p><strong>해결방안</strong></p>
+<p>DB에서 아래와 같이 업데이트 합니다.</p>
+<p>UPDATE _TCAUser </p>
+<p>SET LoginPwd        = '',           -- 해시암호인경우</p>
+<p>LoginStatus     = 18003,        -- 임시사용</p>
+<p>PwdChgDate      = convert(varchar, getdate(),112),  -- 암호변경일을 초기화</p>
+<p>LoginFailCnt    = 0,            -- 로그인실패횟수 초기화</p>
+<p>LoginFailFirstTime = Null       -- 최근 실패건수 초기화</p>
+<p>FROM _TCAUser</p>
+<p>WHERE UserID = 'UserID'</p>
+<p>해시암호인 경우 기존 암호를 잠시 보관하고 '5690dddfa28ae085d23518a035707282'  로 업데이트합니다.    이때 암호는 a1234567 입니다.</p>
+<p>출처: \&lt;<a href="https://kdc.ksystem.co.kr/developments/erpops/M1736731468491">https://kdc.ksystem.co.kr/developments/erpops/M1736731468491</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

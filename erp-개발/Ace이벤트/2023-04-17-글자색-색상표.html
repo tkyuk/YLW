@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>글자색 / 색상표</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>글자색 / 색상표</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">글자색 / 색상표</h1>
+<p>노랑 : -103</p>
+<p>한 컬럼에 색 여러개</p>
+<p>컬럼 여러개 전체 색</p>
+<p>for row = 0, SS1.DataRowCnt -1 do</p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'RecruitStatusName'</p>
+<p>if CellText(SS1, row, 'RecruitStatusName') == '요청' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCellForeColor = -16777216 --검정</p>
+<p>end</p>
+<p>if CellText(SS1, row, 'RecruitStatusName') == '공고등록' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCellForeColor = 2273612 -- 보라</p>
+<p>end</p>
+<p>if CellText(SS1, row, 'RecruitStatusName') == '공고게시' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCellForeColor = -16776961 -- 파랑</p>
+<p>end</p>
+<p>if CellText(SS1, row, 'RecruitStatusName') == '서류심사진행' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCellForeColor = -25536 -- 주황</p>
+<p>end</p>
+<p>if CellText(SS1, row, 'RecruitStatusName') == '최종면접진행' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCellForeColor = 14745825 -- 초록</p>
+<p>end</p>
+<p>if CellText(SS1, row, 'RecruitStatusName') == '최종면접확정' then</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCellForeColor = -65536 -- 빨강</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>for row = 1, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = -1</p>
+<p>SS1.ActiveColumnName = 'UMOutKindName' -- 출고구분</p>
+<p>SS1.ActiveCellForeColor = -14745825 -- 초록</p>
+<p>SS1.ActiveColumnName = 'InvoiceNo' -- 거래명세서번호</p>
+<p>SS1.ActiveCellForeColor = -16776961 -- 파랑</p>
+<p>SS1.ActiveColumnName = 'BizUnitName'</p>
+<p>SS1.ActiveCellForeColor = -2273612 -- 보라</p>
+<p>SS1.ActiveColumnName = 'SMProgressTypeName'</p>
+<p>SS1.ActiveCellForeColor = -2273612 -- 보라</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

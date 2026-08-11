@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세스텍 - 구매정산결과조회 (품명 이상하게 나오는 현상)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>세스텍 - 구매정산결과조회 (품명 이상하게 나오는 현상)</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">세스텍 - 구매정산결과조회 (품명 이상하게 나오는 현상)</h1>
+<p>구매입고품목조회 화면에서 Memo5에 '소모품명' 저장 중</p>
+<p>해당 값 있으면 소모품명, 없으면 품명 나오도록 되어있음</p>
+<p>SP : stc_SPUBuyingResultListQuery</p>
+<p>CASE ISNULL(I.Memo5, '') WHEN '' THEN D.ItemName ELSE ISNULL(I.Memo5, '') END AS ItemName , -- 품명</p>
+<p><img alt="" src="assets/세스텍-구매정산결과조회-(품명-이상하게-나오는-현상)/image90.png" /></p>
+<p>CREATE PROCEDURE stc_SPUBuyingResultListQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction CHAR(1)</p>
+<p>AS</p>
+<p>DECLARE @BizUnit INT , -- 사업부문</p>
+<p>@DelvDateFr NCHAR(8) , -- 입고일</p>
+<p>@DelvDateTo NCHAR(8) , -- ~</p>
+<p>@PJTName NVARCHAR(100) , -- 프로젝트</p>
+<p>@PJTNo NVARCHAR(100) , -- 프로젝트번호</p>
+<p>@DeptSeq INT , -- 부서</p>
+<p>@EmpSeq INT , -- 담당자</p>
+<p>@CustSeq INT , -- 거래처</p>
+<p>@IsSlipSeq INT , -- 전표처리여부</p>
+<p>@UMRegType INT , -- 재료자원등록구분</p>
+<p>@UMSupplyType INT , -- 재료자원조달구분</p>
+<p>@PayDateFr NCHAR(8) , -- 지급예정일Fr</p>
+<p>@PayDateTo NCHAR(8) -- 지급예정일To</p>
+<p>SELECT @BizUnit = ISNULL(BizUnit , 0),</p>
+<p>@DelvDateFr = ISNULL(DelvDateFr ,''),</p>
+<p>@DelvDateTo = ISNULL(DelvDateTo ,''),</p>
+<p>@PJTName = ISNULL(PJTName ,''),</p>
+<p>@PJTNo = ISNULL(PJTNo ,''),</p>
+<p>@DeptSeq = ISNULL(DeptSeq , 0),</p>
+<p>@EmpSeq = ISNULL(EmpSeq , 0),</p>
+<p>@CustSeq = ISNULL(CustSeq , 0),</p>
+<p>@IsSlipSeq = ISNULL(IsSlipSeq , 0),</p>
+<p>@UMRegType = ISNULL(UMRegType , 0),</p>
+<p>@UMSupplyType = ISNULL(UMSupplyType , 0),</p>
+<p>@PayDateFr = ISNULL(PayDateFr ,''),</p>
+<p>@PayDateTo = ISNULL(PayDateTo ,'')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>IF @DelvDateTo = ''</p>
+<p>BEGIN</p>
+<p>SELECT @DelvDateTo = '99991231'</p>
+<p>END</p>
+<p>IF @PayDateTo = ''</p>
+<p>BEGIN</p>
+<p>SELECT @PayDateTo = '99991231'</p>
+<p>END</p>
+<p>SELECT DISTINCT</p>
+<p>A.SourceSeq,</p>
+<p>A.SourceSerl,</p>
+<p>A.SourceType</p>
+<p>INTO #Result</p>
+<p>FROM _TPUBuyingAcc AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUDelvInItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.SourceSeq = B.DelvInSeq</p>
+<p>AND A.SourceSerl = B.DelvInSerl</p>
+<p>JOIN _TPUDelvIn AS C WITH(NOLOCK) ON B.DelvInSeq = C.DelvInSeq</p>
+<p>AND B.CompanySeq = C.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.PJTSeq = D.PJTSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@BizUnit = 0 OR A.BizUnit = @BizUnit) -- 사업부문</p>
+<p>AND (C.DelvInDate BETWEEN @DelvDateFr AND @DelvDateTo) -- 입고일</p>
+<p>AND (@PJTName = '' OR D.PJTName LIKE @PJTName + '%') -- 프로젝트</p>
+<p>AND (@PJTNo = '' OR D.PJTNo LIKE @PJTNo + '%') -- 프로젝트번호</p>
+<p>--AND (@DeptSeq = 0 OR A.DeptSeq = @DeptSeq) -- 부서</p>
+<p>--AND (@EmpSeq = 0 OR A.EmpSeq = @EmpSeq) -- 담당자</p>
+<p>AND (@CustSeq = 0 OR A.CustSeq = @CustSeq) -- 거래처</p>
+<p>AND (@IsSlipSeq = 0</p>
+<p>OR (@IsSlipSeq = '1039001' AND A.SlipSeq &gt; 0 )</p>
+<p>OR (@IsSlipSeq = '1039002' AND ISNULL(A.SlipSeq,0) = 0)) -- 전표처리여부</p>
+<p>ORDER BY A.SourceSeq, A.SourceSerl</p>
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TMP_SOURCEITEM</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>SourceSeq INT,</p>
+<p>SourceSerl INT,</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>INSERT #TMP_SOURCEITEM (SourceSeq, SourceSerl )</p>
+<p>SELECT A.SourceSeq, A.SourceSerl</p>
+<p>FROM #Result AS A</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TPUORDPOReqItem' -- 구매요청</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPUDelvInItem', '#TMP_SOURCEITEM','SourceSeq', 'SourceSerl',''</p>
+<p>SELECT C.PJTNo AS PJTNo , -- 프로젝트번호</p>
+<p>C.PJTName AS PJTName , -- 프로젝트</p>
+<p>CASE WHEN ISNULL(B.PJTSeq,0) = 0 THEN '공용자재' ELSE '' END AS PublicItem , -- 공용자재건(PJT번호없는건)</p>
+<p>CASE ISNULL(I.Memo5, '') WHEN '' THEN D.ItemName ELSE ISNULL(I.Memo5, '') END AS ItemName , -- 품명</p>
+<p>D.ItemNo AS ItemNo , -- 품번</p>
+<p>CASE ISNULL(I.Memo6, '') WHEN '' THEN D.Spec ELSE ISNULL(I.Memo6, '') END AS Spec , -- 규격</p>
+<p>B.StdUnitQty AS Qty , -- 기준단위수량</p>
+<p>E.UnitName AS StdUnitName , -- 기준단위</p>
+<p>F.CustName AS CustName , -- 거래처</p>
+<p>LEFT(G.AccDate,6) AS LastYM , -- 마감월</p>
+<p>H.DelvInDate AS DelvInDate , -- 입고일</p>
+<p>I.DomAmt AS DomAmt , -- 입고금액</p>
+<p>I.DomVAT AS DomVAT , -- 부가세</p>
+<p>I.DomAmt + I.DomVAT AS TotDomAmt , -- 합계</p>
+<p>N.EmpName AS EmpName , -- 구매요청자</p>
+<p>O.DeptName AS DeptName , -- 구매요청자 부서</p>
+<p>P.Memo1 AS Memo1 , -- 구매사양서 대상여부</p>
+<p>J.AssetName AS AssetName , -- 품목자산분류</p>
+<p>B.TaxDate AS TaxDate , -- 세금계산서 발행일</p>
+<p>B.PayDate AS PayDate , -- 지급예정일</p>
+<p>ISNULL(Q.UMRegType , 0) AS UMRegType ,</p>
+<p>ISNULL(R.MinorName ,'') AS UMRegTypeName ,</p>
+<p>ISNULL(Q.UMSupplyType, 0) AS UMSupplyType ,</p>
+<p>ISNULL(S.MinorName ,'') AS UMSupplyTypeName,</p>
+<p>F.BizNo AS BizNo -- 사업자등록번호 추가</p>
+<p>FROM #Result AS A</p>
+<p>JOIN _TPUBuyingAcc AS B WITH(NOLOCK) ON A.SourceSeq = B.SourceSeq</p>
+<p>AND A.SourceSerl = B.SourceSerl</p>
+<p>AND A.SourceType = B.SourceType</p>
+<p>LEFT OUTER JOIN _TPJTProject AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.PJTSeq = C.PJTSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.ItemSeq = D.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS E WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.StdUnitSeq = E.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS F WITH(NOLOCK) ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.CustSeq = F.CustSeq</p>
+<p>LEFT OUTER JOIN _TACSlipRow AS G WITH(NOLOCK) ON B.CompanySeq = G.CompanySeq</p>
+<p>AND B.SlipSeq = G.SlipSeq</p>
+<p>LEFT OUTER JOIN _TPUDelvIn AS H WITH(NOLOCK) ON B.CompanySeq = H.CompanySeq</p>
+<p>AND B.SourceSeq = H.DelvInSeq</p>
+<p>AND B.SourceType = 1</p>
+<p>LEFT OUTER JOIN _TPUDelvInItem AS I WITH(NOLOCK) ON B.CompanySeq = I.CompanySeq</p>
+<p>AND B.SourceSeq = I.DelvInSeq</p>
+<p>AND B.SourceSerl = I.DelvInSerl</p>
+<p>AND B.SourceType = 1</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS J WITH(NOLOCK) ON D.CompanySeq = J.CompanySeq</p>
+<p>AND D.AssetSeq = J.AssetSeq</p>
+<p>LEFT OUTER JOIN #TMP_SOURCEITEM AS K ON A.SourceSeq = K.SourceSeq</p>
+<p>AND A.SourceSerl = K.SourceSerl</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS L ON K.IDX_NO = L.IDX_NO</p>
+<p>AND L.IDOrder = 1</p>
+<p>LEFT OUTER JOIN _TPUORDPOReq AS M WITH(NOLOCK) ON M.CompanySeq = @CompanySeq</p>
+<p>AND L.Seq = M.POReqSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS N WITH(NOLOCK) ON M.CompanySeq = N.CompanySeq</p>
+<p>AND M.EmpSeq = N.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS O WITH(NOLOCK) ON M.CompanySeq = O.CompanySeq</p>
+<p>AND M.DeptSeq = O.DeptSeq</p>
+<p>LEFT OUTER JOIN _TPUORDPOReqItem AS P WITH(NOLOCK) ON P.CompanySeq = @CompanySeq</p>
+<p>AND L.Seq = P.POReqSeq</p>
+<p>AND L.Serl = P.POReqSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS Q WITH(NOLOCK) ON P.CompanySeq = Q.CompanySeq</p>
+<p>AND P.PJTSeq = Q.PJTSeq</p>
+<p>AND P.BOMSerl = Q.BOMSerl</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS R WITH(NOLOCK) ON Q.CompanySeq = R.CompanySeq</p>
+<p>AND Q.UMRegType = R.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS S WITH(NOLOCK) ON Q.CompanySeq = S.CompanySeq</p>
+<p>AND Q.UMSupplyType = S.MinorSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND (@DeptSeq = 0 OR M.DeptSeq = @DeptSeq) -- 부서</p>
+<p>AND (@EmpSeq = 0 OR M.EmpSeq = @EmpSeq) -- 담당자</p>
+<p>AND (@UMRegType = 0 OR Q.UMRegType = @UMRegType )</p>
+<p>AND (@UMSupplyType = 0 OR Q.UMSupplyType = @UMSupplyType)</p>
+<p>AND (B.PayDate BETWEEN @PayDateFr AND @PayDateTo)</p>
+<p>ORDER BY PJTNo, ItemNo</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹 페이지 번호2</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹 페이지 번호2</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="2">그룹 페이지 번호2</h1>
+<p>// OnBind</p>
+<p>var GroupIndex = GetGlobal("GroupIndex");</p>
+<p>var GroupPageInfo = GetGlobal("GroupPageInfo");</p>
+<p>var GroupPageArray = GroupPageInfo.split(",");</p>
+<p>if(isNaN(GroupPageArray[GroupIndex]) == true) {</p>
+<p>GroupPageArray[GroupIndex] = 0;</p>
+<p>}</p>
+<p>GroupPageArray[GroupIndex] = parseInt(GroupPageArray[GroupIndex]) + 1;</p>
+<p>GroupPageInfo = GroupPageArray.join(",");</p>
+<p>SetGlobal("GroupPageInfo", GroupPageInfo);</p>
+<p>_TraceLn("\t&gt;&gt;1GroupIndex = " + GroupIndex);</p>
+<p>_TraceLn("\t&gt;&gt;1GroupPageInfo = " + GroupPageInfo);</p>
+<p>This.SetUserValue(GroupIndex);</p>
+<p>// OnEndBind</p>
+<p>var GroupIndex = This.GetUserValue();</p>
+<p>var GroupPageInfo = GetGlobal("GroupPageInfo");</p>
+<p>var GroupPageArray = GroupPageInfo.split(",");</p>
+<p>_TraceLn("\t\t&gt;&gt;2GroupIndex = " + GroupIndex);</p>
+<p>_TraceLn("\t\t&gt;&gt;2GroupPageInfo = " + GroupPageInfo);</p>
+<p>if(isNaN(GroupIndex) == false &amp;&amp; GroupPageArray != null) {</p>
+<p>var currPage = GetGlobal("PageCursor");</p>
+<p>var totalPage = GroupPageArray[GroupIndex];</p>
+<p>This.SetText(currPage + "/" + totalPage);</p>
+<blockquote>
+<p>_TraceLn("\t\t&gt;&gt;currPagefoot = " + currPage);</p>
+<p>_TraceLn("\t\t&gt;&gt;totalPagefoot = " + totalPage);</p>
+</blockquote>
+<p>if (totalPage == currPage) {</p>
+<p>ReportTemplate.SetGlobal("PageCursor", 1);</p>
+<p>} else {</p>
+<p>ReportTemplate.SetGlobal("PageCursor", GetGlobal("PageCursor")+1);</p>
+<p>}</p>
+<p>}</p>
+  </article>
+</div>
+</body>
+</html>

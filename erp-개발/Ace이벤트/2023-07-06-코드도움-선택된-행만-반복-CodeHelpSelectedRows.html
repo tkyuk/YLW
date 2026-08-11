@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드도움 선택된 행만 반복 CodeHelpSelectedRows</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드도움 선택된 행만 반복 CodeHelpSelectedRows</h1>
+    <div class="meta">
+      <span class="note-date">2023-07-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="codehelpselectedrows">코드도움 선택된 행만 반복 CodeHelpSelectedRows</h1>
+<p>-- 코드도움에서 여러 항목 선택 시에도 성상 및 처리방법이 정상 설정되도록 수정하였습니다.</p>
+<p>-- CodeHelpSelectedRows를 정상적으로 가져오기 위해, SS1에 Changed로 연결하여 로직 작성하였습니다.</p>
+<p>local ActCol, StrRow, EndRow, ActiveRowOld, row</p>
+<p>ActCol = SS1.ActiveColumnName</p>
+<p>EndRow = SS1.ActiveRow + SS1.CodeHelpSelectedRows - 1</p>
+<p>if SS1.ActiveRow &gt; EndRow then</p>
+<blockquote>
+<p>EndRow = SS1.ActiveRow</p>
+</blockquote>
+<p>end</p>
+<p>-- 여기서 ActiveRow에 대해 동작하는 이벤트메서드를 호출합니다.</p>
+<p>ActiveRowOld = SS1.ActiveRow</p>
+<p>for row = SS1.ActiveRow, EndRow, 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>RunPgmMethod('SS1GetWasteInfo') -- SS ActiveRow Get...</p>
+<p>RunPgmMethod('SS1ItemNameChg')</p>
+</blockquote>
+<p>end</p>
+<p>SS1.ActiveRow = ActiveRowOld</p>
+  </article>
+</div>
+</body>
+</html>

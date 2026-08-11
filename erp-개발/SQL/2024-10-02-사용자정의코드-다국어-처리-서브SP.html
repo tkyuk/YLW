@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사용자정의코드 다국어 처리 서브SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사용자정의코드 다국어 처리 서브SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">사용자정의코드 다국어 처리 서브SP</h1>
+<p>--=========================</p>
+<p>-- 사용자정의 다국어처리</p>
+<p>--=========================</p>
+<p>-- (INPUT) 사용자정의코드 대분류</p>
+<p>CREATE TABLE #TDAUMajorLanuage(</p>
+<p>MajorSeq INT</p>
+<p>)</p>
+<p>-- (OUTPUT) 사용자정의코드 소분류_사전</p>
+<p>CREATE TABLE #TDAUMinorLanguage(</p>
+<p>CompanySeq INT ,</p>
+<p>MajorSeq INT ,</p>
+<p>MinorSeq INT ,</p>
+<p>MinorName NVARCHAR(200)</p>
+<p>)</p>
+<p>INSERT INTO #TDAUMajorLanuage(MajorSeq)</p>
+<p>SELECT 4001 -- 비용구분</p>
+<p>UNION ALL SELECT 4024 -- 연료종류</p>
+<p>EXEC dbo._SWUTGetUMinorLanguage @CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>-- (INPUT) 시스템제공코드 대분류</p>
+<p>CREATE TABLE #TDASMajorValue(</p>
+<p>MajorSeq INT</p>
+<p>)</p>
+<p>-- (OUTPUT) 시스템제공코드 소분류</p>
+<p>CREATE TABLE #TDASMinorValue(</p>
+<p>CompanySeq INT</p>
+<p>, MajorSeq INT</p>
+<p>, MinorSeq INT</p>
+<p>, MinorName NVARCHAR(200)</p>
+<p>, MinorValue NVARCHAR(50)</p>
+<p>, MinorSort INT</p>
+<p>, IsUse NCHAR(1)</p>
+<p>)</p>
+<p>INSERT INTO #TDASMajorValue(MajorSeq)</p>
+<p>SELECT 4608 -- 전자결재진행상태</p>
+<p>-- 시스템제공코드 가져오기</p>
+<p>EXEC dbo._SWUTGetSMinorValue @CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>SP : _SWAROilCostSettlementApplicationSlipQuery</p>
+  </article>
+</div>
+</body>
+</html>

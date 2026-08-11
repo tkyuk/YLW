@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.05.16 MES 연동 오류 확인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.05.16 MES 연동 오류 확인</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250516-mes">25.05.16 MES 연동 오류 확인</h1>
+<p>-- ERP 납품, 입고 삭제 건</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESPOKey = 641804 and MESPOSerl = 51</p>
+<p>-- CIN250507-000829</p>
+<p>-- 삭제 예정</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESPOKey = 641804 and MESPOSerl = 51 -- meskeyserl = 'CIN250514-002099'</p>
+<p>--============================================================================================================</p>
+<p>--============================================================================================================</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESKey ='DEL250514-000266' and MESPOSerl = 73</p>
+<p>/*</p>
+<p>DEL250514-000266</p>
+<p>L105E00312_A</p>
+<p>동일 에러 추가입니다(납품수량 에러) - 조유림 프로</p>
+<p>=&gt; ERP 에서 데이터 삭제</p>
+<p>납품번호 : MD2505166087</p>
+<p>입고번호 : MI2505165647</p>
+<p>--============================================================================================================</p>
+<p>--============================================================================================================</p>
+<p>*/</p>
+<p>/*</p>
+<p>2.</p>
+<p>CIN250512-006390</p>
+<p>CIN250512-006389</p>
+<p>CIN250512-006388</p>
+<p>CIN250512-006387</p>
+<p>*/</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESKeySerl ='CIN250512-006390'</p>
+<p>UNION select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESKeySerl ='CIN250512-006389'</p>
+<p>UNION select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESKeySerl ='CIN250512-006388'</p>
+<p>UNION select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESKeySerl ='CIN250512-006387'</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC where MESKey ='DEL250514-000266' and MESPOSerl = 73 ORDER BY LastDateTime</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_BEGIN_Log where MESKey ='DEL250514-000266' and MESPOSerl = 73 ORDER BY LastDateTime</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_END_Log where MESKey ='DEL250514-000266' and MESPOSerl = 73 ORDER BY LastDateTime</p>
+<p>SELECT F.DelvInSeq,A.POSeq,A.POSerl,C.LastDateTime, E.LastDateTime, D.DelvNo,D.DelvDate, F.DelvInNo, F.DelvInDate,C.PgmSeq</p>
+<p>FROM _TPUORDPOItem AS A</p>
+<p>JOIN _TPUDelvItem AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ProgFromSeq = A.POSeq</p>
+<p>AND C.ProgFromSerl = A.POSerl</p>
+<p>AND C.ProgFromTableSeq = 13</p>
+<p>JOIN _TPUDelv AS D ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.DelvSeq = C.DelvSeq</p>
+<p>JOIN _TPUDelvInItem AS E ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.ProgFromSeq = C.DelvSeq</p>
+<p>AND E.ProgFromSerl = C.DelvSerl</p>
+<p>AND E.ProgFromTableSeq = 10</p>
+<p>JOIN _TPUDelvIn AS F ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.DelvInSeq = E.DelvInSeq</p>
+<p>WHERE (A.POSeq = 642380 AND A.POSerl in(25,26,27,28))</p>
+<p>-- DelvInSeq</p>
+<blockquote>
+<p>select * from _TPUBuyingAcc where SourceSeq in(</p>
+</blockquote>
+<p>960653</p>
+<p>,960655</p>
+<p>,960657</p>
+<p>,960660         -- Buying 없음</p>
+<p>)</p>
+<p>select TOP 50 PgmSeq , LastDateTime,BuyingAccSeq,SourceSeq from _TPUBuyingAcc WHERE BuyingAccSeq &gt;= 10686306 ORDER BY 3</p>
+<p>--============================================================================================================</p>
+<p>--============================================================================================================</p>
+<p>--============================================================================================================</p>
+<p>--============================================================================================================</p>
+<p>/*</p>
+<p>3.</p>
+<p>@송설 납품 수량 관련 MESKEYSERL 입니다.</p>
+<p>CIN250514-002099</p>
+<p>=&gt; ERP 삭제 건</p>
+<p>CIN250513-000634</p>
+<p>=&gt; ERP 삭제 건 ( 납품번호 : MD2505145891 )</p>
+<p>*/</p>
+<p>/*</p>
+<p>4.</p>
+<p>위의</p>
+<p>DEL250513-000062</p>
+<p>CIN250513-000615 =&gt; ERP 생성 건 (발주 키, 순번 : 636931        1)</p>
+<p>CIN250513-000616 =&gt; ERP 생성 건 (발주 키, 순번 : 636931        2)</p>
+<p>CIN250513-000617 =&gt; ERP 생성 건 (발주 키, 순번 : 636931        3)</p>
+<p>CIN250513-000634 =&gt; 기존 삭제 건 (3번 항목)</p>
+<p>DEL250514-000266</p>
+<p>CIN250514-002099</p>
+<p>=&gt; 기존 삭제 건 (3번 항목)</p>
+<p>건도 확인 부탁드립니다. 송설수석께서 확인중이신가요? 납품수량 에러건</p>
+<p>*/</p>
+<p>select distinct meskeyserl from if_tpudelvin_cymc where meskey = 'DEL250514-000266' and Status \&lt;&gt; 0</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250514-002099'</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_BEGIN_Log where meskeyserl = 'CIN250514-002099'</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_END_Log where meskeyserl = 'CIN250514-002099'</p>
+<p>SELECT * FROM _TPUORDPOItem WHERE POSeq = 641986 and POSerl = 73</p>
+<p>SELECT * FROM _TPUDelvItem WHERE ProgFromSeq = 641986 and ProgFromSerl = 73</p>
+<p>SELECT * FROM _TPUDelvItemLog WHERE ProgFromSeq = 641986 and ProgFromSerl = 73</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250514-002099'</p>
+<p>union select MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000616'</p>
+<p>union select MESPOKey, MESPOSerl, meskeyserl from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000617'</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_BEGIN_Log where meskeyserl = 'CIN250513-000617'</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_END_Log where meskeyserl = 'CIN250513-000617'</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESPOKey = 641804 and MESPOSerl = 51</p>
+<p>SELECT * FROM _TPUDelvItem WHERE DELVSEQ = 722732</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000634' ORDER BY Seq</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_BEGIN_Log where meskeyserl = 'CIN250513-000634'</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from IF_TPUDelvIn_CYMC_END_Log where meskeyserl = 'CIN250513-000634'</p>
+<p>--============================================</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000634'</p>
+<p>select distinct MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where meskeyserl = 'CIN250514-002099' ORDER BY Seq</p>
+<p>select distinct MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where meskeyserl = 'CIN250513-000634' ORDER BY Seq</p>
+<p>select * from _TPUDelvIn where DelvInSeq = 960661</p>
+<p>select * from _TPUDelvInItem where DelvInSeq = 960661</p>
+<p>select * from _TPUDelv where DelvSeq = 734312</p>
+<p>select * from _TPUDelvItem where DelvSeq = 734312</p>
+<p>select * from _TPUORDPO where POSeq = 642406</p>
+<p>select * from _TPUORDPOItem where POSeq = 641986 AND POSerl = 83</p>
+<p>SELECT F.DelvInSeq,A.POSeq,A.POSerl,C.LastDateTime, E.LastDateTime, D.DelvNo, F.DelvInNo, C.PgmSeq</p>
+<p>FROM _TPUORDPOItem AS A</p>
+<p>LEFT OUTER JOIN _TPUDelvItem AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ProgFromSeq = A.POSeq</p>
+<p>AND C.ProgFromSerl = A.POSerl</p>
+<p>AND C.ProgFromTableSeq = 13</p>
+<p>LEFT OUTER JOIN _TPUDelv AS D ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.DelvSeq = C.DelvSeq</p>
+<p>LEFT OUTER JOIN _TPUDelvInItem AS E ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.ProgFromSeq = C.DelvSeq</p>
+<p>AND E.ProgFromSerl = C.DelvSerl</p>
+<p>AND E.ProgFromTableSeq = 10</p>
+<p>LEFT OUTER JOIN _TPUDelvIn AS F ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.DelvInSeq = E.DelvInSeq</p>
+<p>WHERE (A.POSeq = 641986 AND A.POSerl in(73))</p>
+<p>-- 960653</p>
+<p>-- 960655</p>
+<p>-- 960657</p>
+<p>-- 960660</p>
+<blockquote></blockquote>
+<p>select TOP 50 PgmSeq , LastDateTime,BuyingAccSeq,SourceSeq from _TPUBuyingAcc WHERE BuyingAccSeq &gt;= 10686306 ORDER BY 3</p>
+<p>SELECT * FROM _TPUDelvIn WHERE DelvInSeq IN (960653,960655,960657,960660)</p>
+<p>SELECT * FROM _TPUDelvInItem WHERE DelvInSeq IN (960653,960655,960657,960660)</p>
+<blockquote>
+<p>select * from _TPUBuyingAcc where SourceSeq in(960653,960655,960657,960660)</p>
+</blockquote>
+<p>-- 입고 960660 없</p>
+<p>SELECT * FROM _TCOMSourceDaily WHERE TOSEQ in(960653,960655,960657,960660)</p>
+<p>select * from _TPUBuyingAcc where BuyingAccSeq = 10686313</p>
+<p>select * from _TPUDelvIn where DelvInSeq = 960661</p>
+<p>select * from _TPUDelvInItem where DelvInSeq = 960661</p>
+<p>select * from _TPUDelv where DelvSeq = 734312</p>
+<p>select * from _TPUDelvItem where DelvSeq = 734312</p>
+<p>select * from _TPUORDPO where POSeq = 642406</p>
+<p>select * from _TPUORDPOItem where POSeq = 642406 AND POSerl = 83</p>
+<p>select MESPOKey, MESPOSerl, meskeyserl,* from if_tpudelvin_cymc where MESPOKey = 642406 and MESPOSerl = 83</p>
+<p>-- 9        구매입고</p>
+<p>-- 10        구매납품</p>
+<p>-- 13        구매발주(수입Order)</p>
+  </article>
+</div>
+</body>
+</html>

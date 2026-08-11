@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.10.17 단암 출장,외근 보고서 결재상신 미처리건 재처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.10.17 단암 출장,외근 보고서 결재상신 미처리건 재처리</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="251017">25.10.17 단암 출장,외근 보고서 결재상신 미처리건 재처리</h1>
+<p>DECLARE</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 1,</p>
+<p>@PgmSeq INT = 9999,</p>
+<p>@ConfirmSeq INT = 1,</p>
+<p>@MessageType INT ,</p>
+<p>@Status INT ,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>SET NOCOUNT ON</p>
+<p>DECLARE @BizTripSeq INT,</p>
+<p>@CfmCode NVARCHAR(1),</p>
+<p>@BizTripType INT</p>
+<p>-- 사용할 변수를 선언한다.</p>
+<p>DECLARE @Count INT , -- 임시테이블의 행 수 변수</p>
+<p>@Seq INT , -- 채번 변수</p>
+<p>@Date NCHAR(8) , -- 채번시 기준일 날짜 변수</p>
+<p>@MaxNo NVARCHAR(20), -- 최종번호 변수</p>
+<p>@WkEnvValue NCHAR(1),</p>
+<p>@IsAbcense NVARCHAR(1),</p>
+<p>@WkItemSeq INT</p>
+<p>,@SlipRemark NVARCHAR(2000)</p>
+<p>select DISTINCT TblKey AS BizTripSeq</p>
+<p>INTO #Tmp_Seq</p>
+<p>from _TCOMGroupWare as a</p>
+<p>where WorkKind in('BizEduReport_das','BizTripReport_das','BizOutReport_das') and IsProg = '1' and IsEnd = '1'</p>
+<p>SELECT @CfmCode = '1',</p>
+<p>@BizTripType = 1,</p>
+<p>@WkItemSeq = C.ValueSeq</p>
+<p>FROM das_TARBizTripReport AS B</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.MinorSeq = B.UMBizType</p>
+<p>AND C.Serl = 15000003</p>
+<p>WHERE B.BizTripType = '1'</p>
+<p>-- 출장, 외근</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, EmpSeq INT, AbsDate NCHAR(8), WkItemSeq INT, DTCnt DECIMAL(19, 5), MinCnt DECIMAL(19, 5), SMDTCType INT, IsHalf NCHAR(1), OldWkItemSeq INT, SMHalfType INT , BizTripType INT</p>
+<blockquote>
+<p>,BizTripSeq INT</p>
+</blockquote>
+<p>)</p>
+<p>-- 출장,외근 보고서인 경우</p>
+<p>IF @BizTripType IN(1,2,3) --AND ISNULL(@CfmCode,'0') = '1'</p>
+<p>BEGIN</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag, IDX_NO ,DataSeq , MessageType , Status , Result ,</p>
+<p>EmpSeq , AbsDate ,WkItemSeq , OldWkItemSeq, DTCnt , MinCnt ,</p>
+<p>SMDTCType , IsHalf ,SMHalfType , BizTripType, BizTripSeq</p>
+<p>)</p>
+<p>SELECT IIF(@CfmCode = '1','A','D') AS WorkingTag</p>
+<p>,ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS IDX_NO</p>
+<p>,ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS DataSeq</p>
+<p>,NULL AS MessageType</p>
+<p>,0 AS Status</p>
+<p>,NULL AS Result</p>
+<p>,A.TripEmpSeq AS EmpSeq</p>
+<p>,B.TripDate AS AbsDate</p>
+<p>,D.ValueSeq AS WkItemSeq</p>
+<p>,D.ValueSeq AS OldWkItemSeq</p>
+<p>,B.DTCnt AS DTCnt</p>
+<p>,B.MinCnt AS MinCnt</p>
+<p>,3068001 AS SMDTCType</p>
+<p>,0 AS IsHalf</p>
+<p>,0 AS SMHalfType</p>
+<blockquote>
+<p>,C.BizTripType</p>
+<p>,A.BizTripSeq</p>
+</blockquote>
+<p>FROM _TARBizTripCost AS A WITH(NOLOCK)</p>
+<p>OUTER APPLY (SELECT B.TripDate, SUM(B.WkTime) AS DTCnt, SUM(B.WkTime)*60 AS MinCnt</p>
+<p>FROM das_TARBizTripReportPJTAmt AS B WITH(NOLOCK)</p>
+<p>WHERE B.CompanySeq = A.CompanySeq</p>
+<p>AND B.BizTripSeq = A.BizTripSeq</p>
+<p>GROUP BY B.TripDate</p>
+<p>) AS B</p>
+<blockquote>
+<p>LEFT OUTER JOIN das_TARBizTripReport AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.BizTripSeq = A.BizTripSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.MinorSeq = C.UMBizType</p>
+<p>AND D.Serl = 15000003</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BizTripSeq IN(SELECT BizTripSeq FROM #Tmp_Seq)</p>
+<p>AND ISNULL(A.TripEmpSeq,0) \&lt;&gt; 0</p>
+<p>AND LTRIM(RTRIM(ISNULL(B.TripDate,''))) \&lt;&gt;''</p>
+<blockquote>
+<p>AND C.BizTripType IN(1,2,3)</p>
+</blockquote>
+<p>-- 이미 생성된 건 삭제</p>
+<p>DELETE #BIZ_OUT_DataBlock3</p>
+<p>FROM _TPRWkAbsEmp AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock3 AS B ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>AND A.AbsDate = B.AbsDate</p>
+<p>WHERE B.Status = 0</p>
+<p>AND B.WorkingTag IN ('A')</p>
+<p>-- 근태환경설정체크(2020.10.23)</p>
+<p>SELECT @WkEnvValue = ISNULL(EnvValue, '0') FROM _TXPRWkEnv WHERE CompanySeq = @CompanySeq AND EnvSeq = 3 AND IsUse = '1'</p>
+<p>-- 환경설정읽기(2021.11.11)</p>
+<p>EXEC _SWCOMEnv @CompanySeq, 3568, @UserSeq, @@ProcID, @IsAbcense OUTPUT</p>
+<p>CREATE TABLE #Tmp_EmpWkType</p>
+<p>(</p>
+<p>WkDate NCHAR(8) , -- 근태일자</p>
+<p>EmpSeq INT , -- 사원코드</p>
+<p>SMWkKindSeq INT , -- 근무구간</p>
+<p>WkTypeSeq INT , -- 근무유형</p>
+<p>SMWkTypeSortSeq INT , -- 근무유형종류코드</p>
+<p>WkTeamSeq INT , -- 교대조</p>
+<p>WkFormSeq INT , -- 근무형태</p>
+<p>WeekDaySeq INT , -- 시스템요일코드</p>
+<p>SMWeekDaySeq INT , -- 요일코드</p>
+<p>DayTypeSeq INT , -- 일구분코드</p>
+<p>FlexSeq INT , -- 유연근무내역코드</p>
+<p>HoliBaseSeq INT , -- 휴일기준코드</p>
+<p>IsNextDate NCHAR(1) , -- 익일여부</p>
+<p>WkBegDate NCHAR(8) , -- 근태시작일자</p>
+<p>BegTime NCHAR(4) , -- 시작시간</p>
+<p>WkEndDate NCHAR(8) , -- 근태종료일자</p>
+<p>EndTime NCHAR(4) , -- 종료시간</p>
+<p>FullTime DECIMAL(19,5), -- 기준만근시간</p>
+<p>WeekBaseSeq INT -- 주차코드</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_AbsTime</p>
+<p>(</p>
+<p>EmpSeq INT ,</p>
+<p>AbsDate NVARCHAR(8) ,</p>
+<p>WkItemSeq INT ,</p>
+<p>DTCnt DECIMAL(19,5),</p>
+<p>FullTime DECIMAL(19,5)</p>
+<p>)</p>
+<p>--===========</p>
+<p>-- 중복체크</p>
+<p>--===========</p>
+<p>-- 1. 해당 날짜에 근태내역이 존재하는 경우</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>102 , -- @1 데이터가 존재합니다. (SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 102)</p>
+<p>@LanguageSeq ,</p>
+<p>70856, N'급여용근태내역생성' -- SELECT * FROM _TCADictionary WHERE Word like '%급여용근태내역생성%'</p>
+<p>UPDATE #BIZ_OUT_DataBlock3</p>
+<p>SET Result = @Results ,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>INNER JOIN ( SELECT A1.AbsDate, A1.EmpSeq, A1.WkItemSeq</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A1</p>
+<p>INNER JOIN _TPRWkEmpDd AS A2 WITH(NOLOCK)</p>
+<p>ON A1.AbsDate = A2.WkDate</p>
+<p>AND A1.EmpSeq = A2.EmpSeq</p>
+<p>AND A2.CompanySeq = @CompanySeq</p>
+<p>WHERE A1.WorkingTag IN ('A', 'U')</p>
+<p>AND A1.Status = 0</p>
+<p>--AND ISNULL(A1.IsHalf, '0') \&lt;&gt; '1' -- 반차사용제외</p>
+<p>) AS B</p>
+<p>ON A.AbsDate = B.AbsDate</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>WHERE @WkEnvValue = '0' -- 근태환경설정(2021.06.22) : 환경설정값이 '0'일 때만 해당 체크를 한다.</p>
+<p>-- 2. 같은날짜, 같은사원에 대해 같은근태항목이 입력되었을 경우</p>
+<p>/* _TXPRWkAbsence(결근근태내역)에 저장해야 하는데, 이 테이블은 근태항목(WkItemSeq)이 키가 아니어서 Save에서 중복키 오류 발생함</p>
+<p>그렇다고 여기서 근태항목을 제거하면 저장이안됨 설계가 엉망진창임 */</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다. (SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>2755, N'결근자내역' -- SELECT * FROM _TCADictionary WHERE Word like '%결근자내역%'</p>
+<p>UPDATE #BIZ_OUT_DataBlock3</p>
+<p>SET Result = REPLACE(@Results,'@2', ''),</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>INNER JOIN (SELECT S.AbsDate, S.EmpSeq , S.WkItemSeq</p>
+<p>FROM (</p>
+<p>SELECT A1.AbsDate, A1.EmpSeq , A1.WkItemSeq</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A1</p>
+<p>WHERE A1.WorkingTag IN ('A','U')</p>
+<p>AND A1.Status = 0</p>
+<p>UNION ALL</p>
+<p>SELECT A1.AbsDate, A1.EmpSeq , A1.WkItemSeq</p>
+<p>FROM _TPRWkAbsEmp AS A1</p>
+<p>WHERE A1.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS ( SELECT 1</p>
+<p>FROM #BIZ_OUT_DataBlock3</p>
+<p>WHERE WorkingTag ='D' -- ##01 삭제 시에만 체크 제외해야 하는데 'U'일때도 제외하고 있어 SAVE SP에서 중복키 오류나서 수정</p>
+<p>AND Status = 0</p>
+<p>AND AbsDate = A1.AbsDate</p>
+<p>AND EmpSeq = A1.EmpSeq</p>
+<p>AND OldWkItemSeq = A1.WkItemSeq</p>
+<p>)</p>
+<p>) AS S</p>
+<p>GROUP BY S.AbsDate, S.EmpSeq, S.WkItemSeq</p>
+<p>HAVING COUNT(1) &gt; 1</p>
+<p>) AS B</p>
+<p>ON A.AbsDate = B.AbsDate</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>PRINT '중복체크까지 완료'</p>
+<p>-- 연차 휴가일 경우 1일 이상의 결근 내역 등록하지 못하도록 수정</p>
+<p>-- Old Key(OldWkItemSeq, OldAbsDate에 대해선 체크하지 않는다.)</p>
+<p>-- Old Key가 변경되는 경우에는 시간이 차감되기 때문에 체크 Logic에서 제외,</p>
+<p>-- (+)무단결근, 월차를 포함하고 다른 근태항목이더라도 결근을 집계 했을때 기준만근시간보다 초과하면 체크 하도록 수정 ##02</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock3 AS A JOIN _TPRWkItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.WkItemSeq = B.WkItemSeq</p>
+<p>WHERE A.Status = 0 AND A.WorkingTag IN ('A','U') AND B.SMAbsWkSort IN (3069001, 3069002, 3069003, 3069011) ) --무단, 연차, 월차, 경조사 ##02</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1192 , -- 해당 @1 @2이(가) 초과되었습니다. (SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1192)</p>
+<p>@LanguageSeq ,</p>
+<p>63844, N'결근' , -- SELECT * FROM _TCADictionary WHERE Word like '%결근%'</p>
+<p>2377, N'일자' -- SELECT * FROM _TCADictionary WHERE Word like '%일자%'</p>
+<p>INSERT INTO #Tmp_EmpWkType(WkDate, EmpSeq)</p>
+<p>SELECT DISTINCT A.AbsDate, A.EmpSeq</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>JOIN _TPRWkItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.WkItemSeq = B.WkItemSeq</p>
+<p>WHERE A.Status = 0 AND A.WorkingTag IN ('A','U') AND B.SMAbsWkSort IN (3069001, 3069002, 3069003, 3069011) --##02</p>
+<p>EXEC _SXPRWkTypeDayTypeGet @CompanySeq</p>
+<p>INSERT INTO #Temp_AbsTime(EmpSeq, AbsDAte, WkItemSeq, DTCnt, FullTime)</p>
+<p>SELECT A.EmpSeq, A.AbsDate, A.WkItemSeq, CASE WHEN B.SMDTCType = 3068001 THEN A.DtCnt * ISNULL(C.FullTime, 0) ELSE A.DtCnt END, C.FullTime</p>
+<p>FROM _TPRWkAbsEmp AS A WITH(NOLOCK)</p>
+<p>JOIN _TPRWkItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>LEFT OUTER JOIN #Tmp_EmpWkType AS C ON A.EmpSeq = C.EmpSeq</p>
+<p>AND A.AbsDate = C.WKDate</p>
+<p>WHERE A.CompanySeq = @CompanySeq AND B.SMAbsWkSort IN (3069001, 3069002, 3069003, 3069011) --##02</p>
+<p>AND B.SMDTCType IN (3068001, 3068002)</p>
+<p>AND EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock3 WHERE EmpSeq = A.EmpSeq AND AbsDate = A.AbsDate)</p>
+<p>--</p>
+<p>UPDATE A</p>
+<p>SET A.DtCnt = CASE WHEN D.SMDTCType = 3068001 THEN B.DtCnt * ISNULL(C.FullTime, 0) ELSE A.DtCnt END</p>
+<p>FROM #Temp_AbsTime AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock3 AS B ON A.EmpSEq = B.EmpSeq</p>
+<p>AND A.AbsDAte = B.AbsDate</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>LEFT OUTER JOIN #Tmp_EmpWkType AS C ON A.EmpSeq = C.EmpSeq</p>
+<p>AND A.AbsDate = C.WKDate</p>
+<p>JOIN _TPRWkItem AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND A.WkItemSeq = D.WkItemSeq</p>
+<p>WHERE B.Status = 0 AND B.WorkingTag IN ('A', 'U') AND D.SMAbsWkSort IN (3069001, 3069002, 3069003, 3069011) --##02</p>
+<p>AND D.SMDTCType IN (3068001, 3068002)</p>
+<p>INSERT INTO #Temp_AbsTime(EmpSeq, AbsDAte, WkItemSeq, DTCnt, FullTime)</p>
+<p>SELECT A.EmpSeq, A.AbsDate, A.WkItemSeq, CASE WHEN B.SMDTCType = 3068001 THEN A.DtCnt * ISNULL(C.FullTime, 0) ELSE A.DtCnt END, C.FullTime</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A WITH(NOLOCK)</p>
+<p>JOIN _TPRWkItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>LEFT OUTER JOIN #Tmp_EmpWkType AS C ON A.EmpSeq = C.EmpSeq</p>
+<p>AND A.AbsDate = C.WKDate</p>
+<p>WHERE A.Status = 0 AND A.WorkingTag IN ('A', 'U') AND B.SMAbsWkSort IN (3069001, 3069002, 3069003, 3069011) --##02</p>
+<p>AND B.SMDTCType IN (3068001, 3068002)</p>
+<p>AND NOT EXISTS (SELECT 1 FROM #Temp_AbsTime WHERE EmpSeq = A.EmpSeq AND AbsDate = A.AbsDate AND WkItemSeq = A.WkItemSeq)</p>
+<p>--select '#Temp_AbsTime', * from #Temp_AbsTime</p>
+<p>UPDATE A</p>
+<p>SET A.Result = @Results,</p>
+<p>A.MessageType = @MessageType,</p>
+<p>A.Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>JOIN (</p>
+<p>SELECT EmpSeq, AbsDate, SUM(DtCnt) AS DtCnt, MAX(FullTime) AS FullTime</p>
+<p>FROM #Temp_AbsTime</p>
+<p>GROUP BY EmpSeq, AbsDate --, WkItemSeq --다른 근태항목이더라도 결근을 집계 했을때 기준만근시간보다 초과하면 체크 함 --##02</p>
+<p>HAVING SUM(DtCnt) &gt; MAX(FullTime)</p>
+<p>) AS B ON A.EmpSeq = B.EmpSeq AND A.AbsDAte = B.AbsDate -- AND A.WkItemSeq = B.WkItemSeq</p>
+<p>WHERE A.Status = 0 AND A.WorkingTag IN ('A', 'U')</p>
+<p>END</p>
+<blockquote>
+<p>DELETE FROM #BIZ_OUT_DataBlock3 WHERE Status \&lt;&gt; 0</p>
+</blockquote>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #BIZ_OUT_DataBlock3 WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT @Status = A.Status, @Results = A.Result</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 0, @Results = '', @MessageType = 0</p>
+<p>END</p>
+<p>-- 변수 선언</p>
+<blockquote></blockquote>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPRWkAbsEmp', -- 원테이블명 _TPRBasPulog</p>
+<p>'#BIZ_OUT_DataBlock3', -- 템프테이블명</p>
+<p>'AbsDate, EmpSeq, WkItemSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>@PgmSeq,</p>
+<p>'' -- 템프테이블에 키명칭이 다를 경우</p>
+<p>-- _TXPRWkAbsence에 반영하기 위한 근태항목 정보를 담는다</p>
+<p>-- 근무근태종류가 연차, 기타휴가이거나 경조사항목에 연결된 근태항목</p>
+<p>CREATE TABLE #Temp_AbsWkItem(WkItemSeq INT)</p>
+<p>TRUNCATE TABLE #Tmp_EmpWkType</p>
+<p>INSERT INTO #Temp_AbsWkItem(WkITemSeq)</p>
+<p>SELECT WkITemSeq FROM _TPRWkItem WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND SMAbsWkSort IN (3069002, 3069003, 3069006)</p>
+<p>UNION</p>
+<p>SELECT WkItemSeq FROM _TXHRWelCon WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND ISNULL(WkItemSeq, 0) \&lt;&gt; 0</p>
+<p>EXEC _SWCOMEnv @CompanySeq, 3568, @UserSeq, @@ProcID, @IsAbcense OUTPUT</p>
+<hr />
+<p>-- INSERT</p>
+<hr />
+<blockquote>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock3 WHERE WorkingTag = 'A' AND Status = 0)</p>
+</blockquote>
+<p>BEGIN</p>
+<p>INSERT INTO _TPRWkAbsEmp</p>
+<p>(</p>
+<p>CompanySeq , AbsDate , EmpSeq , WkItemSeq , IsHalf ,</p>
+<p>Remark , CCSeq , SMInputType , UMGrpSeq , UMWkGrpSeq ,</p>
+<p>LastUserSeq , LastDateTime, DTCnt , MinCnt</p>
+<p>)</p>
+<p>SELECT @CompanySeq , AbsDate , EmpSeq , WkItemSeq ,</p>
+<p>CASE WHEN A.SMHalfType = 3142001 THEN '1'</p>
+<p>WHEN A.SMHalfType = 3142002 THEN '2'</p>
+<p>ELSE 0</p>
+<p>END , -- 반차구분(2020.02.26)</p>
+<p>CASE WHEN @BizTripType = 1 THEN '출장'</p>
+<p>WHEN @BizTripType = 2 THEN '교육'</p>
+<p>WHEN @BizTripType = 3 THEN '외근' END</p>
+<blockquote>
+<p>+ ' 결근내역 자동생성' AS Remark , 0 AS CCSeq , 3116003 , 0 AS UMGrpSeq , 0 AS UMWkGrpSeq , --화면에서 입력된것은 입력구분을 사용자등록으로 고정 ##02</p>
+</blockquote>
+<p>@UserSeq , GETDATE() , ISNULL(A.DTCnt , 0), ISNULL(A.MinCnt, 0)</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999,</p>
+<p>@Results = '결근 내역 생성 중 오류가 발생했습니다.'</p>
+<p>RETURN -- 에러가 발생하면 리턴</p>
+<p>END</p>
+<p>SELECT @CompanySeq , AbsDate , EmpSeq , WkItemSeq ,</p>
+<p>CASE WHEN A.SMHalfType = 3142001 THEN '1'</p>
+<p>WHEN A.SMHalfType = 3142002 THEN '2'</p>
+<p>ELSE 0</p>
+<p>END , -- 반차구분(2020.02.26)</p>
+<p>CASE WHEN @BizTripType = 1 THEN '출장'</p>
+<p>WHEN @BizTripType = 2 THEN '교육'</p>
+<p>WHEN @BizTripType = 3 THEN '외근' END</p>
+<blockquote>
+<p>+ ' 결근내역 자동생성' AS Remark , 0 AS CCSeq , 3116003 , 0 AS UMGrpSeq , 0 AS UMWkGrpSeq , --화면에서 입력된것은 입력구분을 사용자등록으로 고정 ##02</p>
+</blockquote>
+<p>@UserSeq , GETDATE() , ISNULL(A.DTCnt , 0), ISNULL(A.MinCnt, 0)</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999,</p>
+<p>@Results = '결근 내역 생성 중 오류가 발생했습니다.'</p>
+<p>RETURN -- 에러가 발생하면 리턴</p>
+<p>END</p>
+<p>END</p>
+<p>IF @IsAbcense = '1' AND EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock3 WHERE Status = 0 AND WorkingTag IN ('U','A'))</p>
+<p>BEGIN</p>
+<blockquote></blockquote>
+<p>SELECT A.AbsDate, A.EmpSeq, ROW_NUMBER() OVER(PARTITION BY A.AbsDate, A.EmpSeq ORDER BY DataSeq) AS Seq, A.WkItemSeq, A.DtCnt, A.MinCnt, A.BizTripType</p>
+<p>INTO #Temp_TXPRWkAbsence</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('U','A')</p>
+<p>AND A.WkItemSeq IN (SELECT WkItemSeq FROM #Temp_AbsWkItem)</p>
+<p>SELECT A.AbsDate, A.EmpSeq, MAX(A.Seq) AS MAXSeq</p>
+<p>INTO #Temp_MAXSeq FROM _TXPRWkAbsence AS A WITH(NOLOCK)</p>
+<p>WHERE EXISTS (SELECT 1 FROM #Temp_TXPRWkAbsence WHERE EmpSeq = A.EmpSeq AND AbsDate = A.AbsDate)</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>GROUP BY A.AbsDate, A.EmpSeq</p>
+<p>-- 사원, 근태일을 넣는다.</p>
+<p>INSERT INTO #Tmp_EmpWkType(WkDate, EmpSeq)</p>
+<p>SELECT AbsDate, EmpSeq</p>
+<p>FROM #Temp_TXPRWkAbsence</p>
+<p>GROUP BY AbsDate, EmpSeq --중복 방지 : 1일 1근태 202411270095</p>
+<p>-- 사원별 정보</p>
+<p>EXEC _SXPRWkTypeDayTypeGet @CompanySeq</p>
+<p>--select '#Temp_TXPRWkAbsence', * from #Temp_TXPRWkAbsence</p>
+<p>--select '#Tmp_EmpWkType', * from #Tmp_EmpWkType</p>
+<p>INSERT INTO _TXPRWkAbsence</p>
+<p>(</p>
+<p>CompanySeq , AbsDate , EmpSeq , Seq , WkItemSeq ,</p>
+<p>IsNextDate , AbsBegDate , BegTime , AbsEndDate , EndTime ,</p>
+<p>WkTypeSeq , WkTeamSeq , WkFormSeq , DayTypeSeq , SMDTCType ,</p>
+<p>DTCnt , MinCnt , Remark , SMInputType , AppSeq ,</p>
+<p>SMYyOccurType, LastUserSeq , LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq , A.AbsDate , A.EmpSeq , ISNULL(Z.MaxSeq, 0) + A.Seq, A.WkItemSeq ,</p>
+<p>'0' , A.AbsDate , C.BegTime , A.AbsDate , C.EndTime , --사원근무유형의 정상근무 시작시간/종료시간이 기본값으로 입력되도록 한다 --##01</p>
+<p>ISNULL(C.WkTypeSeq, 0), ISNULL(C.WkTeamSeq, 0), ISNULL(C.WkFormSeq, 0), ISNULL(C.DayTypeSeq, 0), B.SMDTCType ,</p>
+<p>A.DTCnt , A.MinCnt ,</p>
+<blockquote>
+<p>CASE WHEN @BizTripType = 1 THEN '출장'</p>
+</blockquote>
+<p>WHEN @BizTripType = 2 THEN '교육'</p>
+<p>WHEN @BizTripType = 3 THEN '외근' END+ ' 결근내역 자동생성' , 5047001 , 0 ,</p>
+<p>0 , @UserSeq , GETDATE()</p>
+<p>FROM #Temp_TXPRWkAbsence AS A</p>
+<p>LEFT OUTER JOIN #Temp_MAXSeq AS Z ON A.EmpSeq = Z.EmpSeq</p>
+<p>AND A.AbsDate = Z.AbsDate</p>
+<p>JOIN _TPRWkItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<p>LEFT OUTER JOIN #Tmp_EmpWkType AS C ON A.EmpSeq = C.EmpSeq</p>
+<p>AND A.AbsDate = C.WkDate</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999,</p>
+<p>@Results = '결근 내역 생성 중 오류가 발생했습니다.'</p>
+<p>RETURN -- 에러가 발생하면 리턴</p>
+<p>END</p>
+<p>END</p>
+<p>UPDATE das_TARBizTripReportAmtWKDtl</p>
+<p>SET IsConfirm = 1</p>
+<p>FROM das_TARBizTripReportAmtWKDtl AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BizTripSeq IN(SELECT BizTripSeq FROM #BIZ_OUT_DataBlock3)</p>
+<p>SELECT</p>
+<p>X_OUTER.BizTripSeq, -- 1. 그룹화 키</p>
+<p>STUFF((</p>
+<p>-- 2. 해당 BizTripSeq에 속하는 모든 Cost 상세 정보를 문자열로 합치는 서브쿼리</p>
+<p>SELECT</p>
+<p>', ' +</p>
+<p>-- 목적 (R18)</p>
+<p>CASE WHEN ISNULL(R18.ValueText, '0') = '0' THEN '' ELSE CASE WHEN B.BizTripType = '2' THEN LEFT(ISNULL(B.EduName, ''), 15) ELSE LEFT(ISNULL(X.Purpose, ''), 10) END END</p>
+<p>-- 분류명 (R19)</p>
+<p>+ CASE WHEN ISNULL(R19.ValueText, '0') = '0' THEN '' ELSE CASE WHEN ISNULL(R18.ValueText, '0') = '0' THEN '' ELSE ' ' END + ISNULL(K.ValueText, '') END</p>
+<p>-- 출장기간 (R20)</p>
+<p>+ CASE WHEN ISNULL(R20.ValueText, '0') = '0' THEN '' ELSE CASE WHEN ISNULL(R18.ValueText, '0') = '0' AND ISNULL(R19.ValueText, '0') = '0' THEN '' ELSE ' ' END</p>
+<p>+ CASE WHEN X.TripFrDate = X.TripToDate THEN SUBSTRING(X.TripFrDate, 5, 2) + '/' + RIGHT(X.TripFrDate, 2)</p>
+<p>ELSE SUBSTRING(X.TripFrDate, 5, 2) + '/' + RIGHT(X.TripFrDate, 2) + '~' + SUBSTRING(X.TripToDate, 5, 2) + '/' + RIGHT(X.TripToDate, 2) END END</p>
+<p>-- 사용일 (R21)</p>
+<p>+ CASE WHEN ISNULL(R21.ValueText, '0') = '0' THEN '' ELSE CASE WHEN ISNULL(C.UseDate, '') = '' THEN '' ELSE ' ' +</p>
+<p>CASE WHEN B.BizTripType IN ('4', '5') THEN C.UseDate ELSE SUBSTRING(C.UseDate, 5, 2) + '/' + SUBSTRING(C.UseDate, 7, 2) END END END</p>
+<p>-- 출장지 (R22)</p>
+<p>+ CASE WHEN ISNULL(R22.ValueText, '0') = '0' THEN '' ELSE CASE WHEN B.BizTripType IN ('1', '3')</p>
+<p>THEN CASE WHEN ISNULL(X.TripPlace, '') = '' THEN '' ELSE ' ' + X.TripPlace END</p>
+<p>ELSE CASE WHEN ISNULL(B.Eduplace, '') = '' THEN '' ELSE ' ' + B.Eduplace END END END</p>
+<p>-- 출장업체 (R23)</p>
+<p>+ CASE WHEN ISNULL(R23.ValueText, '0') = '0' THEN '' ELSE CASE WHEN B.BizTripType IN ('1', '3')</p>
+<p>THEN CASE WHEN ISNULL(X.TripCust , '') = '' THEN '' ELSE ' ' + X.TripCust END</p>
+<p>ELSE CASE WHEN ISNULL(B.Institute, '') = '' THEN '' ELSE ' ' + B.Institute END END END</p>
+<p>-- 거래처 (R24)</p>
+<p>+ CASE WHEN ISNULL(R24.ValueText, '0') = '0' THEN '' ELSE CASE WHEN ISNULL(C.CustName, '') = ''</p>
+<p>THEN '' ELSE ' ' + C.CustName END END</p>
+<p>-- 식대명단 (R25)</p>
+<p>+ CASE WHEN ISNULL(R25.ValueText, '0') = '0' THEN '' ELSE CASE WHEN ISNULL(C.PaymealName, '') = ''</p>
+<p>THEN '' ELSE ' ' + C.PaymealName END END</p>
+<p>-- 근무장소 (R29)</p>
+<p>+ CASE WHEN ISNULL(R29.ValueText, '0') = '0' THEN '' ELSE CASE WHEN ISNULL(C.WorkPlace, '') = '' THEN '' ELSE ' ' + C.WorkPlace END END</p>
+<p>FROM</p>
+<p>_TARBizTripCost AS X WITH(NOLOCK) -- 내부 쿼리 테이블 X</p>
+<p>LEFT OUTER JOIN das_TARBizTripReport AS B WITH(NOLOCK) ON X.CompanySeq = B.CompanySeq AND X.BizTripSeq = B.BizTripSeq</p>
+<p>LEFT OUTER JOIN das_TARBizTripReportAmt AS C WITH(NOLOCK) ON C.CompanySeq = X.CompanySeq AND C.BizTripSeq = X.BizTripSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS J WITH(NOLOCK) ON C.CompanySeq = J.CompanySeq AND C.UMCostSeq = J.MinorSeq AND J.MajorSeq = 1110352</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON J.CompanySeq = K.CompanySeq AND J.MinorSeq = K.MinorSeq AND K.Serl = 15000012</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R18 WITH(NOLOCK) ON J.CompanySeq = R18.CompanySeq AND J.MinorSeq = R18.MinorSeq AND R18.Serl = 15000018</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R19 WITH(NOLOCK) ON J.CompanySeq = R19.CompanySeq AND J.MinorSeq = R19.MinorSeq AND R19.Serl = 15000019</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R20 WITH(NOLOCK) ON J.CompanySeq = R20.CompanySeq AND J.MinorSeq = R20.MinorSeq AND R20.Serl = 15000020</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R21 WITH(NOLOCK) ON J.CompanySeq = R21.CompanySeq AND J.MinorSeq = R21.MinorSeq AND R21.Serl = 15000021</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R22 WITH(NOLOCK) ON J.CompanySeq = R22.CompanySeq AND J.MinorSeq = R22.MinorSeq AND R22.Serl = 15000022</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R23 WITH(NOLOCK) ON J.CompanySeq = R23.CompanySeq AND J.MinorSeq = R23.MinorSeq AND R23.Serl = 15000023</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R24 WITH(NOLOCK) ON J.CompanySeq = R24.CompanySeq AND J.MinorSeq = R24.MinorSeq AND R24.Serl = 15000024</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R25 WITH(NOLOCK) ON J.CompanySeq = R25.CompanySeq AND J.MinorSeq = R25.MinorSeq AND R25.Serl = 15000025</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS R29 WITH(NOLOCK) ON J.CompanySeq = R29.CompanySeq AND J.MinorSeq = R29.MinorSeq AND R29.Serl = 15000029</p>
+<p>WHERE</p>
+<p>-- 상관관계 조건: 외부 쿼리의 BizTripSeq와 일치하는 행만 처리</p>
+<p>X.BizTripSeq = X_OUTER.BizTripSeq</p>
+<p>AND X.CompanySeq = X_OUTER.CompanySeq</p>
+<p>-- 기존 필터 조건 유지</p>
+<p>AND X.CompanySeq = 1</p>
+<p>AND X.BizTripSeq IN (SELECT BizTripSeq FROM #BIZ_OUT_DataBlock3)</p>
+<p>ORDER BY X.BizTripSeq, X.TripFrDate -- 합치기 순서 보장</p>
+<p>FOR XML PATH('')</p>
+<p>), 1, 2, '') AS SlipRemark -- 최종 합쳐진 문자열</p>
+<p>INTO #Tmp_SlipRemark</p>
+<p>FROM</p>
+<p>_TARBizTripCost AS X_OUTER WITH(NOLOCK) -- 외부 쿼리 테이블 (BizTripSeq를 가져옴)</p>
+<p>WHERE</p>
+<p>X_OUTER.CompanySeq = 1</p>
+<p>AND X_OUTER.BizTripSeq IN (SELECT BizTripSeq FROM #BIZ_OUT_DataBlock3)</p>
+<p>GROUP BY</p>
+<p>X_OUTER.BizTripSeq, X_OUTER.CompanySeq -- BizTripSeq 별로 그룹화</p>
+<p>ORDER BY</p>
+<p>X_OUTER.BizTripSeq</p>
+<p>UPDATE das_TARBizTripReport</p>
+<p>SET SlipRemark = B.SlipRemark</p>
+<p>FROM das_TARBizTripReport AS A</p>
+<blockquote>
+<p>JOIN #Tmp_SlipRemark AS B ON B.BizTripSeq = A.BizTripSeq</p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>RETURN</p>
+<p>--select *</p>
+<p>-- from _TCOMGroupWare as a</p>
+<p>-- where WorkKind in('BizTripReport_das','BizOutReport_das') and IsProg = '1' and IsEnd = '1'</p>
+  </article>
+</div>
+</body>
+</html>

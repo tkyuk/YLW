@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사업자이력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사업자이력</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사업자이력</h1>
+<blockquote>
+<hr />
+</blockquote>
+<p>-- 사업자이력 START 16.07.13 임희진 추가</p>
+<hr />
+<p>CREATE TABLE #TTaxUnit (        TaxUnit                INT,</p>
+<blockquote>
+<p>TaxNo                NVARCHAR(50),</p>
+<p>TaxSerial         NCHAR(4),</p>
+<p>TaxNoSerl         NVARCHAR(50),</p>
+<p>FrDate                 NCHAR(8),</p>
+<p>ToDate                 NCHAR(8),</p>
+</blockquote>
+<p>TaxName                NVARCHAR(100),</p>
+<p>Owner                NVARCHAR(100),</p>
+<p>BizType                NVARCHAR(50),</p>
+<p>BizItem                NVARCHAR(50),</p>
+<p>Zip                        NVARCHAR(10),</p>
+<p>TaxUnitAddr NVARCHAR(200),</p>
+<p>VATRptAddr NVARCHAR(200),</p>
+<p>TelNo         NVARCHAR(400),</p>
+<p>FaxNo         NVARCHAR(30) )</p>
+<p>INSERT INTO #TTaxUnit -- 2021.10.24 : 오주헌 단위테스트 Insert~Select문 수정</p>
+<blockquote>
+<p>(</p>
+<p>TaxUnit                </p>
+<p>,TaxNo                </p>
+<p>,TaxSerial         </p>
+<p>,TaxNoSerl         </p>
+<p>,FrDate                 </p>
+<p>,ToDate                 </p>
+<p>,TaxName                </p>
+<p>,Owner                </p>
+<p>,BizType                </p>
+<p>,BizItem                </p>
+<p>,Zip                        </p>
+<p>,TaxUnitAddr</p>
+<p>,VATRptAddr</p>
+<p>,TelNo         </p>
+<p>,FaxNo         </p>
+<p>)</p>
+</blockquote>
+<p>SELECT A.TaxUnit,</p>
+<blockquote>
+<p>A.TaxNo,</p>
+<p>A.TaxSerial,'' AS TaxNoSerl,</p>
+</blockquote>
+<p>A.FrDate,</p>
+<p>A.ToDate,</p>
+<p>A.TaxName,</p>
+<p>A.Owner,</p>
+<p>A.BizType,</p>
+<p>A.BizItem,</p>
+<p>A.Zip,</p>
+<p>ISNULL(B.Addr,'') AS TaxUnitAddr,</p>
+<p>A.VATRptAddr,</p>
+<p>dbo._FWCOMDecrypt(A.TelNo,N'_TDATaxUnitHist',N'TelNo',@CompanySeq),                         </p>
+<p>A.FaxNo</p>
+<p>FROM _TDATaxUnitHist AS A WITH(NOLOCK)</p>
+<blockquote>
+<p>LEFT OUTER JOIN _VWCOMAddress AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ContactAddressSeq = B.AddressSeq</p>
+<p>AND IsMin = '1'        </p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>UNION ALL</p>
+<blockquote>
+<p>SELECT A.TaxUnit,</p>
+<p>A.TaxNo,</p>
+<p>A.TaxSerial,</p>
+<p>A.TaxNoSerl,</p>
+</blockquote>
+<p>ISNULL((SELECT CONVERT(NCHAR(8),DATEADD(DD,1,MAX(ToDate)),112) FROM _TDATaxUnitHist WHERE CompanySeq = A.CompanySeq AND TaxUnit = A.TaxUnit),'19000101'),</p>
+<p>'99991231',</p>
+<p>A.TaxName,</p>
+<p>A.Owner,</p>
+<p>A.BizType,</p>
+<p>A.BizItem,</p>
+<p>A.Zip,</p>
+<p>ISNULL(B.Addr,'') AS TaxUnitAddr,</p>
+<p>A.VATRptAddr,</p>
+<blockquote>
+<p>dbo._FWCOMDecrypt(A.TelNo,N'_TDATaxUnit',N'TelNo',@CompanySeq),</p>
+<p>A.FaxNo</p>
+</blockquote>
+<p>FROM _TDATaxUnit AS A WITH(NOLOCK)</p>
+<blockquote>
+<p>LEFT OUTER JOIN _VWCOMAddress AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ContactAddressSeq = B.AddressSeq</p>
+<p>AND IsMin = '1'        </p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>ORDER BY A.TaxUnit, A.ToDate</p>
+<p>DECLARE @pIsAccTax INT,                        -- 사업자단위과세제도여부</p>
+<p>@pIsAccTaxDate NCHAR(8),        -- 사업자단위과세제도 적용시점</p>
+<p>@pIsAccTaxUnit NCHAR(15)        -- 사업자단위과세제도 주사업자 번호</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 4016, @UserSeq, @@PROCID, @pIsAccTax OUTPUT</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 4017, @UserSeq, @@PROCID, @pIsAccTaxDate OUTPUT</p>
+<blockquote>
+<p>SELECT @pIsAccTax = ISNULL(@pIsAccTax,'0')</p>
+</blockquote>
+<p>SELECT @pIsAccTaxDate = ISNULL(@pIsAccTaxDate,'19000101')</p>
+<p>SELECT @pIsAccTaxUnit = ISNULL((SELECT TOP 1 TaxUnit FROM _TDATaxUnit WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND SMTaxationType = '4128002'),0)</p>
+<blockquote>
+<hr />
+</blockquote>
+<p>-- 사업자이력 END</p>
+<hr />
+<p>환경설정 추가</p>
+<p>-- 사이트 추가 포함</p>
+<p>BEGIN TRAN</p>
+<p>INSERT INTO _TCOMEnvConfig</p>
+<p>VALUES(</p>
+<p>'991018','엘에스이브이씨','0','0','0','TrFunction','991018','엘에스이브이씨추가','27292',GETDATE(),'0','1'</p>
+<p>)</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1 FROM _TCOMEnv WHERE 1=1 AND CompanySeq = '1' AND EnvSeq = '2000172' )</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TCOMEnv</p>
+<p>VALUES('1','2000172','운송업체_evc','운송업체','0','0','84003','617001','0','7','1','27292',getdate(),'0','','','1')</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1 FROM _TCOMEnvConfigItem WHERE 1=1 AND ConfigSeq = '991018' AND EnvSeq = '2000172' )</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TCOMEnvConfigItem(ConfigSeq,EnvSeq,LastUserSeq,LastDateTime)</p>
+<p>SELECT 991018,2000172,1,GETDATE()</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

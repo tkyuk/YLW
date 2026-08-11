@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출력물</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>출력물</h1>
+    <div class="meta">
+      <span class="note-date">2022-09-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">출력물</h1>
+<p>출력</p>
+<p>툴바 만들기</p>
+<p>이벤트유형 : p-print 점프유형 : q-query</p>
+<p>점프화면ID : 오즈이름만들때랑 똑같아야함</p>
+<p>프로그램등록을 해줘야함(빈껍데기) : 사이트명 넣고 다른거랑 똑같이만들면댐</p>
+<p>저장시 사이트명이 프로그램id가 만들어지니까 지우면댐</p>
+<p>메뉴제외(빈껍데기니까)</p>
+<p>메소드생성 : 이름에 보통 Print_사이트명</p>
+<p>- 텍스트루아로 키값 없는거 에러띄우고 마스터 가져오고 메소드(sp, 비지니스서비스불러옴)타고 etc에서 리포트출력</p>
+<p>cs툴 파일위치열기로 찾고 하나전가면 RdView있음 거안에 OzView-Data에 xml파일생김</p>
+<p>출력물없으면 report -oz에서 아무 ozr,odi,zip파일 복사해서 바탕화면에 넣고 점프하려는 id 대충넣어줌</p>
+<p>넣어준거 <a href="file://61.250.183.1/d">\61.250.183.1\d</a> 아디비번치고 (administrator ,</p>
+<p>)</p>
+<p>ksystemdev_wk_CS - fileservice-setupclient-report-oz에 붙혀넣기함</p>
+<p>*****************************************************</p>
+<p>CS : <a href="file://61.250.183.1/d/KsystemAce/ACE_Kstudio_APP/FileService/SetupClient/Report/OZ">\61.250.183.1\d\KsystemAce\ACE_Kstudio_APP\FileService\SetupClient\Report\OZ</a></p>
+<p>WEB : <a href="file://61.250.183.1/d/KsystemDEV_wk_CS/FileService/SetupClient/Report/OZ">\61.250.183.1\d\KsystemDEV_wk_CS\FileService\SetupClient\Report\OZ</a></p>
+<p>*****************************************************</p>
+<p>그리고 위의 data에 생긴 xml파일 바탕화면에 복붙함 (그럼 총네개생긴거)</p>
+<p>xml열면 키값에맞는 xml데이터 생김</p>
+<p>xml파일 복붙후 .xml을 .xsd로 바꿈</p>
+<p>xsd파일 맨위 루트 지우고 스키마밑 데이타블럭부터 루트까지 다지우고 저장</p>
+<p>odi 열고 xml의 루트 다 지우고 xml스토어추가 해서 방금만든 xml경로 추가 xsd경로도 추가 후 확인,확인</p>
+<p>생긴스토어에 데이터셋 추가(DataBlock1같은거씀) 생긴거우클후 지정누르면 값나옴</p>
+<p>쉬프트로 컬럼다 선택후 필드 추가 f5누르면 데이터어케드갓는지 볼 수 있음 - 저장</p>
+<p>zip파일은 수정안해도됨</p>
+<p>ozr 열고 내용 다날림. 리파지토리 가면 작업폴더 odi 떠블클릭하면 데이터정보에 머 생김</p>
+<p>그리고 만들면댐</p>
+<p>만들면 report-oz에 넣어줌 그러면 끗 수정해도 다시 넣어줘야댐</p>
+<p>웹은 <a href="file://61.250.183.1/c-ksystem-oz70-repository_files">\61.250.183.1\c-ksystem-oz70-repository_files</a></p>
+<p>***********************************************</p>
+<p>- 소스관리도구 들어가서 출력물 Query와 odi~xsd 파일 다 최신버전 가져와서 체크아웃 후 작업.</p>
+<p>- odi~xsd 파일 전부 c드라이브 oz폴더에 복사 후 작업.</p>
+<p>***********************************************</p>
+<p>출력물 이름은 출력물 출력 - 메일 보내기 - 첨부에 나와있다.</p>
+<p>해당 MTS 서버 들어가 C\KSYSTEM\OZ70\repository_files에서 찾는다</p>
+<p>***********************************************</p>
+<p>OZ 출력물 컬럼 추가</p>
+<p>1. 개발툴 비지니스 설정</p>
+<p>2. XML SEQ 추가</p>
+<p>3. XML DATABLOCK 추가</p>
+<p>4. .XML 맨위 \&lt;ROOT&gt; 삭제, \&lt;/xs:schema&gt; 밑으로 다 삭제 후 ~.xsd로 다른이름저장</p>
+<p>5. ODI에서 XML스토어 삭제 후 XML 주소, XSD 주소 재설정 후 XML 파서(xerces)로 설정 후 확인</p>
+<p>6. ODI Datablock1 만들어서 필드 추가 후 OZR에서 확인</p>
+<p>***********************************************</p>
+<p>출력물 패치전 소스세이프에서 '출력물 배포'를 먼저 눌러 적용시켜준다.</p>
+<p>***********************************************</p>
+<p>사이트 xml 찾기</p>
+<p>C:\Users\Public\Appdata\local\Younglimwon\디에이테크놀로지\RdView\OzView\Data</p>
+<p>***********************************************</p>
+<p>제뉴인 1번 출력물 위치</p>
+<p><a href="file://61.250.183.1/d/KsystemDev/FileService/SetupClient/Report/OZ">\61.250.183.1\d\KsystemDev\FileService\SetupClient\Report\OZ</a></p>
+<p>***********************************************</p>
+<p>제뉴인 MRD 출력물 xml ASC-생산실적입력 참고</p>
+<p>***********************************************</p>
+<p>행수조절 스크립트(OZR)</p>
+<p>var count = This.GetComponentByName("FixedTableLabel36").GetDataSetRowCount();</p>
+<p>var repeatN = 0;</p>
+<p>if(count \&lt; 9){</p>
+<p>repeatN = 9 - count;</p>
+<p>} else if((count + 3) % 12 == 0){ // 데이터 개수가 12n + 3 일 경우, 추가 더미풋터 개수 없음</p>
+<blockquote>
+<p>repeatN = 0</p>
+</blockquote>
+<p>} else { // 데이터 개수가 12n + 3의 형태가 아닐 경우, 각 페이지마다 12개씩 나오도록 조율한다.</p>
+<blockquote>
+<p>repeatN = 12 - (count + 3) % 12</p>
+</blockquote>
+<p>}</p>
+<p>This.SetRepeatNumber(repeatN);</p>
+<p>해당 MTS 서버 들어가 C\KSYSTEM\OZ70\repository_files</p>
+<p>D:\Ksystem\FileService\SetupClient\Report\OZ</p>
+<p>사이트 xml 찾기</p>
+<p>C:\Users\Public\Appdata\local\Younglimwon\디에이테크놀로지\RdView\OzView\Data</p>
+<p>제뉴인 1번 출력물 위치</p>
+<p><a href="file://61.250.183.1/d/KsystemDev/FileService/SetupClient/Report/OZ">\61.250.183.1\d\KsystemDev\FileService\SetupClient\Report\OZ</a></p>
+<p>D:\KsystemDev\FileService\SetupClient\Report\OZ</p>
+  </article>
+</div>
+</body>
+</html>

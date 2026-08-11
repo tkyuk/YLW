@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매요청 -\> 수주 원천</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매요청 -\> 수주 원천</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">구매요청 -&gt; 수주 원천</h1>
+<p>-- 구매요청 진행 테이블</p>
+<p>CREATE TABLE #TEMP_TPUORDPOReqProg</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POReqSeq INT,</p>
+<p>CompleteCHECK INT,</p>
+<p>SMCurrStatus INT,</p>
+<p>IsStop NCHAR(1),</p>
+<p>OrderSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #TEMP_TPUORDPOReqProg(POReqSeq, CompleteCHECK, SMCurrStatus, IsStop)</p>
+<p>SELECT A.POReqSeq, -1, 0, A.IsStop</p>
+<p>FROM #TEMP_TPUORDPOReq AS A</p>
+<p>GROUP BY A.POReqSeq, A.IsStop</p>
+<hr />
+<p>-- 수주 역추적 --</p>
+<hr />
+<p>-- 원천테이블</p>
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 원천 데이터 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>STDQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TSLOrderItem'</p>
+<p>EXEC _SWCOMSourceTracking @CompanySeq, '_TPUORDPOReqItem', '#TEMP_TPUORDPOReqProg','POReqSeq', '',''</p>
+<p>UPDATE #TEMP_TPUORDPOReqProg</p>
+<p>SET OrderSeq = C.Seq</p>
+<p>FROM #TEMP_TPUORDPOReqProg AS A</p>
+<p>JOIN #TCOMSourceTracking AS C ON A.IDX_No = C.IDX_No</p>
+<hr />
+<p>-- 수주 역추적끝--</p>
+<hr />
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI - 오류 메세지 생성 및 RETURN</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI - 오류 메세지 생성 및 RETURN</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni-return">GNI - 오류 메세지 생성 및 RETURN</h1>
+<p>begin tran</p>
+<p>insert into TDAErrorMsg select 'DeliveryCust','거래처의 납품처가 아닙니다.','10019'</p>
+<p>rollback tran</p>
+<p>IF NOT EXISTS(SELECT TOP 1 1 fROM TSBDeliveryCust WHERE CustCode = @wCustCd AND Seq = @vDeliCustCd)</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DeliveryCust', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>IF @wRETURNType = '' SELECT @vcStatus, LTRIM(RTRIM(@vcResults)), '#ERROR'</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

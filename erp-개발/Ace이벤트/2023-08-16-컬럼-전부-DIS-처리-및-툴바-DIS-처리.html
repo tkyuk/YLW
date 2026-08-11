@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컬럼 전부 DIS 처리 및 툴바 DIS 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>컬럼 전부 DIS 처리 및 툴바 DIS 처리</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="dis-dis">컬럼 전부 DIS 처리 및 툴바 DIS 처리</h1>
+<p>--==============================================================</p>
+<p>-- 컬럼 전부 DIS 처리 및 툴바 DIS 처리</p>
+<p>--==============================================================</p>
+<p>local ErrorChk</p>
+<p>for row = 0, SS1.DataRowCnt-1 do</p>
+<p>if CellText(SS1, row, 'DelvOrderSeq') ~= '0' then                </p>
+<p>SS1.ActiveRow = row                </p>
+<p>for col = 0, SS1.MaxCols - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveCol = col</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>end</p>
+<p>else</p>
+<blockquote>
+<p>ErrorChk = '1'</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>if ErrorChk == '1' then</p>
+<blockquote>
+<p>GetToolbar('Save').EventArgs.Disable = false</p>
+<p>GetToolbar('Cut').EventArgs.Disable = false</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>GetToolbar('Save').EventArgs.Disable = true</p>
+<p>GetToolbar('Cut').EventArgs.Disable = true</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

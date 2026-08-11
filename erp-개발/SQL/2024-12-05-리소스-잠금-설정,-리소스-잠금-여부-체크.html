@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>리소스 잠금 설정, 리소스 잠금 여부 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>리소스 잠금 설정, 리소스 잠금 여부 체크</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">리소스 잠금 설정, 리소스 잠금 여부 체크</h1>
+<p>/****************************************************************************************************</p>
+<p>DESCRIPTION : MES 연동용 품목 I/F Data 생성 SP</p>
+<p>작 성 일 :</p>
+<p>****************************************************************************************************/</p>
+<p>CREATE PROCEDURE uck_SMESItemInfo</p>
+<p>@CompanySeq INT = 1</p>
+<p>AS</p>
+<p>-- 리소스 잠금 여부 체크 : 잠금 상태이면 SP 종료하도록 한다.</p>
+<p>IF APPLOCK_TEST('PUBLIC', 'uck_SMESItemInfo', 'EXCLUSIVE', 'SESSION') = 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 리소스 잠금 설정 : SP 중복 호출로 인한 중복 Data 생성을 방지하기 위함</p>
+<p>EXEC SP_GETAPPLOCK 'uck_SMESItemInfo', 'EXCLUSIVE', 'SESSION'</p>
+<p>DECLARE @FinDate DATETIME, -- 최종전송시간</p>
+<p>@CrtDate DATETIME -- 전송시간</p>
+<p>SELECT @CrtDate = GETDATE()</p>
+<p>SELECT @FinDate = MAX(CrtDateTime) FROM uck_TMESITEMMASTER WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>SELECT @FinDate = ISNULL(@FinDate, '')</p>
+<p>--SELECT @FinDate = '20200901'</p>
+<p>-- 임시 테이블 생성 --</p>
+<p>CREATE TABLE #ERP_Item</p>
+<p>(</p>
+<p>WorkingTag NVARCHAR(1) ,</p>
+<p>ItemSeq INT,</p>
+<p>ItemName NVARCHAR(100) NULL,</p>
+<p>ItemNo NVARCHAR(100) NULL,</p>
+<p>Spec NVARCHAR(100) NULL,</p>
+<p>AssetSeq INT NULL,</p>
+<p>AssetName NVARCHAR(100) NULL,</p>
+<p>ItemClassLSeq INT NULL,</p>
+<p>ItemClassLName NVARCHAR(100) NULL,</p>
+<p>ItemClassMSeq INT NULL,</p>
+<p>ItemClassMName NVARCHAR(100) NULL,</p>
+<p>ItemClassSSeq INT NULL,</p>
+<p>ItemClassSName NVARCHAR(100) NULL,</p>
+<p>UnitSeq INT NULL,</p>
+<p>UnitName NVARCHAR(100) NULL,</p>
+<p>SMStatus INT NULL,</p>
+<p>SMStatusName NVARCHAR(100) NULL,</p>
+<p>IsInQc NCHAR(1) NULL,</p>
+<p>IsLastQc NCHAR(1) NULL,</p>
+<p>LastUserSeq INT NULL,</p>
+<p>LastDateTime DATETIME NULL,</p>
+<p>StdTime DECIMAL(19,5) NULL,</p>
+<p>Sort NVARCHAR(1)</p>
+<p>)</p>
+<p>CREATE TABLE #MES_Item</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>ItemName NVARCHAR(100) NULL,</p>
+<p>ItemNo NVARCHAR(100) NULL,</p>
+<p>Spec NVARCHAR(100) NULL,</p>
+<p>AssetSeq INT NULL,</p>
+<p>AssetName NVARCHAR(100) NULL,</p>
+<p>ItemClassLSeq INT NULL,</p>
+<p>ItemClassLName NVARCHAR(100) NULL,</p>
+<p>ItemClassMSeq INT NULL,</p>
+<p>ItemClassMName NVARCHAR(100) NULL,</p>
+<p>ItemClassSSeq INT NULL,</p>
+<p>ItemClassSName NVARCHAR(100) NULL,</p>
+<p>UnitSeq INT NULL,</p>
+<p>UnitName NVARCHAR(100) NULL,</p>
+<p>SMStatus INT NULL,</p>
+<p>SMStatusName NVARCHAR(100) NULL,</p>
+<p>IsInQc NCHAR(1) NULL,</p>
+<p>IsLastQc NCHAR(1) NULL,</p>
+<p>StdTime DECIMAL(19,5) NULL,</p>
+<p>LastUserSeq INT NULL,</p>
+<p>LastDateTime DATETIME NULL</p>
+<p>)</p>
+<p>-- 최종 전송시간 이후 신규로 등록되거나 수정된 Data를 담는다.</p>
+<p>INSERT INTO #ERP_Item</p>
+<p>SELECT 'U' ,</p>
+<p>A.ItemSeq ,</p>
+<p>A.ItemName ,</p>
+<p>A.ItemNo ,</p>
+<p>A.Spec ,</p>
+<p>A.AssetSeq ,</p>
+<p>ISNULL(C.AssetName, '') ,</p>
+<p>ISNULL(L.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(L.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = L.ValueSeq ) END AS ItemClassLName, -- 품목대분류</p>
+<p>ISNULL(K.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(K.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = K.ValueSeq ) END AS ItemClassMName, -- 품목중분류</p>
+<p>ISNULL(B1.UMItemClass,0) AS ItemClassSSeq, -- 품목소분류코드</p>
+<p>ISNULL(H.MinorName,'') AS ItemClassSName, -- 품목소분류</p>
+<p>A.UnitSeq ,</p>
+<p>ISNULL(B.UnitName , '') ,</p>
+<p>ISNULL(A.SMStatus,0) AS SMStatus, -- 품목 상태</p>
+<p>CASE WHEN ISNULL(A.SMStatus,0) = 0 THEN '' ELSE (SELECT ISNULL(MinorName,'') FROM _TDASMinor WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND MajorSeq = 2001 AND MinorSeq = A.SMStatus) END AS ItemStatus, -- 품목 상태</p>
+<p>ISNULL(F.IsInQc , '0') ,</p>
+<p>ISNULL(F.IsLastQc, '0') ,</p>
+<p>A.LastUserSeq ,</p>
+<p>--A.LastDateTime ,</p>
+<p>dbo.uck_fnGetMaxDate(ISNULL(A.LastDateTime, '1900-01-01 00:00.000'), ISNULL(B.LastDateTime, '1900-01-01 00:00.000'), ISNULL(F.LastDateTime, '1900-01-01 00:00.000'),</p>
+<p>ISNULL(B1.LastDateTime, '1900-01-01 00:00.000'), ISNULL(M.LastDateTime, '1900-01-01 00:00.000'), '1900-01-01 00:00.000') AS LastDateTime,</p>
+<p>ISNULL(M.StdTime,0) ,</p>
+<p>'0'</p>
+<p>FROM _TDAItem AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAUnit AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.AssetSeq = C.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.SMStatus = E.MinorSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B1 WITH(NOLOCK) ON ( A.CompanySeq = B1.CompanySeq AND A.ItemSeq = B1.ItemSeq AND B1.UMajorItemClass IN (2001,2004) )</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON ( B1.CompanySeq = H.CompanySeq AND H.MajorSeq = LEFT( B1.UMItemClass, 4 ) AND B1.UMItemClass = H.MinorSeq )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON ( H.CompanySeq = K.CompanySeq AND K.MajorSeq IN (2001,2004) AND H.MinorSeq = K.MinorSeq AND K.Serl IN (1001,2001) )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS L WITH(NOLOCK) ON ( K.CompanySeq = L.CompanySeq AND L.MajorSeq IN (2002,2005) AND K.ValueSeq = L.MinorSeq AND L.Serl = 2001 )</p>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, SUM(StdWorkTime) AS StdTime, MAX(LastDateTime) AS LastDateTime FROM _TPDROUItemProcWC GROUP BY ItemSeq) AS M ON A.ItemSeq = M.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ((dbo.uck_fnGetMaxDate(ISNULL(A.LastDateTime , '1900-01-01 00:00.000'), ISNULL(B.LastDateTime, '1900-01-01 00:00.000'), ISNULL(F.LastDateTime, '1900-01-01 00:00.000'),</p>
+<p>ISNULL(B1.LastDateTime, '1900-01-01 00:00.000'), ISNULL(M.LastDateTime, '1900-01-01 00:00.000'), '1900-01-01 00:00.000')) &gt; @FinDate)</p>
+<p>AND ((dbo.uck_fnGetMaxDate(ISNULL(A.LastDateTime , '1900-01-01 00:00.000'), ISNULL(B.LastDateTime, '1900-01-01 00:00.000'), ISNULL(F.LastDateTime, '1900-01-01 00:00.000'),</p>
+<p>ISNULL(B1.LastDateTime, '1900-01-01 00:00.000'), ISNULL(M.LastDateTime, '1900-01-01 00:00.000'), '1900-01-01 00:00.000')) \&lt;= @CrtDate)</p>
+<p>AND A.AssetSeq IN ('1','6', '10','16','2','4')</p>
+<p>IF @@ROWCOUNT \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>INSERT INTO #MES_Item</p>
+<p>SELECT A.ItemSeq ,</p>
+<p>A.ItemName ,</p>
+<p>A.ItemNo ,</p>
+<p>A.Spec ,</p>
+<p>A.AssetSeq ,</p>
+<p>A.AssetName ,</p>
+<p>A.ItemClassLSeq ,</p>
+<p>A.ItemClassLName,</p>
+<p>A.ItemClassMSeq ,</p>
+<p>A.ItemClassMName,</p>
+<p>A.ItemClassSSeq ,</p>
+<p>A.ItemClassSName,</p>
+<p>A.UnitSeq ,</p>
+<p>A.UnitName ,</p>
+<p>A.SMStatus ,</p>
+<p>A.SMStatusName ,</p>
+<p>A.IsInQc ,</p>
+<p>A.IsLastQc ,</p>
+<p>A.StdTime ,</p>
+<p>A.LastUserSeq ,</p>
+<p>A.LastDateTime</p>
+<p>FROM uck_TMESITEMMASTER AS A WITH(NOLOCK)</p>
+<p>JOIN (</p>
+<p>SELECT Z.ItemNo, MAX(X.SEQ) AS Seq</p>
+<p>FROM #ERP_Item AS Z</p>
+<p>JOIN uck_TMESITEMMASTER AS X WITH(NOLOCK) ON X.CompanySeq = @CompanySeq</p>
+<p>AND X.ItemNo = Z.ItemNo</p>
+<p>WHERE Z.Sort = '0'</p>
+<p>GROUP BY Z.ItemNo</p>
+<p>) AS B ON A.Seq = B.Seq</p>
+<p>-- 한번도 전송된 이력이 없는 건은 WorkingTag를 'A'로 UPDATE</p>
+<p>UPDATE A</p>
+<p>SET A.WorkingTag = 'A'</p>
+<p>FROM #ERP_Item AS A</p>
+<p>WHERE NOT EXISTS (SELECT 1 FROM #MES_Item WHERE ItemNo = A.ItemNo)</p>
+<p>AND A.Sort = '0'</p>
+<p>-- 최종 전송된 Data와 수정된 Data를 비교하여 수정된 내역이 없는 건은 삭제해주도록 한다.</p>
+<p>DELETE #ERP_Item</p>
+<p>FROM #ERP_Item AS A</p>
+<p>JOIN #MES_Item AS B ON A.ItemNo = B.ItemNo</p>
+<p>WHERE A.ItemSeq = B.ItemSeq</p>
+<p>AND A.ItemName = B.ItemName</p>
+<p>AND A.ItemNo = B.ItemNo</p>
+<p>AND A.Spec = B.Spec</p>
+<p>AND A.AssetSeq = B.AssetSeq</p>
+<p>AND A.AssetName = B.AssetName</p>
+<p>AND A.ItemClassLSeq = B.ItemClassLSeq</p>
+<p>AND A.ItemClassLName = B.ItemClassLName</p>
+<p>AND A.ItemClassMSeq = B.ItemClassMSeq</p>
+<p>AND A.ItemClassMName = B.ItemClassMName</p>
+<p>AND A.ItemClassSSeq = B.ItemClassSSeq</p>
+<p>AND A.ItemClassSName = B.ItemClassSName</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>AND A.UnitName = B.UnitName</p>
+<p>AND A.SMStatus = B.SMStatus</p>
+<p>AND A.SMStatusName = B.SMStatusName</p>
+<p>AND A.IsInQc = B.IsInQc</p>
+<p>AND A.IsLastQc = B.IsLastQc</p>
+<p>--AND A.LastUserSeq = B.LastUserSeq</p>
+<p>--AND A.LastDateTime = B.LastDateTime</p>
+<p>AND A.StdTime = B.StdTime</p>
+<p>AND A.Sort = '0'</p>
+<p>END</p>
+<p>DELETE A</p>
+<p>FROM uck_TMESITEMMASTER AS A</p>
+<p>JOIN ( SELECT ItemNo, MAX(Seq) AS Seq</p>
+<p>FROM uck_TMESITEMMASTER AS A</p>
+<p>WHERE AUDType = 'U'</p>
+<p>GROUP BY ItemNo</p>
+<p>) AS B ON A.Seq = B.Seq</p>
+<p>JOIN #ERP_Item AS C ON A.ItemNo = C.ItemNo</p>
+<p>-- 해당 기간의 D인건 가져오기</p>
+<p>SELECT DISTINCT ItemSeq, ItemNo</p>
+<p>INTO #TempDelItem</p>
+<p>FROM _TDAItemLog</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND LogDateTime &gt; @FinDate</p>
+<p>AND LogDateTime \&lt;= @CrtDate</p>
+<p>AND LogType = 'D'</p>
+<p>AND AssetSeq IN ('1','6', '10','16','2','4')</p>
+<p>INSERT INTO #ERP_Item</p>
+<p>SELECT 'A' ,</p>
+<p>C.ItemSeq ,</p>
+<p>C.ItemName ,</p>
+<p>C.ItemNo ,</p>
+<p>C.Spec ,</p>
+<p>C.AssetSeq ,</p>
+<p>ISNULL(CC.AssetName, '') ,</p>
+<p>ISNULL(L.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(L.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = L.ValueSeq ) END AS ItemClassLName, -- 품목대분류</p>
+<p>ISNULL(K.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(K.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = K.ValueSeq ) END AS ItemClassMName, -- 품목중분류</p>
+<p>ISNULL(B1.UMItemClass,0) AS ItemClassSSeq, -- 품목소분류코드</p>
+<p>ISNULL(H.MinorName,'') AS ItemClassSName, -- 품목소분류</p>
+<p>C.UnitSeq ,</p>
+<p>ISNULL(B.UnitName , '') ,</p>
+<p>ISNULL(C.SMStatus,0) AS SMStatus, -- 품목 상태</p>
+<p>CASE WHEN ISNULL(C.SMStatus,0) = 0 THEN '' ELSE (SELECT ISNULL(MinorName,'') FROM _TDASMinor WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND MajorSeq = 2001 AND MinorSeq = C.SMStatus) END AS ItemStatus, -- 품목 상태</p>
+<p>ISNULL(F.IsInQc , '0') ,</p>
+<p>ISNULL(F.IsLastQc, '0') ,</p>
+<p>C.LastUserSeq ,</p>
+<p>C.LastDateTime ,</p>
+<p>M.StdTime ,</p>
+<p>'1'</p>
+<p>FROM _TDAItemLog AS C</p>
+<p>JOIN (SELECT A.ItemSeq, MAX(LogSeq) AS LogSeq</p>
+<p>FROM _TDAItemLog AS A</p>
+<p>JOIN #TempDelItem AS B ON A.ItemSeq = B.ItemSeq AND A.LogType = 'D'</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>) AS D ON C.CompanySeq = @CompanySeq AND C.LogSeq = D.LogSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS B WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.UnitSeq = B.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS CC WITH(NOLOCK) ON C.CompanySeq = CC.CompanySeq</p>
+<p>AND C.AssetSeq = CC.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.SMStatus = E.MinorSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS F WITH(NOLOCK) ON C.CompanySeq = F.CompanySeq</p>
+<p>AND C.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B1 WITH(NOLOCK) ON ( C.CompanySeq = B1.CompanySeq AND C.ItemSeq = B1.ItemSeq AND B1.UMajorItemClass IN (2001,2004) )</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON ( B1.CompanySeq = H.CompanySeq AND H.MajorSeq = LEFT( B1.UMItemClass, 4 ) AND B1.UMItemClass = H.MinorSeq )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON ( H.CompanySeq = K.CompanySeq AND K.MajorSeq IN (2001,2004) AND H.MinorSeq = K.MinorSeq AND K.Serl IN (1001,2001) )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS L WITH(NOLOCK) ON ( K.CompanySeq = L.CompanySeq AND L.MajorSeq IN (2002,2005) AND K.ValueSeq = L.MinorSeq AND L.Serl = 2001 )</p>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, SUM(StdWorkTime) AS StdTime FROM _TPDROUItemProcWC GROUP BY ItemSeq) AS M ON C.ItemSeq = M.ItemSeq</p>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, ItemNo, MAX(Seq) AS Seq FROM uck_TMESITEMMASTER WHERE AUDType = 'A' GROUP BY ItemSeq, ItemNo) AS MES ON D.ItemSeq = MES.ItemSeq AND C.ItemNo = MES.ItemNo</p>
+<p>WHERE C.AssetSeq IN ('1','6', '10','16','2','4')</p>
+<p>AND MES.Seq IS NULL</p>
+<p>INSERT INTO #ERP_Item</p>
+<p>SELECT 'A' ,</p>
+<p>C.ItemSeq ,</p>
+<p>C.ItemName ,</p>
+<p>C.ItemNo ,</p>
+<p>C.Spec ,</p>
+<p>C.AssetSeq ,</p>
+<p>ISNULL(CC.AssetName, '') ,</p>
+<p>ISNULL(L.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(L.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = L.ValueSeq ) END AS ItemClassLName, -- 품목대분류</p>
+<p>ISNULL(K.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(K.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = K.ValueSeq ) END AS ItemClassMName, -- 품목중분류</p>
+<p>ISNULL(B1.UMItemClass,0) AS ItemClassSSeq, -- 품목소분류코드</p>
+<p>ISNULL(H.MinorName,'') AS ItemClassSName, -- 품목소분류</p>
+<p>C.UnitSeq ,</p>
+<p>ISNULL(B.UnitName , '') ,</p>
+<p>ISNULL(C.SMStatus,0) AS SMStatus, -- 품목 상태</p>
+<p>CASE WHEN ISNULL(C.SMStatus,0) = 0 THEN '' ELSE (SELECT ISNULL(MinorName,'') FROM _TDASMinor WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND MajorSeq = 2001 AND MinorSeq = C.SMStatus) END AS ItemStatus, -- 품목 상태</p>
+<p>ISNULL(F.IsInQc , '0') ,</p>
+<p>ISNULL(F.IsLastQc, '0') ,</p>
+<p>C.LastUserSeq ,</p>
+<p>C.LastDateTime ,</p>
+<p>M.StdTime ,</p>
+<p>'1'</p>
+<p>FROM #TempDelItem AS AA</p>
+<p>LEFT OUTER JOIN _TDAItemLog AS BB ON AA.ItemSeq = BB.ItemSeq AND BB.LogType = 'U'</p>
+<p>LEFT OUTER JOIN _TDAItemLog AS C ON AA.ItemSeq = C.ItemSeq AND C.LogType = 'D'</p>
+<p>LEFT OUTER JOIN _TDAUnit AS B WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.UnitSeq = B.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS CC WITH(NOLOCK) ON C.CompanySeq = CC.CompanySeq</p>
+<p>AND C.AssetSeq = CC.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.SMStatus = E.MinorSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS F WITH(NOLOCK) ON C.CompanySeq = F.CompanySeq</p>
+<p>AND C.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B1 WITH(NOLOCK) ON ( C.CompanySeq = B1.CompanySeq AND C.ItemSeq = B1.ItemSeq AND B1.UMajorItemClass IN (2001,2004) )</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON ( B1.CompanySeq = H.CompanySeq AND H.MajorSeq = LEFT( B1.UMItemClass, 4 ) AND B1.UMItemClass = H.MinorSeq )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON ( H.CompanySeq = K.CompanySeq AND K.MajorSeq IN (2001,2004) AND H.MinorSeq = K.MinorSeq AND K.Serl IN (1001,2001) )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS L WITH(NOLOCK) ON ( K.CompanySeq = L.CompanySeq AND L.MajorSeq IN (2002,2005) AND K.ValueSeq = L.MinorSeq AND L.Serl = 2001 )</p>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, SUM(StdWorkTime) AS StdTime FROM _TPDROUItemProcWC GROUP BY ItemSeq) AS M ON C.ItemSeq = M.ItemSeq</p>
+<p>WHERE BB.ItemSeq IS NULL</p>
+<p>AND BB.AssetSeq IN ('1','6', '10','16','2','4')</p>
+<p>-- LOG Table에서 최종 전송시간 이후 삭제된 Data를 담는다.</p>
+<p>INSERT INTO #ERP_Item</p>
+<p>SELECT 'D' ,</p>
+<p>A.ItemSeq ,</p>
+<p>A.ItemName ,</p>
+<p>A.ItemNo ,</p>
+<p>A.Spec ,</p>
+<p>A.AssetSeq ,</p>
+<p>ISNULL(C.AssetName, '') ,</p>
+<p>ISNULL(L.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(L.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = L.ValueSeq ) END AS ItemClassLName, -- 품목대분류</p>
+<p>ISNULL(K.ValueSeq,0) ,</p>
+<p>CASE WHEN ISNULL(K.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND MinorSeq = K.ValueSeq ) END AS ItemClassMName, -- 품목중분류</p>
+<p>ISNULL(B1.UMItemClass,0) AS ItemClassSSeq, -- 품목소분류코드</p>
+<p>ISNULL(H.MinorName,'') AS ItemClassSName, -- 품목소분류</p>
+<p>A.UnitSeq ,</p>
+<p>ISNULL(B.UnitName , '') ,</p>
+<p>ISNULL(A.SMStatus,0) AS SMStatus, -- 품목 상태</p>
+<p>CASE WHEN ISNULL(A.SMStatus,0) = 0 THEN '' ELSE (SELECT ISNULL(MinorName,'') FROM _TDASMinor WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND MajorSeq = 2001 AND MinorSeq = A.SMStatus) END AS ItemStatus, -- 품목 상태</p>
+<p>ISNULL(F.IsInQc , '0') ,</p>
+<p>ISNULL(F.IsLastQc, '0') ,</p>
+<p>A.LastUserSeq ,</p>
+<p>GETDATE() AS LastDateTime ,</p>
+<p>M.StdTime ,</p>
+<p>'1'</p>
+<p>FROM _TDAItemLog AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAUnit AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.AssetSeq = C.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.SMStatus = E.MinorSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B1 WITH(NOLOCK) ON ( A.CompanySeq = B1.CompanySeq AND A.ItemSeq = B1.ItemSeq AND B1.UMajorItemClass IN (2001,2004) )</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON ( B1.CompanySeq = H.CompanySeq AND H.MajorSeq = LEFT( B1.UMItemClass, 4 ) AND B1.UMItemClass = H.MinorSeq )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON ( H.CompanySeq = K.CompanySeq AND K.MajorSeq IN (2001,2004) AND H.MinorSeq = K.MinorSeq AND K.Serl IN (1001,2001) )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS L WITH(NOLOCK) ON ( K.CompanySeq = L.CompanySeq AND L.MajorSeq IN (2002,2005) AND K.ValueSeq = L.MinorSeq AND L.Serl = 2001 )</p>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, SUM(StdWorkTime) AS StdTime FROM _TPDROUItemProcWC GROUP BY ItemSeq) AS M ON A.ItemSeq = M.ItemSeq</p>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, ItemNo, MAX(Seq) AS Seq FROM uck_TMESITEMMASTER WHERE AUDType = 'D' GROUP BY ItemSeq, ItemNo) AS MES ON A.ItemSeq = MES.ItemSeq AND A.ItemNo = MES.ItemNo</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (A.LogDateTime &gt; @FinDate)</p>
+<p>AND (A.LogDateTime \&lt;= @CrtDate)</p>
+<p>AND A.LogType = 'D'</p>
+<p>AND A.AssetSeq IN ('1','6', '10','16','2','4')</p>
+<p>AND MES.Seq IS NULL</p>
+<p>IF EXISTS (SELECT 1 FROM #ERP_Item)</p>
+<p>BEGIN</p>
+<p>INSERT INTO uck_TMESITEMMASTER</p>
+<p>(</p>
+<p>AUDType ,</p>
+<p>CrtDateTime ,</p>
+<p>RecvYn ,</p>
+<p>RecvDateTime ,</p>
+<p>CompanySeq ,</p>
+<p>ItemSeq ,</p>
+<p>ItemName ,</p>
+<p>ItemNo ,</p>
+<p>Spec ,</p>
+<p>AssetSeq ,</p>
+<p>AssetName ,</p>
+<p>ItemClassLSeq ,</p>
+<p>ItemClassLName,</p>
+<p>ItemClassMSeq ,</p>
+<p>ItemClassMName,</p>
+<p>ItemClassSSeq ,</p>
+<p>ItemClassSName,</p>
+<p>UnitSeq ,</p>
+<p>UnitName ,</p>
+<p>SMStatus ,</p>
+<p>SMStatusName ,</p>
+<p>IsInQc ,</p>
+<p>IsLastQc ,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime ,</p>
+<p>StdTime</p>
+<p>)</p>
+<p>SELECT A.WorkingTag , @CrtDate , 'N' , NULL ,</p>
+<p>@CompanySeq ,</p>
+<p>A.ItemSeq ,</p>
+<p>A.ItemName ,</p>
+<p>A.ItemNo ,</p>
+<p>A.Spec ,</p>
+<p>A.AssetSeq ,</p>
+<p>A.AssetName ,</p>
+<p>A.ItemClassLSeq ,</p>
+<p>A.ItemClassLName,</p>
+<p>A.ItemClassMSeq ,</p>
+<p>A.ItemClassMName,</p>
+<p>A.ItemClassSSeq ,</p>
+<p>A.ItemClassSName,</p>
+<p>A.UnitSeq ,</p>
+<p>A.UnitName ,</p>
+<p>A.SMStatus ,</p>
+<p>A.SMStatusName ,</p>
+<p>A.IsInQc ,</p>
+<p>A.IsLastQc ,</p>
+<p>A.LastUserSeq ,</p>
+<p>A.LastDateTime ,</p>
+<p>A.StdTime</p>
+<p>FROM #ERP_Item AS A</p>
+<p>END</p>
+<p>-- 리소스 잠금 설정 해제 --</p>
+<p>EXEC SP_RELEASEAPPLOCK 'uck_SMESItemInfo', 'SESSION'</p>
+<p>RETURN</p>
+<p>--truncate table uck_TMESITEMMASTER</p>
+<p>----select * from uck_TMESITEMMASTER order by RecvDateTime</p>
+<p>select * from #ERP_Item where itemno in( 'A7K017950644', 'A7K055923000(B)', '임시코드494')</p>
+<p>select * from uck_TMESITEMMASTER where itemno in( 'A7K017950644', 'A7K055923000(B)', '임시코드494')</p>
+<p>select * from uck_TMESITEMMASTER where itemno = 'A7K055923000(B)'</p>
+<p>select * from uck_TMESITEMMASTER where itemno = '임시코드494'</p>
+<p>select * from uck_TMESITEMMASTER where itemno = 'A7K017950644'</p>
+<p>select * from _tdaitemlog where itemno = 'A7K017950644'</p>
+<p>select * from _TPDBaseItemQCType where itemseq = 5175</p>
+<p>select * from _TPDBaseItemQCTypelog where itemseq = 5175</p>
+<p>select * From uck_TMESITEMMASTER where isnumeric(itemseq) = 1</p>
+<p>select * From uck_TMESITEMMASTER where itemname = 'a70046991530'</p>
+<p>-- 리소스 잠금 여부 체크 : 잠금 상태이면 SP 종료하도록 한다.</p>
+<p>IF APPLOCK_TEST('PUBLIC', 'uck_SMESItemInfo', 'EXCLUSIVE', 'SESSION') = 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 리소스 잠금 설정 : SP 중복 호출로 인한 중복 Data 생성을 방지하기 위함</p>
+<p>EXEC SP_GETAPPLOCK 'uck_SMESItemInfo', 'EXCLUSIVE', 'SESSION'</p>
+<p>-- 리소스 잠금 예시</p>
+<p>--CREATE TABLE sjpark_test(</p>
+<p>-- ItemSeq INT</p>
+<p>--)</p>
+<p>CREATE OR ALTER PROC SJPARKTEST</p>
+<p>AS</p>
+<p>SET NOCOUNT ON</p>
+<p>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</p>
+<p>-- 1. 중복 실행 방지 (AppLock 체크)</p>
+<p>IF APPLOCK_TEST('PUBLIC', 'SJPARKTEST', 'EXCLUSIVE', 'SESSION') = 0</p>
+<p>RETURN</p>
+<p>-- 2. 리소스 잠금 획득</p>
+<p>EXEC SP_GETAPPLOCK 'SJPARKTEST', 'EXCLUSIVE', 'SESSION'</p>
+<p>BEGIN TRY</p>
+<p>-- [트랜잭션 시작]</p>
+<p>BEGIN TRAN</p>
+<p>-- 정상 데이터 입력 (1번째)</p>
+<p>INSERT INTO sjpark_test (ItemSeq)</p>
+<p>SELECT 5</p>
+<p>-- 에러 발생 유도 (2번째: INT 컬럼에 문자열 입력)</p>
+<p>INSERT INTO sjpark_test (ItemSeq)</p>
+<p>SELECT 'ㄱ'</p>
+<p>-- 모든 로직 성공 시 커밋</p>
+<p>COMMIT TRAN</p>
+<p>SELECT 'SUCCESS' AS Result</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- [에러 발생 시 롤백]</p>
+<p>IF @@TRANCOUNT &gt; 0</p>
+<p>ROLLBACK TRAN</p>
+<p>-- 에러 내용 출력</p>
+<p>SELECT ERROR_MESSAGE() AS ErrorMsg, ERROR_NUMBER() AS ErrorNo</p>
+<p>END CATCH</p>
+<p>-- 3. 리소스 잠금 해제 (TRY/CATCH 외부에서 반드시 수행)</p>
+<p>EXEC SP_RELEASEAPPLOCK 'SJPARKTEST', 'SESSION'</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>-- 실행 테스트</p>
+<p>EXEC SJPARKTEST</p>
+<p>-- 결과 확인 (아무 데이터도 들어가지 않아야 정상)</p>
+<p>SELECT * FROM sjpark_test WITH(NOLOCK)</p>
+  </article>
+</div>
+</body>
+</html>

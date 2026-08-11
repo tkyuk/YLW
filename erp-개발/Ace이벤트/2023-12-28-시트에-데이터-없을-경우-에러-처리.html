@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트에 데이터 없을 경우 에러 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트에 데이터 없을 경우 에러 처리</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트에 데이터 없을 경우 에러 처리</h1>
+<p>-- 선수금인 경우 입금통보 한 건도 없는 경우 에러처리 23.12.28 SJPARK</p>
+<p>if txtUMPreReceipt.TextCd == '1027119002' then</p>
+<p>if(SS4.DataRowCnt == 0) then</p>
+<p>MessageBoxShow('선수금 건은 입금통보번호가 필수로 입력되어야 합니다.','')</p>
+<p>GoTo('END')</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

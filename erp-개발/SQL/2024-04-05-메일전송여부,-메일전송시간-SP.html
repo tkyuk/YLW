@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메일전송여부, 메일전송시간 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>메일전송여부, 메일전송시간 SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">메일전송여부, 메일전송시간 SP</h1>
+<p>SELECT A.POSeq,</p>
+<p>MAX(LEFT(K.SndDtm,4) + '-' + SUBSTRING(K.SndDtm, 5, 2) + '-' + SUBSTRING(K.SndDtm, 7, 2) + ' ' + SUBSTRING(K.SndDtm, 9, 2) + ':' + SUBSTRING(K.SndDtm, 11, 2) + ':' + SUBSTRING(K.SndDtm, 13, 2)) AS MailDateTime</p>
+<p>INTO #SendMail</p>
+<p>FROM #TEMP_TPUORDPOItem AS A</p>
+<p>JOIN _TPUORDPO AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.POSeq = B.POSeq</p>
+<p>LEFT OUTER JOIN OTCAKumsTransLog AS K WITH(NOLOCK) ON B.CompanySeq = K.CompanySeq</p>
+<p>AND B.PONo = SUBSTRING(K.Subject, CHARINDEX('PO', K.Subject), 11)</p>
+<p>GROUP BY A.POSeq</p>
+<p>SELECT</p>
+<p>, CASE WHEN ISNULL(K.MailDateTime,'') = '' THEN '0' ELSE '1' END AS IsMail -- 메일전송여부 추가</p>
+<p>, K.MailDateTime AS MailDateTime -- 메일전송시간 추가</p>
+<p>LEFT OUTER JOIN #SendMail AS K ON A.POSeq = K.POSeq</p>
+  </article>
+</div>
+</body>
+</html>

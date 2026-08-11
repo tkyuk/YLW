@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>임시테이블 INDEX 인덱스 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>임시테이블 INDEX 인덱스 생성</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="index">임시테이블 INDEX 인덱스 생성</h1>
+<blockquote>
+<p>CREATE TABLE #Tmp_TSLInvoiceItem(</p>
+<p>PJTSeq                 INT</p>
+<p>,IsInvoiceDelv        NCHAR(1)</p>
+<p>,IsInvoiceSlip         NCHAR(1)</p>
+<p>)</p>
+<p>CREATE CLUSTERED INDEX IXC_Tmp_TSLInvoiceItem_PJTSeq ON #Tmp_TSLInvoiceItem (PJTSeq)</p>
+</blockquote>
+<p>-- 임시 테이블 생성 및 데이터 삽입</p>
+<p>SELECT Column1, Column2, Column3 INTO #TempTable FROM YourSourceTable;</p>
+<p>-- 인덱스 생성</p>
+<p>CREATE INDEX IX_CompoundIndex ON #TempTable (Column1, Column2, Column3);</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자재예상재고조회_dhi / 소요량 합계 미 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>자재예상재고조회_dhi / 소요량 합계 미 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_dhi">자재예상재고조회_dhi / 소요량 합계 미 조회</h1>
+<p>DROP PROCEDURE dhi_SPUForeMatListQuery_ttest</p>
+<p>GO</p>
+<p>CREATE PROCEDURE dhi_SPUForeMatListQuery_ttest</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction CHAR(1)</p>
+<p>AS</p>
+<p>-- 조회조건 변수 선언</p>
+<p>DECLARE</p>
+<p>@FactUnit INT,</p>
+<p>@DateFr NVARCHAR(8),</p>
+<p>@DateTo NVARCHAR(8),</p>
+<p>@AssetType INT,</p>
+<p>@ItemName NVARCHAR(100),</p>
+<p>@ItemNo NVARCHAR(100),</p>
+<p>@Spec NVARCHAR(100),</p>
+<p>@nItemPoint INT,</p>
+<p>@AddDelvDate DECIMAL(19,5),</p>
+<p>@DelvDateFr NVARCHAR(8),</p>
+<p>@DelvDateTo NVARCHAR(8),</p>
+<p>@PODelvDateFr NVARCHAR(8),</p>
+<p>@PODelvDateTo NVARCHAR(8),</p>
+<p>@DateYM NCHAR(6), -- 20190806.기준월</p>
+<p>@IsLink NCHAR(1), -- 20190806.링크드여부</p>
+<p>@CurrYM NCHAR(6), -- 현재월</p>
+<p>@ForeDateFr NCHAR(8),</p>
+<p>@ForeDateTo NCHAR(8)</p>
+<p>-- 조회부</p>
+<p>SELECT</p>
+<p>@FactUnit = ISNULL(FactUnit, 0),</p>
+<p>@DateFr = ISNULL(DateFr, ''),</p>
+<p>@DateTo = ISNULL(DateTo, ''),</p>
+<p>@AssetType = ISNULL(AssetType, 0),</p>
+<p>@ItemName = ISNULL(ItemName, ''),</p>
+<p>@ItemNo = ISNULL(ItemNo, ''),</p>
+<p>@Spec = ISNULL(Spec, ''),</p>
+<p>@DateYM = ISNULL(DateYM, ''), -- 20190806.기준월</p>
+<p>@IsLink = ISNULL(IsLink, '') -- 20190806.링크드여부</p>
+<p>FROM #BIZ_IN_DataBlock1 AS X</p>
+<p>IF @IsLink = '1'</p>
+<p>BEGIN</p>
+<p>SELECT</p>
+<p>@DateFr = @DateYM + '01',</p>
+<p>@DateTo = CONVERT(NCHAR(8),DATEADD(D,-1,DATEADD(M,1,@DateYM + '01')),112)</p>
+<p>END</p>
+<p>-- EnvSeq = 4 BOM 자리수</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,4,@UserSeq,@@PROCID,@nItemPoint OUTPUT</p>
+<p>-- 자재납기일</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,2000136,@UserSeq,@@PROCID,@AddDelvDate OUTPUT</p>
+<p>SELECT</p>
+<p>@DelvDateFr = CONVERT(NVARCHAR(8), DATEADD(DAY, -8, @DateFr ),112),</p>
+<p>@DelvDateTo = CONVERT(NVARCHAR(8), DATEADD(DAY, -1, @DateFr ),112),</p>
+<p>@PODelvDateFr = CONVERT(NVARCHAR(8), DATEADD(DAY, -1, DATEADD(Month,-3,@DateFr)),112),</p>
+<p>@PODelvDateTo = CONVERT(NVARCHAR(8), DATEADD(DAY, -1, @DateFr ),112)</p>
+<p>--================================================================================================================================</p>
+<p>-- 타이틀구하기</p>
+<p>--================================================================================================================================</p>
+<p>-- 타이틀</p>
+<p>CREATE TABLE #Title (</p>
+<p>ColIDX INT IDENTITY(0,1),</p>
+<p>TitleName NVARCHAR(100),</p>
+<p>TitleSeq INT,</p>
+<p>TitleName2 NVARCHAR(100),</p>
+<p>TitleSeq2 INT</p>
+<p>)</p>
+<p>-- From ~ To 기간 날짜 리스트</p>
+<p>INSERT #Title (TitleName, TitleSeq, TitleName2, TitleSeq2)</p>
+<p>SELECT</p>
+<p>SUBSTRING(A.Solar,1,4) + '-' + SUBSTRING(A.Solar,5,2) + '-' + SUBSTRING(A.Solar,7,2),</p>
+<p>A.Solar,</p>
+<p>B.TitleName2,</p>
+<p>B.TitleSeq2</p>
+<p>FROM _TCOMCalendar AS A</p>
+<p>LEFT OUTER JOIN (SELECT TitleName2 = '소요예정', TitleSeq2 = 1</p>
+<p>UNION ALL</p>
+<p>SELECT TitleName2 = '입고예정', TitleSeq2 = 2</p>
+<p>UNION ALL</p>
+<p>SELECT TitleName2 = '예상재고', TitleSeq2 = 3</p>
+<p>) AS B ON 1=1</p>
+<p>WHERE (1=1)</p>
+<p>AND A.Solar BETWEEN @DateFr AND @DateTo</p>
+<p>ORDER BY A.Solar, B.TitleSeq2</p>
+<p>--================================================================================================================================</p>
+<p>-- BEGIN 고정값 구하기</p>
+<p>--================================================================================================================================</p>
+<p>CREATE TABLE #TmpCol (</p>
+<p>RowIDX INT IDENTITY(0,1),</p>
+<p>ItemName NVARCHAR(100),</p>
+<p>ItemNo NVARCHAR(100),</p>
+<p>Spec NVARCHAR(100),</p>
+<p>ItemSeq INT,</p>
+<p>PrevStockQty DECIMAL(19,5),</p>
+<p>FinForeCastStockQty DECIMAL(19,5),</p>
+<p>NeedDelvDate NVARCHAR(8)</p>
+<p>)</p>
+<p>CREATE TABLE #TmpCol2 (</p>
+<p>RowIDX INT IDENTITY(0,1),</p>
+<p>ItemName NVARCHAR(100),</p>
+<p>ItemNo NVARCHAR(100),</p>
+<p>Spec NVARCHAR(100),</p>
+<p>ItemSeq INT,</p>
+<p>PrevStockQty DECIMAL(19,5),</p>
+<p>FinForeCastStockQty DECIMAL(19,5),</p>
+<p>NeedDelvDate NVARCHAR(8)</p>
+<p>)</p>
+<p>CREATE TABLE #FixCol (</p>
+<p>RowIDX INT IDENTITY(0,1),</p>
+<p>ItemName NVARCHAR(100),</p>
+<p>ItemNo NVARCHAR(100),</p>
+<p>Spec NVARCHAR(100),</p>
+<p>ItemSeq INT,</p>
+<p>PrevStockQty DECIMAL(19,5), -- 이월재고</p>
+<p>FinForeCastStockQty DECIMAL(19,5), -- 최종예상재고</p>
+<p>NeedDelvDate NVARCHAR(8), -- 자재입고필요일</p>
+<p>NotInQty DECIMAL(19,5), -- 입고검사대기수량</p>
+<p>TotNeedQty DECIMAL(19,5), -- 소요량합계</p>
+<p>TotInQty DECIMAL(19,5), -- 입고예정합계</p>
+<p>FirstDelvDate NVARCHAR(8), -- 입고예정일</p>
+<p>LastDelvDate NVARCHAR(8), -- 입고예정일2</p>
+<p>StepQty DECIMAL(19,5), -- 구매간격수량</p>
+<p>SafetyQty DECIMAL(19,5), -- 안전재고수량</p>
+<p>PurQty DECIMAL(19,5), -- 구매수량</p>
+<p>NotDelvQty DECIMAL(19,5), -- 발주납품수량</p>
+<p>SumInQty DECIMAL(19,5), -- 총입고예정수량</p>
+<p>PurEstQty DECIMAL(19,5), -- 구매산정량</p>
+<p>ExptStockQty DECIMAL(19,5), -- 예상재고수량</p>
+<p>DelvDate NCHAR(8),</p>
+<p>EtcInQty DECIMAL(19,5), -- 자재기타입고수량</p>
+<p>EtcOutQty DECIMAL(19,5) -- 자재기타출고수량</p>
+<p>)</p>
+<p>CREATE TABLE #GetInOutItem (</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #GetInOutStock (</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>PrevQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5),</p>
+<p>StockQty DECIMAL(19,5),</p>
+<p>STDPrevQty DECIMAL(19,5),</p>
+<p>STDInQty DECIMAL(19,5),</p>
+<p>STDOutQty DECIMAL(19,5),</p>
+<p>STDStockQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #GetInOutItem</p>
+<p>SELECT ItemSeq</p>
+<p>FROM _TDAItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAItemAsset AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq AND A.AssetSeq = B.AssetSeq</p>
+<p>JOIN _TDASMinor AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq AND B.SMAssetGrp = C.MinorSeq AND C.MinorValue = 1 -- 자재</p>
+<p>WHERE (1=1)</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND (@AssetType = 0 OR A.AssetSeq = @AssetType)</p>
+<p>AND (@ItemName = '' OR A.ItemName LIKE @ItemName + '%')</p>
+<p>AND (@ItemNo = '' OR A.ItemNo LIKE @ItemNo + '%')</p>
+<p>AND (@Spec = '' OR A.Spec LIKE @Spec + '%')</p>
+<p>-- 현재월구함</p>
+<p>SELECT @CurrYM = CONVERT(NCHAR(6),GETDATE(),112)</p>
+<p>-- 현재월이 조회월보다 이전인 경우 조회월기준 최종예상재고를 이월재고로 조회</p>
+<p>IF @IsLink = '1' AND @CurrYM \&lt; @DateYM</p>
+<p>BEGIN</p>
+<p>SELECT</p>
+<p>@ForeDateFr = @CurrYM + '01',</p>
+<p>@ForeDateTo = CONVERT(NCHAR(8),DATEADD(d,-1,@DateYM + '01'),112)</p>
+<p>EXEC dhi_SPUForeMatListGetForeStkQty</p>
+<p>@CompanySeq = @CompanySeq,</p>
+<p>@FactUnit = @FactUnit,</p>
+<p>@DateFr = @ForeDateFr,</p>
+<p>@DateTo = @ForeDateTo,</p>
+<p>@AssetType = @AssetType,</p>
+<p>@ItemName = @ItemName,</p>
+<p>@ItemNo = @ItemNo,</p>
+<p>@Spec = @Spec,</p>
+<p>@UserSeq = @UserSeq</p>
+<p>INSERT INTO #TmpCol (ItemName ,ItemNo ,Spec ,ItemSeq ,PrevStockQty)</p>
+<p>SELECT ItemName ,ItemNo ,Spec ,ItemSeq ,PrevStockQty FROM #TmpCol2</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 창고재고 가져오기 (이월)</p>
+<p>EXEC _SLGGetInOutStock</p>
+<p>@CompanySeq = @CompanySeq, -- 법인코드</p>
+<p>@BizUnit = 0, -- 사업부문</p>
+<p>@FactUnit = @FactUnit, -- 생산사업장</p>
+<p>@DateFr = @DateFr, -- 조회기간Fr</p>
+<p>@DateTo = @DateFr, -- 조회기간To</p>
+<p>@WHSeq = 0, -- 창고지정</p>
+<p>@SMWHKind = 0, -- 창고구분별 조회</p>
+<p>@CustSeq = 0, -- 수탁거래처</p>
+<p>@IsTrustCust = '', -- 수탁여부</p>
+<p>@IsSubDisplay = '', -- 기능창고 조회</p>
+<p>@IsUnitQry = '', -- 단위별 조회</p>
+<p>@QryType = 'S' -- 'S': 1007 실재고, 'B':1008 자산포함, 'A':1011 가용재고</p>
+<p>INSERT INTO #TmpCol (ItemName, ItemNo, Spec, ItemSeq, PrevStockQty)</p>
+<p>SELECT</p>
+<p>B.ItemName, B.ItemNo, B.Spec, X.ItemSeq, SUM(A.PrevQty)</p>
+<p>FROM #GetInOutItem AS X</p>
+<p>LEFT OUTER JOIN #GetInOutStock AS A ON X.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND X.ItemSeq = B.ItemSeq</p>
+<p>GROUP BY B.ItemName, B.ItemNo, B.Spec, X.ItemSeq</p>
+<p>END</p>
+<p>--================================================================================================================================</p>
+<p>-- END 고정값 구하기</p>
+<p>--================================================================================================================================</p>
+<p>--================================================================================================================================</p>
+<p>-- BEGIN 가변값 구하기</p>
+<p>--================================================================================================================================</p>
+<hr />
+<p>-- 생산계획 --</p>
+<hr />
+<p>SELECT</p>
+<p>B.EndDate AS ProdDate,</p>
+<p>ItemSeq,</p>
+<p>SUM(Qty) AS Qty -- A.ProdReqDate -&gt; B.EndDate 변경 20191002</p>
+<p>INTO #TPDDailyProdPlan</p>
+<p>FROM dhi_TPDProdReqM AS A WITH(NOLOCK)</p>
+<p>JOIN dhi_TPDProdReqItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq AND A.ProdReqSeq = B.ProdReqSeq</p>
+<p>WHERE (1=1)</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND B.EndDate BETWEEN @DateFr AND @DateTo -- 소요량 계산시 생산의뢰 의뢰일 기준이 아닌 생산완료일 기준으로 수정..</p>
+<p>GROUP BY B.EndDate, B.ItemSeq</p>
+<p>--SELECT * FROM #TPDDailyProdPlan WHERE ItemSeq = 29230</p>
+<p>--SELECT A.ProdReqDate,B.EndDate ,*</p>
+<p>-- FROM dhi_TPDProdReqM AS A WITH(NOLOCK)</p>
+<p>-- JOIN dhi_TPDProdReqItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq AND A.ProdReqSeq = B.ProdReqSeq</p>
+<p>--WHERE ItemSeq = 29230</p>
+<hr />
+<p>-- 생산계획 --</p>
+<hr />
+<hr />
+<p>-- 소요예정 --</p>
+<hr />
+<p>SELECT</p>
+<p>a.ItemSeq,</p>
+<p>MAX(a.ItemBomRev) AS ItemBomRev,</p>
+<p>case when FrDate = '' then '19000101' else FrDate end as FrTermValidity,</p>
+<p>case when ToDate = '' then '99991231' else ToDate end as ToTermValidity</p>
+<p>INTO #tmpBOMTerm</p>
+<p>FROM _TPDBOM a</p>
+<p>JOIN _TPDROUItemProcRevFactUnit b on a.CompanySeq = b.CompanySeq and a.ItemSeq = b.ItemSeq and a.ItemBomRev = b.BomRev</p>
+<p>JOIN _TDAItem c on a.ItemSeq = c.ItemSeq</p>
+<p>WHERE a.CompanySeq = 1</p>
+<p>--AND (@AssetType = 0 OR c.AssetSeq = @AssetType)</p>
+<p>--AND (@ItemName = '' OR c.ItemName LIKE @ItemName + '%')</p>
+<p>--AND (@ItemNo = '' OR c.ItemNo LIKE @ItemNo + '%')</p>
+<p>--AND (@Spec = '' OR c.Spec LIKE @Spec + '%')</p>
+<p>GROUP BY a.ItemSeq, FrDate, ToDate</p>
+<p>select distinct</p>
+<p>a.ItemSeq,</p>
+<p>max(a.ItemBomRev) as ItemBomRev</p>
+<p>into #tmpBOMRev</p>
+<p>from #tmpBOMTerm a</p>
+<p>join #TPDDailyProdPlan b on A.ItemSeq = B.ItemSeq and b.ProdDate between a.FrTermValidity and a.ToTermValidity</p>
+<p>group by a.ItemSeq</p>
+<p>SELECT * FROM #tmpBOMTerm AS A WHERE A.ItemSeq = 29230</p>
+<p>SELECT * FROM #TPDDailyProdPlan AS A WHERE A.ItemSeq = 29230</p>
+<p>SELECT * FROM #tmpBOMRev AS A WHERE A.ItemSeq = 29230 RETURN</p>
+<p>select distinct</p>
+<p>a.ItemSeq,</p>
+<p>a.ItemBomRev</p>
+<p>into #tmpBOMRev2</p>
+<p>from #tmpBOMTerm a</p>
+<p>join #TPDDailyProdPlan b on A.ItemSeq = B.ItemSeq and b.ProdDate between a.FrTermValidity and a.ToTermValidity</p>
+<p>declare</p>
+<p>@vcItemSeq int,</p>
+<p>@vcItemName nvarchar(200),</p>
+<p>@vcItemNo nvarchar(200),</p>
+<p>@vcStatus nvarchar(10),</p>
+<p>@vcResult nvarchar(100)</p>
+<p>select @vcStatus = 'OK', @vcResult = ''</p>
+<p>if exists (select ItemSeq, count(*) from #tmpBOMRev2 group by ItemSeq having count(*) &gt; 1)</p>
+<p>begin</p>
+<p>select</p>
+<p>@vcItemSeq = ItemSeq</p>
+<p>from #tmpBOMRev2</p>
+<p>group by ItemSeq</p>
+<p>having count(*) &gt; 1</p>
+<p>order by count(*) desc</p>
+<p>select</p>
+<p>@vcItemName = ItemName,</p>
+<p>@vcItemNo = ItemNo</p>
+<p>from _TDAItem</p>
+<p>where ItemSeq = @vcItemSeq</p>
+<p>select @vcStatus = 'ERR', @vcResult = @vcItemName +'('+ @vcItemNo +')의 차수가 중복됩니다. 확인부탁드립니다.'</p>
+<p>end</p>
+<p>-- @@@@</p>
+<p>SELECT * FROM #TPDDailyProdPlan AS A WHERE A.ItemSeq = 29230</p>
+<p>SELECT * FROM #tmpBOMRev AS A WHERE A.ItemSeq = 29230</p>
+<p>SELECT * FROM _TPDBOM AS A WHERE ItemSeq = 29230 AND A.SubItemSeq = 29174</p>
+<p>SELECT * FROM _TPDBOM AS A WHERE A.SubItemSeq = 29174</p>
+<p>SELECT * FROM _TDAITEM WHERE ITEMNO = 'P323K0002SM'</p>
+<p>RETURN</p>
+<p>SELECT *</p>
+<p>FROM #TPDDailyProdPlan AS A</p>
+<p>JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #tmpBOMRev AS C ON B.ItemSeq = C.ItemSeq AND B.ItemBomRev = C.ItemBomRev</p>
+<p>WHERE C.ItemSeq = 29174</p>
+<p>RETURN</p>
+<p>-- 일자별생산계획기준 BOM 풀어서 1레벨 자재 소요량 계산</p>
+<p>;WITH TNeedQty(ProdDate, GoodItemSeq, Qty, ItemSeq, ItemBOMRev, SubItemSeq, InLossRate, NeedQtyNumerator, NeedQtyDenominator, NeedQty) AS (</p>
+<p>SELECT</p>
+<p>A.ProdDate, A.ItemSeq, A.Qty, A.ItemSeq, B.SubItemBomRev, B.SubItemSeq, B.InLossRate, B.NeedQtyNumerator, B.NeedQtyDenominator,</p>
+<p>CASE WHEN NeedQtyDenominator \&lt;&gt; 0 THEN (B.NeedQtyNumerator / B.NeedQtyDenominator) ELSE 0 END AS NeedQty</p>
+<p>FROM #TPDDailyProdPlan AS A</p>
+<p>JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #tmpBOMRev AS C ON B.ItemSeq = C.ItemSeq AND B.ItemBomRev = C.ItemBomRev</p>
+<p>--JOIN (SELECT ItemSeq, MAX(ItemBomRev) AS ItemBomRev FROM _TPDBOM WHERE CompanySeq = @CompanySeq GROUP BY ItemSeq) AS C ON B.ItemSeq = C.ItemSeq AND B.ItemBomRev = C.ItemBomRev</p>
+<p>JOIN _TDAItem AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq AND B.SubItemSeq = D.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq AND D.AssetSeq = E.AssetSeq</p>
+<p>JOIN _TDASMinor AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq AND E.SMAssetGrp = F.MinorSeq AND F.MinorValue = 1 -- 자재</p>
+<p>WHERE B.SMDelvType \&lt;&gt; 6032003 -- BOM전개 상세 제외</p>
+<p>)</p>
+<p>SELECT A.ProdDate</p>
+<p>,A.SubItemSeq AS ItemSeq,</p>
+<p>SUM(CASE WHEN U.SMDecPointSeq = 1003001 THEN ROUND((A.NeedQty) * A.Qty, @nItemPoint*2, 0) -- 반올림 *2를 한 이유는 소요량은 BOM 자리수로 분자/분모이기 때문에</p>
+<p>WHEN U.SMDecPointSeq = 1003002 THEN ROUND((A.NeedQty) * A.Qty, @nItemPoint*2, -1) -- 절사</p>
+<p>WHEN U.SMDecPointSeq = 1003003 THEN ROUND((A.NeedQty) * A.Qty + CAST(4 AS DECIMAL(19, 5)) / POWER(CAST(10 AS DECIMAL(19, 5)),(@nItemPoint*2 + 1)), @nItemPoint*2) -- 올림</p>
+<p>ELSE ROUND((A.NeedQty) * A.Qty + CAST(4 AS DECIMAL(19, 5)) / POWER(CAST(10 AS DECIMAL(19, 5)),(@nItemPoint*2 + 1)), @nItemPoint*2) END)</p>
+<p>AS NeedQty</p>
+<p>INTO #TNeedQty</p>
+<p>FROM TNeedQty AS A</p>
+<p>JOIN #TmpCol AS B ON A.SubItemSeq = B.ItemSeq -- 자재</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON B.ItemSeq = C.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS D WITH(NOLOCK) ON C.AssetSeq = D.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON C.CompanySeq = U.CompanySeq AND C.UnitSeq = U.UnitSeq</p>
+<p>GROUP BY A.ProdDate, A.SubItemSeq</p>
+<p>SELECT * FROM #TmpCol</p>
+<p>SELECT * FROM #TNeedQty</p>
+<p>RETURN</p>
+<hr />
+<p>-- 소요예정 --</p>
+<hr />
+<p>-- 진행체크할 테이블값 테이블</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE (</p>
+<p>IDOrder INT IDENTITY,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TMP_SOURCETABLE (</p>
+<p>IDOrder INT IDENTITY,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 진행체크할 데이터 테이블</p>
+<p>CREATE TABLE #Temp_PUDelv (</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>DelvSeq INT,</p>
+<p>DelvSerl INT,</p>
+<p>ItemSeq INT,</p>
+<p>DelvDate NVARCHAR(8),</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 진행체크할 데이터 테이블</p>
+<p>CREATE TABLE #Temp_PUOrd (</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>ItemSeq INT,</p>
+<p>DelvDate NVARCHAR(8),</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>IsStop NCHAR(1)</p>
+<p>)</p>
+<p>-- 진행체크할 데이터 테이블</p>
+<p>CREATE TABLE #Temp_PO (</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>ItemSeq INT,</p>
+<p>DelvDate NVARCHAR(8),</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_PO2 (</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>ItemSeq INT, DelvDate NVARCHAR(8),</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_Delv (</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>DelvSeq INT,</p>
+<p>DelvSerl INT,</p>
+<p>ItemSeq INT,</p>
+<p>DelvInDate NVARCHAR(8),</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_DelvIn (</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>DelvInSeq INT,</p>
+<p>DelvInSerl INT,</p>
+<p>ItemSeq INT,</p>
+<p>DelvInDate NVARCHAR(8),</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 진행체크할 데이터 테이블</p>
+<p>CREATE TABLE #Temp_PUOrdNot (</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>ItemSeq INT,</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 진행 내역 테이블</p>
+<p>CREATE TABLE #TCOMProgressTracking (</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>StdQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 진행 내역 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking (</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>StdQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+<hr />
+<p>-- 입고예정 --</p>
+<hr />
+<p>/********************************************************************************</p>
+<p>입고예정 수량을 계산할 때, 기본적으로는 발주에 등록되어 있는</p>
+<p>입고예정수량을 기준으로 계산하나, 기 입고가 된 내역이 있는 품목에 대해서는</p>
+<p>기 입고일자를 입고예정일로 간주하여 처리한다.</p>
+<p>즉 기 입고된 일자가 조회기간의 시작을 보다 작을 경우</p>
+<p>해당 입고일에 입고 예정수량으로 표현해 주기 위해</p>
+<p>기 입고내역을 뒤져 해당하는 입고건의 원천 발주내역을 조회한다.</p>
+<p>********************************************************************************/</p>
+<p>-- 기간내 입고된 내역에 대해 예정일 등록</p>
+<p>INSERT INTO #Temp_DelvIn</p>
+<p>SELECT A.DelvInSeq, B.DelvInSerl, B.ItemSeq, A.DelvInDate, B.Qty</p>
+<p>FROM _TPUDelvIn a with(nolock)</p>
+<p>join _TPUDelvInItem b with(nolock) on a.DelvInSeq = b.DelvInSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvInDate BETWEEN @DateFr AND @DateTo</p>
+<p>TRUNCATE TABLE #TMP_SOURCETABLE</p>
+<p>TRUNCATE TABLE #TCOMSourceTracking</p>
+<p>INSERT INTO #TMP_SOURCETABLE(TABLENAME)</p>
+<p>SELECT '_TPUORDPOItem'</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPUDelvInItem', '#Temp_DelvIn', 'DelvInSeq', 'DelvInSerl', ''</p>
+<p>insert #Temp_PO2</p>
+<p>select</p>
+<p>B.Seq,</p>
+<p>B.Serl,</p>
+<p>A.ItemSeq,</p>
+<p>A.DelvInDate,</p>
+<p>A.Qty</p>
+<p>from #Temp_DelvIn A</p>
+<p>join #TCOMSourceTracking B on A.IDX_No = B.IDX_No</p>
+<p>join _TPUORDPOItem C on B.Seq = C.POSeq and B.Serl = C.POSerl</p>
+<p>where (1=1)</p>
+<p>/********************************************************************************/</p>
+<p>-- 기간내 납품된 내역에 대해 예정일 등록</p>
+<p>INSERT INTO #Temp_Delv</p>
+<p>SELECT A.DelvSeq, B.DelvSerl, B.ItemSeq, A.DelvDate, B.Qty</p>
+<p>FROM _TPUDelv a with(nolock)</p>
+<p>join _TPUDelvItem b with(nolock) on a.DelvSeq = b.DelvSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvDate BETWEEN @DateFr AND @DateTo</p>
+<p>TRUNCATE TABLE #TMP_SOURCETABLE</p>
+<p>TRUNCATE TABLE #TCOMSourceTracking</p>
+<p>INSERT INTO #TMP_SOURCETABLE(TABLENAME)</p>
+<p>SELECT '_TPUORDPOItem'</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPUDelvItem', '#Temp_Delv', 'DelvSeq', 'DelvSerl', ''</p>
+<p>insert #Temp_PO2</p>
+<p>select</p>
+<p>B.Seq,</p>
+<p>B.Serl,</p>
+<p>A.ItemSeq,</p>
+<p>A.DelvInDate,</p>
+<p>case when C.IsStop \&lt;&gt; '1' then C.Qty else A.Qty end</p>
+<p>from #Temp_Delv A</p>
+<p>join #TCOMSourceTracking B on A.IDX_No = B.IDX_No</p>
+<p>join _TPUORDPOItem C on B.Seq = C.POSeq and B.Serl = C.POSerl</p>
+<p>left outer join #Temp_PO2 D on B.Seq = D.POSeq and B.Serl = D.POSerl</p>
+<p>where (1=1)</p>
+<p>and D.POSeq is null</p>
+<p>/************************************************/</p>
+<p>-- 구매발주 납기일기준 발주수량 조회</p>
+<p>INSERT INTO #Temp_PO</p>
+<p>SELECT A.POSeq ,A.POSerl ,A.ItemSeq ,A.DelvDate ,A.Qty</p>
+<p>FROM _TPUORDPOItem AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvDate BETWEEN @DateFr AND @DateTo</p>
+<p>AND A.IsStop \&lt;&gt; '1' -- 입고예정 수량 계산 시 중단건을 제외하도록 수정 2019.10.14 임종석 요청</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT INTO #TMP_PROGRESSTABLE(TABLENAME) SELECT '_TPUDelvItem'</p>
+<p>INSERT INTO #TMP_PROGRESSTABLE(TABLENAME) SELECT '_TPUDelvInItem'</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUORDPOItem', '#Temp_PO', 'POSeq', 'POSerl', ''</p>
+<p>select a.*</p>
+<p>into #tmpProcess</p>
+<p>from #TCOMProgressTracking a</p>
+<p>join (select IDX_No, max(IDOrder) as IDOrder from #TCOMProgressTracking group by IDX_No) b on a.IDX_No = b.IDX_No and a.IDOrder = b.IDOrder</p>
+<p>select</p>
+<p>a.POSeq, a.POSerl, a.ItemSeq, sum(b.Qty) as Qty</p>
+<p>into #tmpDelvQty</p>
+<p>from #Temp_PO a</p>
+<p>join #tmpProcess b on a.IDX_No = b.IDX_No</p>
+<p>group by a.POSeq, a.POSerl, a.ItemSeq</p>
+<p>--select * from #tmpDelvQty</p>
+<p>update #Temp_PO set</p>
+<p>Qty = a.Qty - b.Qty</p>
+<p>from #Temp_PO a</p>
+<p>join #tmpDelvQty b on a.POSeq = b.POSeq and a.POSerl = b.POSerl</p>
+<p>update #Temp_PO set Qty = 0 from #Temp_PO where Qty \&lt; 0</p>
+<p>insert #Temp_PO select * from #Temp_PO2</p>
+<p>delete from #Temp_PO where Qty = 0</p>
+<p>select ItemSeq, DelvDate, sum(Qty) as Qty</p>
+<p>INTO #TPUORDItem</p>
+<p>from #Temp_PO</p>
+<p>group by ItemSeq, DelvDate</p>
+<hr />
+<p>-- 입고예정 --</p>
+<hr />
+<p>/*********************************************************************************************************************/</p>
+<p>-- 예상재고</p>
+<p>/*********************************************************************************************************************/</p>
+<hr />
+<p>-- 발주 미납품수량 --</p>
+<hr />
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT INTO #Temp_PUOrd</p>
+<p>SELECT A.POSeq ,A.POSerl ,A.ItemSeq ,@DateFr AS DelvDate ,A.Qty, A.IsStop</p>
+<p>FROM _TPUORDPOItem AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvDate BETWEEN @PODelvDateFr AND @PODelvDateTo</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT INTO #TMP_PROGRESSTABLE(TABLENAME)</p>
+<p>SELECT '_TPUDelvItem'</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUORDPOItem', '#Temp_PUOrd', 'POSeq', 'POSerl', ''</p>
+<p>SELECT A.ItemSeq, A.DelvDate,</p>
+<p>SUM(CASE ISNULL(A.IsStop, '0') WHEN '0' THEN CASE WHEN A.Qty - ISNULL(B.Qty, 0) \&lt; 0 THEN 0 ELSE A.Qty - ISNULL(B.Qty, 0) END ELSE 0 /*CASE WHEN (A.Qty - B.Qty) \&lt; 0 THEN 0 ELSE (A.Qty - B.Qty) - (A.Qty - B.Qty)*/ END) AS Qty</p>
+<p>--과입고된 경우 입고예정수량 마이너스로 나오는 것 보정 필요</p>
+<p>--SUM(CASE ISNULL(A.IsStop, '0') WHEN '0' THEN A.Qty - ISNULL(B.Qty, 0) ELSE 0 /*CASE WHEN (A.Qty - B.Qty) \&lt; 0 THEN 0 ELSE (A.Qty - B.Qty) - (A.Qty - B.Qty)*/ END) AS Qty</p>
+<p>INTO #TPUNotDelvQty</p>
+<p>FROM #Temp_PUOrd AS A</p>
+<p>LEFT OUTER JOIN (SELECT A.IDX_NO ,SUM(A.Qty) AS Qty</p>
+<p>FROM #TCOMProgressTracking AS A</p>
+<p>JOIN _TPUDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.Seq = B.DelvSeq</p>
+<p>AND A.Serl = B.DelvSerl</p>
+<p>JOIN _TPUDelv AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq AND B.DelvSeq = C.DelvSeq</p>
+<p>WHERE A.IDOrder = 1</p>
+<p>AND C.DelvDate \&lt; @DateFr</p>
+<p>GROUP BY A.IDX_NO) AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>GROUP BY A.ItemSeq, A.DelvDate</p>
+<p>--UPDATE #TPUNotDelvQty SET Qty = CASE WHEN Qty \&lt; 0 THEN 0 ELSE Qty END --과입고를 건건이 찾기보다 sum된 것이 마이너스인걸 보정하는 것이 더 나을 것 같은데 잘 모르겠음 20190927</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<hr />
+<p>-- 발주 미납품수량 --</p>
+<hr />
+<hr />
+<p>-- 수입검사대기수량 --</p>
+<hr />
+<p>select a.ItemSeq, convert(char(8), dateadd(d, 15, b.DelvDate), 112) as DelvDate, SUM(a.Qty) as Qty</p>
+<p>into #TPUDelv</p>
+<p>from _TPUDelvItem a</p>
+<p>join _TPUDelv b WITH(NOLOCK) ON a.CompanySeq = b.CompanySeq AND a.DelvSeq = b.DelvSeq</p>
+<p>where a.SMQcType = 6035002</p>
+<p>and b.DelvDate \&lt;= @DelvDateTo</p>
+<p>group by a.ItemSeq, b.DelvDate</p>
+<hr />
+<p>-- 수입검사대기수량 --</p>
+<hr />
+<p>SELECT A.ItemSeq, A.StdDate, SUM(A.Qty) AS Qty</p>
+<p>INTO #tmp_forecast</p>
+<p>FROM (SELECT ItemSeq, DelvDate AS StdDate, Qty FROM #TPUORDItem</p>
+<p>UNION ALL</p>
+<p>SELECT ItemSeq, ProdDate AS StdDate, NeedQty * -1 AS Qty FROM #TNeedQty</p>
+<p>UNION ALL</p>
+<p>SELECT ItemSeq, Delvdate AS StdDate, Qty FROM #TPUDelv</p>
+<p>UNION ALL</p>
+<p>SELECT ItemSeq, Delvdate AS StdDate, Qty FROM #TPUNotDelvQty</p>
+<p>) AS A</p>
+<p>GROUP BY A.ItemSeq, A.StdDate</p>
+<p>SELECT A.ItemSeq, A.StdDate, SUM(B.Qty) AS Qty</p>
+<p>INTO #TForeCast</p>
+<p>FROM #tmp_forecast AS A</p>
+<p>JOIN #tmp_forecast AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.StdDate &gt;= B.StdDate</p>
+<p>GROUP BY A.ItemSeq, A.StdDate</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>/*********************************************************************************************************************/</p>
+<p>-- 예상재고</p>
+<p>/*********************************************************************************************************************/</p>
+<p>-- 현재월이 조회월보다 이전인 경우 수입검사대기, 구매미납 삭제</p>
+<p>IF @IsLink = '1' AND @CurrYM \&lt; @DateYM</p>
+<p>BEGIN</p>
+<p>DELETE FROM #TForeCast</p>
+<p>DELETE FROM #TPUNotDelvQty</p>
+<p>END</p>
+<p>--요청사항 이월재고 및 일자별 소요예정, 입고예정, 예상재고가 없는 항목은 조회되지 않도록 요청합니다.</p>
+<p>INSERT #FixCol (ItemName ,ItemNo ,Spec ,ItemSeq ,PrevStockQty)</p>
+<p>SELECT</p>
+<p>ItemName</p>
+<p>,ItemNo</p>
+<p>,Spec</p>
+<p>,ItemSeq</p>
+<p>,PrevStockQty</p>
+<p>FROM #TmpCol A</p>
+<p>WHERE ISNULL(A.PrevStockQty,0) \&lt;&gt; 0</p>
+<p>OR EXISTS (SELECT TOP 1 1 FROM #TNeedQty B WHERE A.ItemSeq = B.ItemSeq AND B.NeedQty \&lt;&gt; 0)</p>
+<p>OR EXISTS (SELECT TOP 1 1 FROM #TPUORDItem B WHERE A.ItemSeq = B.ItemSeq AND B.Qty \&lt;&gt; 0)</p>
+<p>OR EXISTS (SELECT TOP 1 1 FROM #TForeCast B WHERE A.ItemSeq = B.ItemSeq AND (ISNULL(B.Qty,0) + ISNULL(A.PrevStockQty,0))\&lt;&gt; 0)</p>
+<p>ORDER BY ItemName, ItemNo, Spec</p>
+<p>-- 소요예정 = 1 입고예정 = 2 예상재고 = 3</p>
+<p>CREATE TABLE #Result</p>
+<p>(</p>
+<p>ColIDX INT,</p>
+<p>RowIDX INT,</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #TPUDelvIn</p>
+<p>(</p>
+<p>ItemSeq int,</p>
+<p>DelvDate int,</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>insert #TPUDelvIn</p>
+<p>select ItemSeq, DelvDate, Qty from #TPUORDItem</p>
+<p>union all</p>
+<p>select ItemSeq, DelvDate, Qty from #TPUDelv</p>
+<p>select ItemSeq, DelvDate, sum(Qty) as Qty into #TPUDelvInR from #TPUDelvIn group by ItemSeq, DelvDate</p>
+<p>-- @@@@</p>
+<p>SELECT * FROM #FixCol</p>
+<p>SELECT * FROM #TNeedQty</p>
+<p>SELECT * FROM #Title</p>
+<p>RETURN</p>
+<p>SELECT C.ColIDX, A.RowIDX, B.NeedQty</p>
+<p>FROM #FixCol AS A</p>
+<p>JOIN #TNeedQty AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #Title AS C ON B.ProdDate = C.TitleSeq AND C.TitleSeq2 = 1 -- 소요예정</p>
+<p>RETURN</p>
+<p>INSERT INTO #Result</p>
+<p>SELECT C.ColIDX, A.RowIDX, B.NeedQty</p>
+<p>FROM #FixCol AS A</p>
+<p>JOIN #TNeedQty AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #Title AS C ON B.ProdDate = C.TitleSeq AND C.TitleSeq2 = 1 -- 소요예정</p>
+<p>UNION</p>
+<p>SELECT C.ColIDX, A.RowIDX, B.Qty</p>
+<p>FROM #FixCol AS A</p>
+<p>--JOIN #TPUORDItem AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #TPUDelvInR AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #Title AS C ON B.DelvDate = C.TitleSeq AND C.TitleSeq2 = 2 -- 입고예정</p>
+<p>UNION</p>
+<p>SELECT C.ColIDX, A.RowIDX, (ISNULL(B.Qty,0) + ISNULL(A.PrevStockQty,0)) AS Qty</p>
+<p>FROM #FixCol AS A</p>
+<p>LEFT OUTER JOIN #TForeCast AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>JOIN #Title AS C ON B.StdDate = C.TitleSeq AND C.TitleSeq2 = 3 -- 예상재고</p>
+<p>--================================================================================================================================</p>
+<p>-- END 가변값 구하기</p>
+<p>--================================================================================================================================</p>
+<p>SELECT</p>
+<p>ROWIDX, SUM(Qty) AS Qty</p>
+<p>FROM #Result AS B</p>
+<p>JOIN #Title AS C ON B.ColIDX = C.ColIDX AND C.TitleSeq2 = 1</p>
+<p>GROUP BY RowIDX</p>
+<p>SELECT * FROM #Result AS B</p>
+<p>SELECT * FROM #Title AS C WHERE C.TitleSeq2 = 1</p>
+<p>RETURN</p>
+<p>-- 예상재고(-) 중 가장 빠른 일자에서 자재납기일 (-) 처리</p>
+<p>SELECT</p>
+<p>RowIDX, MIN(TitleSeq) AS TitleSeq</p>
+<p>INTO #tmpTitle</p>
+<p>FROM #Result AS B</p>
+<p>JOIN #Title AS C ON B.ColIDX = C.ColIDX AND C.TitleSeq2 = 3</p>
+<p>WHERE B.Qty \&lt; 0</p>
+<p>GROUP BY B.RowIDX</p>
+<p>SELECT</p>
+<p>ROWIDX, SUM(Qty) AS Qty</p>
+<p>INTO #tmpOutPlan</p>
+<p>FROM #Result AS B</p>
+<p>JOIN #Title AS C ON B.ColIDX = C.ColIDX AND C.TitleSeq2 = 1</p>
+<p>GROUP BY RowIDX</p>
+<p>SELECT</p>
+<p>ROWIDX, SUM(Qty) AS Qty, MIN(C.TitleSeq) AS FirstDelvDate, MAX(C.TitleSeq) AS LastDelvDate</p>
+<p>INTO #tmpInPlan</p>
+<p>FROM #Result AS B</p>
+<p>JOIN #Title AS C ON B.ColIDX = C.ColIDX AND C.TitleSeq2 = 2</p>
+<p>GROUP BY RowIDX</p>
+<p>SELECT</p>
+<p>ItemSeq, SUM(SafetyQty) AS SafetyQty</p>
+<p>INTO #tmpSafe</p>
+<p>FROM _TDAWHItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>GROUP BY ItemSeq</p>
+<p>SELECT</p>
+<p>ItemSeq, SUM(Qty) AS Qty</p>
+<p>INTO #tmpDelv</p>
+<p>FROM #TPUDelv</p>
+<p>--WHERE DelvDate = @DelvDateFr</p>
+<p>GROUP BY ItemSeq</p>
+<p>SELECT</p>
+<p>ItemSeq, SUM(Qty) AS Qty</p>
+<p>INTO #tmpNotDelv</p>
+<p>FROM #TPUNotDelvQty</p>
+<p>GROUP BY ItemSeq</p>
+<p>SELECT</p>
+<p>B.RowIDX, SUM(B.Qty) AS Qty</p>
+<p>INTO #tmpStk</p>
+<p>FROM #Result AS B</p>
+<p>JOIN #Title AS C ON B.ColIDX = C.ColIDX AND C.TitleSeq2 = 3 -- 예상재고</p>
+<p>GROUP BY B.RowIDX</p>
+<p>/******************************************************************/</p>
+<p>-- 자재기타 입고/출고 수량</p>
+<p>SELECT</p>
+<p>A.ItemSeq,</p>
+<p>SUM(CASE WHEN A.InOutType = 41 THEN A.Qty ELSE 0 END) AS EtcInQty,</p>
+<p>SUM(CASE WHEN A.InOutType = 31 THEN A.Qty ELSE 0 END) AS EtcOutQty</p>
+<p>INTO #tmp_EtcInOut</p>
+<p>FROM _TLGInOutDailyItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TLGInOutDaily AS B WITH(NOLOCK) ON A.InOutType = B.InOutType</p>
+<p>AND A.InOutSeq = B.InOutSeq</p>
+<p>AND A.CompanySeq = B.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.InOutType IN (41, 31) -- 자재기타입고, 자재기타출고</p>
+<p>AND (B.InOutDate BETWEEN @DateFr AND @DateTo)</p>
+<p>AND (@AssetType = 0 OR C.AssetSeq = @AssetType)</p>
+<p>AND (@ItemName = '' OR C.ItemName LIKE @ItemName + '%')</p>
+<p>AND (@ItemNo = '' OR C.ItemNo LIKE @ItemNo + '%')</p>
+<p>AND (@Spec = '' OR C.Spec LIKE @Spec + '%')</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>/******************************************************************/</p>
+<p>-- 기준일 이전 미납수량</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT INTO #Temp_PUOrdNot</p>
+<p>SELECT A.POSeq, A.POSerl, A.ItemSeq, A.Qty</p>
+<p>FROM _TPUORDPOItem AS A WITH(NOLOCK)</p>
+<p>WHERE (1=1)</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvDate \&lt; @DateFr</p>
+<p>AND A.IsStop \&lt;&gt; '1'</p>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+<p>INSERT INTO #TMP_PROGRESSTABLE(TABLENAME)</p>
+<p>SELECT '_TPUDelvItem'</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUORDPOItem', '#Temp_PUOrdNot', 'POSeq', 'POSerl', ''</p>
+<p>--select</p>
+<p>-- a.ItemSeq, sum(isnull(a.Qty,0) - isnull(b.Qty,0)) as Qty</p>
+<p>--into #tmpNotDelvPO</p>
+<p>--from #Temp_PUOrdNot a</p>
+<p>-- left outer join #TCOMProgressTracking b on a.IDX_NO = b.IDX_NO</p>
+<p>--group by a.ItemSeq</p>
+<p>select</p>
+<p>a.POSeq, a.POSerl, a.ItemSeq, isnull(a.Qty,0) as Qty</p>
+<p>into #tmpPONot</p>
+<p>from #Temp_PUOrdNot a</p>
+<p>-- where a.ItemSeq = 14820</p>
+<p>select</p>
+<p>a.POSeq, a.POSerl, a.ItemSeq, sum(isnull(b.Qty,0)) as Qty</p>
+<p>into #tmpDelvNot</p>
+<p>from #Temp_PUOrdNot a</p>
+<p>left outer join #TCOMProgressTracking b on a.IDX_NO = b.IDX_NO</p>
+<p>-- where a.ItemSeq = 14820</p>
+<p>group by a.POSeq, a.POSerl, a.ItemSeq</p>
+<p>select</p>
+<p>p.ItemSeq, isnull(p.Qty,0) - isnull(d.Qty,0) as Qty</p>
+<p>into #tmpNotDelvPO2</p>
+<p>from #tmpPONot p</p>
+<p>left outer join #tmpDelvNot d on p.POSeq = d.POSeq and p.POSerl = d.POSerl</p>
+<p>--group by p.ItemSeq</p>
+<p>select</p>
+<p>ItemSeq, sum(Qty) as Qty</p>
+<p>into #tmpNotDelvPO</p>
+<p>from #tmpNotDelvPO2</p>
+<p>where Qty &gt; 0</p>
+<p>group by ItemSeq</p>
+<p>/******************************************************************/</p>
+<p>-- 자재납기필요일</p>
+<p>UPDATE a</p>
+<p>SET NeedDelvDate = CASE WHEN ka.RowIDX IS NOT NULL THEN CONVERT(NVARCHAR(8), DATEADD(DAY, @AddDelvDate, CONVERT(NVARCHAR(8),TitleSeq,112)),112) ELSE '' END,</p>
+<p>DelvDate = CASE WHEN ka.RowIDX IS NOT NULL THEN CONVERT(NVARCHAR(8), DATEADD(DAY, @AddDelvDate, CONVERT(NVARCHAR(8),TitleSeq,112)),112) ELSE '' END,</p>
+<p>NotInQty = ISNULL(ke.Qty,0), -- 입고검사대기수량</p>
+<p>NotDelvQty = ISNULL(kf.Qty,0),</p>
+<p>TotNeedQty = ISNULL(kb.Qty,0),</p>
+<p>TotInQty = ISNULL(kc.Qty,0),</p>
+<p>FirstDelvDate = ISNULL(kc.FirstDelvDate,0),</p>
+<p>LastDelvDate = CASE WHEN kc.FirstDelvDate = kc.LastDelvDate THEN '' ELSE kc.LastDelvDate END,</p>
+<p>StepQty = CASE WHEN ISNULL(bp.StepQty,0) = 0 THEN 1 ELSE bp.StepQty END, -- 최종예상재고 구할시 Divide 0 오류 피하기 위해 0일시 1로 세팅</p>
+<p>SafetyQty = ISNULL(kd.SafetyQty,0),</p>
+<p>SumInQty = ISNULL(kc.Qty,0) + isnull(nt.Qty,0), /*+ ISNULL(ke.Qty,0) + ISNULL(kf.Qty,0)*/-- 입고예정 수량에 기 입고된 내역이 포함되었으므로, 입고예정수량의 총합이 총입고예정수량이 됨</p>
+<p>--ExptStockQty = ISNULL(a.PrevStockQty,0) + ISNULL(ke.Qty,0) + ISNULL(kc.Qty,0) /*+ ISNULL(kf.Qty,0)*/ - ISNULL(kb.Qty,0) -- 이월재고 + 입고검사대기수량 + 총입고예정량 - 소요량합계</p>
+<p>ExptStockQty = (ISNULL(a.PrevStockQty,0) + ISNULL(kc.Qty,0) + ISNULL(kg.EtcInQty,0)) - (ISNULL(kb.Qty,0) + ISNULL(kg.EtcOutQty,0)) + isnull(nt.Qty,0), -- 이월재고 + 입고검사대기수량 + 총입고예정량 - 소요량합계</p>
+<p>EtcInQty = ISNULL(kg.EtcInQty,0),</p>
+<p>EtcOutQty = ISNULL(kg.EtcOutQty,0)</p>
+<p>FROM #FixCol AS a</p>
+<p>LEFT OUTER JOIN #tmpTitle AS ka ON a.RowIDX = ka.RowIDX -- 예상재고</p>
+<p>LEFT OUTER JOIN #tmpOutPlan AS kb ON a.RowIDX = kb.RowIDX -- 소요예정</p>
+<p>LEFT OUTER JOIN #tmpInPlan AS kc ON a.RowIDX = kc.RowIDX -- 입고예정</p>
+<p>LEFT OUTER JOIN #tmpSafe AS kd ON a.ItemSeq = kd.ItemSeq</p>
+<p>LEFT OUTER JOIN #tmpDelv AS ke ON a.ItemSeq = ke.ItemSeq</p>
+<p>LEFT OUTER JOIN #tmpNotDelv AS kf ON a.ItemSeq = kf.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPUBASEBuyPriceItem AS bp ON bp.CompanySeq = @CompanySeq AND a.ItemSeq = bp.ItemSeq AND bp.IsPrice = '1' -- 대표단가여부</p>
+<p>LEFT OUTER JOIN #tmp_EtcInOut AS kg ON a.ItemSeq = kg.ItemSeq</p>
+<p>left outer join #tmpNotDelvPO AS nt on a.ItemSeq = nt.ItemSeq</p>
+<p>-- 최종예상재고 = 이월재고 + 총입고예정수량 - 소요예정합계</p>
+<p>UPDATE A</p>
+<p>SET FinForeCastStockQty = A.PrevStockQty + A.SumInQty - A.TotNeedQty + A.NotInQty + A.EtcInQty - A.EtcOutQty</p>
+<p>FROM #FixCol AS A</p>
+<p>JOIN #tmpStk AS B ON A.RowIDX = B.RowIDX</p>
+<p>-- 구매산정량</p>
+<p>UPDATE A</p>
+<p>SET PurEstQty = CASE WHEN A.FinForeCastStockQty &gt;= A.SafetyQty THEN 0</p>
+<p>WHEN A.FinForeCastStockQty \&lt; 0 THEN CEILING((A.FinForeCastStockQty * -1 + A.SafetyQty) / A.StepQty) * A.StepQty</p>
+<p>WHEN A.FinForeCastStockQty &gt;= 0 THEN CEILING((A.SafetyQty - A.FinForeCastStockQty) / A.StepQty) * A.StepQty</p>
+<p>ELSE 0</p>
+<p>END,</p>
+<p>PurQty = CASE WHEN A.FinForeCastStockQty &gt;= A.SafetyQty THEN 0</p>
+<p>WHEN A.FinForeCastStockQty \&lt; 0 THEN CEILING((A.FinForeCastStockQty * -1 + A.SafetyQty) / A.StepQty) * A.StepQty</p>
+<p>WHEN A.FinForeCastStockQty &gt;= 0 THEN CEILING((A.SafetyQty - A.FinForeCastStockQty) / A.StepQty) * A.StepQty</p>
+<p>ELSE 0</p>
+<p>END</p>
+<p>FROM #FixCol AS A</p>
+<p>IF @IsLink \&lt;&gt; '0' -- 체크값이 0일때만 Title부분 구함.</p>
+<p>BEGIN</p>
+<p>delete from #Title</p>
+<p>END</p>
+<p>-- 자재재고현황_dhi에서 고정부만 필요하여 WorkingTag로 구분지어서 SELECT 함.</p>
+<p>--if exists (select 0 from #FixCol)</p>
+<p>--begin</p>
+<p>-- select @vcItemSeq = @vcItemSeq</p>
+<p>--end</p>
+<p>--else</p>
+<p>--begin</p>
+<p>-- insert #FixCol</p>
+<p>-- select</p>
+<p>-- '' as ItemName, '' as ItemNo, '' as Spec, 0 as ItemSeq,</p>
+<p>-- 0 as PrevStockQty, 0 as FinForeCastStockQty, '' as NeedDelvDate, 0 as NotInQty, 0 as TotNeedQty,</p>
+<p>-- 0 as TotInQty, '' as FirstDelvDate, '' as LastDelvDate, 0 as StepQty, 0 as SafetyQty,</p>
+<p>-- 0 as PurQty, 0 as NotDelvQty, 0 as SumInQty, 0 as PurEstQty, 0 as ExptStockQty,</p>
+<p>-- '' as DelvDate, 0 as EtcInQty, 0 as EtcOutQty</p>
+<p>--end</p>
+<p>IF @WorkingTag = 'Z'</p>
+<p>BEGIN</p>
+<p>-- 고정부</p>
+<p>SELECT ItemSeq,</p>
+<p>ExptStockQty -- 예상재고수량</p>
+<p>FROM #FixCol ORDER BY RowIDX</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT * FROM #Title ORDER BY ColIDX -- 시트헤더</p>
+<p>SELECT *, @vcStatus as ErrStatus, @vcResult as ErrResult FROM #FixCol ORDER BY RowIDX -- 고정부</p>
+<p>SELECT * FROM #Result ORDER BY ColIDX, RowIDX -- 가변부</p>
+<p>END</p>
+<p>RETURN</p>
+<p>go</p>
+<p>BEGIN TRAN</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock2 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock3 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock4 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock3 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock4 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock3 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock4 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock3 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock4 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, DateFr NVARCHAR(8), DateTo NVARCHAR(8), ItemName NVARCHAR(100), ItemNo NVARCHAR(100), Spec NVARCHAR(100), FactUnit INT, AssetType INT, DateYM CHAR(6), IsLink CHAR(1)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, FactUnitName NVARCHAR(100), DateFr NVARCHAR(8), DateTo NVARCHAR(8), AssetTypeName NVARCHAR(100), ItemName NVARCHAR(100), ItemNo NVARCHAR(100), Spec NVARCHAR(100), FactUnit INT, AssetType INT, DateYM CHAR(6), IsLink CHAR(1)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, TitleName NVARCHAR(100), TitleSeq INT, TitleName2 NVARCHAR(100), TitleSeq2 INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock2 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, TitleName NVARCHAR(100), TitleSeq INT, TitleName2 NVARCHAR(100), TitleSeq2 INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock2 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock3 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ItemName NVARCHAR(100), ItemNo NVARCHAR(100), Spec NVARCHAR(100), ItemSeq INT, PrevStockQty DECIMAL(19, 5), FinForeCastStockQty DECIMAL(19, 5), NeedDelvDate NVARCHAR(8), NotInQty DECIMAL(19, 5), TotNeedQty DECIMAL(19, 5), TotInQty DECIMAL(19, 5), FirstDelvDate CHAR(8), LastDelvDate CHAR(8), StepQty DECIMAL(19, 5), SafetyQty DECIMAL(19, 5), PurQty DECIMAL(19, 5), DelvDate NVARCHAR(8), Qty DECIMAL(19, 5), STDUnitSeq INT, IsInclusedVAT NVARCHAR(1), VATRate DECIMAL(19, 5), NotDelvQty DECIMAL(19, 5), SumInQty DECIMAL(19, 5), PurEstQty DECIMAL(19, 5), ExptStockQty DECIMAL(19, 5), EtcInQty DECIMAL(19, 5), EtcOutQty DECIMAL(19, 5), ErrStatus NVARCHAR(100), ErrResult NVARCHAR(100)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock3 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock3 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ItemName NVARCHAR(100), ItemNo NVARCHAR(100), Spec NVARCHAR(100), ItemSeq INT, PrevStockQty DECIMAL(19, 5), FinForeCastStockQty DECIMAL(19, 5), NeedDelvDate NVARCHAR(8), NotInQty DECIMAL(19, 5), TotNeedQty DECIMAL(19, 5), TotInQty DECIMAL(19, 5), FirstDelvDate CHAR(8), LastDelvDate CHAR(8), StepQty DECIMAL(19, 5), SafetyQty DECIMAL(19, 5), PurQty DECIMAL(19, 5), DelvDate NVARCHAR(8), Qty DECIMAL(19, 5), STDUnitSeq INT, IsInclusedVAT NVARCHAR(1), VATRate DECIMAL(19, 5), NotDelvQty DECIMAL(19, 5), SumInQty DECIMAL(19, 5), PurEstQty DECIMAL(19, 5), ExptStockQty DECIMAL(19, 5), EtcInQty DECIMAL(19, 5), EtcOutQty DECIMAL(19, 5), ErrStatus NVARCHAR(100), ErrResult NVARCHAR(100)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock3 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock4 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock4</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ColIDX INT, RowIDX INT, Qty DECIMAL(19, 5)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock4 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock4 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock4</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ColIDX INT, RowIDX INT, Qty DECIMAL(19, 5)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock4 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, DateFr, DateTo, ItemName, ItemNo, Spec, FactUnit, AssetType, DateYM, IsLink)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'1', N'', N'20240401', N'20240415', N'', N'0323J0001', N'', N'1', N'', N'202404', N'0'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 29020036</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 1</p>
+<p>SET @PgmSeq = 29020028</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC dhi_SPUForeMatListQuery_ttest</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>DROP TABLE #BIZ_IN_DataBlock2</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock2</p>
+<p>DROP TABLE #BIZ_IN_DataBlock3</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock3</p>
+<p>DROP TABLE #BIZ_IN_DataBlock4</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock4</p>
+<p>ROLLBACK TRAN</p>
+<p>1. 자재예상재고조회_dhi 화면에서 첨부 이미지 처럼 품번 '0323J0001' 을 입력하고 데이터 조회 시,</p>
+<p>소요량 합계가 조회되지 않습니다.</p>
+<p>2. BOM등록 및 제품별공정소요자재등록 화면 상에는 정상적으로 데이터가 입력이 되어 있는 상태입니다</p>
+<p>해당 컬럼의 데이터가 조회되지 않는 원인 확인 및 수정 요청 합니다.</p>
+<p>[자재예상재고조회_dhi] 화면</p>
+<p>소요량 계산 시 생산완료일 기준으로 계산하고 있습니다.</p>
+<p>해당 자재의 상위품목 'P323K0002SM' 의 생산완료일은 '<strong>2024-04-02</strong>' 이며</p>
+<p>각 차수 적용일은</p>
+<p>02 : <strong>2024-03-11</strong> ~ </p>
+<p>03 : <strong>2024-04-08</strong> ~ 으로</p>
+<p>02차수로 소요량 계산되기 때문에 '소요량 합계' 미 조회된 것으로 확인하였습니다.</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.22 단암 - 제뉴인버전 급여대장 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.22 단암 - 제뉴인버전 급여대장 SP</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250922-sp">25.09.22 단암 - 제뉴인버전 급여대장 SP</h1>
+<p>CREATE OR ALTER PROCEDURE danam_SPRPayResultPrint2_Ttest</p>
+<p>@xmlDocument NVARCHAR(MAX) , -- 화면의 정보를 XML로 전달</p>
+<p>@xmlFlags INT = 0 , -- 해당 XML의 TYPE</p>
+<p>@ServiceSeq INT = 0 , -- 서비스 번호</p>
+<p>@WorkingTag NVARCHAR(10) = '', -- 워킹 태그</p>
+<p>@CompanySeq INT = 1 , -- 회사 번호</p>
+<p>@LanguageSeq INT = 1 , -- 언어 번호</p>
+<p>@UserSeq INT = 0 , -- 사용자 번호</p>
+<p>@PgmSeq INT = 0 -- 프로그램 번호</p>
+<p>AS</p>
+<p>-- 사용할 변수를 선언한다.</p>
+<p>DECLARE @docHandle INT , -- XML을 핸들할 변수</p>
+<p>@PuSeq INT , -- 급여작업군(코드)</p>
+<p>@PbYM NCHAR(6) , -- 적용년월</p>
+<p>@SerialNo INT , -- 일련번호</p>
+<p>@PbSeq INT , -- 급상여구분(코드)</p>
+<p>@PtSeq INT , -- 급여형태</p>
+<p>@SMPrtType INT , -- 출력구분</p>
+<p>@DeptSeq INT , -- 부서</p>
+<p>@EmpSeq INT , -- 사원</p>
+<p>@UMDeptLevel INT , -- 부서레벨</p>
+<p>@SMPayPrtType INT , -- 급여출력방식(이메일:3207001, 인쇄용지:3207002)</p>
+<p>@SMEmpOrDept INT , -- 출력대장종류(개인별:3208001, 부서별:3208002)</p>
+<p>@SMObjSeq INT , -- 대상구분(전체:0, 재직자:3031001, 퇴직자:3031002)</p>
+<p>@BegDate NCHAR(8) , -- 시작일</p>
+<p>@EndDate NCHAR(8) , -- 종료일</p>
+<p>@PayDate NCHAR(8) , -- 지급일</p>
+<p>@AdYM NCHAR(6) , -- 개정연월</p>
+<p>@CompYM NCHAR(6) , -- 복합급여항목 개정연월</p>
+<p>@WkAdYM NCHAR(6) , -- 복합근태항목개정연월</p>
+<p>@ExistsSum NCHAR(1) ,</p>
+<p>@PuName NVARCHAR(100) , -- 급여작업군</p>
+<p>@PbName NVARCHAR(100) , -- 급상여구분</p>
+<p>@CompanyName NVARCHAR(100) ,</p>
+<p>@PrtDept INT ,</p>
+<p>@EnvValue NVARCHAR(100) ,</p>
+<p>@SerialName NVARCHAR(100) ,</p>
+<p>@Sql NVARCHAR(4000),</p>
+<p>@PrtOrder INT ,</p>
+<p>@AccType INT -- 급상여구분별 계좌구분</p>
+<p>-- XML파싱</p>
+<p>EXEC sp_xml_preparedocument @docHandle OUTPUT, @xmlDocument -- @xmlDocument의 XML을 @docHandle로 핸들한다.</p>
+<blockquote>
+<p>-- XML의 DataBlock1으로부터 값을 가져와 변수에 저장한다.</p>
+</blockquote>
+<p>SELECT @PuSeq = ISNULL(PuSeq , 0), -- 급여작업군</p>
+<p>@PbYM = ISNULL(PbYM , ''), -- 적용년월</p>
+<p>@SerialName = ISNULL(SerialName , ''), -- 급상여차수</p>
+<p>@SerialNo = ISNULL(SerialNo , 0), -- 일련번호</p>
+<p>@PbSeq = ISNULL(PbSeq , 0), -- 급상여구분</p>
+<p>@PtSeq = ISNULL(PtSeq , 0), -- 급여형태</p>
+<p>@SMPrtType = ISNULL(SMPrtType , 0), -- 출력구분</p>
+<p>@DeptSeq = ISNULL(DeptSeq , 0), -- 부서</p>
+<p>@EmpSeq = ISNULL(EmpSeq , 0), -- 사원</p>
+<p>@UMDeptLevel = ISNULL(UMDeptLevel , 0), -- 부서집계레벨</p>
+<p>@SMPayPrtType = ISNULL(SMPayPrtType, 0), -- 급여출력방식(이메일:3207001, 인쇄용지:3207002)</p>
+<p>@SMEmpOrDept = ISNULL(SMEmpOrDept , 0), -- 출력대장종류(개인별:3208001, 부서별:3208002)</p>
+<p>@SMObjSeq = ISNULL(SMObjSeq , 0) -- 대상구분(전체:0, 재직자:3031001, 퇴직자:3031002)</p>
+<p>FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags) -- XML의 DataBlock1으로부터</p>
+<p>WITH (PuSeq INT ,</p>
+<p>PbYM NCHAR(6),</p>
+<p>SerialName NVARCHAR(100),</p>
+<p>SerialNo INT ,</p>
+<p>PbSeq INT ,</p>
+<p>PtSeq INT ,</p>
+<p>SMPrtType INT ,</p>
+<p>DeptSeq INT ,</p>
+<p>EmpSeq INT ,</p>
+<p>UMDeptLevel INT ,</p>
+<p>SMPayPrtType INT ,</p>
+<p>SMEmpOrDept INT ,</p>
+<p>SMObjSeq INT</p>
+<p>)</p>
+<p>-- 급상여구분</p>
+<p>IF(ISNULL(@PbSeq, 0) = 0)</p>
+<p>BEGIN</p>
+<p>-- 급상여일자내역에서 급상여구분을 읽는다.</p>
+<p>SELECT @PbSeq = PbSeq</p>
+<p>FROM _TPRPayDateDtl</p>
+<p>WHERE CompanySeq = @CompanySeq -- 법인번호</p>
+<p>AND PuSeq = @PuSeq -- 급여작업군</p>
+<p>AND PbYM = @PbYM -- 적용년월</p>
+<p>AND SerialNo = @SerialNo -- 일련번호</p>
+<p>END</p>
+<p>-- 급상여구분별 계좌</p>
+<p>SELECT @AccType = UMAccNoType FROM _TPRBasPb WHERE CompanySeq = @CompanySeq AND PbSeq = @PbSeq</p>
+<p>-- 출력대상자를 담을 임시테이블(순서대로 들어갔다라고 보고 진행)</p>
+<p>CREATE TABLE #EmpMASter</p>
+<p>(</p>
+<p>PrtOrd INT IDENTITY(1, 1), -- 출력순서</p>
+<p>EmpSeq INT , -- 사원(코드)</p>
+<p>EmpName NVARCHAR(100) , -- 사원</p>
+<p>EmpID NVARCHAR(20) , -- 사번</p>
+<p>EntDate NCHAR(8) , -- 입사일</p>
+<p>RetireDate NCHAR(8) , -- 퇴사일</p>
+<p>ResidId NVARCHAR(20) , -- 주민번호</p>
+<p>DeptSeq INT , -- 소속부서 또는 근무부서</p>
+<p>PosSeq INT , -- 포지션</p>
+<p>UMPgSeq INT , -- 직급</p>
+<p>Ps NCHAR(3) , -- 호봉</p>
+<p>UMJpSeq INT , -- 직위</p>
+<p>UMJdSeq INT , -- 직책</p>
+<p>UMJoSeq INT , -- 직종</p>
+<p>PtSeq INT , -- 급여형태</p>
+<p>UMWsSeq INT , -- 근무상태</p>
+<p>SMSexSeq INT , -- 성별</p>
+<p>TotPayAmt DECIMAL(19, 5) , -- 급여총액</p>
+<p>TotPrevPayAmt DECIMAL(19, 5) , -- 기지급총액(출력에서 사용 안함)</p>
+<p>TotAllowBnsAmt DECIMAL(19, 5) , -- 인정상여총액(출력에서 사용 안함)</p>
+<p>TotDeducAmt DECIMAL(19, 5) , -- 공제총액</p>
+<p>ActPayAmt DECIMAL(19, 5) , -- 실지급액</p>
+<p>BASMmAmt DECIMAL(19, 5) , -- 기본급기준급액</p>
+<p>BASDdAmt DECIMAL(19, 5) , -- 기본일급</p>
+<p>BASTmAmt DECIMAL(19, 5) , -- 기본시급</p>
+<p>GenMmAmt DECIMAL(19, 5) , -- 통상임금</p>
+<p>GenDdAmt DECIMAL(19, 5) , -- 통상일급</p>
+<p>GenTmAmt DECIMAL(19, 5) , -- 통상시급</p>
+<p>OrgCd NVARCHAR(50) , -- 조직순서</p>
+<p>BnsRate DECIMAL(19, 5) , -- 상여율</p>
+<p>AccNo NVARCHAR(30) , -- 계좌번호</p>
+<p>BankSeq                INT                                 ,         -- 은행코드</p>
+<p>BankName                NVARCHAR(100)         ,         -- 은행명</p>
+<p>UMEmpType INT , -- 사원구분코드</p>
+<p>UMEmpTypeName NVARCHAR(100) -- 사원구분</p>
+<p>)</p>
+<p>-- 급상여일자내역에서 일자을 읽는다.</p>
+<p>SELECT @BegDate = ISNULL(BegDate, ''), -- 시작일</p>
+<p>@EndDate = ISNULL(EndDate, ''), -- 종료일</p>
+<p>@PayDate = ISNULL(PayDate, '') -- 지급일</p>
+<p>FROM _TPRPayDateDtl</p>
+<p>WHERE CompanySeq = @CompanySeq -- 법인번호</p>
+<p>AND PuSeq = @PuSeq -- 급여작업군</p>
+<p>AND PbYM = @PbYM -- 적용년월</p>
+<p>AND SerialNo = @SerialNo -- 일련번호</p>
+<p>-- 급상여출력시 부서(3511)</p>
+<p>-- 소속부서:3205001, 근무부서:3205002</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq, 3511, @UserSeq, @@PROCID, @EnvValue OUTPUT</p>
+<p>SELECT @PrtDept = CONVERT(INT, @EnvValue)</p>
+<p>---- 급상여출력시 순서(3510)</p>
+<p>--3204001        조직순+사번 ==&gt; Default</p>
+<p>--3204002        조직순+직위+사번</p>
+<p>--3204003        조직순+직급+사번</p>
+<p>--3204004        조직순+직위+호봉(내림차순)+사번</p>
+<p>--3204005        조직순+직위+호봉(오름차순)+사번</p>
+<p>--3204006        조직순+직급+호봉(내림차순)+사번</p>
+<p>--3204007        조직순+직급+호봉(오름차순)+사번</p>
+<p>--3204008:직위(내림차순)+사번</p>
+<p>--3204009:직위(오름차순)+사번</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq, 3510, @UserSeq, @@PROCID, @EnvValue OUTPUT</p>
+<p>SELECT @PrtOrder = CONVERT(INT, @EnvValue)</p>
+<p>-- 개인별인경우</p>
+<p>IF(@EmpSeq \&lt;&gt; 0) -- 사원 한 사람 찍기</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EmpMASter(EmpSeq , EmpName , -- 사원(코드) , 사원</p>
+<p>EmpID , EntDate , -- 사번 , 입사일</p>
+<p>RetireDate , ResidId , -- 퇴사일 , 주민등록번호</p>
+<p>DeptSeq , PosSeq , -- 부서 , 포지션</p>
+<p>UMPgSeq , Ps , -- 직급 , 호봉</p>
+<p>UMJpSeq , UMJdSeq , -- 직위 , 직책</p>
+<p>UMJoSeq , PtSeq , -- 직종 , 급여형태</p>
+<p>UMWsSeq , SMSexSeq , -- 근무상태 , 성별</p>
+<p>TotPayAmt , TotPrevPayAmt, -- 지급총액 , 기지급총액</p>
+<p>TotAllowBnsAmt, TotDeducAmt , -- 인정상여총액, 공제총액</p>
+<p>ActPayAmt , BASMmAmt , -- 실지급액 , 기본급기준금액</p>
+<p>BASDdAmt , BASTmAmt , -- 기본일급 , 기본시급</p>
+<p>GenMmAmt , GenDdAmt , -- 통상임금 , 통상일급</p>
+<p>GenTmAmt , OrgCd , -- 통상시급 , 조직순서</p>
+<p>BnsRate , AccNo , -- 상여율 , 계좌번호</p>
+<p>BankSeq                 , BankName                ,         -- 은행코드        , 은행명</p>
+<p>UMEmpType , UMEmpTypeName) -- 사원구분코드,사원구분</p>
+<p>SELECT A.EmpSeq , C.EmpName ,</p>
+<p>B.EmpID , B.EntDate ,</p>
+<p>B.RetireDate , dbo._FCOMDecrypt(C.ResidID, '_TDAEmp', 'ResidID', @CompanySeq),</p>
+<p>CASE WHEN @PrtDept = 3205002 THEN A.WkDeptSeq ELSE A.DeptSeq END,</p>
+<p>A.PosSeq , A.UMPgSeq ,</p>
+<p>A.Ps , A.UMJpSeq ,</p>
+<p>A.UMJdSeq , A.UMJoSeq ,</p>
+<p>A.PtSeq , A.UMWsSeq ,</p>
+<p>A.SMSexSeq , A.TotPayAmt ,</p>
+<p>A.TotPrevPayAmt, A.TotAllowBnsAmt,</p>
+<p>A.TotDeducAmt , A.ActPayAmt ,</p>
+<p>A.BASMmAmt , A.BASDdAmt ,</p>
+<p>A.BASTmAmt , A.GenMmAmt ,</p>
+<p>A.GenDdAmt , A.GenTmAmt ,</p>
+<p>'' , A.BnsRate ,</p>
+<p>dbo._FCOMDecrypt(D.AccNo, '_THRBasEmpAccNo', 'AccNo', @CompanySeq),</p>
+<p>D.PayBankSeq , (SELECT PayBankName FROM _THRBasBank WHERE CompanySeq = @CompanySeq AND PayBankSeq = D.PayBankSeq),</p>
+<p>B.UMEmpType , E.MinorName</p>
+<p>FROM _TPRPayResult AS A JOIN _TDAEmpIN AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>JOIN _TDAEmp AS C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.EmpSeq = C.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRBasEmpAccNo AS D ON A.CompanySeq = D.CompanySeq -- 계좌정보추가</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>AND D.UMAccNoType = @AccType</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS E ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.UMEmpType = E.MinorSeq</p>
+<p>AND E.MajorSeq = 3059</p>
+<p>WHERE A.CompanySeq = @CompanySeq -- 법인번호</p>
+<p>AND A.EmpSeq = @EmpSeq -- 사원</p>
+<p>AND A.PuSeq = @PuSeq -- 급여작업군</p>
+<p>AND A.PbYM = @PbYM -- 적용년월</p>
+<p>AND A.SerialNo = @SerialNo -- 일련번호</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 출력순서 때문에 동적쿼리로작성</p>
+<p>SET @Sql = ''</p>
+<p>SET @Sql = @Sql + 'INSERT INTO #EmpMASter(EmpSeq, EmpName, EmpID, EntDate, RetireDate, ResidId, DeptSeq, PosSeq, UMPgSeq, Ps, UMJpSeq, UMJdSeq, UMJoSeq,</p>
+<p>PtSeq, UMWsSeq, SMSexSeq, TotPayAmt, TotPrevPayAmt, TotAllowBnsAmt, TotDeducAmt, ActPayAmt, BASMmAmt, BASDdAmt,</p>
+<p>BASTmAmt, GenMmAmt, GenDdAmt, GenTmAmt, OrgCd, BnsRate, AccNo, BankSeq, BankName, UMEmpType, UMEmpTypeName)</p>
+<p>SELECT A.EmpSeq, C.EmpName, B.EmpID, B.EntDate, B.RetireDate, dbo._FCOMDecrypt(C.ResidID, ''_TDAEmp'', ''ResidID'', ' + CAST(@CompanySeq AS NVARCHAR) + '), '</p>
+<p>SET @Sql = @Sql + ' CASE WHEN ' + CAST(@PrtDept AS NVARCHAR) + ' = 3205002 THEN A.WkDeptSeq ELSE A.DeptSeq END, '</p>
+<p>SET @Sql = @Sql + ' A.PosSeq, A.UMPgSeq, A.Ps, A.UMJpSeq, A.UMJdSeq, A.UMJoSeq, A.PtSeq, A.UMWsSeq, A.SMSexSeq, A.TotPayAmt,</p>
+<p>A.TotPrevPayAmt, A.TotAllowBnsAmt, A.TotDeducAmt, A.ActPayAmt, A.BASMmAmt, A.BASDdAmt, A.BASTmAmt, A.GenMmAmt,</p>
+<p>A.GenDdAmt, A.GenTmAmt, ISNULL(D.OrgCd, ''999999'') AS OrgCd, A.BnsRate, dbo._FCOMDecrypt(G.AccNo, ''_THRBasEmpAccNo'', ''AccNo'', ' + CAST(@CompanySeq AS NVARCHAR) + '), G.PayBankSeq, (SELECT PayBankName FROM _THRBasBank WHERE CompanySeq = ' + CAST(@CompanySeq AS NVARCHAR) + ' AND PayBankSeq = G.PayBankSeq), B.UMEmpType, H.MinorName</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK) JOIN _TDAEmpIN AS B WITH(NOLOCK) ON (A.CompanySeq = B.CompanySeq AND A.EmpSeq = B.EmpSeq)</p>
+<p>JOIN _TDAEmp AS C WITH(NOLOCK) ON (A.CompanySeq = C.CompanySeq AND A.EmpSeq = C.EmpSeq)</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON B.CompanySeq = H.CompanySeq AND B.UMEmpType = H.MinorSeq AND H.MajorSeq = 3059</p>
+<p>LEFT OUTER JOIN _THRBasEmpAccNo AS G ON A.CompanySeq = G.CompanySeq AND A.EmpSeq = G.EmpSeq AND G.UMAccNoType = ' + CAST(@AccType AS NVARCHAR)</p>
+<p>SET @Sql = @Sql + ' LEFT OUTER JOIN _fnOrgDept(' + CAST(@CompanySeq AS NVARCHAR) + ', 3059001,' + CAST(@DeptSeq AS NVARCHAR) + ',''' + @EndDate + ''') D ON '</p>
+<p>SET @Sql = @Sql + ' (CASE WHEN '+CAST(@PrtDept AS NVARCHAR)+' = 3205002 THEN A.WkDeptSeq ELSE A.DeptSeq END = D.DeptSeq) '</p>
+<p>IF @PrtOrder IN (3204002, 3204004, 3204005, 3204008, 3204009) -- 직위가 있는</p>
+<p>SET @Sql = @Sql + ' LEFT OUTER JOIN _TDAUMinor E WITH(NOLOCK) ON (A.CompanySeq = E.CompanySeq AND A.UMJpSeq = E.MinorSeq) '</p>
+<p>ELSE IF @PrtOrder IN (3204003, 3204006, 3204007) -- 직급이 있는</p>
+<p>SET @Sql = @Sql + ' LEFT OUTER JOIN _TDAUMinor E WITH(NOLOCK) ON (A.CompanySeq = E.CompanySeq AND A.UMPgSeq = E.MinorSeq) '</p>
+<p>SET @Sql = @Sql + ' WHERE (1=1) '</p>
+<p>SET @Sql = @Sql + ' AND A.CompanySeq = ' + CAST(@CompanySeq AS NVARCHAR)</p>
+<p>SET @Sql = @Sql + ' AND A.PuSeq = ' + CAST(@PuSeq AS NVARCHAR)</p>
+<p>SET @Sql = @Sql + ' AND A.PbYM = ''' + @PbYM + ''''</p>
+<p>SET @Sql = @Sql + ' AND A.SerialNo = ' + CAST(@SerialNo AS NVARCHAR)</p>
+<p>SET @Sql = @Sql + ' AND (D.DeptSeq = ' + CAST(@DeptSeq AS NVARCHAR) + ' OR ' + CAST(@DeptSeq AS NVARCHAR) + ' = 0) '</p>
+<p>SET @Sql = @Sql + ' AND (' + CAST(@PtSeq AS NVARCHAR) + ' = 0 OR A.PtSeq = ' + CAST(@PtSeq AS NVARCHAR) + ') '</p>
+<p>SET @Sql = @Sql + ' AND ((' + CAST(@SMObjSeq AS NVARCHAR) + ' = 0) OR (A.IsRet = CASE WHEN ' + CAST(@SMObjSeq AS NVARCHAR) + ' = 3031002 THEN ''1'' '</p>
+<p>SET @Sql = @Sql + ' WHEN ' + CAST(@SMObjSeq AS NVARCHAR) + ' = 3031001 THEN ''0'' END))'</p>
+<blockquote></blockquote>
+<p>-- 출력순서 ORDER BY</p>
+<p>IF @PrtOrder IN (3204002, 3204003) -- 조직순+직위+사번, 조직순+직급+사번</p>
+<p>BEGIN</p>
+<blockquote></blockquote>
+<p>SET @Sql = @Sql +' ORDER BY ISNULL(D.OrgCd, ''999999''), D.DispSeq, E.MinorSort, B.EmpID '</p>
+<p>END</p>
+<p>ELSE IF @PrtOrder IN (3204004, 3204006) -- 조직순+직위+호봉(내림차순)+사번, 조직순+직급+호봉(내림차순)+사번</p>
+<p>BEGIN</p>
+<p>SET @Sql = @Sql +' ORDER BY ISNULL(D.OrgCd, ''999999''), D.DispSeq, E.MinorSort, A.Ps DESC, B.EmpID '</p>
+<p>END</p>
+<p>ELSE IF @PrtOrder IN (3204005, 3204007) -- 조직순+직위+호봉(오름차순)+사번, 조직순+직급+호봉(오름차순)+사번</p>
+<p>BEGIN</p>
+<p>SET @Sql = @Sql +' ORDER BY ISNULL(D.OrgCd, ''999999''), D.DispSeq, E.MinorSort, A.Ps , B.EmpID '</p>
+<p>END</p>
+<p>ELSE IF @PrtOrder IN (3204008) -- 직위(내림차순)+사번</p>
+<p>BEGIN</p>
+<p>SET @Sql = @Sql +' ORDER BY E.MinorSort DESC, B.EmpID '</p>
+<p>END</p>
+<p>ELSE IF @PrtOrder IN (3204009) -- 직위(오름차순)+사번</p>
+<p>BEGIN</p>
+<p>SET @Sql = @Sql +' ORDER BY E.MinorSort, B.EmpID '</p>
+<p>END</p>
+<p>ELSE -- 조직순+사번</p>
+<p>BEGIN</p>
+<p>SET @Sql = @Sql +' ORDER BY ISNULL(D.OrgCd, ''999999''), D.DispSeq, B.EmpID '</p>
+<p>END</p>
+<p>EXEC SP_EXECUTESQL @Sql -- @Sql실행</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>-- 명세서 이면서 전체가 아닌경우 삭제</p>
+<p>IF(@SMPrtType = 3041002 AND @SMPayPrtType \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>DELETE #EmpMASter</p>
+<p>FROM #EmpMASter A JOIN _THRBASEmpPayInfo B ON A.EmpSeq = B.EmpSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND B.SMPayPrtType \&lt;&gt; @SMPayPrtType</p>
+<p>END</p>
+<p>-- 출력순서 기준년월</p>
+<p>SELECT @AdYM = YM</p>
+<p>FROM _TPRPayBaseYm</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PuSeq = @PuSeq</p>
+<p>AND PbYm = @PbYm</p>
+<p>AND SerialNo = @SerialNo</p>
+<p>AND SMAppType = 3002034 -- 출력순서관리</p>
+<p>-- 급상여별지급공제 기준년월</p>
+<p>SELECT @CompYM = YM</p>
+<p>FROM _TPRPayBaseYm</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PuSeq = @PuSeq -- 급여작업군별로 읽어오기(2013.03.20)</p>
+<p>AND PbYm = @PbYm</p>
+<p>AND SerialNo = @SerialNo</p>
+<p>AND SMAppType = 3002028 -- 복합급여항목</p>
+<p>-- 복합근태 기준년월:2011-03-15 추가</p>
+<p>SELECT @WkAdYM = YM</p>
+<p>FROM _TPRPayBaseYm</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PbYm = @PbYm</p>
+<p>AND SerialNo = @SerialNo</p>
+<p>AND SMAppType = 3002036 -- 복합근태항목</p>
+<p>-- 출력항목을 담을 임시테이블</p>
+<p>CREATE TABLE #EmpItem</p>
+<p>(</p>
+<p>EmpSeq INT, -- 사원</p>
+<p>ItemSeq INT, -- 출력항목</p>
+<p>Amt DECIMAL(19, 5), -- 금액</p>
+<p>PosNum INT -- 순서</p>
+<p>)</p>
+<p>-- 출력순서관리에 등록한 항목들만 출력가능함</p>
+<p>-- 0. 급상여처리된 내역을 항목으로 찍을 내역이 존재하는 경우(같은 일자로 출력하는 경우) ==&gt; 합산쉬트로 바뀌어야함(일단G&amp;I기준)</p>
+<p>-- 1. 순수기본급여항목 지급</p>
+<p>-- 2. 순수기본급여항목 공제</p>
+<p>-- 3. 복합항목의 하부항목이 지급</p>
+<p>-- 4. 복합항목의 하부항목이 공제</p>
+<p>-- 5. 근태항목</p>
+<p>-- 5-1.복합근태항목: 2011-03-15 추가</p>
+<p>-- 6. Ksystem제공항목중 변동없는 항목(급여총액, 실지급액, 공제총액, 기본기준급액, 기본일급, 기본시급, 통상일급, 통상시급, 통상임금)</p>
+<p>-- 7. 가상항목(추가)</p>
+<p>-- 8. 가상복합항목(추가)</p>
+<p>-- 0. 급상여처리된 내역을 항목으로 찍을 내역이 존재하는 경우(같은일자로 출력하는 경우)</p>
+<p>-- (급여출력항목/상여출력항목/특별상여출력항목/년월차출력항목/소급출력항목/인센티브출력항목)</p>
+<p>IF EXISTS (SELECT * FROM _TPRBASPb WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND PbSeq = @PbSeq AND SMPbType = 3001001) -- 급여인경우</p>
+<p>BEGIN</p>
+<p>IF EXISTS (SELECT *</p>
+<p>FROM _TPRBASPrtOrd AS A WITH(NOLOCK) JOIN _TPRBASPb AS PB WITH(NOLOCK) ON A.CompanySeq = PB.CompanySeq</p>
+<p>AND A.ItemSeq = PB.PrtItemSeq</p>
+<p>JOIN _TPRPayDateDtl AS DD WITH(NOLOCK) ON A.CompanySeq = DD.CompanySeq</p>
+<p>AND A.PuSeq = DD.PuSeq</p>
+<p>AND DD.PbSeq = PB.PbSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.YM = @AdYM</p>
+<p>AND A.PuSeq = @PuSeq</p>
+<p>AND A.PbSeq = @PbSeq</p>
+<p>AND A.SMPrtType = @SMPrtType</p>
+<p>AND A.ItemSeq IN (1, 2, 3, 4, 5, 6) -- 급여출력항목/상여출력항목/특별상여출력항목/년월차출력항목/소급출력항목/인센티브출력항목</p>
+<p>AND A.ItemType = 'P'</p>
+<p>AND DD.PayDate = @PayDate</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>SELECT @ExistsSum = '1'</p>
+<p>CREATE TABLE #TT</p>
+<p>(</p>
+<p>PbYm NCHAR(6), -- 적용년월</p>
+<p>SerialNo INT , -- 일련번호</p>
+<p>IsSelf NCHAR(1), -- '0': 자기자신아님 '1' : 자기자신 == G&amp;I와 반대</p>
+<p>PbSeq INT , -- 급상여구분</p>
+<p>PrtItemSeq INT , -- 출력항목</p>
+<p>PosNum INT -- 순서</p>
+<p>)</p>
+<p>INSERT INTO #TT(PbYm , SerialNo,</p>
+<p>IsSelf , PbSeq ,</p>
+<p>PrtItemSeq, PosNum)</p>
+<p>SELECT @PbYm, @SerialNo,</p>
+<p>'1' , @PbSeq ,</p>
+<p>0 , 0</p>
+<p>UNION</p>
+<p>SELECT DD.PbYm , DD.SerialNo,</p>
+<p>'0' , DD.PbSeq ,</p>
+<p>A.ItemSeq, A.PosNum</p>
+<p>FROM _TPRBASPrtOrd AS A JOIN _TPRBASPb AS PB ON A.CompanySeq = PB.CompanySeq</p>
+<p>AND A.ItemSeq = PB.PrtItemSeq</p>
+<p>JOIN _TPRPayDateDtl AS DD ON A.CompanySeq = DD.CompanySeq</p>
+<p>AND A.PuSeq = DD.PuSeq</p>
+<p>AND DD.PbSeq = PB.PbSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.YM = @AdYM</p>
+<p>AND A.PuSeq = @PuSeq</p>
+<p>AND A.PbSeq = @PbSeq</p>
+<p>AND A.SMPrtType = @SMPrtType</p>
+<p>AND A.ItemSeq IN (1, 2, 3, 4, 5, 6) -- 급여출력항목/상여출력항목/특별상여출력항목/년월차출력항목/소급출력항목/인센티브출력항목</p>
+<p>AND A.ItemType = 'P'</p>
+<p>AND DD.PayDate = @PayDate</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT EM.EmpSeq , T.PrtItemSeq,</p>
+<p>SUM(PM.TotPayAmt), MAX(T.PosNum)</p>
+<p>FROM #EmpMASter AS EM JOIN _TPRPayResult AS PM ON EM.EmpSeq = PM.EmpSeq</p>
+<p>JOIN #TT AS T ON PM.PbYm = T.PbYm</p>
+<p>AND PM.SerialNo = T.SerialNo</p>
+<p>AND PM.PbSeq = T.PbSeq</p>
+<p>WHERE PM.CompanySeq = @CompanySeq</p>
+<p>AND T.IsSelf = '0' -- 자기자신이 아닌 항목만</p>
+<p>GROUP BY EM.EmpSeq, T.PrtItemSeq</p>
+<p>END</p>
+<p>END</p>
+<p>-- 1.순수기본급여항목이면서 지급인 경우</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq, -- 사원, 항목</p>
+<p>Amt , PosNum) -- 금액, 순서</p>
+<p>SELECT PM.EmpSeq , PO.ItemSeq,</p>
+<p>ISNULL(PP.Amt, 0), PO.PosNum</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayPay AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PP.CompanySeq = PO.CompanySeq</p>
+<p>AND PP.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>-- 2. 순수기본급여항목이면서 공제</p>
+<p>IF(@ExistsSum = '1')</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq , PO.ItemSeq,</p>
+<p>SUM(PP.Amt), MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayDeduc AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN #TT AS T ON PP.PbYm = T.PbYm</p>
+<p>AND PP.SerialNo = T.SerialNo</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PP.CompanySeq = PO.CompanySeq</p>
+<p>AND PP.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq , PO.ItemSeq,</p>
+<p>ISNULL(PP.Amt , 0), PO.PosNum</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayDeduc AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PP.CompanySeq = PO.CompanySeq</p>
+<p>AND PP.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>END</p>
+<p>-- 3. 복합항목의 하부항목이 지급</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>SUM(CASE WHEN PD.SMOprSeq = 1001001 THEN PP.Amt ELSE PP.Amt * (-1) END), MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayPay AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPayItemDtl AS PD ON PP.CompanySeq = PD.CompanySeq</p>
+<p>AND PP.ItemSeq = PD.SubItemSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PD.CompanySeq = PO.CompanySeq</p>
+<p>AND PD.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PD.YM = @CompYM -- 복합급여항목기준년월</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>-- 4. 복합항목의 하부항목이 공제</p>
+<p>IF(@ExistsSum = '1')</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>SUM(CASE WHEN PD.SMOprSeq = 1001001 THEN PP.Amt ELSE PP.Amt * (-1) END), MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayDeduc AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN #TT AS T ON PP.PbYm = T.PbYm</p>
+<p>AND PP.SerialNo = T.SerialNo</p>
+<p>JOIN _TPRBASPayItemDtl AS PD ON PP.CompanySeq = PD.CompanySeq</p>
+<p>AND PP.ItemSeq = PD.SubItemSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PD.CompanySeq = PO.CompanySeq</p>
+<p>AND PD.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PD.YM = @CompYM -- 복합급여항목기준년월</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>SUM(CASE WHEN PD.SMOprSeq = 1001001 THEN PP.Amt ELSE PP.Amt * (-1) END), MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayDeduc AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPayItemDtl AS PD ON PP.CompanySeq = PD.CompanySeq</p>
+<p>AND PP.ItemSeq = PD.SubItemSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PD.CompanySeq = PO.CompanySeq</p>
+<p>AND PD.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PD.YM = @CompYM -- 복합급여항목기준년월</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>END</p>
+<p>-- 5. 근태항목: 발령별로 발생하기때문에 SUM</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq , PO.ItemSeq,</p>
+<p>SUM(PP.DTCnt), MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayEmpMm AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PP.CompanySeq = PO.CompanySeq</p>
+<p>AND PP.WkItemSeq = PO.ItemSeq</p>
+<p>JOIN _TPRWkItem AS PW ON PO.ItemSeq = PW.WkItemSeq</p>
+<p>AND PO.CompanySeq = PW.CompanySeq</p>
+<p>AND PW.SMWkItemType = 3007001 -- 순수근태항목만..</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'W' -- 근태항목</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>-- 5-1. 복합근태항목: 발령별로 발생하기때문에 SUM</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>SUM(CASE WHEN PD.SMOpr = 1001001 THEN PP.DTCnt ELSE PP.DTCnt * (-1) END), MAX(PO.PosNum)</p>
+<p>FROM #EmpMaster AS PM</p>
+<p>JOIN _TPRPayEmpMm AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRWkItemDtl AS PD ON PP.CompanySeq = PD.CompanySeq</p>
+<p>AND PP.WkItemSeq = PD.WkSubItemSeq</p>
+<p>AND PD.YM = @WkAdYM -- 복합근태개정연월</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PD.WkItemSeq = PO.ItemSeq</p>
+<p>AND PD.CompanySeq = PO.CompanySeq</p>
+<p>JOIN _TPRWkItem AS PW ON PO.ItemSeq = PW.WkItemSeq</p>
+<p>AND PO.CompanySeq = PW.CompanySeq</p>
+<p>AND PW.SMWkItemType = 3007002 -- 복합근태항목만..</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'W' -- 근태항목</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<blockquote>
+<p>-- 5-2. 근태항목: 연차항목 집계하기</p>
+</blockquote>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq , PO.ItemSeq,</p>
+<p>SUM(PP.DTCnt), MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayEmpMm AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PP.CompanySeq = PO.CompanySeq</p>
+<p>AND PP.WkItemSeq = PO.ItemSeq</p>
+<p>JOIN _TPRWkItem AS PW ON PO.ItemSeq = PW.WkItemSeq</p>
+<p>AND PO.CompanySeq = PW.CompanySeq</p>
+<p>AND PW.SMWkItemType = 3007001 -- 순수근태항목만..                                                                                                        </p>
+<blockquote>
+<p>AND PW.SMAbsWkSort = 3069002                -- 연차항목</p>
+</blockquote>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>--AND PP.SerialNo = @SerialNo</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'W' -- 근태항목</p>
+<blockquote>
+<p>AND NOT EXISTS (SELECT 1 FROM #EmpItem WHERE ItemSeq = PO.ItemSeq)</p>
+</blockquote>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>-- 6. Ksystem제공항목 중 변동없는 항목(급여총액, 실지급액, 공제총액, 기본일급, 기본시급, 기본월급, 통상일급, 통상시급, 통상임금)</p>
+<p>IF(@ExistsSum = '1')</p>
+<p>BEGIN</p>
+<p>-- 급여총액(992), 기지급(993), 실지급액(990), 공제총액(991)</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>CASE PO.ItemSeq WHEN 990 THEN SUM(PP.ActPayAmt)</p>
+<p>WHEN 991 THEN SUM(PP.TotDeducAmt)</p>
+<p>WHEN 992 THEN SUM(PP.TotPayAmt)</p>
+<p>WHEN 993 THEN SUM(PP.TotPrevPayAmt) -- (+) 추가</p>
+<p>END,</p>
+<p>MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayResult AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN #TT AS T ON PP.PbYm = T.PbYm</p>
+<p>AND PP.SerialNo = T.SerialNo</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PP.CompanySeq = PO.CompanySeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P' -- 급여항목</p>
+<p>AND PO.ItemSeq IN (990, 991, 992, 993)</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>-- 기본급기준금액(999), 기본일급(998), 기본시급(997), 통상일급(995), 통상시급(994), 통상임금(996)</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>CASE WHEN PO.DecPntCnt = 0 THEN</p>
+<p>CASE PO.ItemSeq WHEN 994 THEN ROUND(PM.GenTmAmt, 0)</p>
+<p>WHEN 995 THEN ROUND(PM.GenDdAmt, 0)</p>
+<p>WHEN 996 THEN ROUND(PM.GenMmAmt, 0)</p>
+<p>WHEN 997 THEN ROUND(PM.BASTmAmt, 0)</p>
+<p>WHEN 998 THEN ROUND(PM.BASDdAmt, 0)</p>
+<p>WHEN 999 THEN ROUND(PM.BASMmAmt, 0)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>CASE PO.ItemSeq WHEN 994 THEN PM.GenTmAmt</p>
+<p>WHEN 995 THEN PM.GenDdAmt</p>
+<p>WHEN 996 THEN PM.GenMmAmt</p>
+<p>WHEN 997 THEN PM.BASTmAmt</p>
+<p>WHEN 998 THEN PM.BASDdAmt</p>
+<p>WHEN 999 THEN PM.BASMmAmt</p>
+<p>END</p>
+<p>END,</p>
+<p>PO.PosNum</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRBASPrtOrd AS PO ON (1=1)</p>
+<p>WHERE PO.CompanySeq = @CompanySeq</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P' -- 급여항목</p>
+<p>AND PO.ItemSeq IN (994, 995, 996, 997, 998, 999)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 급여총액(992), 기지급(993),실지급액(990), 공제총액(991)</p>
+<p>-- 기본급기준금액(999), 기본일급(998),기본시급(997),통상일급(995),통상시급(994),통상임금(996)</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>CASE WHEN DecPntCnt = 0 THEN</p>
+<p>CASE PO.ItemSeq WHEN 990 THEN ROUND(PM.ActPayAmt , 0)</p>
+<p>WHEN 991 THEN ROUND(PM.TotDeducAmt , 0)</p>
+<p>WHEN 992 THEN ROUND(PM.TotPayAmt , 0)</p>
+<p>WHEN 993 THEN ROUND(PM.TotPrevPayAmt, 0) -- (+)추가</p>
+<p>WHEN 994 THEN ROUND(PM.GenTmAmt , 0)</p>
+<p>WHEN 995 THEN ROUND(PM.GenDdAmt , 0)</p>
+<p>WHEN 996 THEN ROUND(PM.GenMmAmt , 0)</p>
+<p>WHEN 997 THEN ROUND(PM.BASTmAmt , 0)</p>
+<p>WHEN 998 THEN ROUND(PM.BASDdAmt , 0)</p>
+<p>WHEN 999 THEN ROUND(PM.BASMmAmt , 0)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>CASE PO.ItemSeq WHEN 990 THEN PM.ActPayAmt</p>
+<p>WHEN 991 THEN PM.TotDeducAmt</p>
+<p>WHEN 992 THEN PM.TotPayAmt</p>
+<p>WHEN 993 THEN PM.TotPrevPayAmt -- (+)추가</p>
+<p>WHEN 994 THEN PM.GenTmAmt</p>
+<p>WHEN 995 THEN PM.GenDdAmt</p>
+<p>WHEN 996 THEN PM.GenMmAmt</p>
+<p>WHEN 997 THEN PM.BASTmAmt</p>
+<p>WHEN 998 THEN PM.BASDdAmt</p>
+<p>WHEN 999 THEN PM.BASMmAmt</p>
+<p>END</p>
+<p>END,</p>
+<p>PO.PosNum</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRBASPrtOrd AS PO ON (1=1)</p>
+<p>WHERE PO.CompanySeq = @CompanySeq</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P' -- 급여항목</p>
+<p>AND PO.ItemSeq IN (990, 991, 992, 993, 994, 995, 996, 997, 998, 999)</p>
+<p>END</p>
+<p>-- 7. 가상항목(추가)</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq , PO.ItemSeq,</p>
+<p>ISNULL(PP.Amt, 0), PO.PosNum</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayCalc AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PP.CompanySeq = PO.CompanySeq</p>
+<p>AND PP.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>-- 8. 가상복합항목(추가)</p>
+<p>INSERT INTO #EmpItem(EmpSeq, ItemSeq,</p>
+<p>Amt , PosNum)</p>
+<p>SELECT PM.EmpSeq, PO.ItemSeq,</p>
+<p>SUM(CASE WHEN PD.SMOprSeq = 1001001 THEN PP.Amt ELSE PP.Amt * (-1) END), MAX(PO.PosNum)</p>
+<p>FROM #EmpMASter AS PM JOIN _TPRPayCalc AS PP ON PM.EmpSeq = PP.EmpSeq</p>
+<p>JOIN _TPRBASPayItemDtl AS PD ON PP.CompanySeq = PD.CompanySeq</p>
+<p>AND PP.ItemSeq = PD.SubItemSeq</p>
+<p>JOIN _TPRBASPrtOrd AS PO ON PD.CompanySeq = PO.CompanySeq</p>
+<p>AND PD.ItemSeq = PO.ItemSeq</p>
+<p>WHERE PP.CompanySeq = @CompanySeq</p>
+<p>AND PP.PbYm = @PbYm</p>
+<p>AND PP.SerialNo = @SerialNo</p>
+<p>AND PD.YM = @CompYM -- 복합급여항목기준년월</p>
+<p>AND PO.YM = @AdYM</p>
+<p>AND PO.PuSeq = @PuSeq</p>
+<p>AND PO.PbSeq = @PbSeq</p>
+<p>AND PO.SMPrtType = @SMPrtType</p>
+<p>AND PO.ItemType = 'P'</p>
+<p>GROUP BY PM.EmpSeq, PO.ItemSeq</p>
+<p>-- 급여작업군명</p>
+<p>SELECT @PuName = PuName FROM _TPRBASPu WHERE CompanySeq = @CompanySeq AND PuSeq = @PuSeq</p>
+<p>SELECT @PbName = PbName FROM _TPRBASPb WHERE CompanySeq = @CompanySeq AND PbSeq = @PbSeq</p>
+<p>SELECT @CompanyName = CompanyName FROM _TCACompany WHERE CompanySeq = @CompanySeq</p>
+<p>SELECT -- PM.PrtOrd AS IDX_NO,</p>
+<p>SUBSTRING(@PbYm, 1, 4) AS Yy,</p>
+<p>SUBSTRING(@PbYm, 5, 2) AS Mm,</p>
+<p>@SerialName                         AS SerialName,</p>
+<p>@PbName AS PbName ,</p>
+<p>@PayDate AS PayDate,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 1) ,'') AS PtName1,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 2) ,'') AS PtName2,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 3) ,'') AS PtName3,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 4) ,'') AS PtName4,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 5) ,'') AS PtName5,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 6) ,'') AS PtName6,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 7) ,'') AS PtName7,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 8) ,'') AS PtName8,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 9) ,'') AS PtName9,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 10) ,'') AS PtName10,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 11) ,'') AS PtName11,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 12) ,'') AS PtName12,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 13) ,'') AS PtName13,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 14) ,'') AS PtName14,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 15) ,'') AS PtName15,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 16) ,'') AS PtName16,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 17) ,'') AS PtName17,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 18) ,'') AS PtName18,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 19) ,'') AS PtName19,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 20) ,'') AS PtName20,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 21) ,'') AS PtName21,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 22) ,'') AS PtName22,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 23) ,'') AS PtName23,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 24) ,'') AS PtName24,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 25) ,'') AS PtName25,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 26) ,'') AS PtName26,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 27) ,'') AS PtName27,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 28) ,'') AS PtName28,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 29) ,'') AS PtName29,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 30) ,'') AS PtName30,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 31) ,'') AS PtName31,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 32) ,'') AS PtName32,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 33) ,'') AS PtName33,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 34) ,'') AS PtName34,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 35) ,'') AS PtName35,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 36) ,'') AS PtName36,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 37) ,'') AS PtName37,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 38) ,'') AS PtName38,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 39) ,'') AS PtName39,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 40) ,'') AS PtName40,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 41) ,'') AS PtName41,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 42) ,'') AS PtName42,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 43) ,'') AS PtName43,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 44) ,'') AS PtName44,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 45) ,'') AS PtName45,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 46) ,'') AS PtName46,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 47) ,'') AS PtName47,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 48) ,'') AS PtName48,</p>
+<p>--추가</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 49) ,'') AS PtName49,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 50) ,'') AS PtName50,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 51) ,'') AS PtName51,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 52) ,'') AS PtName52,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 53) ,'') AS PtName53,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 54) ,'') AS PtName54,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 55) ,'') AS PtName55,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 56) ,'') AS PtName56,</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 57) ,'') AS PtName57,</p>
+<p>--추가(2015.01.07 허윤우)</p>
+<p>ISNULL((SELECT PrtItemName FROM _TPRBASPrtOrd WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND YM = @AdYM AND PuSeq = @PuSeq AND PbSeq = @PbSeq AND SMPrtType = @SMPrtType AND PosNum = 58) ,'') AS PtName58,</p>
+<blockquote>
+<p>PM.EmpName AS EmpName,</p>
+</blockquote>
+<p>PM.EmpSeq AS EmpSeq,</p>
+<p>PM.EmpID AS EmpID,</p>
+<p>PM.EntDate AS EntDate,</p>
+<p>PM.RetireDate AS RetireDate,</p>
+<p>PM.ResidId AS ResidId,</p>
+<p>ISNULL((SELECT DeptName FROM _TDADeptHist WHERE CompanySeq = @CompanySeq AND DeptSeq = PM.DeptSeq AND BegDate \&lt;= @EndDate AND EndDate &gt;= @EndDate), '') AS DeptName1,</p>
+<p>PM.DeptSeq AS DeptSeq,</p>
+<p>ISNULL((SELECT PosName FROM _THROrgPos WHERE CompanySeq = @CompanySeq AND PosSeq = PM.PosSeq), '') AS PosName,</p>
+<p>PM.PosSeq AS PosSeq,</p>
+<p>ISNULL((SELECT MinorName FROM _TDAUMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = PM.UMPgSeq),'') AS UMPgName,</p>
+<p>PM.UMPgSeq AS UMPgSeq,</p>
+<p>PM.Ps AS Ps,</p>
+<p>ISNULL((SELECT MinorName FROM _TDAUMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = PM.UMJpSeq), '') AS UMJpName,</p>
+<p>PM.UMJpSeq AS UMJpSeq,</p>
+<p>ISNULL((SELECT MinorName FROM _TDAUMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = PM.UMJoSeq), '') AS UMJoName,</p>
+<p>PM.UMJoSeq AS UMJoSeq,</p>
+<p>ISNULL((SELECT MinorName FROM _TDAUMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = PM.UMJdSeq), '') AS UMJdName,</p>
+<p>PM.UMJdSeq AS UMJdSeq,</p>
+<p>ISNULL((SELECT PtName FROM _TPRBASPt WHERE CompanySeq = @CompanySeq AND PtSeq = PM.PtSeq), '') AS PtName,</p>
+<p>PM.PtSeq AS PtSeq,</p>
+<p>ISNULL((SELECT MinorName FROM _TDAUMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = PM.UMWsSeq),'') AS UMWsName,</p>
+<p>PM.UMWsSeq AS UMWsSeq,</p>
+<p>ISNULL((SELECT MinorName FROM _TDASMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = PM.SMSexSeq),'') AS SMSexName,</p>
+<p>PM.SMSexSeq AS SMSexSeq,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 1) AS Amt1 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 2) AS Amt2 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 3) AS Amt3 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 4) AS Amt4 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 5) AS Amt5 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 6) AS Amt6 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 7) AS Amt7 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 8) AS Amt8 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 9) AS Amt9 ,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 10) AS Amt10,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 11) AS Amt11,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 12) AS Amt12,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 13) AS Amt13,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 14) AS Amt14,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 15) AS Amt15,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 16) AS Amt16,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 17) AS Amt17,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 18) AS Amt18,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 19) AS Amt19,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 20) AS Amt20,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 21) AS Amt21,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 22) AS Amt22,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 23) AS Amt23,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 24) AS Amt24,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 25) AS Amt25,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 26) AS Amt26,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 27) AS Amt27,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 28) AS Amt28,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 29) AS Amt29,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 30) AS Amt30,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 31) AS Amt31,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 32) AS Amt32,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 33) AS Amt33,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 34) AS Amt34,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 35) AS Amt35,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 36) AS Amt36,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 37) AS Amt37,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 38) AS Amt38,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 39) AS Amt39,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 40) AS Amt40,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 41) AS Amt41,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 42) AS Amt42,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 43) AS Amt43,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 44) AS Amt44,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 45) AS Amt45,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 46) AS Amt46,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 47) AS Amt47,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 48) AS Amt48,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 49) AS Amt49,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 50) AS Amt50,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 51) AS Amt51,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 52) AS Amt52,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 53) AS Amt53,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 54) AS Amt54,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 55) AS Amt55,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 56) AS Amt56,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 57) AS Amt57,</p>
+<p>(SELECT Amt FROM #EmpItem WITH(NOLOCK) WHERE EmpSeq = PM.EmpSeq and PosNum = 58) AS Amt58,</p>
+<p>U.LvlDeptSeq AS UMDeptLevel,</p>
+<p>ISNULL((SELECT DeptName FROM _TDADept WHERE CompanySeq = @CompanySeq AND DeptSeq = U.LvlDeptSeq), '') AS UMDeptLevelName,</p>
+<p>@PuName AS PuName,</p>
+<p>@CompanyName AS CompanyName, -- 회사명(추가)</p>
+<p>PM.BnsRate AS BnsRate , -- 상여율</p>
+<p>PM.AccNo AS AccNo ,</p>
+<p>PM.BankSeq                AS BankSeq         ,         -- 은행코드</p>
+<p>PM.BankName                AS BankName         ,         -- 은행명</p>
+<p>PM.UMEmpType AS UMEmpType, -- 사원구분코드</p>
+<p>PM.UMEmpTypeName AS UMEmpTypeName -- 사원구분</p>
+<p>,ISNULL((SELECT DispSeq FROM _TDADept WHERE CompanySeq = @CompanySeq AND DeptSeq = B.DeptSeq), 0) AS DispSeq</p>
+<blockquote>
+<p>, B.DeptName</p>
+</blockquote>
+<p>,ISNULL(PM.OrgCd,'99999') AS OrgCd</p>
+<blockquote></blockquote>
+<p>INTO #TMP</p>
+<p>FROM #EmpMASter AS PM</p>
+<blockquote>
+<p>LEFT OUTER JOIN _fnAdmEmpOrdRetResidIdEmp(@CompanySeq, @EndDate, @EmpSeq) AS B ON PM.EmpSeq = B.EmpSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _fnOrgDeptLvl(@CompanySeq, 3059001, @UMDeptLevel, @EndDate) AS U ON PM.DeptSeq = U.DeptSeq</p>
+<p>WHERE (1=1)</p>
+<p>ORDER BY PM.PrtOrd</p>
+<p>--test용</p>
+<p>IF @SMEmpOrDept = 3208001</p>
+<blockquote>
+<p>SELECT</p>
+<p>Yy, Mm, SerialName, PbName, PayDate, PtName1, PtName2, PtName3, PtName4, PtName5, PtName6, PtName7, PtName8, PtName9, PtName10, PtName11, PtName12, PtName13, PtName14, PtName15, PtName16, PtName17, PtName18, PtName19, PtName20, PtName21, PtName22, PtName23, PtName24, PtName25, PtName26, PtName27, PtName28, PtName29, PtName30, PtName31, PtName32, PtName33, PtName34, PtName35, PtName36, PtName37, PtName38, PtName39, PtName40, PtName41, PtName42, PtName43, PtName44, PtName45, PtName46, PtName47, PtName48, PtName49, PtName50, PtName51, PtName52, PtName53, PtName54, PtName55, PtName56, PtName57, PtName58, EmpName, EmpSeq, EmpID, EntDate, RetireDate, ResidId, DeptName, DeptSeq, PosName, PosSeq, UMPgName, UMPgSeq, Ps, UMJpName, UMJpSeq, UMJoName, UMJoSeq, UMJdName, UMJdSeq, PtName, PtSeq, UMWsName, UMWsSeq, SMSexName, SMSexSeq</p>
+<p>, Amt41, Amt42, Amt43, Amt44, Amt45, Amt46, Amt47, Amt48, Amt49, Amt50, Amt51, Amt52, Amt53, Amt54, Amt55, Amt56, Amt57, Amt58</p>
+<p>, CASE WHEN ISNULL(Amt1 , 0) = 0 THEN NULL ELSE Amt1 END AS Amt1</p>
+<p>, CASE WHEN ISNULL(Amt2 , 0) = 0 THEN NULL ELSE Amt2 END AS Amt2</p>
+<p>, CASE WHEN ISNULL(Amt3 , 0) = 0 THEN NULL ELSE Amt3 END AS Amt3</p>
+<p>, CASE WHEN ISNULL(Amt4 , 0) = 0 THEN NULL ELSE Amt4 END AS Amt4</p>
+<p>, CASE WHEN ISNULL(Amt5 , 0) = 0 THEN NULL ELSE Amt5 END AS Amt5</p>
+<p>, CASE WHEN ISNULL(Amt6 , 0) = 0 THEN NULL ELSE Amt6 END AS Amt6</p>
+<p>, CASE WHEN ISNULL(Amt7 , 0) = 0 THEN NULL ELSE Amt7 END AS Amt7</p>
+<p>, CASE WHEN ISNULL(Amt8 , 0) = 0 THEN NULL ELSE Amt8 END AS Amt8</p>
+<p>, CASE WHEN ISNULL(Amt9 , 0) = 0 THEN NULL ELSE Amt9 END AS Amt9</p>
+<p>, CASE WHEN ISNULL(Amt10, 0) = 0 THEN NULL ELSE Amt10 END AS Amt10</p>
+<p>, CASE WHEN ISNULL(Amt11, 0) = 0 THEN NULL ELSE Amt11 END AS Amt11</p>
+<p>, CASE WHEN ISNULL(Amt12, 0) = 0 THEN NULL ELSE Amt12 END AS Amt12</p>
+<p>, CASE WHEN ISNULL(Amt13, 0) = 0 THEN NULL ELSE Amt13 END AS Amt13</p>
+<p>, CASE WHEN ISNULL(Amt14, 0) = 0 THEN NULL ELSE Amt14 END AS Amt14</p>
+<p>, CASE WHEN ISNULL(Amt15, 0) = 0 THEN NULL ELSE Amt15 END AS Amt15</p>
+<p>, CASE WHEN ISNULL(Amt16, 0) = 0 THEN NULL ELSE Amt16 END AS Amt16</p>
+<p>, CASE WHEN ISNULL(Amt17, 0) = 0 THEN NULL ELSE Amt17 END AS Amt17</p>
+<p>, CASE WHEN ISNULL(Amt18, 0) = 0 THEN NULL ELSE Amt18 END AS Amt18</p>
+<p>, CASE WHEN ISNULL(Amt19, 0) = 0 THEN NULL ELSE Amt19 END AS Amt19</p>
+<p>, CASE WHEN ISNULL(Amt20, 0) = 0 THEN NULL ELSE Amt20 END AS Amt20</p>
+<p>, CASE WHEN ISNULL(Amt21, 0) = 0 THEN NULL ELSE Amt21 END AS Amt21</p>
+<p>, CASE WHEN ISNULL(Amt22, 0) = 0 THEN NULL ELSE Amt22 END AS Amt22</p>
+<p>, CASE WHEN ISNULL(Amt23, 0) = 0 THEN NULL ELSE Amt23 END AS Amt23</p>
+<p>, CASE WHEN ISNULL(Amt24, 0) = 0 THEN NULL ELSE Amt24 END AS Amt24</p>
+<p>, CASE WHEN ISNULL(Amt25, 0) = 0 THEN NULL ELSE Amt25 END AS Amt25</p>
+<p>, CASE WHEN ISNULL(Amt26, 0) = 0 THEN NULL ELSE Amt26 END AS Amt26</p>
+<p>, CASE WHEN ISNULL(Amt27, 0) = 0 THEN NULL ELSE Amt27 END AS Amt27</p>
+<p>, CASE WHEN ISNULL(Amt28, 0) = 0 THEN NULL ELSE Amt28 END AS Amt28</p>
+<p>, CASE WHEN ISNULL(Amt29, 0) = 0 THEN NULL ELSE Amt29 END AS Amt29</p>
+<p>, CASE WHEN ISNULL(Amt30, 0) = 0 THEN NULL ELSE Amt30 END AS Amt30</p>
+<p>, CASE WHEN ISNULL(Amt31, 0) = 0 THEN NULL ELSE Amt31 END AS Amt31</p>
+<p>, CASE WHEN ISNULL(Amt32, 0) = 0 THEN NULL ELSE Amt32 END AS Amt32</p>
+<p>, CASE WHEN ISNULL(Amt33, 0) = 0 THEN NULL ELSE Amt33 END AS Amt33</p>
+<p>, CASE WHEN ISNULL(Amt34, 0) = 0 THEN NULL ELSE Amt34 END AS Amt34</p>
+<p>, CASE WHEN ISNULL(Amt35, 0) = 0 THEN NULL ELSE Amt35 END AS Amt35</p>
+<p>, CASE WHEN ISNULL(Amt36, 0) = 0 THEN NULL ELSE Amt36 END AS Amt36</p>
+<p>, CASE WHEN ISNULL(Amt37, 0) = 0 THEN NULL ELSE Amt37 END AS Amt37</p>
+<p>, CASE WHEN ISNULL(Amt38, 0) = 0 THEN NULL ELSE Amt38 END AS Amt38</p>
+<p>, CASE WHEN ISNULL(Amt39, 0) = 0 THEN NULL ELSE Amt39 END AS Amt39</p>
+<p>, CASE WHEN ISNULL(Amt40, 0) = 0 THEN NULL ELSE Amt40 END AS Amt40</p>
+<p>, UMDeptLevel, UMDeptLevelName, PuName, CompanyName, BnsRate, AccNo, BankSeq, BankName, UMEmpType, UMEmpTypeName        </p>
+<p>FROM #TMP</p>
+<p>ORDER BY OrgCd,DispSeq,UMJpSeq</p>
+</blockquote>
+<p>ELSE</p>
+<p>SELECT MAX(Yy) AS Yy, MAX(Mm) AS Mm, MAX(PbName) AS PbName, MAX(PayDate) AS PayDate</p>
+<p>, MAX(PtName1 ) AS PtName1</p>
+<p>, MAX(PtName2 ) AS PtName2</p>
+<p>, MAX(PtName3 ) AS PtName3</p>
+<p>, MAX(PtName4 ) AS PtName4</p>
+<p>, MAX(PtName5 ) AS PtName5</p>
+<p>, MAX(PtName6 ) AS PtName6</p>
+<p>, MAX(PtName7 ) AS PtName7</p>
+<p>, MAX(PtName8 ) AS PtName8</p>
+<p>, MAX(PtName9 ) AS PtName9</p>
+<p>, MAX(PtName10) AS PtName10</p>
+<p>, MAX(PtName11) AS PtName11</p>
+<p>, MAX(PtName12) AS PtName12</p>
+<p>, MAX(PtName13) AS PtName13</p>
+<p>, MAX(PtName14) AS PtName14</p>
+<p>, MAX(PtName15) AS PtName15</p>
+<p>, MAX(PtName16) AS PtName16</p>
+<p>, MAX(PtName17) AS PtName17</p>
+<p>, MAX(PtName18) AS PtName18</p>
+<p>, MAX(PtName19) AS PtName19</p>
+<p>, MAX(PtName20) AS PtName20</p>
+<p>, MAX(PtName21) AS PtName21</p>
+<p>, MAX(PtName22) AS PtName22</p>
+<p>, MAX(PtName23) AS PtName23</p>
+<p>, MAX(PtName24) AS PtName24</p>
+<p>, MAX(PtName25) AS PtName25</p>
+<p>, MAX(PtName26) AS PtName26</p>
+<p>, MAX(PtName27) AS PtName27</p>
+<p>, MAX(PtName28) AS PtName28</p>
+<p>, MAX(PtName29) AS PtName29</p>
+<p>, MAX(PtName30) AS PtName30</p>
+<p>, MAX(PtName31) AS PtName31</p>
+<p>, MAX(PtName32) AS PtName32</p>
+<p>, MAX(PtName33) AS PtName33</p>
+<p>, MAX(PtName34) AS PtName34</p>
+<p>, MAX(PtName35) AS PtName35</p>
+<p>, MAX(PtName36) AS PtName36</p>
+<p>, MAX(PtName37) AS PtName37</p>
+<p>, MAX(PtName38) AS PtName38</p>
+<p>, MAX(PtName39) AS PtName39</p>
+<p>, MAX(PtName40) AS PtName40</p>
+<p>, CASE WHEN SUM(ISNULL(Amt1 , 0)) = 0 THEN NULL ELSE SUM(Amt1 ) END AS Amt1</p>
+<p>, CASE WHEN SUM(ISNULL(Amt2 , 0)) = 0 THEN NULL ELSE SUM(Amt2 ) END AS Amt2</p>
+<p>, CASE WHEN SUM(ISNULL(Amt3 , 0)) = 0 THEN NULL ELSE SUM(Amt3 ) END AS Amt3</p>
+<p>, CASE WHEN SUM(ISNULL(Amt4 , 0)) = 0 THEN NULL ELSE SUM(Amt4 ) END AS Amt4</p>
+<p>, CASE WHEN SUM(ISNULL(Amt5 , 0)) = 0 THEN NULL ELSE SUM(Amt5 ) END AS Amt5</p>
+<p>, CASE WHEN SUM(ISNULL(Amt6 , 0)) = 0 THEN NULL ELSE SUM(Amt6 ) END AS Amt6</p>
+<p>, CASE WHEN SUM(ISNULL(Amt7 , 0)) = 0 THEN NULL ELSE SUM(Amt7 ) END AS Amt7</p>
+<p>, CASE WHEN SUM(ISNULL(Amt8 , 0)) = 0 THEN NULL ELSE SUM(Amt8 ) END AS Amt8</p>
+<p>, CASE WHEN SUM(ISNULL(Amt9 , 0)) = 0 THEN NULL ELSE SUM(Amt9 ) END AS Amt9</p>
+<p>, CASE WHEN SUM(ISNULL(Amt10, 0)) = 0 THEN NULL ELSE SUM(Amt10 ) END AS Amt10</p>
+<p>, CASE WHEN SUM(ISNULL(Amt11, 0)) = 0 THEN NULL ELSE SUM(Amt11 ) END AS Amt11</p>
+<p>, CASE WHEN SUM(ISNULL(Amt12, 0)) = 0 THEN NULL ELSE SUM(Amt12 ) END AS Amt12</p>
+<p>, CASE WHEN SUM(ISNULL(Amt13, 0)) = 0 THEN NULL ELSE SUM(Amt13 ) END AS Amt13</p>
+<p>, CASE WHEN SUM(ISNULL(Amt14, 0)) = 0 THEN NULL ELSE SUM(Amt14 ) END AS Amt14</p>
+<p>, CASE WHEN SUM(ISNULL(Amt15, 0)) = 0 THEN NULL ELSE SUM(Amt15 ) END AS Amt15</p>
+<p>, CASE WHEN SUM(ISNULL(Amt16, 0)) = 0 THEN NULL ELSE SUM(Amt16 ) END AS Amt16</p>
+<p>, CASE WHEN SUM(ISNULL(Amt17, 0)) = 0 THEN NULL ELSE SUM(Amt17 ) END AS Amt17</p>
+<p>, CASE WHEN SUM(ISNULL(Amt18, 0)) = 0 THEN NULL ELSE SUM(Amt18 ) END AS Amt18</p>
+<p>, CASE WHEN SUM(ISNULL(Amt19, 0)) = 0 THEN NULL ELSE SUM(Amt19 ) END AS Amt19</p>
+<p>, CASE WHEN SUM(ISNULL(Amt20, 0)) = 0 THEN NULL ELSE SUM(Amt20 ) END AS Amt20</p>
+<p>, CASE WHEN SUM(ISNULL(Amt21, 0)) = 0 THEN NULL ELSE SUM(Amt21 ) END AS Amt21</p>
+<p>, CASE WHEN SUM(ISNULL(Amt22, 0)) = 0 THEN NULL ELSE SUM(Amt22 ) END AS Amt22</p>
+<p>, CASE WHEN SUM(ISNULL(Amt23, 0)) = 0 THEN NULL ELSE SUM(Amt23 ) END AS Amt23</p>
+<p>, CASE WHEN SUM(ISNULL(Amt24, 0)) = 0 THEN NULL ELSE SUM(Amt24 ) END AS Amt24</p>
+<p>, CASE WHEN SUM(ISNULL(Amt25, 0)) = 0 THEN NULL ELSE SUM(Amt25 ) END AS Amt25</p>
+<p>, CASE WHEN SUM(ISNULL(Amt26, 0)) = 0 THEN NULL ELSE SUM(Amt26 ) END AS Amt26</p>
+<p>, CASE WHEN SUM(ISNULL(Amt27, 0)) = 0 THEN NULL ELSE SUM(Amt27 ) END AS Amt27</p>
+<p>, CASE WHEN SUM(ISNULL(Amt28, 0)) = 0 THEN NULL ELSE SUM(Amt28 ) END AS Amt28</p>
+<p>, CASE WHEN SUM(ISNULL(Amt29, 0)) = 0 THEN NULL ELSE SUM(Amt29 ) END AS Amt29</p>
+<p>, CASE WHEN SUM(ISNULL(Amt30, 0)) = 0 THEN NULL ELSE SUM(Amt30 ) END AS Amt30</p>
+<p>, CASE WHEN SUM(ISNULL(Amt31, 0)) = 0 THEN NULL ELSE SUM(Amt31 ) END AS Amt31</p>
+<p>, CASE WHEN SUM(ISNULL(Amt32, 0)) = 0 THEN NULL ELSE SUM(Amt32 ) END AS Amt32</p>
+<p>, CASE WHEN SUM(ISNULL(Amt33, 0)) = 0 THEN NULL ELSE SUM(Amt33 ) END AS Amt33</p>
+<p>, CASE WHEN SUM(ISNULL(Amt34, 0)) = 0 THEN NULL ELSE SUM(Amt34 ) END AS Amt34</p>
+<p>, CASE WHEN SUM(ISNULL(Amt35, 0)) = 0 THEN NULL ELSE SUM(Amt35 ) END AS Amt35</p>
+<p>, CASE WHEN SUM(ISNULL(Amt36, 0)) = 0 THEN NULL ELSE SUM(Amt36 ) END AS Amt36</p>
+<p>, CASE WHEN SUM(ISNULL(Amt37, 0)) = 0 THEN NULL ELSE SUM(Amt37 ) END AS Amt37</p>
+<p>, CASE WHEN SUM(ISNULL(Amt38, 0)) = 0 THEN NULL ELSE SUM(Amt38 ) END AS Amt38</p>
+<p>, CASE WHEN SUM(ISNULL(Amt39, 0)) = 0 THEN NULL ELSE SUM(Amt39 ) END AS Amt39</p>
+<p>, CASE WHEN SUM(ISNULL(Amt40, 0)) = 0 THEN NULL ELSE SUM(Amt40 ) END AS Amt40</p>
+<p>, '총 '+ CONVERT(NVARCHAR,COUNT(EmpSeq))+ ' 명' AS EmpName        --인원수</p>
+<p>, COUNT(*) AS Amt48        --총인원</p>
+<p>--, EntDate, RetireDate, ResidId</p>
+<p>, MAX(SerialName) AS SerialName</p>
+<p>, DeptName</p>
+<p>--, DeptSeq</p>
+<p>--, PosName, PosSeq, UMPgName, UMPgSeq, Ps, UMJpName, UMJpSeq, UMJoName, UMJoSeq, UMJdName, UMJdSeq, PtName, PtSeq, UMWsName, UMWsSeq, SMSexName, SMSexSeq</p>
+<p>--, UMDeptLevel, UMDeptLevelName, PuName, CompanyName, BnsRate, AccNo, BankSeq, BankName, UMEmpType, UMEmpTypeName, PrtOrd, EmpInfo</p>
+<p>FROM #TMP</p>
+<p>GROUP BY DeptName,DispSeq</p>
+<p>ORDER BY DispSeq</p>
+<p>RETURN</p>
+<p>go</p>
+<p>exec danam_SPRPayResultPrint2_Ttest @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;0\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;PuSeq&gt;1\&lt;/PuSeq&gt;</p>
+<p>\&lt;PbYM&gt;202501\&lt;/PbYM&gt;</p>
+<p>\&lt;SerialNo&gt;1\&lt;/SerialNo&gt;</p>
+<p>\&lt;SerialName&gt;일반급여1차\&lt;/SerialName&gt;</p>
+<p>\&lt;SMPrtType&gt;3041001\&lt;/SMPrtType&gt;</p>
+<p>\&lt;SMEmpOrDept&gt;3208001\&lt;/SMEmpOrDept&gt;</p>
+<p>\&lt;UMDeptLevel&gt;3054001\&lt;/UMDeptLevel&gt;</p>
+<p>\&lt;SMPayPrtType /&gt;</p>
+<p>\&lt;SMObjSeq /&gt;</p>
+<p>\&lt;PtSeq /&gt;</p>
+<p>\&lt;DeptSeq /&gt;</p>
+<p>\&lt;EmpSeq /&gt;</p>
+<p>\&lt;EmpName /&gt;</p>
+<p>\&lt;EmpID /&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=1034317,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1028386</p>
+<p>SELECT DispSeq,* FROM _TDADEPT WHERE CompanySeq = 1 ORDER BY 1</p>
+  </article>
+</div>
+</body>
+</html>

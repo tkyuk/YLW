@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>추가정보정의(품목)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>추가정보정의(품목)</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">추가정보정의(품목)</h1>
+<blockquote>
+<p>CASE WHEN B.Price IS NOT NULL</p>
+<p>THEN CASE WHEN CONVERT(DECIMAL(19,5),ISNULL(Q.MngValText,0)) = 0 THEN B.Price ELSE B.Price / Q.MngValText END</p>
+<p>ELSE (ROUND(CASE WHEN ISNULL(B.Qty,0) = 0 THEN 0 ELSE (CASE WHEN B.IsInclusedVAT = '1' THEN ((ISNULL(B.CurAmt,0) + ISNULL(B.CurVat,0)) / ISNULL(B.Qty,0))</p>
+<p>ELSE (ISNULL(B.CurAmt,0) / ISNULL(B.Qty,0)) END) END, @CurPriceLen)) END) AS Price, --판매단가</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS Q WITH(NOLOCK) ON Q.CompanySeq = B.CompanySeq</p>
+<p>AND Q.ItemSeq = B.ItemSeq</p>
+<p>AND Q.MngSerl = 1000108</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS F WITH (NOLOCK) ON F.CompanySeq = B.CompanySeq</p>
+<p>AND F.ItemSeq = B.ItemSeq</p>
+<p>AND F.MngSerl = 1000061 -- 제형</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS G WITH (NOLOCK) ON F.CompanySeq = G.CompanySeq</p>
+<p>AND F.MngValSeq = G.MinorSeq</p>
+  </article>
+</div>
+</body>
+</html>

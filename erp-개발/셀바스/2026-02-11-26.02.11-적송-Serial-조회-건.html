@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26.02.11 적송 Serial 조회 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>26.02.11 적송 Serial 조회 건</h1>
+    <div class="meta">
+      <span class="note-date">2026-02-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="260211-serial">26.02.11 적송 Serial 조회 건</h1>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE SerialNo = 'HK000015-20250818'</p>
+<p>SELECT * FROM _TLGInOutSerialStock WHERE SerialNo = 'HK000015-20250818'</p>
+<p>SELECT * FROM _TLGSerialMaster WHERE SerialNo = 'HK000015-20250818'</p>
+<p>SELECT * FROM svs_TLGSerialMaster WHERE SerialNo = 'HK000015-20250818'</p>
+<p>SELECT * FROM _TLGInOutDaily WHERE InOutType = 81 AND InOutSeq = 2249</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE InOutType = 81 AND InOutSeq = 2249</p>
+<p>SELECT * FROM _TLGInOutSerialSub WHERE InOutType = 81 AND InOutSeq = 2249</p>
+<p>EXEC _SWCOMGetTableLog '_TLGInOutSerialSub', 1, 'InOutSeq', 2249</p>
+<p>/*</p>
+<p>1/13 - 적송처리 54 -&gt; 61</p>
+<p>1/22 - 출고처리</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

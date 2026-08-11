@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>작업단위 테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>작업단위 테이블</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">작업단위 테이블</h1>
+<p>SELECT * FROM _TWPKGElement WHERE ElementID = 'FrmWPDQCVcheckLotList_biont'</p>
+<p>SELECT A.WorkItemSeq</p>
+<p>,A.WorkItemName</p>
+<p>,A.WorkItemVer</p>
+<p>,C.ElementID</p>
+<p>,C.ElementName</p>
+<p>,B.SqlScript</p>
+<p>FROM _TWPKGWorkItem AS A</p>
+<p>LEFT OUTER JOIN _TWPKGWorkItemAdditionalElement AS B ON B.WorkItemSeq = A.WorkItemSeq</p>
+<p>AND B.WorkItemVer = A.WorkItemVer</p>
+<p>LEFT OUTER JOIN _TWPKGElement AS C ON C.ElementSeq = B.ElementSeq</p>
+<p>WHERE A.WorkItemName LIKE '%%' -- 작업단위명</p>
+<p>AND C.ElementID LIKE '%FrmWPDQCVcheckLotList_biont%' -- 요소ID</p>
+<p>SELECT * FROM _TWPKGWorkItemAdditionalElement WHERE ElementSeq = 60920201</p>
+<p>SELECT * FROM _TWPKGElement WHERE ElementID = 'kl_SWCACodeHelpOption'</p>
+<blockquote>
+<p>--DataBlock3</p>
+<p>SELECT E.WorkItemName, A.ElementTypeSeq, C.MinorName AS ElementType, A.ElementSeq, A.Description, A.DBType AS DBTypeSeq, A.SqlScript, A.ExecuteSeq</p>
+</blockquote>
+<p>, D.MinorName AS WorkType, A.WorkTypeSeq, A.WorkTarget, A.AddElementSeq, B.UserName AS LastUserSeq, A.LastDateTime, A.Remark</p>
+<p>FROM _TWPKGWorkItemAdditionalElement AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAUser AS B ON A.LastUserSeq = B.UserSeq</p>
+<blockquote>
+<p>JOIN _TCAMinor AS C WITH(NOLOCK) ON A.ElementTypeSeq = C.MinorSeq</p>
+<p>AND C.LanguageSeq = 1</p>
+<p>JOIN _TCAMinor AS D WITH(NOLOCK) ON ISNULL(A.WorkTypeSeq, 333001) = D.MinorSeq</p>
+<p>AND D.LanguageSeq = 1</p>
+</blockquote>
+<p>JOIN _TWPKGWorkItem AS E ON E.WorkItemSeq = A.WorkItemSeq</p>
+<p>AND E.WorkItemVer = A.WorkItemVer</p>
+<blockquote>
+<p>WHERE SqlScript LIKE '%스크립트내용%'</p>
+<p>ORDER BY A.AddElementSeq</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

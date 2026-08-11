@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.02.10 외주입고 재고집계 미조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.02.10 외주입고 재고집계 미조회</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250210">25.02.10 외주입고 재고집계 미조회</h1>
+<p>-- 품목별투입조회</p>
+<p>SELECT * FROM _TESMCProdFMatInput WHERE MatItemSeq = 4749</p>
+<p>SELECT * FROM _TESMCProdFMatInput WHERE MatItemSeq = 302130</p>
+<p>SELECT * FROM _TLGInOutStock WHERE InOutYM = '202401' AND ItemSeq = 4749 AND InOutType = 150 -- 104 / 14 / 14</p>
+<p>UNION</p>
+<p>SELECT * FROM _TLGInOutStock WHERE InOutYM = '202401' AND ItemSeq = 302130 AND InOutType = 150</p>
+<p>SELECT * FROM _TLGWHStock WHERE StkYM = '202401' AND ItemSeq = 4749</p>
+<p>SELECT * FROM _TLGWHStock WHERE StkYM = '202401' AND ItemSeq = 302130</p>
+<p>SELECT * FROM _TDASMinor WHERE MajorSeq = 8042 AND MinorValue = 150</p>
+<p>-- 106 / 3 / 3 // 106 / 4 / 4</p>
+<p>--=======================================================================</p>
+<p>-- 외주입고</p>
+<p>--=======================================================================</p>
+<p>SELECT M.OSPDelvInDate,E.WhSeq,D.WhSeq, E.OSPDelvInNo,M.*</p>
+<p>FROM _TPDOSPDelvInItemMat AS M WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPDelvInItem AS D WITH(NOLOCK) ON M.OSPDelvInSeq = D.OSPDelvInSeq</p>
+<p>AND M.OSPDelvInSerl = D.OSPDelvInSerl</p>
+<p>AND M.CompanySeq = D.CompanySeq</p>
+<p>JOIN _TPDOSPDelvIn AS E WITH(NOLOCK) ON M.OSPDelvInSeq = E.OSPDelvInSeq</p>
+<p>AND M.CompanySeq = E.CompanySeq</p>
+<p>WHERE LEFT(E.OSPDelvInDate ,6) = '202401'</p>
+<p>AND M.ItemSeq = 4749</p>
+<p>UNION</p>
+<p>SELECT M.OSPDelvInDate,E.WhSeq,D.WhSeq, E.OSPDelvInNo,M.*</p>
+<p>FROM _TPDOSPDelvInItemMat AS M WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPDelvInItem AS D WITH(NOLOCK) ON M.OSPDelvInSeq = D.OSPDelvInSeq</p>
+<p>AND M.OSPDelvInSerl = D.OSPDelvInSerl</p>
+<p>AND M.CompanySeq = D.CompanySeq</p>
+<p>JOIN _TPDOSPDelvIn AS E WITH(NOLOCK) ON M.OSPDelvInSeq = E.OSPDelvInSeq</p>
+<p>AND M.CompanySeq = E.CompanySeq</p>
+<p>WHERE LEFT(E.OSPDelvInDate ,6) = '202401'</p>
+<p>AND M.ItemSeq = 302130</p>
+<p>--=======================================================================</p>
+<p>--=======================================================================</p>
+<p>_tdawh</p>
+<p>--SELECT * FROM _TDAWH WHERE WHSeq IN (13,14,42,54)</p>
+<p>--42 14</p>
+<p>--54 13</p>
+<p>외주입고의 창고 (_TPDOSPDelvIn - WHSeq) 가 사용안함 되어있어,</p>
+<p>재집계 안된 것으로 확인</p>
+<p>재집계</p>
+<ol>
+<li>
+<p>_SWLGReInOutStockSum</p>
+</li>
+<li>
+<p>_SWLGReInOutStock (<span class="mark">창고 NULL로 인해 집계 미반영 =&gt; NULL인 이유 = 4번</span>)</p>
+<ol>
+<li><img alt="" src="assets/25.02.10-외주입고-재고집계-미조회/image134.png" /></li>
+</ol>
+</li>
+<li>
+<p>_SWLGReInOutDailyForOSPDelvIn -- (외주입고)</p>
+</li>
+<li>
+<p>_SWLGInOutDailyForOSPDelvIn</p>
+<ol>
+<li>
+<p>외주입고창고(+)</p>
+</li>
+<li>
+<p>사업단위입고대기창고(-)</p>
+</li>
+<li>
+<p><span class="mark">생산외주창고(-)</span></p>
+<ol>
+<li>, (SELECT TOP 1 WHSeq FROM @WHInfo WHERE InOutSeq = A.InOutSeq) AS WHSeq</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<blockquote></blockquote>
+<p><img alt="" src="assets/25.02.10-외주입고-재고집계-미조회/image135.png" /></p>
+  </article>
+</div>
+</body>
+</html>

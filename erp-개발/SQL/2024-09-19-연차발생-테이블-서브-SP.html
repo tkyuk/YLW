@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연차발생 테이블 서브 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>연차발생 테이블 서브 SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">연차발생 테이블 서브 SP</h1>
+<p>DROP TABLE #Tmp_YyUseDaysEmp</p>
+<p>-- 연차 임시 테이블</p>
+<p>CREATE TABLE #Tmp_YyUseDaysEmp</p>
+<p>(</p>
+<p>Yy NCHAR(4), -- 사용연도</p>
+<p>EmpSeq INT, -- 사원코드</p>
+<p>SMYyType INT, -- 연차구분</p>
+<p>WkTypeDate NCHAR(8), -- 근무유형기준일자</p>
+<p>OccurDays DECIMAL(19,5), -- 총발생일수(이월적치일수+발생일수+추가발생일수)</p>
+<p>OccurDTCnt DECIMAL(19,5), -- 총발생시간(이월적치시간+발생시간+추가발생시간)</p>
+<p>UseFrDate NCHAR(8),</p>
+<p>UseToDate NCHAR(8),</p>
+<p>YyRuleSeq INT, -- 연차기준코드</p>
+<p>YyTypeCnt INT, -- 연차구분갯수 : 1이면 자체 사용시간계산, 2이면 우선순위적용</p>
+<p>UseDispSeq INT, -- 연차사용기준에 따른 사용일수 적용 순서 (5044001 :개정연차먼저사용, 5044002: 기본연차먼저사용)</p>
+<p>SMYyUseBase INT, -- 연차사용기준</p>
+<p>WkTypeSeq INT, -- 근무유형코드</p>
+<p>UnitTm DECIMAL(19,5), -- 단위시간</p>
+<p>UseDTCnt DECIMAL(19,5), -- 사용시간</p>
+<p>PayDTCnt DECIMAL(19,5), -- 잔여시간</p>
+<p>IsOccurOver NCHAR(1) -- 발생시간을 넘어선경우</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_YyUseDaysEmp(Yy, EmpSeq, SMYyType, WkTypeDate, OccurDays, OccurDTCnt, UseFrDate, UseToDate,</p>
+<p>YyRuleSeq, YyTypeCnt, UseDispSeq, SMYyUseBase, WkTypeSeq, UnitTm, UseDTCnt, PayDTCnt, IsOccurOver)</p>
+<p>SELECT A.Yy, A.EmpSeq, SMYyType, '20241231', -- @WkToDate -&gt; OccurToDate로(2020.05.12) -&gt; @WkToDate 사용시점으로 무조건 유지하기로(2020.12.14)</p>
+<p>ISNULL(PileDays, 0) + ISNULL(OccurDays, 0) + ISNULL(AddOccurDays, 0) - ISNULL(BasePileDays, 0) - ISNULL(AddPileDays, 0),</p>
+<p>ISNULL(PileDTCnt, 0) + ISNULL(OccurDTCnt, 0) + ISNULL(AddOccurDTCnt, 0) - ISNULL(BasePileDTCnt, 0) - ISNULL(AddPileDTCnt, 0),</p>
+<p>UseFrDate, UseToDate, 0,0,0,0,0,0, 0,0,'0'</p>
+<p>FROM _TXPRWkYyOccurDays AS A WITH(NOLOCK) -- 연차발생 테이블</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND EmpSeq = 315</p>
+<p>AND UseFrDate \&lt;= '20240101'</p>
+<p>AND UseToDate &gt;= '20241231'</p>
+<p>-- 연차 사용 내역 조회</p>
+<p>EXEC _SXPRWkYyUseDaysGet 1</p>
+<p>SELECT ISNULL(UseDTCnt, 0) / CASE WHEN ISNULL(UnitTm, 0) = 0 THEN 1.0 ELSE ISNULL(UnitTm, 0) END</p>
+<p>,ISNULL(OccurDTCnt, 0) / CASE WHEN ISNULL(UnitTm, 0) = 0 THEN 1.0 ELSE ISNULL(UnitTm, 0) END</p>
+<p>FROM #Tmp_YyUseDaysEmp</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.11.05 내부거래조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.11.05 내부거래조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241105">24.11.05 내부거래조회</h1>
+<p>DROP PROC emk_SWACInnerDealListSubQuery_tTEST</p>
+<p>GO</p>
+<p>CREATE PROC emk_SWACInnerDealListSubQuery_tTEST</p>
+<p>@ServiceSeq INT ,</p>
+<p>@WorkingTag NVARCHAR(10),</p>
+<p>@CompanySeq INT ,</p>
+<p>@LanguageSeq INT ,</p>
+<p>@UserSeq INT ,</p>
+<p>@PgmSeq INT ,</p>
+<p>@IsTransaction BIT</p>
+<p>AS</p>
+<p>DECLARE @AccDateFr NCHAR(6),</p>
+<p>@AccDateTo NCHAR(6),</p>
+<p>@AccDateFr1 NCHAR(8),</p>
+<p>@AccDateTo1 NCHAR(8),</p>
+<p>@CFSCoName NVARCHAR(100),</p>
+<p>@CustCFSCoName NVARCHAR(100)</p>
+<p>SELECT @AccDateFr = ISNULL(A.AccDateFr, ''),</p>
+<p>@AccDateTo = ISNULL(A.AccDateTo, ''),</p>
+<p>@CFSCoName = ISNULL(A.CFSCoName, ''),</p>
+<p>@CustCFSCoName = ISNULL(A.CustCFSCoName, '')</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>IF ISNULL(@AccDateFr, '') = '' SELECT @AccDateFr = '190001'</p>
+<p>IF ISNULL(@AccDateTo, '') = '' SELECT @AccDateTo = '999912'</p>
+<p>-- 관리항목X계정별원장 화면의 로직을 바탕으로 작성하였습니다.(_SWACLedgerQueryRemBalance)</p>
+<p>DECLARE @WordSubTotal NVARCHAR(100),</p>
+<p>@FormatSeq INT,</p>
+<p>@FrFSItemSort INT,</p>
+<p>@ToFSItemSort INT,</p>
+<p>@BitCnt INT</p>
+<p>EXEC @WordSubTotal = _FCOMGetWord @LanguageSeq , 15107 , N'소계'</p>
+<p>--=================================================</p>
+<p>-- 대상계정과목</p>
+<p>--=================================================</p>
+<p>CREATE TABLE #AccSeqList</p>
+<p>(</p>
+<p>AccSeq INT</p>
+<p>)</p>
+<p>SELECT @FormatSeq = A.FormatSeq</p>
+<p>FROM _TCOMFSForm AS A WITH(NOLOCK)</p>
+<p>JOIN _TCOMFSKind AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq AND A.FSKindSeq = B.FSKindSeq</p>
+<p>JOIN _TCOMFSDomain AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq AND A.FSDomainSeq = C.FSDomainSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND C.FSDomainNo = 'GAAPFS'</p>
+<p>AND B.FSKindNo = 'TB'</p>
+<p>AND A.IsDefault = '1'</p>
+<p>AND LEFT(@AccDateTo, 6) BETWEEN A.FrYM AND A.ToYM</p>
+<p>-- 전체조회시</p>
+<p>SELECT @FrFSItemSort = MIN(FSItemSort),</p>
+<p>@ToFSItemSort = MAX(FSItemSort)</p>
+<p>FROM _TCOMFSFormTree WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND FormatSeq = @FormatSeq</p>
+<p>INSERT INTO #AccSeqList (AccSeq)</p>
+<p>SELECT a.FSItemSeq</p>
+<p>FROM _TCOMFSFormTree AS A WITH(NOLOCK) JOIN _TDAAccount AS ACC WITH(NOLOCK)</p>
+<p>ON A.CompanySeq = ACC.CompanySeq</p>
+<p>AND A.FSItemSeq = ACC.AccSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.FormatSeq = @FormatSeq</p>
+<p>AND A.FSItemSort &gt;= @FrFSItemSort</p>
+<p>AND A.FSItemSort \&lt;= @ToFSItemSort</p>
+<p>AND ACC.IsSlip = '1'</p>
+<p>CREATE TABLE #SlipSum</p>
+<p>(</p>
+<p>AccSeq INT,</p>
+<p>AccName NVARCHAR(100),</p>
+<p>UMCostType INT,</p>
+<p>UMCostTypeName NVARCHAR(100),</p>
+<p>RemSeq1 INT,</p>
+<p>Rem1Name NVARCHAR(100),</p>
+<p>RemSeq2 INT,</p>
+<p>Rem2Name NVARCHAR(100),</p>
+<p>RemValSeq1 INT,</p>
+<p>RemVal1Name NVARCHAR(100),</p>
+<p>RemRefValue1 NVARCHAR(100),</p>
+<p>RemValSeq2 INT,</p>
+<p>RemVal2Name NVARCHAR(100),</p>
+<p>RemRefValue2 NVARCHAR(100),</p>
+<p>CurrSeq INT,</p>
+<p>CurrName NVARCHAR(100),</p>
+<p>IniForAmt DECIMAL(22,5),</p>
+<p>DrForAmt DECIMAL(22,5),</p>
+<p>CrForAmt DECIMAL(22,5),</p>
+<p>RemForAmt DECIMAL(22,5),</p>
+<p>IniAmt DECIMAL(22,5),</p>
+<p>DrAmt DECIMAL(22,5),</p>
+<p>CrAmt DECIMAL(22,5),</p>
+<p>RemAmt DECIMAL(22,5)</p>
+<p>)</p>
+<p>SELECT @AccDateFr1 = @AccDateFr + '01',</p>
+<p>@AccDateTo1 = @AccDateTo + '31'</p>
+<p>EXEC emk_SWCOMSlipSumDealListQuery1 -- 관리항목인 경우에도 화폐가져오도록 서브 SP 추가 24.06.04 SJPARK</p>
+<p>--EXEC _SWCOMSlipSumQuery1</p>
+<p>@WorkingTag = @WorkingTag , -- 현재는 사용안함</p>
+<p>@CompanySeq = @CompanySeq , -- 법인코드</p>
+<p>@LanguageSeq = @LanguageSeq , -- 언어</p>
+<p>@UserSeq = @UserSeq , -- 사용자</p>
+<p>@SMAccStd = 1 , -- 회계기준구분 -- 화면에서 넘어온 회계기준구분으로 조회</p>
+<p>@QueryKind = 'REM' , -- ACC:계정, REM:관리항목별, 2REM:2레벨관리항목</p>
+<p>@IsCurr = '0' , -- 1 : 외화</p>
+<p>@AccUnit = 1 , -- 회계단위</p>
+<p>@SlipUnit = 0 , -- 전표관리단위</p>
+<p>@AccDateFr = @AccDateFr1 , -- 회계일(From)</p>
+<p>@AccDateTo = @AccDateTo1 , -- 회계일(To)</p>
+<p>@UMCostType = 0 , -- 비용구분</p>
+<p>@CurrSeq = 0 , -- 통화</p>
+<p>@RemSeq1 = 1017 , -- 관리항목1(거래처)</p>
+<p>@RemSeq2 = 0 , -- 관리항목2</p>
+<p>@RemValSeq1 = 0 , -- 관리항목값1</p>
+<p>@RemValSeq2 = 0 -- 관리항목값2</p>
+<p>-- 모두 0인 것은 삭제</p>
+<p>-- 기간내 비용/수익계정은 같은변에 (+)(-)하는 경우가 있지만, 조회가 되지 않아 Jump도 할 수 없다는 의뢰가 있었음</p>
+<p>-- BS계정 중에서만 이월,차/대,잔액이 모두 0인 것만 조회하지 않기로 함</p>
+<p>DELETE #SlipSum</p>
+<p>FROM #SlipSum AS A</p>
+<p>JOIN _TDAAccount AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.AccSeq = B.AccSeq</p>
+<p>WHERE A.IniAmt = 0 AND A.DrAmt = 0 AND A.CrAmt = 0 AND A.RemAmt = 0</p>
+<p>AND B.SMAccKind IN (4018001, 4018002, 4018003)</p>
+<p>--============================================================================</p>
+<p>-- [계정코드출력타입]에 따라 계정코드를 출력하기 위하여 로직추가.. dhkim3 시작</p>
+<p>--============================================================================</p>
+<p>-- 대상 계정과목코드 담기 : 담지 않을 경우 모든 계정과목을 대상으로 함</p>
+<p>CREATE TABLE #AccSeqIn</p>
+<p>(</p>
+<p>AccSeq INT</p>
+<p>)</p>
+<p>-- 대상 계정과목의 계정코드 출력</p>
+<p>CREATE TABLE #AccSeqOut</p>
+<p>(</p>
+<p>AccNo NVARCHAR(100),</p>
+<p>AccSeq INT</p>
+<p>)</p>
+<p>EXEC _SWACAccNo @CompanySeq, @PgmSeq</p>
+<p>--==========================================================================</p>
+<p>-- [계정코드출력타입]에 따라 계정코드를 출력하기 위하여 로직추가.. dhkim3 끝</p>
+<p>--==========================================================================</p>
+<p>-- CODE_YARDI 담을 임시테이블 생성 24.05.20 SJPARK</p>
+<p>CREATE TABLE #TMP_CodeYardi(</p>
+<p>AccSeq INT</p>
+<p>,FSItemYardiCode NVARCHAR(100)</p>
+<p>,FSItemName NVARCHAR(100) -- 2024.05.28 ghwi</p>
+<p>)</p>
+<p>INSERT INTO #TMP_CodeYardi(AccSeq, FSItemYardiCode, FSItemName)</p>
+<p>SELECT C.AccSeq, MAX(B.FSItemYardiCode), MAX(B.FSItemName)</p>
+<p>FROM emk_TACMRForm1Calc AS A WITH(NOLOCK)</p>
+<p>JOIN emk_TACMRForm1 AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.Form1Seq = A.Form1Seq</p>
+<p>AND B.UMFormulaCalcKind = 1000677002 -- 설정방법 : 계정과목</p>
+<p>JOIN _TDAAccount AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.AccSeq = A.FSItemSeq</p>
+<p>AND ISNULL(C.IsSlip, '') = '1' -- 기표하는계정만</p>
+<p>AND ISNULL(C.IsNotSlip, '') \&lt;&gt; '1' -- 분개전표에서 설정불가 인 것 제외</p>
+<p>GROUP BY C.AccSeq</p>
+<p>SELECT ISNULL(F.CFSCoName, '') AS CFSCoName, -- 법인명</p>
+<p>ISNULL(F.CFSCoNo, '') AS CFSCoNo, -- 법인번호</p>
+<p>ISNULL(F.CFSCoUnit, 0) AS CFSCoUnit, -- 법인내부코드(추출여부에 체크된 관계사, 즉 현재법인)</p>
+<p>ISNULL(D.CFSCoName, '') AS CustCFSCoName, -- 관계사법인명</p>
+<p>ISNULL(D.CFSCoNo, '') AS CustCFSCoNo, -- 관계사법인번호</p>
+<p>ISNULL(C.CFSCoUnit, 0) AS CustCFSCoUnit, -- 관계사법인내부코드(계열사의 거래처내부코드)</p>
+<p>ISNULL(H.MinorName, '') AS SMAccKindName, -- 계정대분류</p>
+<p>ISNULL(G.SMAccKind, 0) AS SMAccKind, -- 계정대분류내부코드</p>
+<p>ISNULL(G.AccName, '') AS AccName, -- 계정과목</p>
+<p>ISNULL(G.AccNo, '') AS AccNo, -- 계정과목번호</p>
+<p>ISNULL(A.AccSeq, 0) AS AccSeq, -- 계정과목내부코드</p>
+<p>ISNULL(I.CashItemName, '') AS CashItemName, -- 현금흐름과목</p>
+<p>ISNULL(A.CashItemSeq, 0) AS CashItemSeq, -- 현금흐름과목내부코드</p>
+<p>SUM((ISNULL(A.DrAmt, 0) - ISNULL(A.CrAmt, 0)) * ISNULL(G.SMDrOrCr, 0))</p>
+<p>AS Amt, -- 금액</p>
+<p>ISNULL(SUM(A.DrAmt), 0) AS DrAmt, -- 차변금액</p>
+<p>ISNULL(SUM(A.CrAmt), 0) AS CrAmt -- 대변금액</p>
+<p>,ISNULL(J.FSItemYardiCode,'') AS FSItemYardiCode -- 24.05.20 SJPARK</p>
+<p>,ISNULL(J.FSItemName,'') AS FSItemName -- Yardi_계정명 -- 2024.05.28 ghwi</p>
+<p>,ISNULL(K.CurrName ,'') AS CurrName -- 화폐 추가 24.06.04 SJPARK</p>
+<p>,ISNULL(A.CurrSeq , 0) AS CurrSeq -- 화폐 추가 24.06.04 SJPARK</p>
+<p>FROM _TACSlipRow AS A WITH(NOLOCK)</p>
+<p>JOIN _TACCFSCompanyCust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq -- 연결자료추출환경설정 화면의 우측 거래처 시트</p>
+<p>AND A.CoCustSeq = C.CustSeq</p>
+<p>JOIN _TACCFSCompany AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND C.CFSCoUnit = D.CFSCoUnit</p>
+<p>JOIN _TDACust AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.CustSeq = E.CustSeq</p>
+<p>JOIN _TACCFSCompany AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND F.IsSelf = '1' -- 추출회사여부</p>
+<p>JOIN _TDAAccount AS G WITH(NOLOCK) ON A.CompanySeq = G.CompanySeq</p>
+<p>AND A.AccSeq = G.AccSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS H WITH(NOLOCK) ON G.CompanySeq = H.CompanySeq</p>
+<p>AND G.SMAccKind = H.MinorSeq</p>
+<p>LEFT OUTER JOIN _TACDCashItem AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.CashItemSeq = I.CashItemSeq</p>
+<p>LEFT OUTER JOIN #TMP_CodeYardi AS J WITH(NOLOCK) ON J.AccSeq = A.AccSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS K WITH(NOLOCK) ON K.CompanySeq = A.CompanySeq</p>
+<p>AND K.CurrSeq = A.CurrSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.IsSet, '0') = '1' -- 승인된 건만 조회</p>
+<p>AND(</p>
+<p>--ISNULL(G.SMAccKind, 0) IN (4018004, 4018005) -- PL계정(계정대분류 비용, 수익)</p>
+<p>--OR</p>
+<p>(ISNULL(G.SMAccKind, 0) IN (4018001, 4018002, 4018003) AND -- BS계정(계정대분류 자산, 자본, 부채)은 계정과목에 현금흐름과목종류가 설정된 건만 조회합니다.</p>
+<p>ISNULL(G.SMCashItemKind, 0) \&lt;&gt; 0) AND</p>
+<p>ISNULL(A.CashItemSeq, 0) \&lt;&gt; 0)</p>
+<p>AND LEFT(ISNULL(A.AccDate, ''), 6) BETWEEN @AccDateFr AND @AccDateTo</p>
+<p>AND (@CFSCoName = '' OR ISNULL(F.CFSCoName, '') LIKE @CFSCoName + '%')</p>
+<p>AND (@CustCFSCoName = '' OR ISNULL(D.CFSCoName, '') LIKE @CustCFSCoName + '%')</p>
+<p>AND F.CFSCoNo \&lt;&gt; D.CFSCoNo -- 자회사 건 조회안되도록 추가 24.05.23 SJPARK</p>
+<p>GROUP BY ISNULL(F.CFSCoName, '') ,</p>
+<p>ISNULL(F.CFSCoNo, '') ,</p>
+<p>ISNULL(F.CFSCoUnit, 0) ,</p>
+<p>ISNULL(D.CFSCoName, '') ,</p>
+<p>ISNULL(D.CFSCoNo, '') ,</p>
+<p>ISNULL(C.CFSCoUnit, 0) ,</p>
+<p>ISNULL(H.MinorName, '') ,</p>
+<p>ISNULL(G.SMAccKind, 0) ,</p>
+<p>ISNULL(G.AccName, '') ,</p>
+<p>ISNULL(G.AccNo, '') ,</p>
+<p>ISNULL(A.AccSeq, 0) ,</p>
+<p>ISNULL(I.CashItemName, ''),</p>
+<p>ISNULL(A.CashItemSeq, 0)</p>
+<p>,ISNULL(J.FSItemYardiCode,'')</p>
+<p>,ISNULL(J.FSItemName,'')</p>
+<p>,ISNULL(A.CurrSeq , 0)</p>
+<p>,ISNULL(K.CurrName ,'')</p>
+<p>HAVING (SUM((ISNULL(A.DrAmt, 0) - ISNULL(A.CrAmt, 0)) * ISNULL(G.SMDrOrCr, 0)) \&lt;&gt; 0 -- 금액이 있는 건만 조회합니다.</p>
+<p>OR ISNULL(SUM(A.DrAmt), 0) \&lt;&gt; 0</p>
+<p>OR ISNULL(SUM(A.CrAmt), 0) \&lt;&gt; 0)</p>
+<p>-- BS계정(계정대분류 자산, 자본, 부채)에 대한 잔액 조회</p>
+<p>SELECT ISNULL(F.CFSCoName, '') AS CFSCoName, -- 법인명</p>
+<p>ISNULL(F.CFSCoNo, '') AS CFSCoNo, -- 법인번호</p>
+<p>ISNULL(F.CFSCoUnit, 0) AS CFSCoUnit, -- 법인내부코드(추출여부에 체크된 관계사, 즉 현재법인)</p>
+<p>ISNULL(D.CFSCoName, '') AS CustCFSCoName, -- 관계사법인명</p>
+<p>ISNULL(D.CFSCoNo, '') AS CustCFSCoNo, -- 관계사법인번호</p>
+<p>ISNULL(C.CFSCoUnit, 0) AS CustCFSCoUnit, -- 관계사법인내부코드(계열사의 거래처내부코드)</p>
+<p>ISNULL(H.MinorName, '') AS SMAccKindName, -- 계정대분류</p>
+<p>ISNULL(G.SMAccKind, 0) AS SMAccKind, -- 계정대분류내부코드</p>
+<p>ISNULL(G.AccName, '') AS AccName, -- 계정과목</p>
+<p>ISNULL(G.AccNo, '') AS AccNo, -- 계정과목번호</p>
+<p>ISNULL(A.AccSeq, 0) AS AccSeq, -- 계정과목내부코드</p>
+<p>'' AS CashItemName, -- 현금흐름과목</p>
+<p>0 AS CashItemSeq, -- 현금흐름과목내부코드</p>
+<p>--ISNULL(A.RemAmt, 0) AS Amt, -- 금액(BS계정 잔액)</p>
+<p>ISNULL(A.IniAmt, 0) AS Amt, -- 금액(BS계정 잔액) 24.10.08</p>
+<p>ISNULL(A.DrAmt, 0) AS DrAmt, -- 차변금액</p>
+<p>ISNULL(A.CrAmt, 0) AS CrAmt -- 대변금액</p>
+<p>,ISNULL(J.FSItemYardiCode,'') AS FSItemYardiCode -- 24.05.20 SJPARK</p>
+<p>,ISNULL(J.FSItemName, '') AS FSItemName -- Yardi_계정명 -- 2024.05.28 ghwi</p>
+<p>,ISNULL(K.CurrName ,'') AS CurrName -- 화폐 추가 24.06.04 SJPARK</p>
+<p>,ISNULL(A.CurrSeq , 0) AS CurrSeq -- 화폐 추가 24.06.04 SJPARK</p>
+<p>FROM #SlipSum AS A</p>
+<p>JOIN _TACCFSCompanyCust AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq -- 연결자료추출환경설정 화면의 우측 거래처 시트</p>
+<p>AND A.RemValSeq1 = C.CustSeq</p>
+<p>JOIN _TACCFSCompany AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND C.CFSCoUnit = D.CFSCoUnit</p>
+<p>JOIN _TDACust AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.CustSeq = E.CustSeq</p>
+<p>JOIN _TACCFSCompany AS F WITH(NOLOCK) ON F.CompanySeq = @CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND F.IsSelf = '1' -- 추출회사여부</p>
+<p>LEFT OUTER JOIN _TDAAccount AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq</p>
+<p>AND A.AccSeq = G.AccSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS H WITH(NOLOCK) ON G.CompanySeq = H.CompanySeq</p>
+<p>AND G.SMAccKind = H.MinorSeq</p>
+<p>LEFT OUTER JOIN #TMP_CodeYardi AS J WITH(NOLOCK) ON J.AccSeq = A.AccSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS K WITH(NOLOCK) ON K.CompanySeq = @CompanySeq</p>
+<p>AND K.CurrSeq = A.CurrSeq</p>
+<p>WHERE ISNULL(G.SMAccKind, 0) IN (4018001, 4018002, 4018003,4018004, 4018005) -- BS계정(계정대분류 자산, 자본, 부채)</p>
+<p>AND ISNULL(G.IsCash, '0') \&lt;&gt; '1' -- 현금성여부에 체크된 계정은 조회대상에서 제외합니다.</p>
+<p>AND A.RemSeq1 = 1017</p>
+<p>AND (@CFSCoName = '' OR ISNULL(F.CFSCoName, '') LIKE @CFSCoName + '%')</p>
+<p>AND (@CustCFSCoName = '' OR ISNULL(D.CFSCoName, '') LIKE @CustCFSCoName + '%')</p>
+<p>AND F.CFSCoNo \&lt;&gt; D.CFSCoNo -- 자회사 건 조회안되도록 추가 24.05.23 SJPARK</p>
+<p>ORDER BY CashItemName, ISNULL(F.CFSCoName, ''), ISNULL(G.AccNo, ''), ISNULL(D.CFSCoNo, '')</p>
+<p>RETURN</p>
+<p>--=======================</p>
+<p>-- 최종조회</p>
+<p>--=======================</p>
+<p>-- PL계정(계정대분류 비용, 수익) 및 BS계정(계정대분류 자산, 자본, 부채, 현금흐름과목 설정된 것만)에 대한 발생금액 조회</p>
+<p>INSERT INTO #Result</p>
+<p>SELECT ISNULL(F.CFSCoName, '') AS CFSCoName, -- 법인명</p>
+<p>ISNULL(F.CFSCoNo, '') AS CFSCoNo, -- 법인번호</p>
+<p>ISNULL(F.CFSCoUnit, 0) AS CFSCoUnit, -- 법인내부코드(추출여부에 체크된 관계사, 즉 현재법인)</p>
+<p>ISNULL(D.CFSCoName, '') AS CustCFSCoName, -- 관계사법인명</p>
+<p>ISNULL(D.CFSCoNo, '') AS CustCFSCoNo, -- 관계사법인번호</p>
+<p>ISNULL(C.CFSCoUnit, 0) AS CustCFSCoUnit, -- 관계사법인내부코드(계열사의 거래처내부코드)</p>
+<p>ISNULL(H.MinorName, '') AS SMAccKindName, -- 계정대분류</p>
+<p>ISNULL(G.SMAccKind, 0) AS SMAccKind, -- 계정대분류내부코드</p>
+<p>ISNULL(G.AccName, '') AS AccName, -- 계정과목</p>
+<p>ISNULL(G.AccNo, '') AS AccNo, -- 계정과목번호</p>
+<p>ISNULL(A.AccSeq, 0) AS AccSeq, -- 계정과목내부코드</p>
+<p>ISNULL(I.CashItemName, '') AS CashItemName, -- 현금흐름과목</p>
+<p>ISNULL(A.CashItemSeq, 0) AS CashItemSeq, -- 현금흐름과목내부코드</p>
+<p>SUM((ISNULL(A.DrAmt, 0) - ISNULL(A.CrAmt, 0)) * ISNULL(G.SMDrOrCr, 0))</p>
+<p>AS Amt, -- 금액</p>
+<p>ISNULL(SUM(A.DrAmt), 0) AS DrAmt, -- 차변금액</p>
+<p>ISNULL(SUM(A.CrAmt), 0) AS CrAmt -- 대변금액</p>
+<p>,ISNULL(J.FSItemYardiCode,'') AS FSItemYardiCode -- 24.05.20 SJPARK</p>
+<p>,ISNULL(J.FSItemName,'') AS FSItemName -- Yardi_계정명 -- 2024.05.28 ghwi</p>
+<p>,ISNULL(K.CurrName ,'') AS CurrName -- 화폐 추가 24.06.04 SJPARK</p>
+<p>,ISNULL(A.CurrSeq , 0) AS CurrSeq -- 화폐 추가 24.06.04 SJPARK</p>
+<p>FROM _TACSlipRow AS A WITH(NOLOCK)</p>
+<p>JOIN _TACCFSCompanyCust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq -- 연결자료추출환경설정 화면의 우측 거래처 시트</p>
+<p>AND A.CoCustSeq = C.CustSeq</p>
+<p>JOIN _TACCFSCompany AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND C.CFSCoUnit = D.CFSCoUnit</p>
+<p>JOIN _TDACust AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.CustSeq = E.CustSeq</p>
+<p>JOIN _TACCFSCompany AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND F.IsSelf = '1' -- 추출회사여부</p>
+<p>JOIN _TDAAccount AS G WITH(NOLOCK) ON A.CompanySeq = G.CompanySeq</p>
+<p>AND A.AccSeq = G.AccSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS H WITH(NOLOCK) ON G.CompanySeq = H.CompanySeq</p>
+<p>AND G.SMAccKind = H.MinorSeq</p>
+<p>LEFT OUTER JOIN _TACDCashItem AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.CashItemSeq = I.CashItemSeq</p>
+<p>LEFT OUTER JOIN #TMP_CodeYardi AS J WITH(NOLOCK) ON J.AccSeq = A.AccSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS K WITH(NOLOCK) ON K.CompanySeq = A.CompanySeq</p>
+<p>AND K.CurrSeq = A.CurrSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.IsSet, '0') = '1' -- 승인된 건만 조회</p>
+<p>AND(</p>
+<p>--ISNULL(G.SMAccKind, 0) IN (4018004, 4018005) -- PL계정(계정대분류 비용, 수익)</p>
+<p>--OR</p>
+<p>(ISNULL(G.SMAccKind, 0) IN (4018001, 4018002, 4018003) AND -- BS계정(계정대분류 자산, 자본, 부채)은 계정과목에 현금흐름과목종류가 설정된 건만 조회합니다.</p>
+<p>ISNULL(G.SMCashItemKind, 0) \&lt;&gt; 0) AND</p>
+<p>ISNULL(A.CashItemSeq, 0) \&lt;&gt; 0)</p>
+<p>AND LEFT(ISNULL(A.AccDate, ''), 6) BETWEEN @AccDateFr AND @AccDateTo</p>
+<p>AND (@CFSCoName = '' OR ISNULL(F.CFSCoName, '') LIKE @CFSCoName + '%')</p>
+<p>AND (@CustCFSCoName = '' OR ISNULL(D.CFSCoName, '') LIKE @CustCFSCoName + '%')</p>
+<p>AND F.CFSCoNo \&lt;&gt; D.CFSCoNo -- 자회사 건 조회안되도록 추가 24.05.23 SJPARK</p>
+<p>GROUP BY ISNULL(F.CFSCoName, '') ,</p>
+<p>ISNULL(F.CFSCoNo, '') ,</p>
+<p>ISNULL(F.CFSCoUnit, 0) ,</p>
+<p>ISNULL(D.CFSCoName, '') ,</p>
+<p>ISNULL(D.CFSCoNo, '') ,</p>
+<p>ISNULL(C.CFSCoUnit, 0) ,</p>
+<p>ISNULL(H.MinorName, '') ,</p>
+<p>ISNULL(G.SMAccKind, 0) ,</p>
+<p>ISNULL(G.AccName, '') ,</p>
+<p>ISNULL(G.AccNo, '') ,</p>
+<p>ISNULL(A.AccSeq, 0) ,</p>
+<p>ISNULL(I.CashItemName, ''),</p>
+<p>ISNULL(A.CashItemSeq, 0)</p>
+<p>,ISNULL(J.FSItemYardiCode,'')</p>
+<p>,ISNULL(J.FSItemName,'')</p>
+<p>,ISNULL(A.CurrSeq , 0)</p>
+<p>,ISNULL(K.CurrName ,'')</p>
+<p>HAVING (SUM((ISNULL(A.DrAmt, 0) - ISNULL(A.CrAmt, 0)) * ISNULL(G.SMDrOrCr, 0)) \&lt;&gt; 0 -- 금액이 있는 건만 조회합니다.</p>
+<p>OR ISNULL(SUM(A.DrAmt), 0) \&lt;&gt; 0</p>
+<p>OR ISNULL(SUM(A.CrAmt), 0) \&lt;&gt; 0)</p>
+<p>UNION ALL</p>
+<p>-- BS계정(계정대분류 자산, 자본, 부채)에 대한 잔액 조회</p>
+<p>SELECT ISNULL(F.CFSCoName, '') AS CFSCoName, -- 법인명</p>
+<p>ISNULL(F.CFSCoNo, '') AS CFSCoNo, -- 법인번호</p>
+<p>ISNULL(F.CFSCoUnit, 0) AS CFSCoUnit, -- 법인내부코드(추출여부에 체크된 관계사, 즉 현재법인)</p>
+<p>ISNULL(D.CFSCoName, '') AS CustCFSCoName, -- 관계사법인명</p>
+<p>ISNULL(D.CFSCoNo, '') AS CustCFSCoNo, -- 관계사법인번호</p>
+<p>ISNULL(C.CFSCoUnit, 0) AS CustCFSCoUnit, -- 관계사법인내부코드(계열사의 거래처내부코드)</p>
+<p>ISNULL(H.MinorName, '') AS SMAccKindName, -- 계정대분류</p>
+<p>ISNULL(G.SMAccKind, 0) AS SMAccKind, -- 계정대분류내부코드</p>
+<p>ISNULL(G.AccName, '') AS AccName, -- 계정과목</p>
+<p>ISNULL(G.AccNo, '') AS AccNo, -- 계정과목번호</p>
+<p>ISNULL(A.AccSeq, 0) AS AccSeq, -- 계정과목내부코드</p>
+<p>'' AS CashItemName, -- 현금흐름과목</p>
+<p>0 AS CashItemSeq, -- 현금흐름과목내부코드</p>
+<p>--ISNULL(A.RemAmt, 0) AS Amt, -- 금액(BS계정 잔액)</p>
+<p>ISNULL(A.IniAmt, 0) AS Amt, -- 금액(BS계정 잔액) 24.10.08</p>
+<p>ISNULL(A.DrAmt, 0) AS DrAmt, -- 차변금액</p>
+<p>ISNULL(A.CrAmt, 0) AS CrAmt -- 대변금액</p>
+<p>,ISNULL(J.FSItemYardiCode,'') AS FSItemYardiCode -- 24.05.20 SJPARK</p>
+<p>,ISNULL(J.FSItemName, '') AS FSItemName -- Yardi_계정명 -- 2024.05.28 ghwi</p>
+<p>,ISNULL(K.CurrName ,'') AS CurrName -- 화폐 추가 24.06.04 SJPARK</p>
+<p>,ISNULL(A.CurrSeq , 0) AS CurrSeq -- 화폐 추가 24.06.04 SJPARK</p>
+<p>FROM #SlipSum AS A</p>
+<p>JOIN _TACCFSCompanyCust AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq -- 연결자료추출환경설정 화면의 우측 거래처 시트</p>
+<p>AND A.RemValSeq1 = C.CustSeq</p>
+<p>JOIN _TACCFSCompany AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND C.CFSCoUnit = D.CFSCoUnit</p>
+<p>JOIN _TDACust AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.CustSeq = E.CustSeq</p>
+<p>JOIN _TACCFSCompany AS F WITH(NOLOCK) ON F.CompanySeq = @CompanySeq -- 연결자료추출환경설정 화면</p>
+<p>AND F.IsSelf = '1' -- 추출회사여부</p>
+<p>LEFT OUTER JOIN _TDAAccount AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq</p>
+<p>AND A.AccSeq = G.AccSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS H WITH(NOLOCK) ON G.CompanySeq = H.CompanySeq</p>
+<p>AND G.SMAccKind = H.MinorSeq</p>
+<p>LEFT OUTER JOIN #TMP_CodeYardi AS J WITH(NOLOCK) ON J.AccSeq = A.AccSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS K WITH(NOLOCK) ON K.CompanySeq = @CompanySeq</p>
+<p>AND K.CurrSeq = A.CurrSeq</p>
+<p>WHERE ISNULL(G.SMAccKind, 0) IN (4018001, 4018002, 4018003,4018004, 4018005) -- BS계정(계정대분류 자산, 자본, 부채)</p>
+<p>AND ISNULL(G.IsCash, '0') \&lt;&gt; '1' -- 현금성여부에 체크된 계정은 조회대상에서 제외합니다.</p>
+<p>AND A.RemSeq1 = 1017</p>
+<p>AND (@CFSCoName = '' OR ISNULL(F.CFSCoName, '') LIKE @CFSCoName + '%')</p>
+<p>AND (@CustCFSCoName = '' OR ISNULL(D.CFSCoName, '') LIKE @CustCFSCoName + '%')</p>
+<p>AND F.CFSCoNo \&lt;&gt; D.CFSCoNo -- 자회사 건 조회안되도록 추가 24.05.23 SJPARK</p>
+<p>ORDER BY CashItemName, ISNULL(F.CFSCoName, ''), ISNULL(G.AccNo, ''), ISNULL(D.CFSCoNo, '')</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, AccDateFr NCHAR(6), AccDateTo NCHAR(6), CFSCoName NVARCHAR(100), CustCFSCoName NVARCHAR(100)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, AccDateFr NCHAR(6), AccDateTo NCHAR(6), CFSCoName NVARCHAR(100), CFSCoNo NVARCHAR(100), CFSCoUnit INT, CustCFSCoName NVARCHAR(100), CustCFSCoNo NVARCHAR(100), CustCFSCoUnit INT, SMAccKindName NVARCHAR(100), SMAccKind INT, AccName NVARCHAR(100), AccSeq INT, CashItemName NVARCHAR(100), CashItemSeq INT, Amt DECIMAL(19, 5), DrAmt DECIMAL(19, 5), CrAmt DECIMAL(19, 5), AccNo NVARCHAR(100), FSItemYardiCode NVARCHAR(100), SumAmt DECIMAL(19, 5), FSItemName NVARCHAR(100), CurrName NVARCHAR(100), CurrSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, AccDateFr, AccDateTo, CFSCoName, CustCFSCoName)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'1', N'DataBlock1', N'202410', N'202410', N'에코%', N'%탑'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 101820373</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 1</p>
+<p>SET @PgmSeq = 101820389</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC emk_SWACInnerDealListQuery_TTEST</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>GO</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock1') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock1') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, AccDateFr NCHAR(6), AccDateTo NCHAR(6), CFSCoName NVARCHAR(100), CustCFSCoName NVARCHAR(100)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, AccDateFr NCHAR(6), AccDateTo NCHAR(6), CFSCoName NVARCHAR(100), CFSCoNo NVARCHAR(100), CFSCoUnit INT, CustCFSCoName NVARCHAR(100), CustCFSCoNo NVARCHAR(100), CustCFSCoUnit INT, SMAccKindName NVARCHAR(100), SMAccKind INT, AccName NVARCHAR(100), AccSeq INT, CashItemName NVARCHAR(100), CashItemSeq INT, Amt DECIMAL(19, 5), DrAmt DECIMAL(19, 5), CrAmt DECIMAL(19, 5), AccNo NVARCHAR(100), FSItemYardiCode NVARCHAR(100), SumAmt DECIMAL(19, 5), FSItemName NVARCHAR(100), CurrName NVARCHAR(100), CurrSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, AccDateFr, AccDateTo, CFSCoName, CustCFSCoName)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'1', N'DataBlock1', N'202410', N'202410', N'에코%', N'%탑'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 101820373</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 1</p>
+<p>SET @PgmSeq = 101820389</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC emk_SWACInnerDealListQuery_TTEST</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+  </article>
+</div>
+</body>
+</html>

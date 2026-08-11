@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI 3.테이블명세서(인사급여)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI 3.테이블명세서(인사급여)</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni-3">GNI 3.테이블명세서(인사급여)</h1>
+<p>\&lt;\&lt;EISDMTD23.3.테이블상세기술서(인사급여)2.hwp&gt;&gt;</p>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 조성민</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시 스 템 : 인사급여관리</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2010.05.27.</td>
+</tr>
+<tr>
+<td>버 전 : 산출물 버전을 기재</td>
+<td>페이지 : 1/3</td>
+<td>승 인 : (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>번호</th>
+<th style="text-align: center;">테이블명</th>
+<th>설 명</th>
+<th>발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td style="text-align: center;">TDAEmpMaster</td>
+<td>인사Master</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">31</td>
+</tr>
+<tr>
+<td>2</td>
+<td style="text-align: center;">TDAOrg</td>
+<td>조직</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">113</td>
+</tr>
+<tr>
+<td>3</td>
+<td style="text-align: center;">TDAOrgMst</td>
+<td>조직마스터</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">81</td>
+</tr>
+<tr>
+<td>4</td>
+<td style="text-align: center;">TDAPbM</td>
+<td>급상여구분</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">88</td>
+</tr>
+<tr>
+<td>5</td>
+<td style="text-align: center;">TDAPtM</td>
+<td>급여형태코드</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">189</td>
+</tr>
+<tr>
+<td>6</td>
+<td style="text-align: center;">TDAPuM</td>
+<td>급여작업군</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">2716</td>
+</tr>
+<tr>
+<td>7</td>
+<td style="text-align: center;">THBAcademic</td>
+<td>학력사항</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">289</td>
+</tr>
+<tr>
+<td>8</td>
+<td style="text-align: center;">THBCareer</td>
+<td>경력사항</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">367</td>
+</tr>
+<tr>
+<td>9</td>
+<td style="text-align: center;">THBCertificate</td>
+<td>재직경력증명서발급</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">244</td>
+</tr>
+<tr>
+<td>10</td>
+<td style="text-align: center;">THBCounRec</td>
+<td>면담기록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">48</td>
+</tr>
+<tr>
+<td>11</td>
+<td style="text-align: center;">THBEmpPhoto</td>
+<td>사원사진</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">188</td>
+</tr>
+<tr>
+<td>12</td>
+<td style="text-align: center;">THBFamily</td>
+<td>가족사항</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">257</td>
+</tr>
+<tr>
+<td>13</td>
+<td style="text-align: center;">THBFrgnLngDtl</td>
+<td>외국어사항</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">444</td>
+</tr>
+<tr>
+<td>14</td>
+<td style="text-align: center;">THBFrgnLngMst</td>
+<td>외국어사항</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">487</td>
+</tr>
+<tr>
+<td>15</td>
+<td style="text-align: center;">THBFrgnLngSubjBase</td>
+<td>외국어사항항목기준</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">895</td>
+</tr>
+<tr>
+<td>16</td>
+<td style="text-align: center;">THBFrgnLngSubjDtl</td>
+<td>외국어사항</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">79</td>
+</tr>
+<tr>
+<td>17</td>
+<td style="text-align: center;">THBHealthRec</td>
+<td>건강기록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">286</td>
+</tr>
+<tr>
+<td>18</td>
+<td style="text-align: center;">THBHealthRecDtl</td>
+<td>건강기록 상세</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">11</td>
+</tr>
+<tr>
+<td>19</td>
+<td style="text-align: center;">THBInsurMst</td>
+<td>보증사항</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">134</td>
+</tr>
+<tr>
+<td>20</td>
+<td style="text-align: center;">THBLic</td>
+<td>자격면허</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">22</td>
+</tr>
+<tr>
+<td>21</td>
+<td style="text-align: center;">THBPrzPnl</td>
+<td>상벌사항</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">17</td>
+</tr>
+<tr>
+<td>22</td>
+<td style="text-align: center;">THBTech</td>
+<td>개인기술정보</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">67</td>
+</tr>
+<tr>
+<td>23</td>
+<td style="text-align: center;">THBTravelRec</td>
+<td>출장기록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">10</td>
+</tr>
+<tr>
+<td>24</td>
+<td style="text-align: center;">THBWork</td>
+<td>개인이력사항</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">693</td>
+</tr>
+<tr>
+<td>25</td>
+<td style="text-align: center;">THDailyEmpDtl</td>
+<td>일용직관리</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">59</td>
+</tr>
+<tr>
+<td>26</td>
+<td style="text-align: center;">THDailyEmpMst</td>
+<td>일용직관리</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">33</td>
+</tr>
+<tr>
+<td>27</td>
+<td style="text-align: center;">THEApply</td>
+<td>교육신청</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">122</td>
+</tr>
+<tr>
+<td>28</td>
+<td style="text-align: center;">THECourse</td>
+<td>교육과정</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">168</td>
+</tr>
+<tr>
+<td>29</td>
+<td style="text-align: center;">THECourseSubj</td>
+<td>교육평가과목</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">38</td>
+</tr>
+<tr>
+<td>30</td>
+<td style="text-align: center;">THEPlan</td>
+<td>교육계획</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">122</td>
+</tr>
+<tr>
+<td>31</td>
+<td style="text-align: center;">THEResult</td>
+<td>교육결과</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">359</td>
+</tr>
+<tr>
+<td>32</td>
+<td style="text-align: center;">THESubj</td>
+<td>교육과정</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">39</td>
+</tr>
+<tr>
+<td>33</td>
+<td style="text-align: center;">THIMultiSearchCol</td>
+<td>인사정보멀티검색</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">24</td>
+</tr>
+<tr>
+<td>34</td>
+<td style="text-align: center;">THInsureTypeCHN</td>
+<td>중국세법</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">7</td>
+</tr>
+<tr>
+<td>35</td>
+<td style="text-align: center;">THOOrdCd</td>
+<td>발령코드</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">44</td>
+</tr>
+<tr>
+<td>36</td>
+<td style="text-align: center;">THOOrdMst</td>
+<td>사원발령마스터</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">35</td>
+</tr>
+<tr>
+<td>37</td>
+<td style="text-align: center;">THOSideWk</td>
+<td>겸직</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">53</td>
+</tr>
+<tr>
+<td>38</td>
+<td style="text-align: center;">TYAApplyTaxExempt</td>
+<td>비과세유형별한도</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">266</td>
+</tr>
+<tr>
+<td>39</td>
+<td style="text-align: center;">TYABasicAmtBase</td>
+<td>기본급기준금액등록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">608</td>
+</tr>
+<tr>
+<td>40</td>
+<td style="text-align: center;">TYABasicPayByYyRev</td>
+<td>년도차수별 급여항목</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">31</td>
+</tr>
+<tr>
+<td>41</td>
+<td style="text-align: center;">TYABasicPayCalc</td>
+<td>기본급기준금액등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">629</td>
+</tr>
+<tr>
+<td>42</td>
+<td style="text-align: center;">TYABasicRateCalc</td>
+<td>기본급요율계산</td>
+<td> </td>
+<td style="text-align: center;">일</td>
+<td style="text-align: center;">102</td>
+</tr>
+<tr>
+<td>43</td>
+<td style="text-align: center;">TYABnsRangeCond</td>
+<td>신규채용상여기준등록</td>
+<td> </td>
+<td style="text-align: center;">일</td>
+<td style="text-align: center;">37</td>
+</tr>
+<tr>
+<td>44</td>
+<td style="text-align: center;">TYACarsUpkeepCost</td>
+<td>사원별차량유지비</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>45</td>
+<td style="text-align: center;">TYACondChkAmtMst</td>
+<td>조건별체크등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>46</td>
+<td style="text-align: center;">TYACondChkAmtMstDtl</td>
+<td>조건별체크등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">25</td>
+</tr>
+<tr>
+<td>47</td>
+<td style="text-align: center;">TYACont</td>
+<td>근속년수등록</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">578</td>
+</tr>
+<tr>
+<td>48</td>
+<td style="text-align: center;">TYADateBase</td>
+<td>급상여일자 기준내역</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">647</td>
+</tr>
+<tr>
+<td>49</td>
+<td style="text-align: center;">TYADeducItemByPBK</td>
+<td>년도차수별 공제항목</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">36</td>
+</tr>
+<tr>
+<td>50</td>
+<td style="text-align: center;">TYADsTmFormula</td>
+<td>근태항목별계산공식</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">1394</td>
+</tr>
+<tr>
+<td>51</td>
+<td style="text-align: center;">TYAEmpAbility</td>
+<td>기능분류등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">401</td>
+</tr>
+<tr>
+<td>52</td>
+<td style="text-align: center;">TYAEmpCostCenter</td>
+<td>사원별활동센터별적용률등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">497</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Version 1.0 EISDMTD22</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 조성민</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시 스 템 : 인사급여관리</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2010.05.27.</td>
+</tr>
+<tr>
+<td>버 전 : 산출물 버전을 기재</td>
+<td>페이지 : 2/3</td>
+<td>승 인 : (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>번호</th>
+<th style="text-align: center;">테이블명</th>
+<th>설 명</th>
+<th>발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>53</td>
+<td style="text-align: center;">TYAEmpDeptCenter</td>
+<td>부서별활동센터별적용률등록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">31</td>
+</tr>
+<tr>
+<td>54</td>
+<td style="text-align: center;">TYAEmpLoanMst</td>
+<td>대출상환관리</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">113</td>
+</tr>
+<tr>
+<td>55</td>
+<td style="text-align: center;">TYAEmpRfnMst</td>
+<td>대출상환내역</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">81</td>
+</tr>
+<tr>
+<td>56</td>
+<td style="text-align: center;">TYAEmpSavHist</td>
+<td>적금불입기록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">88</td>
+</tr>
+<tr>
+<td>57</td>
+<td style="text-align: center;">TYAEmpSavMst</td>
+<td>적금불입등록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">189</td>
+</tr>
+<tr>
+<td>58</td>
+<td style="text-align: center;">TYAEmpStd</td>
+<td>개인별기준</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">2716</td>
+</tr>
+<tr>
+<td>59</td>
+<td style="text-align: center;">TYAGnralAmtFormula</td>
+<td>통상임금의기본급적용방식</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">289</td>
+</tr>
+<tr>
+<td>60</td>
+<td style="text-align: center;">TYAGnralAmtFormulaSub</td>
+<td>통상임금구성항목</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">367</td>
+</tr>
+<tr>
+<td>61</td>
+<td style="text-align: center;">TYAGrpAmtBase</td>
+<td>그룹별등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">244</td>
+</tr>
+<tr>
+<td>62</td>
+<td style="text-align: center;">TYAItemDtl</td>
+<td>기준구성항목등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">48</td>
+</tr>
+<tr>
+<td>63</td>
+<td style="text-align: center;">TYAJoPg</td>
+<td>직종별 직급별등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">188</td>
+</tr>
+<tr>
+<td>64</td>
+<td style="text-align: center;">TYAJpPg</td>
+<td>직위별 직급별등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">257</td>
+</tr>
+<tr>
+<td>65</td>
+<td style="text-align: center;">TYALicAmtBase</td>
+<td>자격수당등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">444</td>
+</tr>
+<tr>
+<td>66</td>
+<td style="text-align: center;">TYALoanKndItem</td>
+<td>대출종류별급여항목설정</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">487</td>
+</tr>
+<tr>
+<td>67</td>
+<td style="text-align: center;">TYAOilPriceReg</td>
+<td>월별유류단가입력</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">895</td>
+</tr>
+<tr>
+<td>68</td>
+<td style="text-align: center;">TYAOilValueReg</td>
+<td>사원별 유류값 입력</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">79</td>
+</tr>
+<tr>
+<td>69</td>
+<td style="text-align: center;">TYAPayItem</td>
+<td>급여항목</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">286</td>
+</tr>
+<tr>
+<td>70</td>
+<td style="text-align: center;">TYAPayItemDtl</td>
+<td>복합급여항목</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">11</td>
+</tr>
+<tr>
+<td>71</td>
+<td style="text-align: center;">TYAPayRateTable</td>
+<td>요율표등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">22</td>
+</tr>
+<tr>
+<td>72</td>
+<td style="text-align: center;">TYAPgCont</td>
+<td>직급별 근속등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">17</td>
+</tr>
+<tr>
+<td>73</td>
+<td style="text-align: center;">TYAPgLicAmt</td>
+<td>직급별 자격등록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">67</td>
+</tr>
+<tr>
+<td>74</td>
+<td style="text-align: center;">TYAProcErr</td>
+<td>에러내역</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">10</td>
+</tr>
+<tr>
+<td>75</td>
+<td style="text-align: center;">TYAPrtOrd</td>
+<td>출력순서관리</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">693</td>
+</tr>
+<tr>
+<td>76</td>
+<td style="text-align: center;">TYARetEtc</td>
+<td>퇴직추가근속등록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">59</td>
+</tr>
+<tr>
+<td>77</td>
+<td style="text-align: center;">TYARetroProcErr</td>
+<td>에러리스트</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">33</td>
+</tr>
+<tr>
+<td>78</td>
+<td style="text-align: center;">TYATable</td>
+<td>급여표</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">122</td>
+</tr>
+<tr>
+<td>79</td>
+<td style="text-align: center;">TYAWsRate</td>
+<td>근무상태별지급율</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">168</td>
+</tr>
+<tr>
+<td>80</td>
+<td style="text-align: center;">TYAYyRev</td>
+<td>년도차수</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">39</td>
+</tr>
+<tr>
+<td>81</td>
+<td style="text-align: center;">TYPAdjBsuHist</td>
+<td>정산사업장이력</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">24</td>
+</tr>
+<tr>
+<td>82</td>
+<td style="text-align: center;">TYPBasic</td>
+<td>발령별지급일수</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">44</td>
+</tr>
+<tr>
+<td>83</td>
+<td style="text-align: center;">TYPBasicDtl</td>
+<td>지급율등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">35</td>
+</tr>
+<tr>
+<td>84</td>
+<td style="text-align: center;">TYPDailyCalcBais</td>
+<td>일용직기본급여</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">608</td>
+</tr>
+<tr>
+<td>85</td>
+<td style="text-align: center;">TYPDailyEmpDd</td>
+<td>일용직근태관리</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">31</td>
+</tr>
+<tr>
+<td>86</td>
+<td style="text-align: center;">TYPDailyEmpIniReq</td>
+<td>일용직기본급여세팅</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">629</td>
+</tr>
+<tr>
+<td>87</td>
+<td style="text-align: center;">TYPDailyEmpLedger</td>
+<td>일용직계약관리</td>
+<td> </td>
+<td style="text-align: center;">일</td>
+<td style="text-align: center;">102</td>
+</tr>
+<tr>
+<td>88</td>
+<td style="text-align: center;">TYPDailyEmpLedgerPay</td>
+<td>일용직계약급여관리</td>
+<td> </td>
+<td style="text-align: center;">일</td>
+<td style="text-align: center;">37</td>
+</tr>
+<tr>
+<td>89</td>
+<td style="text-align: center;">TYPDailyEmpMapping</td>
+<td>일용직지급확정</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>90</td>
+<td style="text-align: center;">TYPDailyEmpMaster</td>
+<td>일용직사원등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>91</td>
+<td style="text-align: center;">TYPDailyEmpPay</td>
+<td>일용직지급관리</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">25</td>
+</tr>
+<tr>
+<td>92</td>
+<td style="text-align: center;">TYPDailyEmpPayitem</td>
+<td>일용직지급항목</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">578</td>
+</tr>
+<tr>
+<td>93</td>
+<td style="text-align: center;">TYPDailyEmpPaySlip</td>
+<td>일용직회계처리</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">647</td>
+</tr>
+<tr>
+<td>94</td>
+<td style="text-align: center;">TYPDailyEmpStdPay</td>
+<td>일용직기준금액등록</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">36</td>
+</tr>
+<tr>
+<td>95</td>
+<td style="text-align: center;">TYPDateDtl</td>
+<td>급여일내역</td>
+<td> </td>
+<td style="text-align: center;">년</td>
+<td style="text-align: center;">1394</td>
+</tr>
+<tr>
+<td>96</td>
+<td style="text-align: center;">TYPDeduc</td>
+<td>급상여공제결과</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">401</td>
+</tr>
+<tr>
+<td>97</td>
+<td style="text-align: center;">TYPEmpBnsRate</td>
+<td>개인별 상여지급율등록</td>
+<td> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">497</td>
+</tr>
+<tr>
+<td>98</td>
+<td style="text-align: center;">TYPExemptDtl</td>
+<td>급상여예외내역</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">31</td>
+</tr>
+<tr>
+<td>99</td>
+<td style="text-align: center;">TYPGrpBnsRate</td>
+<td>그룹별상여율등록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">113</td>
+</tr>
+<tr>
+<td>100</td>
+<td style="text-align: center;">TYPMst</td>
+<td>급여결과마스터</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">81</td>
+</tr>
+<tr>
+<td>101</td>
+<td style="text-align: center;">TYPNonTax</td>
+<td>비과세등록</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">88</td>
+</tr>
+<tr>
+<td>102</td>
+<td style="text-align: center;">TYPOldMedicCare</td>
+<td>의료보험공제</td>
+<td> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">189</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Version 1.0 EISDMTD22</p>
+<p>EISDMTD22</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 조성민</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시 스 템 : 인사급여관리</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2010.05.27.</td>
+</tr>
+<tr>
+<td>버 전 : 산출물 버전을 기재</td>
+<td>페이지 : 3/3</td>
+<td>승 인 : (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>번호</th>
+<th style="text-align: center;">테이블명</th>
+<th>설 명</th>
+<th style="text-align: center;">발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>103</td>
+<td style="text-align: center;">TYPPay</td>
+<td>급상여지급결과</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">2716</td>
+</tr>
+<tr>
+<td>104</td>
+<td style="text-align: center;">TYPPrtOrd</td>
+<td>출력순서관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">289</td>
+</tr>
+<tr>
+<td>105</td>
+<td style="text-align: center;">TYRBase</td>
+<td>퇴직금산정기준</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">244</td>
+</tr>
+<tr>
+<td>106</td>
+<td style="text-align: center;">TYRBaseItem</td>
+<td>퇴직금산정기준평균임금구성항목</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">48</td>
+</tr>
+<tr>
+<td>107</td>
+<td style="text-align: center;">TYRCumYearTable</td>
+<td>추가근속년수표등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">188</td>
+</tr>
+<tr>
+<td>108</td>
+<td style="text-align: center;">TYRDtl</td>
+<td>퇴직금월평균임금발생내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">257</td>
+</tr>
+<tr>
+<td>109</td>
+<td style="text-align: center;">TYRDtlExc</td>
+<td>퇴직금월평균임금발생내역Sub</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">444</td>
+</tr>
+<tr>
+<td>110</td>
+<td style="text-align: center;">TYREstBase</td>
+<td>퇴직추계액계산근거</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">487</td>
+</tr>
+<tr>
+<td>111</td>
+<td style="text-align: center;">TYREstMst</td>
+<td>퇴직추계액내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">134</td>
+</tr>
+<tr>
+<td>112</td>
+<td style="text-align: center;">TYRMst</td>
+<td>퇴직금결과마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">22</td>
+</tr>
+<tr>
+<td>113</td>
+<td style="text-align: center;">TYROrgPayAmt</td>
+<td>퇴직금계산근거</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">67</td>
+</tr>
+<tr>
+<td>114</td>
+<td style="text-align: center;">TYRRetireDisk</td>
+<td>퇴직디스크생성</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">693</td>
+</tr>
+<tr>
+<td>115</td>
+<td style="text-align: center;">TYRRetSetOffSlip</td>
+<td>퇴직충당금회계처리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">59</td>
+</tr>
+<tr>
+<td>116</td>
+<td style="text-align: center;">TYRRetTaxDeducYn</td>
+<td>퇴직소득공제</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">33</td>
+</tr>
+<tr>
+<td>117</td>
+<td style="text-align: center;">TYUAccDeptDtl</td>
+<td>부서별 회계처리 계정등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">122</td>
+</tr>
+<tr>
+<td>118</td>
+<td style="text-align: center;">TYUAccEmpDtl</td>
+<td>개인별 회계처리 계정등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">359</td>
+</tr>
+<tr>
+<td>119</td>
+<td style="text-align: center;">TYUAccMst</td>
+<td>급상여회계처리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">39</td>
+</tr>
+<tr>
+<td>120</td>
+<td style="text-align: center;">TYUAccSlipDtl</td>
+<td>회계급상여전표기초자료</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">24</td>
+</tr>
+<tr>
+<td>121</td>
+<td style="text-align: center;">TYUDeptGrp</td>
+<td>부서그룹등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">7</td>
+</tr>
+<tr>
+<td>122</td>
+<td style="text-align: center;">TYUDeptGrpDtl</td>
+<td>부서그룹상세</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">44</td>
+</tr>
+<tr>
+<td>123</td>
+<td style="text-align: center;">TYUItemDtl</td>
+<td>급여계정별상세</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">35</td>
+</tr>
+<tr>
+<td>124</td>
+<td style="text-align: center;">TYWAbsEmp</td>
+<td>결근자내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">53</td>
+</tr>
+<tr>
+<td>125</td>
+<td style="text-align: center;">TYWEmpDd</td>
+<td>일근태내역관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">일</td>
+<td style="text-align: center;">102</td>
+</tr>
+<tr>
+<td>126</td>
+<td style="text-align: center;">TYWEmpMm</td>
+<td>근태집계내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>127</td>
+<td style="text-align: center;">TYWHoliDay</td>
+<td>휴일등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">2716</td>
+</tr>
+<tr>
+<td>128</td>
+<td style="text-align: center;">TYWItem</td>
+<td>근태항목</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">289</td>
+</tr>
+<tr>
+<td>129</td>
+<td style="text-align: center;">TYWItemCalc</td>
+<td>급여용근태계산식별</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">244</td>
+</tr>
+<tr>
+<td>130</td>
+<td style="text-align: center;">TYWKndItem</td>
+<td>근태종류별급여항목</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">48</td>
+</tr>
+<tr>
+<td>131</td>
+<td style="text-align: center;">TYWYyAmtEmp</td>
+<td>년차내역관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">188</td>
+</tr>
+<tr>
+<td>132</td>
+<td style="text-align: center;">TYWYyAmtMst</td>
+<td>년차등록</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">257</td>
+</tr>
+<tr>
+<td>133</td>
+<td style="text-align: center;">TYWYyAmtRet</td>
+<td>퇴직자년차내역관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">444</td>
+</tr>
+<tr>
+<td>134</td>
+<td style="text-align: center;">TYWYyEmpDays</td>
+<td>년차발생처리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">487</td>
+</tr>
+<tr>
+<td>135</td>
+<td style="text-align: center;">TYYBsU</td>
+<td>정산사업장정보</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">134</td>
+</tr>
+<tr>
+<td>136</td>
+<td style="text-align: center;">TYYEmpDependList</td>
+<td>부양가족정보</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">22</td>
+</tr>
+<tr>
+<td>137</td>
+<td style="text-align: center;">TyyEmpWknonTax</td>
+<td>생산직비과세</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">22</td>
+</tr>
+<tr>
+<td>138</td>
+<td style="text-align: center;">TYYExtPayDtl</td>
+<td>정산예외내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">67</td>
+</tr>
+<tr>
+<td>139</td>
+<td style="text-align: center;">TYYGiveDeducList</td>
+<td>기부금 지급명세내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">693</td>
+</tr>
+<tr>
+<td>140</td>
+<td style="text-align: center;">TYYHWithHolding</td>
+<td>사업소득</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">59</td>
+</tr>
+<tr>
+<td>141</td>
+<td style="text-align: center;">TYYHWithInterest</td>
+<td>이자배당 원천징수</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">33</td>
+</tr>
+<tr>
+<td>142</td>
+<td style="text-align: center;">TYYIncmDeduc</td>
+<td>소득공제명세</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">122</td>
+</tr>
+<tr>
+<td>143</td>
+<td style="text-align: center;">TYYInsurWrkPlaceDtl</td>
+<td>건강보험사업장관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">359</td>
+</tr>
+<tr>
+<td>144</td>
+<td style="text-align: center;">TYYItem</td>
+<td>연말정산항목</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">39</td>
+</tr>
+<tr>
+<td>145</td>
+<td style="text-align: center;">TYYItemDtl</td>
+<td>정산세목</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">24</td>
+</tr>
+<tr>
+<td>146</td>
+<td style="text-align: center;">TYYLimitDefine</td>
+<td>연말정산항목한도</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">7</td>
+</tr>
+<tr>
+<td>147</td>
+<td style="text-align: center;">TYYMedDeducList</td>
+<td>의료비 지급명세내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">44</td>
+</tr>
+<tr>
+<td>148</td>
+<td style="text-align: center;">TYYMedInsurEnter</td>
+<td>의료보험내역관리</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">35</td>
+</tr>
+<tr>
+<td>149</td>
+<td style="text-align: center;">TYYMst</td>
+<td>정산마스터</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">53</td>
+</tr>
+<tr>
+<td>150</td>
+<td style="text-align: center;">TYYMstDtl</td>
+<td>정산마스터Dtl</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">일</td>
+<td style="text-align: center;">102</td>
+</tr>
+<tr>
+<td>151</td>
+<td style="text-align: center;">TYYPensionGrdDtl</td>
+<td>국민연금등급변경</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>152</td>
+<td style="text-align: center;">TYYTaxDeduc</td>
+<td>세액공제명세</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">필요시</td>
+<td style="text-align: center;">53</td>
+</tr>
+<tr>
+<td>153</td>
+<td style="text-align: center;">TYYTaxRate</td>
+<td>정산세율내역</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">일</td>
+<td style="text-align: center;">102</td>
+</tr>
+<tr>
+<td>154</td>
+<td style="text-align: center;">TYYWithHoldRep</td>
+<td>원천징수이행상황신고</td>
+<td style="text-align: center;"> </td>
+<td style="text-align: center;">월</td>
+<td style="text-align: center;">52</td>
+</tr>
+</tbody>
+</table>
+  </article>
+</div>
+</body>
+</html>

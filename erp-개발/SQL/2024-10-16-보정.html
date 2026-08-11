@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>보정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>보정</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">보정</h1>
+<p>-- 보정</p>
+<p>CREATE TABLE #DiffQty(GoodItemSeq INT, DiffQty DECIMAL(19,5), DiffStdQty DECIMAL(19,5))</p>
+<p>DECLARE @MatItemSeq INT,</p>
+<p>@TotQty DECIMAL(19,5),</p>
+<p>@TotStdQty DECIMAL(19,5)</p>
+<p>SELECT @MatItemSeq = 0,</p>
+<p>@TotQty = 0,</p>
+<p>@TotStdQty = 0</p>
+<p>WHILE 1=1</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@MatItemSeq = MatItemSeq,</p>
+<p>@TotQty = TotQty,</p>
+<p>@TotStdQty = TotStdQty</p>
+<p>FROM #MatItemRealQty</p>
+<p>WHERE MatItemSeq &gt; @MatItemSeq</p>
+<p>ORDER BY MatItemSeq</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>TRUNCATE TABLE #DiffQty</p>
+<p>INSERT INTO #DiffQty(GoodItemSeq, DiffQty, DiffStdQty)</p>
+<p>SELECT TOP 1 GoodItemSeq, (SELECT @TotQty - SUM(RealQty) FROM #MatItemRealQty AS A WHERE MatItemSeq = @MatItemSeq HAVING SUM(RealQty) \&lt;&gt; @TotQty),</p>
+<p>(SELECT @TotStdQty - SUM(RealStdQty) FROM #MatItemRealQty AS A WHERE MatItemSeq = @MatItemSeq HAVING SUM(RealStdQty) \&lt;&gt; @TotStdQty)</p>
+<p>FROM #MatItemRealQty</p>
+<p>WHERE RealQty = (SELECT MAX(RealQty) FROM #MatItemRealQty WHERE MatItemSeq = @MatItemSeq)</p>
+<p>AND MatItemSeq = @MatItemSeq</p>
+<p>IF @@ROWCOUNT \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET RealQty = A.RealQty + ISNULL(B.DiffQty , 0) ,</p>
+<p>RealStdQty = A.RealStdQty + ISNULL(B.DiffStdQty , 0)</p>
+<p>FROM #MatItemRealQty AS A</p>
+<p>LEFT OUTER JOIN #DiffQty AS B ON B.GoodItemSeq = A.GoodItemSeq</p>
+<p>WHERE A.MatItemSeq = @MatItemSeq</p>
+<p>END</p>
+<p>END</p>
+<p>-- 보정된 수량Update</p>
+<p>UPDATE #Result</p>
+<p>SET Qty = B.RealQty,</p>
+<p>StdQty = B.RealStdQty,</p>
+<p>MatNeedBalance = B.RealQty - A.MatNeedQty,</p>
+<p>MatAmt = A.MatPrice * B.RealStdQty</p>
+<p>FROM #Result AS A JOIN #MatItemRealQty AS B ON A.GoodItemSeq = B.GoodItemSeq</p>
+<p>AND A.ProcRev = B.ProcRev</p>
+<p>AND A.MatItemSeq = B.MatItemSeq</p>
+  </article>
+</div>
+</body>
+</html>

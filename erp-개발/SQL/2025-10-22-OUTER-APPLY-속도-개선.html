@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OUTER APPLY 속도 개선</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>OUTER APPLY 속도 개선</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="outer-apply">OUTER APPLY 속도 개선</h1>
+<p><span class="mark">-- 변경 전</span></p>
+<p>OUTER APPLY (SELECT TOP 1 PODomPrice, POCurPrice, PODate, SUM(POQty) AS POQty</p>
+<p>FROM das_TPUORDPriceSummary AS D8 WITH(NOLOCK)</p>
+<p>WHERE D8.CompanySeq = @CompanySeq</p>
+<p>AND D8.ItemSeq = A.ItemSeq</p>
+<p>AND D8.UMModule = 6224001</p>
+<p>--AND D8.CustSeq = A.CustSeq</p>
+<p>AND D8.PODate \&lt; B.ApproReqDate -- 20251001. jhkweon. 주석제거</p>
+<p>GROUP BY PODomPrice, POCurPrice, PODate</p>
+<p>ORDER BY PODate DESC) AS D8</p>
+<p><span class="mark">-- 변경 후</span></p>
+<blockquote>
+<p>LEFT OUTER JOIN (SELECT D8.CompanySeq, D8.ItemSeq, D8.PODomPrice, D8.POCurPrice, D8.PODate, SUM(D8.POQty) AS POQty,</p>
+</blockquote>
+<p>ROW_NUMBER() OVER(PARTITION BY D8.ItemSeq ORDER BY D8.PODate DESC) AS RN</p>
+<p>FROM das_TPUORDPriceSummary AS D8 WITH(NOLOCK)</p>
+<p>WHERE D8.CompanySeq = @CompanySeq</p>
+<p>AND D8.UMModule = 6224001</p>
+<p>GROUP BY D8.CompanySeq, D8.ItemSeq, D8.PODomPrice, D8.POCurPrice, D8.PODate) AS D8 ON D8.CompanySeq = @CompanySeq</p>
+<p>AND D8.ItemSeq = A.ItemSeq</p>
+<p>AND D8.PODate \&lt; B.ApproReqDate</p>
+<p>AND D8.RN = 1 -- 가장 최근 데이터만 선택</p>
+  </article>
+</div>
+</body>
+</html>

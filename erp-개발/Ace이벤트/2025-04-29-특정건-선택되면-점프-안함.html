@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>특정건 선택되면 점프 안함</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>특정건 선택되면 점프 안함</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">특정건 선택되면 점프 안함</h1>
+<p>local checkrow, PUPDSeq</p>
+<p>_base.IsJumpEventCancel = false</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>if CellText(SS1, row, 'Select') == '1' then</p>
+</blockquote>
+<p>checkrow = '1'</p>
+<p>if CellText(SS1, row, 'PUPDSeq') == '2' then</p>
+<blockquote>
+<p>PUPDSeq = '1'</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>if checkrow ~= '1' then</p>
+<blockquote>
+<p>msg = GetMessage('1001', GetDictionary(1572), '', '', '', '', '', '', '', '', '')</p>
+</blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<blockquote>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>if PUPDSeq == '1' then</p>
+<p>msg = '생산 데이터는 구매요청으로 점프할 수 없습니다'</p>
+<blockquote>
+<p>MessageBoxShow(msg, '')</p>
+</blockquote>
+<p>_base.IsJumpEventCancel = true</p>
+<blockquote>
+<p>GoTo('END')</p>
+</blockquote>
+<p>return</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

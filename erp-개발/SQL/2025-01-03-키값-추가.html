@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>키값 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>키값 추가</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">키값 추가</h1>
+<p>-- 1. NULL허용인 경우 NOT NULL 으로 변경</p>
+<p>ALTER TABLE uck_TACLabCostReplace ALTER COLUMN CCtrSeq INT NOT NULL</p>
+<p>-- 2. 기존 키 제약 조건 삭제</p>
+<p>ALTER TABLE uck_TACLabCostReplace DROP CONSTRAINT PKuck_TACLabCostReplace;</p>
+<p>-- 3. 새로운 키 추가</p>
+<p>ALTER TABLE uck_TACLabCostReplace ADD CONSTRAINT PKuck_TACLabCostReplace PRIMARY KEY (CompanySeq, AccUnit, AccMonth, AccSeq,CCtrSeq)</p>
+  </article>
+</div>
+</body>
+</html>

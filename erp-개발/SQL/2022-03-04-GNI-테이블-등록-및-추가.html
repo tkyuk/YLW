@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI 테이블 등록 및 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI 테이블 등록 및 추가</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni">GNI 테이블 등록 및 추가</h1>
+<p>DROP TABLE TKARecvM_sjpark</p>
+<p>GO</p>
+<p>CREATE TABLE TKARecvM_sjpark</p>
+<p>(</p>
+<p>AccUnit CHAR(02),</p>
+<p>RecvNo CHAR(12),</p>
+<p>DeptCd CHAR(05),</p>
+<p>EmpId CHAR(08),</p>
+<p>CustCd CHAR(06),</p>
+<p>RecvDate CHAR(08),</p>
+<p>SupCustCd CHAR(06),</p>
+<p>SupKind CHAR(08),</p>
+<p>MorKind CHAR(08),</p>
+<p>FrDate CHAR(08),</p>
+<p>ToDate CHAR(08),</p>
+<p>BLNo NVARCHAR(20),</p>
+<p>PermitNo NVARCHAR(20),</p>
+<p>Remark NVARCHAR(1000),</p>
+<p>AsstType CHAR(08),</p>
+<p>RegEmpId CHAR(8),</p>
+<p>RegDate CHAR(12),</p>
+<p>UptEmpId CHAR(8),</p>
+<p>UptDate CHAR(12)</p>
+<p>)</p>
+<p>GO</p>
+<p>CREATE UNIQUE NONCLUSTERED INDEX IDX_TKARecvM_sjpark ON TKARecvM_sjpark (RecvNo)</p>
+<p>GO</p>
+<p>DROP TABLE TKARecvItem_sjpark</p>
+<p>GO</p>
+<p>CREATE TABLE TKARecvItem_sjpark</p>
+<p>(</p>
+<p>RecvNo CHAR(12),</p>
+<p>RecvSerl CHAR(04),</p>
+<p>ItemCd CHAR(06),</p>
+<p>Qty NUMERIC(19,5),</p>
+<p>Remark NVARCHAR(1000),</p>
+<p>ProcResult CHAR(01),</p>
+<p>RegEmpId CHAR(08),</p>
+<p>RegDate CHAR(12),</p>
+<p>UptEmpId CHAR(08),</p>
+<p>UptDate CHAR(12)</p>
+<p>)</p>
+<p>GO</p>
+<p>CREATE UNIQUE NONCLUSTERED INDEX IDX_TKARecvItem_sjpark ON TKARecvItem_sjpark (RecvNo, RecvSerl)</p>
+<p>ALTER TABLE TKARecvM_sjpark ADD Remark1 NVARCHAR(1000)</p>
+<p>ALTER TABLE TKARecvItem_sjpark ADD Remark1 NVARCHAR(1000)</p>
+<p>ALTER TABLE TKARecvM_sjpark ADD Remark2 NVARCHAR(1000)</p>
+<p>ALTER TABLE TKARecvItem_sjpark ADD Remark2 NVARCHAR(1000)</p>
+<p>*테이블 컬럼 추가</p>
+<p>ALTER TABLE TKARecvM_sjpark ADD Remark1 NVARCHAR(1000)</p>
+<p>ALTER TABLE TKARecvItem_sjpark ADD Remark1 NVARCHAR(1000)</p>
+  </article>
+</div>
+</body>
+</html>

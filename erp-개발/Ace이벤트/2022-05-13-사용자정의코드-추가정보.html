@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사용자정의코드 추가정보</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사용자정의코드 추가정보</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사용자정의코드 추가정보</h1>
+<p>생산사업부 =&gt; 사업단위</p>
+<p><img alt="" src="assets/사용자정의코드-추가정보/image24.png" /></p>
+<p><img alt="" src="assets/사용자정의코드-추가정보/image25.png" /></p>
+<p>Param1 =&gt; 대분류 코드</p>
+<p>Param2 =&gt; 일련번호 (시트설정에서 HID 풀어줘야함)</p>
+<p><img alt="" src="assets/사용자정의코드-추가정보/image26.png" /></p>
+<p><img alt="" src="assets/사용자정의코드-추가정보/image27.png" /></p>
+<p>if SS1.ActiveColumnName == 'UMFactoryUnitName' then</p>
+<blockquote>
+<p>SS1.ColumnCodeHelpParams = '1000365|15000001|'..tostring(cmbBizUnitName.Value)..'|'</p>
+</blockquote>
+<p>end</p>
+<p>기타입고구분 - 추가정보정의</p>
+<p><img alt="" src="assets/사용자정의코드-추가정보/image28.png" /></p>
+  </article>
+</div>
+</body>
+</html>

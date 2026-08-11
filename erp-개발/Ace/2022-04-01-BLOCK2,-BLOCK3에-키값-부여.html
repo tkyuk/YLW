@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLOCK2, BLOCK3에 키값 부여</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>BLOCK2, BLOCK3에 키값 부여</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="block2-block3">BLOCK2, BLOCK3에 키값 부여</h1>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET QuoteSeq = (SELECT QuoteSeq FROM #BIZ_OUT_DataBlock1)</p>
+<p>WHERE Status = 0</p>
+<p>UPDATE #BIZ_OUT_DataBlock3</p>
+<p>SET QuoteSeq = (SELECT QuoteSeq FROM #BIZ_OUT_DataBlock1)</p>
+<p>WHERE Status = 0</p>
+  </article>
+</div>
+</body>
+</html>

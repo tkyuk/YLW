@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>검사여부 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>검사여부 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2025-07-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">검사여부 가져오기</h1>
+<hr />
+<p>-- 검사구분 재UPDATE</p>
+<hr />
+<p>DECLARE @DelvDate NCHAR(8)</p>
+<p>--WBS 품질에 맞게 검사품 가져올 수 있도록 설정</p>
+<p>CREATE TABLE #QCItem</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>CustSeq INT,</p>
+<p>IsQC NCHAR(1)</p>
+<p>)</p>
+<p>SELECT @DelvDate = DelvDate,</p>
+<p>@BizUnit = BizUnit</p>
+<p>FROM #BIZ_OUT_DataBlock2</p>
+<p>INSERT INTO #QCItem (ItemSeq, CustSeq)</p>
+<p>SELECT ItemSeq, CustSeq</p>
+<p>FROM #BIZ_OUT_DataBlock2</p>
+<p>EXEC _SWPDQAGetIsQC @CompanySeq = @CompanySeq,</p>
+<p>@BizUnit = @BizUnit,</p>
+<p>@Date = @DelvDate, --일자</p>
+<p>@SMQCKind = 6018005 -- 구매검사. 20250519. jhkweon.</p>
+<p>UPDATE A</p>
+<p>SET SMQCType = CASE WHEN ISNULL(E.IsNotPurQC,'0') = '1' THEN 6035001</p>
+<p>ELSE (CASE WHEN B.IsQC = '1' THEN 6035002 --미검사</p>
+<p>ELSE 6035001 --무검사</p>
+<p>END</p>
+<p>)</p>
+<p>END</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #QCItem AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDQCTestReport AS C WITH(NOLOCK) ON A.DelvSeq = C.SourceSeq</p>
+<p>AND A.DelvSerl = C.SourceSerl</p>
+<p>AND C.CompanySeq = @CompanySeq</p>
+<p>AND C.SourceType = 6097001</p>
+<p>LEFT OUTER JOIN das_TPDQAProjectNotQCKind AS E WITH(NOLOCK) ON E.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTSeq = E.PJTSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(C.QCSeq, 0) = 0</p>
+<p>-- AND A.WorkingTag = 'U'</p>
+<p>AND A.WorkingTag IN ('A', 'U')</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조회조건 fr, to 날짜 사이 데이터 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>조회조건 fr, to 날짜 사이 데이터 조회</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-30</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="fr-to">조회조건 fr, to 날짜 사이 데이터 조회</h1>
+<p>DROP PROC gcos_SWSCMWHInputLimitItemQuery</p>
+<p>GO</p>
+<p>CREATE PROC gcos_SWSCMWHInputLimitItemQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @DelvReqDateFr NCHAR(8)</p>
+<p>,@DelvReqDateTo NCHAR(8)</p>
+<p>,@WHSeq INT</p>
+<p>,@UMLimitType INT</p>
+<p>SELECT @DelvReqDateFr = ISNULL(A.DelvReqDateFr,'')</p>
+<p>,@DelvReqDateTo = ISNULL(A.DelvReqDateTo,'')</p>
+<p>,@WHSeq = ISNULL(A.WHSeq , 0)</p>
+<p>,@UMLimitType = ISNULL(A.UMLimitType , 0)</p>
+<p>FROM #BIZ_IN_DataBlock2 AS A</p>
+<p>IF @DelvReqDateTo = '' SELECT @DelvReqDateTo = '99991231'</p>
+<p>-- 기준 테이블 생성</p>
+<p>CREATE TABLE #Tmp_DelvReqDate(</p>
+<p>DelvReqDate NCHAR(8)</p>
+<p>,UMDelvReqTimeName NVARCHAR(100)</p>
+<p>,UMDelvReqTime INT</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_DelvReqDate(DelvReqDate, UMDelvReqTimeName, UMDelvReqTime)</p>
+<p>SELECT CONVERT(CHAR(8), DATEADD(DAY, B.number, CONVERT(date, @DelvReqDateFr)), 112) AS DelvReqDate</p>
+<p>,A.MinorName</p>
+<p>,A.MinorSeq</p>
+<p>FROM _TDAUMinor AS A</p>
+<p>CROSS JOIN master.dbo.spt_values AS B</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1110279</p>
+<p>AND B.type = 'P' -- 숫자만 추출</p>
+<p>AND B.number \&lt;= DATEDIFF(DAY, CONVERT(date, @DelvReqDateFr), CONVERT(date, @DelvReqDateTo))</p>
+<p>ORDER BY DelvReqDate, A.MinorSeq</p>
+<p>SELECT A.DelvReqDate AS DelvReqDate</p>
+<p>,A.UMDelvReqTimeName AS UMDelvReqTimeName</p>
+<p>,A.UMDelvReqTime AS UMDelvReqTime</p>
+<p>,ISNULL(B.LimitQty, 0) AS LimitQty</p>
+<p>,@WHSeq AS WHSeq</p>
+<p>,@UMLimitType AS UMLimitType</p>
+<p>FROM #Tmp_DelvReqDate AS A</p>
+<p>LEFT OUTER JOIN gcos_TSCMWHInputLimit AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.WHSeq = @WHSeq</p>
+<p>AND B.DelvReqDate = A.DelvReqDate</p>
+<p>AND B.UMDelvReqTime = A.UMDelvReqTime</p>
+<p>ORDER BY A.DelvReqDate, A.UMDelvReqTime</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

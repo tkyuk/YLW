@@ -1,0 +1,3154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단암시스템즈 마이그레이션</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>단암시스템즈 마이그레이션</h1>
+    <div class="meta">
+      <span class="note-date">2025-08-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">단암시스템즈 마이그레이션</h1>
+<p>/*</p>
+<p>단암시스템즈 마이그레이션</p>
+<p>순서</p>
+<p>[00]. Genuine &amp; Ace Mapping</p>
+<p>[01]. 거래처</p>
+<p>-- 01. _TDACust "거래처"</p>
+<p>-- 02. _TDACustKind "거래처종류"</p>
+<p>-- 03. _TDACustClass "유통구분"</p>
+<p>-- 04. _TDACustGroup "영업업무처리 거래처 등록"</p>
+<p>-- 05. _TDACustAdd "거래처 기타 정보"</p>
+<p>-- 06. _TDACustEmpInfo "거래처 담당자 정보"</p>
+<p>-- 07. _TDACustSalesReceiptCond "거래처별회수조건등록"</p>
+<p>-- 08. _TDACustSalesReceiptStd "거래처별매출회수기준" -- 데이터 미존재 --</p>
+<p>-- 09. _TDACustBankAcc "거래처금융기관 정보"</p>
+<p>-- 10. _TSLDeliveryCust "거래처별 납품처 등록" -- 데이터 미존재 --</p>
+<p>-- 11. _TDACustTaxHist "거래처이력"</p>
+<p>-- 12. _TSIEDIIEBillCustEmpInfo "전자세금계산서 거래처담당자 정보 등록"</p>
+<p>-- 13. _TAPCustPay "거래처별지불조건"</p>
+<p>-- 14. _TAPCustPayTerm "거래처별정기지불방식"</p>
+<p>[02]. 품목</p>
+<p>-- 01. _TDAItem "품목마스터"</p>
+<p>-- 02. _TDAItemSales "품목 판매정보"</p>
+<p>-- 03. _TDAItemClass "품목 소분류"</p>
+<p>-- 04. _TDAItemPurchase "품목 구매정보"</p>
+<p>-- 05. _TDAItemProduct "품목 생산정보"</p>
+<p>-- 06. _TDAItemUnitSpec "품목단위속성"</p>
+<p>-- 07. _TDAItemUnitModule "품목단위별업무사용정보"</p>
+<p>-- 08. _TDAItemDefUnit "단위사용구분별 기본단위"</p>
+<p>-- 09. _TDAItemUnit "품목 단위환산/속성정보"</p>
+<p>-- 10. _TDAItemRemark "품목 비고정보"</p>
+<p>-- 11. _TDAItemStock "품목 재고정보"</p>
+<p>-- 12. _TDAItemFile "품목 파일정보" -- 이미지 migration 時 진행 --</p>
+<p>-- 13. _TDAItemStdWH "품목기본창고" -- 데이터 미존재 --</p>
+<p>-- 14. _TDAItemClassStdWH "품목분류별기본창고" -- 테이블 미존재 --</p>
+<p>-- 15. _TDAWHItem "창고별품목" -- 데이터 미존재 --</p>
+<p>-- 추가테이블 INSERT</p>
+<p>-- 16. das_TDAItemReq "자재등록요청"</p>
+<p>-- 17. das_TDAItemClassReq "자재요청분류"</p>
+<p>-- 18. das_TDAItemDetail "자재상세"</p>
+<p>-- 19. das_TDAItemPurchase "자재상세(구매)"</p>
+<p>[03]. 프로젝트</p>
+<p>-- 01. _TPJTProject. "프로젝트"</p>
+<p>-- 02. _TPJTProjectDelivery "프로젝트 납품내역"</p>
+<p>-- 03. _TPJTProjectDesc "프로젝트 부가정보"</p>
+<p>-- 04. _TPJTProjectItem "프로젝트 (계약)품목"</p>
+<p>-- 05. _TPJTProjectItemBillCond "프로젝트 계약품목별 청구조건"</p>
+<p>-- 추가테이블 INESRT</p>
+<p>-- 06. das_TPJTProject "프로젝트"</p>
+<p>-- 07. das_TPJTWBSData "프로젝트 WBS"</p>
+<p>-- 08. _TPJTWBS "프로젝트 WBS"</p>
+<p>[04]. 세금계산서&amp;거래명세서</p>
+<p>-- 01. _TSLBill "세금계산서마스터"</p>
+<p>-- 02. _TSLBillItem "세금계산서출력품목"</p>
+<p>-- 03. _TPJTSLBillItem "프로젝트 세금계산서(선수금) 부가정보"</p>
+<p>-- 04. _TSLInvoice "거래명세서마스터"</p>
+<p>-- 05. _TSLInvoiceItem "거래명세서품목"</p>
+<p>-- 06. _TSLSales "매출마스터"</p>
+<p>-- 07. _TSLSalesItem "매출품목"</p>
+<p>[05]. 프로젝트재료자원</p>
+<p>-- 01. _TPJTBOM "프로젝트재료자원등록"</p>
+<p>-- 추가테이블 INSERT</p>
+<p>-- 02. das_TPJTBOM "프로젝트재료자원등록"</p>
+<p>-- 03. das_TPJTBOMRev "프로젝트재료자원등록(차수)"</p>
+<p>-- 04. das_TPJTBOMMaster "프로젝트재료자원등록 마스터" -- 신규 테이블 --</p>
+<p>-- 05. das_TPJTBOMMasterRev "프로젝트재료자원등록 마스터(차수)" -- 신규 테이블 --</p>
+<p>[06]. 제품별공정별소요자재</p>
+<p>-- 01. _TPDROUItemProc "생산품목공정"</p>
+<p>-- 02. _TPDROUItemProcWC "생산품목공정워크센터"</p>
+<p>-- 03. _TPDROUItemProcManagement "공정차수관리"</p>
+<p>-- 04. _TPDROUItemProcRevFactUnit "사업단위별생산품목"</p>
+<p>[07]. 프로젝트자재출고</p>
+<p>[08]. 설비</p>
+<p>-- _TPDTool "설비"</p>
+<p>-- _TPDToolDetailInspect "설비점검일"</p>
+<p>-- _TPDToolMove "설비(금형)이동입력"</p>
+<p>-- _TPDToolRepair "설비수리(점검)입력"</p>
+<p>-- _TPDToolUserDefine "설비사용자추가정보"</p>
+<p>-- das_TPDTool "설비"</p>
+<p>-- das_TPDToolRepair "설비수리(점검)입력"</p>
+<p>-- das_TPDToolDetailInspectName "설비점검명" -- ACE 미사용 --</p>
+<p>-- das_TPDToolDetailInspectSub "금회점검일" -- ACE 미사용 --</p>
+<p>[03]. 회계</p>
+<p>[ ]. 이미지 ( 자재, 설비, 구매/수입 process .. )</p>
+<p>[ ]. 구매요구서</p>
+<p>*/</p>
+<p>/*</p>
+<p>--===========================--</p>
+<p>-- Genuine &amp; ACE 매핑 테이블 --</p>
+<p>--===========================--</p>
+<p>★ 다음에 사용하면 NewCode 명칭을 NewSeq 로 변경하기 ★</p>
+<p>기존 데이터 삭제 후 진행</p>
+<p>구매납품, 구매입고만 처리</p>
+<p>G&amp;I 코드 위치</p>
+<p>사원 : _TDAEmp.EmpSort // CON_TDAEmp</p>
+<p>부서 : _TDADept.Dummy10 // CON_TDADept // CONVERT 하셔야 합니다</p>
+<p>거래처 : _TDACust.UMCredLevel // CON_TDACust</p>
+<p>품목 : _TDAItem.UMProperty // CON_TDAItem</p>
+<p>창고 : 하드코딩 9</p>
+<p>단위 : 명칭으로 비교 // CON_TDAUnit</p>
+<p>통화 : _TDACurr 명칭으로 비교 // CON_TDACurr</p>
+<p>사용자정의코드 : 8201, 8204, 1002 명칭으로 비교 // CON_TDAUMinor</p>
+<p>사용자정의코드 : 1002 Remark 매핑</p>
+<p>*/</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDAEmp')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDAEmp</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDAEmp(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDADept')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDADept</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDADept(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDACust')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDACust</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDACust(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDAItem')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDAItem</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDAItem(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDAUnit')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDAUnit</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDAUnit(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDACurr')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDACurr</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDACurr(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDAUMinor')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDAUMinor</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>,MajorSeq INT NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDAUMinor(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TCAUser')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TCAUser</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TCAUser(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDAItemAsset')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDAItemAsset</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TDAItemAsset(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TPJTProject') -- 해당 테이블은 하위에서 따로 INSERT 함.</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TPJTProject</p>
+<p>(</p>
+<p>OldSeq INT NOT NULL</p>
+<p>,NewCode INT NOT NULL</p>
+<p>,OldName NVARCHAR(200) NOT NULL</p>
+<p>,NewName NVARCHAR(200) NOT NULL</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON CON_TPJTProject(OldSeq, NewCode)</p>
+<p>END</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_TCOMConfirm6305')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE TEMP_TCOMConfirm6305</p>
+<p>(</p>
+<p>ConfirmSeq INT</p>
+<p>,POReqSeq INT NOT NULL</p>
+<p>,CfmEmpSeq INT</p>
+<p>,CfmDate NCHAR(8)</p>
+<p>)</p>
+<p>CREATE UNIQUE CLUSTERED INDEX IDX_CON ON TEMP_TCOMConfirm6305(ConfirmSeq, POReqSeq)</p>
+<p>END</p>
+<p>DELETE FROM CON_TDAEmp</p>
+<p>INSERT INTO CON_TDAEmp(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT A.EmpSeq, B.EmpSeq, A.EmpName, B.EmpName</p>
+<p>FROM genuine.danam.dbo._TDAEmp AS A</p>
+<p>JOIN _TDAEmp AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.EmpSort = A.EmpSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>DELETE FROM CON_TDADept</p>
+<p>INSERT INTO CON_TDADept(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT A.DeptSeq, B.DeptSeq, A.DeptName, B.DeptName</p>
+<p>FROM genuine.danam.dbo._TDADept AS A</p>
+<p>JOIN _TDADept AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.Dummy10 = A.DeptSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>DELETE FROM CON_TDACust</p>
+<p>INSERT INTO CON_TDACust(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT A.CustSeq, A.CustSeq, A.CustName, B.CustName</p>
+<p>FROM genuine.danam.dbo._TDACust AS A</p>
+<p>JOIN _TDACust AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>DELETE FROM CON_TDAItem</p>
+<p>INSERT INTO CON_TDAItem(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT A.ItemSeq, B.ItemSeq, A.ItemNo, B.ItemNo</p>
+<p>FROM genuine.danam.dbo._TDAItem AS A</p>
+<p>JOIN _TDAItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.UMProperty = A.ItemSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND ISNULL(B.UMProperty, 0) \&lt;&gt; 0</p>
+<p>DELETE FROM CON_TDAUnit</p>
+<p>INSERT INTO CON_TDAUnit(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT A.UnitSeq, B.UnitSeq, A.UnitName, B.UnitName</p>
+<p>FROM genuine.danam.dbo._TDAUnit AS A</p>
+<p>JOIN _TDAUnit AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.UnitName = A.UnitName</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>DELETE FROM CON_TDACurr</p>
+<p>INSERT INTO CON_TDACurr(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT A.CurrSeq, B.CurrSeq, A.CurrName, B.CurrName</p>
+<p>FROM genuine.danam.dbo._TDACurr AS A</p>
+<p>JOIN _TDACurr AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CurrName = A.CurrName</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>DELETE FROM CON_TDAUMinor WHERE MajorSeq = 8201</p>
+<p>INSERT CON_TDAUMinor</p>
+<p>SELECT B.MinorSeq, A.MinorSeq, A.MinorName, B.MinorName, B.MajorSeq</p>
+<p>FROM genuine.danam.dbo._TDAUMinor AS B</p>
+<p>JOIN _TDAUMinor AS A ON RTRIM(LTRIM(B.MinorName)) = RTRIM(LTRIM(A.MinorName))</p>
+<p>AND B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE B.MajorSeq = 8201</p>
+<p>DELETE FROM CON_TDAUMinor WHERE MajorSeq = 8204</p>
+<p>INSERT CON_TDAUMinor</p>
+<p>SELECT B.MinorSeq, A.MinorSeq, A.MinorName, B.MinorName, B.MajorSeq</p>
+<p>FROM genuine.danam.dbo._TDAUMinor AS B</p>
+<p>JOIN _TDAUMinor AS A ON RTRIM(LTRIM(B.MinorName)) = RTRIM(LTRIM(A.MinorName))</p>
+<p>AND B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE B.MajorSeq = 8204</p>
+<p>DELETE FROM CON_TDAUMinor WHERE MajorSeq = 1002</p>
+<p>INSERT CON_TDAUMinor</p>
+<p>SELECT B.MinorSeq, A.MinorSeq, A.MinorName, B.MinorName, B.MajorSeq</p>
+<p>FROM genuine.danam.dbo._TDAUMinor AS B</p>
+<p>JOIN _TDAUMinor AS A ON RTRIM(LTRIM(B.MinorSeq)) = RTRIM(LTRIM(A.Remark))</p>
+<p>AND B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE B.MajorSeq = 1002</p>
+<p>-- 김찬슬, 이원제 중복으로 인해 C.UserSeq를 MAX로 처리 (한 seq로 몰기)</p>
+<p>DELETE FROM CON_TCAUser</p>
+<p>INSERT INTO CON_TCAUser (OldSeq,NewCode,OldName, NewName)</p>
+<p>SELECT A.UserSeq,MAX(C.UserSeq) ,A.UserName, C.UserName</p>
+<p>FROM genuine.danam.dbo._TCAUser AS A</p>
+<p>JOIN CON_TDAEmp AS B ON A.EmpSeq = B.OldSeq</p>
+<p>JOIN _TCAUSer AS C ON B.NewCode = C.EmpSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>GROUP BY A.UserSeq, A.UserName, C.UserName</p>
+<p>IF EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_CON_TDAItemAsset')</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE TEMP_CON_TDAItemAsset</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>CREATE TABLE TEMP_CON_TDAItemAsset</p>
+<p>(</p>
+<p>OldSeq INT,</p>
+<p>NewCode INT</p>
+<p>)</p>
+<p>END</p>
+<p>INSERT INTO TEMP_CON_TDAItemAsset</p>
+<p>(</p>
+<p>OldSeq, NewCode</p>
+<p>)</p>
+<p>SELECT 1 AS OldSeq , 1 AS NewCode UNION</p>
+<p>SELECT 2 AS OldSeq , 11 AS NewCode UNION</p>
+<p>SELECT 3 AS OldSeq , 18 AS NewCode UNION</p>
+<p>SELECT 4 AS OldSeq , 12 AS NewCode UNION</p>
+<p>SELECT 6 AS OldSeq , 6 AS NewCode UNION</p>
+<p>SELECT 9 AS OldSeq , 11 AS NewCode UNION</p>
+<p>SELECT 10 AS OldSeq , 13 AS NewCode UNION</p>
+<p>SELECT 15 AS OldSeq , 13 AS NewCode UNION</p>
+<p>SELECT 17 AS OldSeq , 7 AS NewCode UNION</p>
+<p>SELECT 18 AS OldSeq , 15 AS NewCode UNION</p>
+<p>SELECT 19 AS OldSeq , 16 AS NewCode</p>
+<p>SELECT * FROM TEMP_CON_TDAItemAsset</p>
+<p>DELETE FROM CON_TDAItemAsset</p>
+<p>INSERT INTO CON_TDAItemAsset (OldSeq,NewCode,OldName, NewName)</p>
+<p>SELECT X.OldSeq, X.NewCode,A.AssetName, B.AssetName</p>
+<p>FROM TEMP_CON_TDAItemAsset AS X</p>
+<p>JOIN genuine.danam.dbo._TDAItemAsset AS A ON A.AssetSeq = X.OldSeq</p>
+<p>JOIN _TDAItemAsset AS B ON B.AssetSeq = X.NewCode</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>--==================================--</p>
+<p>-- [00]. Genuine &amp; Ace Mapping 종료 --</p>
+<p>--==================================--</p>
+<p>DECLARE @CompanySeq INT,</p>
+<p>@UserSeq INT,</p>
+<p>@Now DATETIME</p>
+<p>SELECT @CompanySeq = 1,</p>
+<p>@UserSeq = 1,</p>
+<p>@Now = GETDATE()</p>
+<p>-- 암호화/복호화</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>--==============--</p>
+<p>-- [01]. 거래처 --</p>
+<p>--==============--</p>
+<p>DECLARE @MaxCustSeq INT = 0,</p>
+<p>@MaxCustPaySeq INT = 0</p>
+<p>SELECT @MaxCustSeq = MAX(UMCredLevel) -- Genuine MAX CustSeq</p>
+<p>FROM _TDACust AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT @MaxCustPaySeq = MAX(CustPaySeq)</p>
+<p>FROM _TAPCustPay AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT @MaxCustSeq AS '@MaxCustSeq', @MaxCustPaySeq AS '@MaxCustPaySeq'</p>
+<p>--============--</p>
+<p>-- [02]. 품목 --</p>
+<p>--============--</p>
+<p>DECLARE @OldMaxItemSeq INT = 0,</p>
+<p>@NewMaxItemSeq INT = 0</p>
+<p>SELECT @OldMaxItemSeq = MAX(UMProperty)</p>
+<p>FROM _TDAItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT @NewMaxItemSeq = MAX(ItemSeq)</p>
+<p>FROM _TDAItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT @OldMaxItemSeq AS '@OldMaxItemSeq', @NewMaxItemSeq AS '@NewMaxItemSeq'</p>
+<p>/*</p>
+<p>--========================================================--</p>
+<p>-- 지불방법. _TAPCustPay.SMPayMethod / GENUINE &amp; ACE 동일 --</p>
+<p>--========================================================--</p>
+<p>-- GENUINE</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM genuine.danam.._TDASMajor AS A</p>
+<p>JOIN genuine.danam.._TDASMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 4009</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>-- ACE</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM _TDASMajor AS A</p>
+<p>JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 4009</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>--========================================================--</p>
+<p>-- 지급방법. _TAPCustPay.SMPayTypeDft / GENUINE &amp; ACE 동일 --</p>
+<p>--========================================================--</p>
+<p>-- GENUINE</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM genuine.danam.._TDASMajor AS A</p>
+<p>JOIN genuine.danam.._TDASMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 4010</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>-- ACE</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM _TDASMajor AS A</p>
+<p>JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 4010</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>--========================================================--</p>
+<p>-- 출납방법. _TAPCustPay.SMRNPMethod / GENUINE &amp; ACE 동일 --</p>
+<p>--========================================================--</p>
+<p>-- GENUINE</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM genuine.danam.._TDAUMajor AS A</p>
+<p>JOIN genuine.danam.._TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 4008</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>-- ACE</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM _TDAUMajor AS A</p>
+<p>JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 4008</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>--=============================================================================================================--</p>
+<p>-- 청구대상종료일. _TAPCustPayTerm.UMDelvToDay / GENUINE &amp; ACE 데이터 구조가 다르며, ACE에는 데이터가 미존재함 --</p>
+<p>--=============================================================================================================--</p>
+<p>-- GENUINE</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM genuine.danam.._TDAUMajor AS A</p>
+<p>JOIN genuine.danam.._TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.MajorSeq = 4021</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>-- ACE</p>
+<p>--SELECT A.MajorName, B.*</p>
+<p>-- FROM _TDAUMajor AS A</p>
+<p>-- JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>-- AND B.MajorSeq = A.MajorSeq</p>
+<p>-- WHERE A.CompanySeq = 1</p>
+<p>-- AND A.MajorSeq = 4021</p>
+<p>-- ORDER BY B.MinorSeq</p>
+<p>*/</p>
+<p>BEGIN TRAN</p>
+<p>--==============--</p>
+<p>-- [01]. 거래처 --</p>
+<p>--==============--</p>
+<p>IF EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_TDACust')</p>
+<p>BEGIN</p>
+<p>DROP TABLE TEMP_TDACust</p>
+<p>END</p>
+<p>SELECT *</p>
+<p>INTO TEMP_TDACust</p>
+<p>FROM genuine.danam.dbo._TDACust</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND CustSeq &gt; @MaxCustSeq</p>
+<p>SELECT @MaxCustSeq AS '@MaxCustSeq', '거래처마이그레이션데이터', *</p>
+<p>FROM TEMP_TDACust</p>
+<p>SELECT *</p>
+<p>FROM TEMP_TDACust</p>
+<p>INSERT INTO CON_TDACust(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT CustSeq, CustSeq, CustName, CustName</p>
+<p>FROM TEMP_TDACust</p>
+<p>-- 01. _TDACust "거래처"</p>
+<p>INSERT INTO _TDACust</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, CustName, TrunName, CustNo,</p>
+<p>UMCredLevel, SMDomFor, SMCustStatus, FullName, BizNo,</p>
+<p>PersonId, Owner, LawRegNo, BizAddr, BizKind,</p>
+<p>BizType, TelNo, FrDate, LastUserSeq, LastDateTime,</p>
+<p>SMBizPers, UMCountrySeq, BizNoRegDate, MinorBizNo, BizAddrSeq,</p>
+<p>IsFwbBill, IsRevBill, RegUserSeq, RegDateTime, EmpSeq,</p>
+<p>DeptSeq, PersonIdBNR, SMCustRelation, PassportNo, IsSumBill</p>
+<p>)</p>
+<p>SELECT</p>
+<p>@CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>ISNULL(A.CustName, '') AS CustName,</p>
+<p>ISNULL(A.TrunName, '') AS TrunName,</p>
+<p>ISNULL(A.CustNo, '') AS CustNo,</p>
+<p>A.CustSeq AS UMCredLevel,</p>
+<p>ISNULL(A.SMDomFor, 0) AS SMDomFor, -- 국내외구분 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 1013</p>
+<p>ISNULL(A.SMCustStatus, 0) AS SMCustStatus, -- 거래처상태 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 2004</p>
+<p>ISNULL(A.FullName, '') AS FullName,</p>
+<p>-- _FWCOMEncrypt (암호화) // _FWCOMDecrypt (복호화)</p>
+<p>--ISNULL(dbo._FCOMDecrypt(REPLACE(BizNo, '-', ''), 'genuine.danam.dbo.tmp_TDACust', 'BizNo', @CompanySeq), '') AS BizNo,</p>
+<p>ISNULL(A.BizNo, '') AS BizNo,</p>
+<p>ISNULL(dbo._FWCOMEncrypt(A.PersonId,'_TDACust', 'PersonId', @CompanySeq), '') AS PersonId,</p>
+<p>--ISNULL(A.PersonId, '') AS PersonId,</p>
+<p>ISNULL(A.Owner, '') AS Owner,</p>
+<p>ISNULL(A.LawRegNo, '') AS LawRegNo, -- ** INSERT 확인 필요 **</p>
+<p>ISNULL(A.BizAddr, '') AS BizAddr,</p>
+<p>ISNULL(A.BizKind, '') AS BizKind,</p>
+<p>ISNULL(A.BizType, '') AS BizType,</p>
+<p>--ISNULL(dbo._FCOMDecrypt(A.TelNo, 'genuine.danam.dbo.tmp_TDACust', 'TelNo', @CompanySeq), '') AS TelNo,</p>
+<p>ISNULL(dbo._FWCOMEncrypt(A.TelNo,'_TDACust', 'TelNo', @CompanySeq), '') AS TelNo,</p>
+<p>--ISNULL(A.TelNo, '') AS TelNo,</p>
+<p>ISNULL(A.FrDate, '') AS FrDate,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>ISNULL(A.SMBizPers, '') AS SMBizPers, -- 카드법인개인구분 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 4019</p>
+<p>ISNULL(A.UMCountrySeq, 0) AS UMCountrySeq, -- 국가 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 1002</p>
+<p>ISNULL(A.BizNoRegDate, '') AS BizNoRegDate,</p>
+<p>ISNULL(B.MinorBizNo, '') AS MinorBizNo,</p>
+<p>0 AS BizAddrSeq, -- ** 확인 필요 **</p>
+<p>'' AS IsFwbBill, -- ** 확인 필요 **</p>
+<p>'' AS IsRevBill, -- ** 확인 필요 **</p>
+<p>ISNULL(D.NewCode, 0) AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>0 AS EmpSeq,</p>
+<p>0 AS DeptSeq,</p>
+<p>0 AS PersonIdBNR, -- ** 확인 필요 **</p>
+<p>0 AS SMCustRelation, -- 거래처관계 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8194</p>
+<p>'' AS PassportNo, -- ** 확인 필요 **</p>
+<p>'0' AS IsSumBill -- ** 확인 필요 **</p>
+<p>FROM genuine.danam.dbo._TDACust AS E</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDACustAdd AS B ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.CustSeq = E.CustSeq</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS D ON D.OldSeq = A.RegUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- 거래처코드 남는 컬럼에 추가로 UPDATE</p>
+<p>UPDATE _TDACust</p>
+<p>SET UMCredLevel = A.CustSeq</p>
+<p>FROM _TDACust AS A</p>
+<p>JOIN TEMP_TDACust AS B ON B.CustSeq = A.CustSeq</p>
+<p>WHERE A.CustSeq \&lt; 10000</p>
+<p>AND ISNULL(A.UMCredLevel, 0) = 0</p>
+<p>-- 거래처상태 "임시" 로 UPDATE</p>
+<p>UPDATE _TDACust</p>
+<p>SET SMCustStatus = 2004004</p>
+<p>WHERE SMCustStatus = 0</p>
+<p>SELECT '_TDACust' AS tablenew, (SELECT count(*) FROM _TDACust WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACust' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACust WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 02. _TDACustKind "거래처종류"</p>
+<p>INSERT INTO _TDACustKind</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, UMCustKind, LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>CASE ISNULL(B.UMCustKind, 0) WHEN 1004001 THEN 1004001 -- 국내매출거래처</p>
+<p>WHEN 1004002 THEN 1004002 -- 수출매출거래처(외국기업)</p>
+<p>WHEN 1004003 THEN 1004003 -- 국내매입거래처</p>
+<p>WHEN 1004004 THEN 1004004 -- 수입거래처(외국기업)</p>
+<p>WHEN 1004010 THEN 0 -- Local 수출거래처(국내)</p>
+<p>WHEN 1004011 THEN 0 -- Local 수입거래처(국내)</p>
+<p>WHEN 1004016 THEN 1004005 -- 서비스거래처</p>
+<p>WHEN 1004017 THEN 1004013 -- 전자세금계산서 역발행업체</p>
+<p>WHEN 1004018 THEN 1004020 -- 금융기관</p>
+<p>WHEN 1004019 THEN 1004021 -- 임직원</p>
+<p>WHEN 1004020 THEN 1004022 -- 제조사</p>
+<p>ELSE 0 END AS UMCustKind, -- 거래처관계 / _TDAUMajor AS A JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 1004</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TDACustKind AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDACustKind' AS tablenew, (SELECT count(*) FROM _TDACustKind WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustKind' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustKind WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 03. _TDACustClass "유통구분"</p>
+<p>INSERT INTO _TDACustClass</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, UMajorCustClass, UMCustClass, LastUserSeq,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>ISNULL(B.UMajorCustClass, 0) AS UMajorCustClass, -- 유통구조 / _TDAUMajor AS A JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8004</p>
+<p>ISNULL(B.UMCustClass, 0) AS UMCustClass,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TDACustClass AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDACustClass' AS tablenew, (SELECT count(*) FROM _TDACustClass WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustClass' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustClass WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 04. _TDACustGroup "영업업무처리 거래처 등록"</p>
+<p>INSERT INTO _TDACustGroup</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, UMCustGroup, UpperCustSeq, LastUserSeq,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>ISNULL(B.UMCustGroup, 0) AS UMCustGroup, -- 거래처관계그룹 / _TDAUMajor AS A JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8014</p>
+<p>ISNULL(B.UpperCustSeq, 0) AS UpperCustSeq,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TDACustGroup AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDACustGroup' AS tablenew, (SELECT count(*) FROM _TDACustGroup WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustGroup' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustGroup WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 05. _TDACustAdd "거래처 기타 정보"</p>
+<p>INSERT INTO _TDACustAdd</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, EntryUniqueNo, Tel2, FAX,</p>
+<p>ZipCode, KorAddr1, KorAddr2, KorAddr3, EngCustName,</p>
+<p>EngAddr1, EngAddr2, EngAddr3, TransOpenDate, CurrSeq,</p>
+<p>Email, HomePage, EngCustSName, CustSName1, CustSName2,</p>
+<p>IsStdReceiptUse, IsStdPayUse, IsSpecifiedForm, IsWayBillAsk, IsOverShipPermit,</p>
+<p>ShipLeadTime, CustShip, IsPurchaseAfterSales, LastUserSeq, LastDateTime,</p>
+<p>MinorBizNo, TransCloseDate, AddrSeq, SMCountUpType, IsAssignInvoice,</p>
+<p>IsAssignBill, UMInvoicePaperType, UMBillPaperType, InvoicePrintType, BillPrintType,</p>
+<p>IsUpload, IsAssignExpInvoice, IsAssignPackingList, UMExpInvoicePaperType, UMPackingListPaperType,</p>
+<p>ExpInvoicePrintType, PackingListPrintType</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>0 AS EntryUniqueNo,</p>
+<p>ISNULL(dbo._FWCOMEncrypt(B.Tel2,'genuine.danam.dbo._TDACustAdd', 'Tel2', @CompanySeq), '') AS Tel2,</p>
+<p>ISNULL(B.FAX, '') AS FAX,</p>
+<p>ISNULL(B.ZipCode, '') AS ZipCode, -- 우편번호</p>
+<p>ISNULL(B.KorAddr1, '') AS KorAddr1,</p>
+<p>ISNULL(B.KorAddr2, '') AS KorAddr2,</p>
+<p>ISNULL(B.KorAddr3, '') AS KorAddr3,</p>
+<p>ISNULL(B.EngCustName, '') AS EngCustName,</p>
+<p>'' AS EngAddr1,</p>
+<p>'' AS EngAddr2,</p>
+<p>'' AS EngAddr3,</p>
+<p>'' AS TransOpenDate,</p>
+<p>0 AS CurrSeq,</p>
+<p>ISNULL(B.Email, '') AS Email,</p>
+<p>ISNULL(B.HomePage, '') AS HomePage,</p>
+<p>ISNULL(B.EngCustSName, '') AS EngCustSName,</p>
+<p>ISNULL(B.CustSName1, '') AS CustSName1,</p>
+<p>ISNULL(B.CustSName2, '') AS CustSName2,</p>
+<p>0 AS IsStdReceiptUse,</p>
+<p>0 AS IsStdPayUse,</p>
+<p>0 AS IsSpecifiedForm,</p>
+<p>0 AS IsWayBillAsk,</p>
+<p>0 AS IsOverShipPermit,</p>
+<p>0 AS ShipLeadTime,</p>
+<p>'' AS CustShip,</p>
+<p>0 AS IsPurchaseAfterSales,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>ISNULL(B.MinorBizNo, '') AS MinorBizNo,</p>
+<p>ISNULL(B.TransCloseDate, '') AS TransCloseDate,</p>
+<p>0 AS AddrSeq,</p>
+<p>0 AS SMCountUpType,</p>
+<p>'0' AS IsAssignInvoice,</p>
+<p>'0' AS IsAssignBill,</p>
+<p>0 AS UMInvoicePaperType,</p>
+<p>0 AS UMBillPaperType,</p>
+<p>'' AS InvoicePrintType,</p>
+<p>'' AS BillPrintType,</p>
+<p>'0' AS IsUpload,</p>
+<p>'0' AS IsAssignExpInvoice,</p>
+<p>'0' AS IsAssignPackingList,</p>
+<p>0 AS UMExpInvoicePaperType,</p>
+<p>0 AS UMPackingListPaperType,</p>
+<p>'' AS ExpInvoicePrintType,</p>
+<p>'' AS PackingListPrintType</p>
+<p>FROM genuine.danam.dbo._TDACustAdd AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDACustAdd' AS tablenew, (SELECT count(*) FROM _TDACustAdd WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustAdd' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustAdd WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 06. _TDACustEmpInfo "거래처 담당자 정보"</p>
+<p>INSERT INTO _TDACustEmpInfo</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, EmpSerl, EmpName, JpName,</p>
+<p>DeptName, TELNo, MobileNo, FAX, EMail,</p>
+<p>Remark, UMJobRollKind, LastUserSeq, LastDateTime, IsStd,</p>
+<p>ContactSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>B.EmpSerl AS EmpSerl,</p>
+<p>ISNULL(B.EmpName, '') AS EmpName,</p>
+<p>ISNULL(B.JpName, '') AS JpName,</p>
+<p>ISNULL(B.DeptName, '') AS DeptName,</p>
+<p>ISNULL(B.TELNo, '') AS TELNo,</p>
+<p>ISNULL(B.MobileNo, '') AS MobileNo,</p>
+<p>ISNULL(B.FAX, '') AS FAX,</p>
+<p>ISNULL(B.EMail, '') AS EMail,</p>
+<p>ISNULL(B.Remark, '') AS Remark,</p>
+<p>ISNULL(B.UMJobRollKind, 0) AS UMJobRollKind, -- 거래처담당자구분 / _TDAUMajor AS A JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8024</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>ISNULL(B.IsStd, '') AS IsStd,</p>
+<p>0 AS ContactSeq</p>
+<p>FROM genuine.danam.dbo._TDACustEmpInfo AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>DELETE FROM _TDAContact</p>
+<p>INSERT _TDAContact</p>
+<p>SELECT CompanySeq AS CompanySeq,</p>
+<p>ROW_NUMBER() OVER (ORDER BY CompanySeq) AS ContactSeq,</p>
+<p>500035003 AS ContactType,</p>
+<p>LEFT(LTRIM(RTRIM(EmpName)),1) AS SurName,</p>
+<p>SUBSTRING(LTRIM(RTRIM(EmpName)),2,50) AS GivenName,</p>
+<p>'' AS WorkplaceName,</p>
+<p>DeptName AS DeptName,</p>
+<p>JpName AS PositionName,</p>
+<p>dbo._FWCOMEncrypt(ISNULL(TELNo,''), '_TDAContact', 'ContactNumber', 1) AS ContactNumber,</p>
+<p>EMail AS Email,</p>
+<p>0 AS AddressSeq,</p>
+<p>'' AS Memo,</p>
+<p>0 AS ContactTypeSeq,</p>
+<p>0 AS ContactTypeSerl,</p>
+<p>0 AS ContactTypeSubSerl,</p>
+<p>1 AS LastUserSeq,</p>
+<p>getdate() AS LastDateTime,</p>
+<p>EmpName AS ContactName,</p>
+<p>FAX AS FAX,</p>
+<p>MobileNo AS Tel2</p>
+<p>FROM _TDACustEmpInfo -- ContactSeq</p>
+<p>SELECT '_TDACustEmpInfo' AS tablenew, (SELECT count(*) FROM _TDACustEmpInfo WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustEmpInfo' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustEmpInfo WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 07. _TDACustSalesReceiptCond "거래처별회수조건등록"</p>
+<p>INSERT INTO _TDACustSalesReceiptCond</p>
+<p>(</p>
+<p>CompanySeq, CondSeq, CustSeq, SMCondStd, SMReceiptMethod,</p>
+<p>SMSalesPoint, IsCust, LastUserSeq, LastDateTime, ReceiptCustSeq,</p>
+<p>DueDays, SMReceiveMethod, CurrSeq, SMReceiptDateMethod, Dummy1,</p>
+<p>Dummy2, Dummy3, Dummy4, Dummy5, Dummy6,</p>
+<p>Dummy7, Dummy8, Dummy9, Dummy10</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>B.CondSeq AS CondSeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>ISNULL(B.SMCondStd, 0) AS SMCondStd, -- 조건적용기준 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8018</p>
+<p>ISNULL(B.SMReceiptMethod, 0) AS SMReceiptMethod,</p>
+<p>ISNULL(B.SMSalesPoint, 0) AS SMSalesPoint, -- 매출시점 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8017</p>
+<p>0 AS IsCust,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>ISNULL(B.ReceiptCustSeq, 0) AS ReceiptCustSeq,</p>
+<p>0 AS DueDays,</p>
+<p>0 AS SMReceiveMethod,</p>
+<p>0 AS CurrSeq,</p>
+<p>0 AS SMReceiptDateMethod, -- 거래처담당자구분 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8024</p>
+<p>'' AS Dummy1,</p>
+<p>'' AS Dummy2,</p>
+<p>'' AS Dummy3,</p>
+<p>'' AS Dummy4,</p>
+<p>'' AS Dummy5,</p>
+<p>'' AS Dummy6,</p>
+<p>0 AS Dummy7,</p>
+<p>0 AS Dummy8,</p>
+<p>0 AS Dummy9,</p>
+<p>0 AS Dummy10</p>
+<p>FROM genuine.danam.dbo._TDACustSalesReceiptCond AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDACustSalesReceiptCond' AS tablenew, (SELECT count(*) FROM _TDACustSalesReceiptCond WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustSalesReceiptCond' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustSalesReceiptCond WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 08. _TDACustSalesReceiptStd "거래처별매출회수기준" -- 데이터 미존재 --</p>
+<p>-- 09. _TDACustBankAcc "거래처금융기관 정보"</p>
+<p>INSERT INTO _TDACustBankAcc</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, CustBankAccSerl, BankAccNo, UMBankHQ,</p>
+<p>Owner, Remark, IsCfm, IsDefault, LastUserSeq,</p>
+<p>LastDateTime, IsNotUse, CMSCode, RegPgmSeq, RegUserSeq,</p>
+<p>RegDateTime, FileSeq, IsOwnerVerified, VerificationDate</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>B.CustBankAccSerl AS CustBankAccSerl,</p>
+<p>ISNULL(B.BankAccNo, '') AS BankAccNo,</p>
+<p>ISNULL(B.UMBankHQ, 0) AS UMBankHQ, -- 금융기관 / _TDAUMajor AS A JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 4003</p>
+<p>ISNULL(B.Owner, '') AS Owner,</p>
+<p>ISNULL(B.Remark, '') AS Remark,</p>
+<p>ISNULL(B.IsCfm, '') AS IsCfm,</p>
+<p>ISNULL(B.IsDefault, '') AS IsDefault,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>ISNULL(B.IsNotUse, '') AS IsNotUse,</p>
+<p>'' AS CMSCode,</p>
+<p>0 AS RegPgmSeq,</p>
+<p>ISNULL(C.NewCode, 1) AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>0 AS FileSeq,</p>
+<p>'0' AS IsOwnerVerified,</p>
+<p>'' AS VerificationDate</p>
+<p>FROM genuine.danam.dbo._TDACustBankAcc AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDACustBankAcc' AS tablenew, (SELECT count(*) FROM _TDACustBankAcc WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustBankAcc' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustBankAcc WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 10. _TSLDeliveryCust "거래처별 납품처 등록" -- 데이터 미존재 --</p>
+<p>-- 11. _TDACustTaxHist "거래처이력"</p>
+<p>INSERT INTO _TDACustTaxHist</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, HistSerl, FullName, BizNo,</p>
+<p>PersonId, Owner, BizAddr, BizKind, BizType,</p>
+<p>TelNo, FrDate, ToDate, LastUserSeq, LastDateTime,</p>
+<p>MinorBizNo, BizAddrSeq, IsFwbBill, IsRevBill, LawRegNo,</p>
+<p>SMBizPers, PersonIdBNR, SMCustRelation, IsSumBill</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>B.HistSerl AS HistSerl,</p>
+<p>ISNULL(B.FullName, '') AS FullName,</p>
+<p>ISNULL(B.BizNo, '') AS BizNo,</p>
+<p>ISNULL(B.PersonId, '') AS PersonId,</p>
+<p>ISNULL(B.Owner, '') AS Owner,</p>
+<p>ISNULL(B.BizAddr, '') AS BizAddr,</p>
+<p>ISNULL(B.BizKind, '') AS BizKind,</p>
+<p>ISNULL(B.BizType, '') AS BizType,</p>
+<p>ISNULL(B.TelNo, '') AS TelNo,</p>
+<p>ISNULL(B.FrDate, '') AS FrDate,</p>
+<p>ISNULL(B.ToDate, '') AS ToDate,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>'' AS MinorBizNo,</p>
+<p>0 AS BizAddrSeq,</p>
+<p>'0' AS IsFwbBill,</p>
+<p>'0' AS IsRevBill,</p>
+<p>'' AS LawRegNo,</p>
+<p>0 AS SMBizPers,</p>
+<p>0 AS PersonIdBNR,</p>
+<p>0 AS SMCustRelation,</p>
+<p>'0' AS IsSumBill</p>
+<p>FROM genuine.danam.dbo._TDACustTaxHist AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDACustTaxHist' AS tablenew, (SELECT count(*) FROM _TDACustTaxHist WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDACustTaxHist' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDACustTaxHist WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 12. _TSIEDIIEBillCustEmpInfo "전자세금계산서 거래처담당자 정보 등록"</p>
+<p>INSERT INTO _TSIEDIIEBillCustEmpInfo</p>
+<p>(</p>
+<p>CompanySeq, CustSeq, Serl, EmpName, JpName,</p>
+<p>DeptName, TelNo, MobileNo, FaxNo, Remark,</p>
+<p>UMJobRollKind, EMail, IsStd, LastUserSeq, LastDateTime,</p>
+<p>SMTransClass</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.CustSeq AS CustSeq,</p>
+<p>B.Serl AS Serl,</p>
+<p>ISNULL(B.EmpName, '') AS EmpName,</p>
+<p>ISNULL(B.JpName, '') AS JpName,</p>
+<p>ISNULL(B.DeptName, '') AS DeptName,</p>
+<p>ISNULL(B.TelNo, '') AS TelNo,</p>
+<p>ISNULL(B.MobileNo, '') AS MobileNo,</p>
+<p>ISNULL(B.FaxNo, '') AS FaxNo,</p>
+<p>ISNULL(B.Remark, '') AS Remark,</p>
+<p>ISNULL(B.UMJobRollKind, 0) AS UMJobRollKind, -- 거래처담당자구분 / _TDAUMajor AS A JOIN _TDAUMinor AS B ON B.CompanySeq = A.CompanySeq AND B.MajorSeq = A.MajorSeq WHERE B.CompanySeq = 1 AND B.MajorSeq = 8024</p>
+<p>ISNULL(B.EMail, '') AS EMail,</p>
+<p>ISNULL(B.IsStd, '') AS IsStd,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>0 AS SMTransClass</p>
+<p>FROM genuine.danam.dbo._TSIEDIIEBillCustEmpInfo AS B</p>
+<p>JOIN TEMP_TDACust AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TSIEDIIEBillCustEmpInfo' AS tablenew, (SELECT count(*) FROM _TSIEDIIEBillCustEmpInfo WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TSIEDIIEBillCustEmpInfo' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TSIEDIIEBillCustEmpInfo WHERE CustSeq &gt; @MaxCustSeq) AS tablenewcnt</p>
+<p>-- 13. _TAPCustPay "거래처별지불조건"</p>
+<p>INSERT INTO _TAPCustPay</p>
+<p>(</p>
+<p>CompanySeq, CustPaySeq, CustSeq, SMPayMethod, SMPayTypeDft,</p>
+<p>UMRNPMethod, Remark, RegUserSeq, RegDateTime, LastUserSeq,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT A.CompanySeq AS CompanySeq,</p>
+<p>A.CustPaySeq AS CustPaySeq,</p>
+<p>C.NewCode AS CustSeq,</p>
+<p>A.SMPayMethod AS SMPayMethod,</p>
+<p>A.SMPayTypeDft AS SMPayTypeDft,</p>
+<p>A.SMRNPMethod AS UMRNPMethod, -- GENUINE : SM / ACE : UM .. 사용자정의코드</p>
+<p>'' AS Remark, -- GENUINE에 없는 데이터</p>
+<p>1 AS RegUserSeq, -- GENUINE에 없는 데이터</p>
+<p>@Now AS RegDateTime, -- GENUINE에 없는 데이터</p>
+<p>ISNULL(B.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TAPCustPay AS A</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS B ON B.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS C ON C.OldSeq = A.CustSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(C.NewCode, 0) \&lt;&gt; 0</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TAPCustPay WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND CustPaySeq = A.CustPaySeq</p>
+<p>)</p>
+<p>SELECT '_TAPCustPay' AS tablenew, (SELECT count(*) FROM _TAPCustPay WHERE CustPaySeq &gt; @MaxCustPaySeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TAPCustPay' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TAPCustPay WHERE CustPaySeq &gt; @MaxCustPaySeq) AS tablenewcnt</p>
+<p>-- 14. _TAPCustPayTerm "거래처별정기지불방식"</p>
+<p>INSERT INTO _TAPCustPayTerm</p>
+<p>(</p>
+<p>CompanySeq, CustPaySeq, Serl, UMDelvToDay, PayMonth,</p>
+<p>PayDay, Remark, RegUserSeq, RegDateTime, LastUserSeq,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT A.CompanySeq AS CompanySeq,</p>
+<p>A.CustPaySeq AS CustPaySeq,</p>
+<p>A.Serl AS Serl,</p>
+<p>A.UMDelvToDay AS UMDelvToDay,</p>
+<p>A.PayMonth AS PayMonth,</p>
+<p>A.PayDay AS PayDay,</p>
+<p>'' AS Remark,</p>
+<p>1 AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TAPCustPayTerm AS A</p>
+<p>JOIN _TAPCustPay AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.CustPaySeq = A.CustPaySeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TAPCustPayTerm</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND CustPaySeq = A.CustPaySeq</p>
+<p>AND Serl = A.Serl</p>
+<p>)</p>
+<p>SELECT '_TAPCustPayTerm' AS tablenew, (SELECT count(*) FROM _TAPCustPayTerm WHERE CustPaySeq &gt; @MaxCustPaySeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TAPCustPayTerm' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TAPCustPayTerm WHERE CustPaySeq &gt; @MaxCustPaySeq) AS tablenewcnt</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT '거래처 오류' RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT '거래처 통과'</p>
+<p>END</p>
+<p>--============--</p>
+<p>-- [02]. 품목 --</p>
+<p>--============--</p>
+<p>-- ★ "M-BOM"에 입력된 품목들에 대해서는 품목자산분류를 변경하지 않아야 한다.</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_TPDBOMItem')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE TEMP_TPDBOMItem</p>
+<p>(</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE TEMP_TPDBOMItem</p>
+<p>END</p>
+<p>INSERT INTO TEMP_TPDBOMItem</p>
+<p>(</p>
+<p>ItemSeq</p>
+<p>)</p>
+<p>SELECT DISTINCT A.ItemSeq</p>
+<p>FROM _TPDBOM AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'CON_TDAItemAssetProd')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE CON_TDAItemAssetProd</p>
+<p>(</p>
+<p>genuinedanamItemSeq INT, -- 단암 ItemSeq</p>
+<p>genuinedanamAssetSeq INT, -- 단암 AssetSeq</p>
+<p>AssetSeq INT -- 신규 AssetSeq</p>
+<p>)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE CON_TDAItemAssetProd</p>
+<p>END</p>
+<p>INSERT INTO CON_TDAItemAssetProd</p>
+<p>(</p>
+<p>genuinedanamItemSeq, genuinedanamAssetSeq, AssetSeq</p>
+<p>)</p>
+<p>SELECT A.ItemSeq AS genuinedanamItemSeq,</p>
+<p>A.AssetSeq AS genuinedanamAssetSeq,</p>
+<p>CASE WHEN A.ItemNo LIKE '%prod%' AND SMStatus = 2001002 AND A.AssetSeq = 11 THEN 2 -- prod 코드가 있는 사용 중인 프로젝트 제품은 모두 "표준 제품"</p>
+<p>WHEN A.ItemNo LIKE '%prod%' AND SMStatus = 2001002 AND A.AssetSeq = 12 THEN 4 -- prod 코드가 있는 사용 중인 프로젝트 모듈은 모두 "표준 모듈"</p>
+<p>WHEN A.ItemNo LIKE '%prod%' AND SMStatus = 2001002 AND A.AssetSeq = 13 THEN 10 -- prod 코드가 있는 사용 중인 프로젝트 PBA는 모두 "표준 BPA"</p>
+<p>ELSE B.NewCode</p>
+<p>END AS AssetSeq</p>
+<p>FROM genuine.danam.dbo._TDAItem AS A</p>
+<p>JOIN CON_TDAItemAsset AS B ON B.OldSeq = A.AssetSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>--AND A.ItemSeq &gt; @OldMaxItemSeq</p>
+<p>AND A.ItemSeq NOT IN (SELECT ItemSeq</p>
+<p>FROM TEMP_TPDBOMItem) -- ★</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_TDAItem')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE TEMP_TDAItem</p>
+<p>(</p>
+<p>CompanySeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>ItemName NVARCHAR(1000),</p>
+<p>TrunName NVARCHAR(1000),</p>
+<p>ItemNo NVARCHAR(1000),</p>
+<p>AssetSeq INT,</p>
+<p>SMStatus INT,</p>
+<p>ItemSName NVARCHAR(1000),</p>
+<p>ItemEngName NVARCHAR(1000),</p>
+<p>ItemEngSName NVARCHAR(1000),</p>
+<p>Spec NVARCHAR(1000),</p>
+<p>SMABC NVARCHAR(1000),</p>
+<p>UnitSeq INT,</p>
+<p>DeptSeq INT,</p>
+<p>EmpSeq INT,</p>
+<p>ModelSeq INT,</p>
+<p>SMInOutKind INT,</p>
+<p>LastUserSeq INT,</p>
+<p>LastDateTime DATETIME,</p>
+<p>IsInherit NCHAR(1),</p>
+<p>RegUserSeq INT,</p>
+<p>RegDateTime DATETIME,</p>
+<p>LaunchDate NCHAR(8),</p>
+<p>IsSTDItem NCHAR(1),</p>
+<p>STDItemSeq INT,</p>
+<p>AddInfo NVARCHAR(1000),</p>
+<p>IsUpload NCHAR(1),</p>
+<p>UMProperty INT</p>
+<p>)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE TEMP_TDAItem</p>
+<p>END</p>
+<p>-- 품목 마이그레이션 기준 테이블 --</p>
+<p>INSERT INTO TEMP_TDAItem</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>ROW_NUMBER() OVER(ORDER BY (SELECT 1)) + @NewMaxItemSeq AS ItemSeq, -- ACE MAX ItemSeq 기준으로 순차적으로 INSERT</p>
+<p>A.ItemName AS ItemName,</p>
+<p>A.TrunName AS TrunName,</p>
+<p>A.ItemNo AS ItemNo,</p>
+<p>B.AssetSeq AS AssetSeq,</p>
+<p>CASE WHEN A.SMStatus = 2001001 THEN 2001002 -- 사용 2001002</p>
+<p>WHEN A.SMStatus = 2001002 THEN 2001005 -- 폐기 2001005</p>
+<p>WHEN A.SMStatus = 2001003 THEN 2001001 -- 임시 2001001</p>
+<p>ELSE 0 END AS SMStatus,</p>
+<p>A.ItemSName AS ItemSName,</p>
+<p>A.ItemEngName AS ItemEngName,</p>
+<p>A.ItemEngSName AS ItemEngSName,</p>
+<p>A.Spec AS Spec,</p>
+<p>A.SMABC AS SMABC,</p>
+<p>A.UnitSeq AS UnitSeq,</p>
+<p>ISNULL(D.NewCode, 0) AS DeptSeq,</p>
+<p>ISNULL(E.NewCode, 0) AS EmpSeq,</p>
+<p>A.ModelSeq AS ModelSeq,</p>
+<p>A.SMInOutKind AS SMInOutKind,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>A.IsInherit AS IsInherit,</p>
+<p>1 AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>'' AS LaunchDate,</p>
+<p>'0' AS IsSTDItem,</p>
+<p>0 AS STDItemSeq,</p>
+<p>'' AS AddInfo,</p>
+<p>'0' AS IsUpload,</p>
+<p>A.ItemSeq AS UMProperty -- 품목코드 남는 컬럼에 genuine itemseq 추가로 INSERT</p>
+<p>FROM genuine.danam.dbo._TDAItem AS A</p>
+<p>JOIN CON_TDAItemAssetProd AS B ON B.genuinedanamItemSeq = A.ItemSeq</p>
+<p>AND B.genuinedanamAssetSeq = A.AssetSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS D ON D.OldSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS E ON E.OldSeq = A.EmpSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>--AND A.ItemSeq &gt; @OldMaxItemSeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TDAItem</p>
+<p>WHERE CompanySeq = A.CompanySeq</p>
+<p>AND UMProperty = A.ItemSeq)</p>
+<p>-- OldMaxItemSeq 말고 Genuine 기준으로 ACE에 없는 품목 리스트 INSERT 필요 --</p>
+<p>DECLARE @TEMPMaxItemSeq INT = 0</p>
+<p>SELECT @TEMPMaxItemSeq = ISNULL(MAX(ItemSeq), @NewMaxItemSeq)</p>
+<p>FROM TEMP_TDAItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>-- 품목 마이그레이션 기준 테이블 --</p>
+<p>INSERT INTO TEMP_TDAItem</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>ROW_NUMBER() OVER(ORDER BY (SELECT 1)) + @TEMPMaxItemSeq AS ItemSeq, -- TEMP_TDAItem MAX ItemSeq 기준으로 순차적으로 INSERT</p>
+<p>A.ItemName AS ItemName,</p>
+<p>A.TrunName AS TrunName,</p>
+<p>A.ItemNo AS ItemNo,</p>
+<p>Y.NewCode AS AssetSeq, -- B.AssetSeq 대신 Y.NewCode</p>
+<p>CASE WHEN A.SMStatus = 2001001 THEN 2001002 -- 사용 2001002</p>
+<p>WHEN A.SMStatus = 2001002 THEN 2001005 -- 폐기 2001005</p>
+<p>WHEN A.SMStatus = 2001003 THEN 2001001 -- 임시 2001001</p>
+<p>ELSE 0 END AS SMStatus,</p>
+<p>A.ItemSName AS ItemSName,</p>
+<p>A.ItemEngName AS ItemEngName,</p>
+<p>A.ItemEngSName AS ItemEngSName,</p>
+<p>A.Spec AS Spec,</p>
+<p>A.SMABC AS SMABC,</p>
+<p>A.UnitSeq AS UnitSeq,</p>
+<p>ISNULL(D.NewCode, 0) AS DeptSeq,</p>
+<p>ISNULL(E.NewCode, 0) AS EmpSeq,</p>
+<p>A.ModelSeq AS ModelSeq,</p>
+<p>A.SMInOutKind AS SMInOutKind,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>A.IsInherit AS IsInherit,</p>
+<p>1 AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>'' AS LaunchDate,</p>
+<p>'0' AS IsSTDItem,</p>
+<p>0 AS STDItemSeq,</p>
+<p>'' AS AddInfo,</p>
+<p>'0' AS IsUpload,</p>
+<p>A.ItemSeq AS UMProperty -- 품목코드 남는 컬럼에 genuine itemseq 추가로 INSERT</p>
+<p>FROM genuine.danam.dbo._TDAItem AS A</p>
+<p>LEFT OUTER JOIN _TDAItem AS Z ON Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.UMProperty = A.ItemSeq</p>
+<p>--LEFT OUTER JOIN CON_TDAItemAssetProd AS B ON B.genuinedanamItemSeq = A.ItemSeq -- BOM에 없는 데이터라 주석</p>
+<p>-- AND B.genuinedanamAssetSeq = A.AssetSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS D ON D.OldSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS E ON E.OldSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN TEMP_TPDBOMItem AS X ON X.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDAItemAsset AS Y ON Y.OldSeq = A.AssetSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(Z.ItemSeq, 0) = 0</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TDAItem</p>
+<p>WHERE CompanySeq = A.CompanySeq</p>
+<p>AND ItemNo = A.ItemNo)</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM TEMP_TDAItem</p>
+<p>WHERE CompanySeq = A.CompanySeq</p>
+<p>AND ItemNo = A.ItemNo)</p>
+<p>-- OldMaxItemSeq 말고 Genuine 기준으로 ACE에 없는 품목 리스트 INSERT 필요 --</p>
+<p>INSERT INTO CON_TDAItem(OldSeq, NewCode, OldName, NewName)</p>
+<p>SELECT A.UMProperty, A.ItemSeq, A.ItemNo, A.ItemNo</p>
+<p>FROM TEMP_TDAItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT OldSeq</p>
+<p>FROM CON_TDAItem AS B</p>
+<p>WHERE B.OldSeq = A.UMProperty</p>
+<p>)</p>
+<p>--INSERT INTO CON_TDAItem(OldSeq, NewCode, OldName, NewName)</p>
+<p>--SELECT A.ItemSeq, A.UMProperty, A.ItemNo, A.ItemNo</p>
+<p>-- FROM _TDAItem AS A</p>
+<p>-- LEFT OUTER JOIN CON_TDAItem AS B ON B.OldSeq = A.UMProperty</p>
+<p>-- WHERE ISNULL(A.UMProperty, 0) \&lt;&gt; 0</p>
+<p>-- AND ISNULL(B.OldSeq, 0) = 0</p>
+<p>-- 기존에 CON_TDADept로 진행했어서 UPDATE 필요</p>
+<p>UPDATE _TDAItem</p>
+<p>SET EmpSeq = ISNULL(C.NewCode, 1)</p>
+<p>FROM _TDAItem AS A</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItem AS B ON B.ItemSeq = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS C ON C.OldSeq = A.EmpSeq</p>
+<p>WHERE ISNULL(UMProperty, 0) \&lt;&gt; 0</p>
+<p>UPDATE TEMP_TDAItem</p>
+<p>SET AddInfo = '품번 중복 데이터'</p>
+<p>FROM TEMP_TDAItem AS A</p>
+<p>WHERE EXISTS</p>
+<p>(SELECT 1</p>
+<p>FROM _TDAItem AS B</p>
+<p>WHERE B.ItemNo = A.ItemNo</p>
+<p>)</p>
+<p>-- 01. _TDAItem "품목마스터"</p>
+<p>INSERT INTO _TDAItem</p>
+<p>SELECT A.CompanySeq AS CompanySeq ,</p>
+<p>A.ItemSeq AS ItemSeq , -- ACE MAX ItemSeq 기준으로 순차적으로 INSERT</p>
+<p>A.ItemName AS ItemName ,</p>
+<p>A.TrunName AS TrunName ,</p>
+<p>A.ItemNo AS ItemNo ,</p>
+<p>A.AssetSeq AS AssetSeq ,</p>
+<p>A.SMStatus AS SMStatus ,</p>
+<p>A.ItemSName AS ItemSName ,</p>
+<p>A.ItemEngName AS ItemEngName ,</p>
+<p>A.ItemEngSName AS ItemEngSName,</p>
+<p>A.Spec AS Spec ,</p>
+<p>A.SMABC AS SMABC ,</p>
+<p>A.UnitSeq AS UnitSeq ,</p>
+<p>A.DeptSeq AS DeptSeq ,</p>
+<p>A.EmpSeq AS EmpSeq ,</p>
+<p>A.ModelSeq AS ModelSeq ,</p>
+<p>A.SMInOutKind AS SMInOutKind ,</p>
+<p>A.LastUserSeq AS LastUserSeq ,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>A.IsInherit AS IsInherit ,</p>
+<p>A.RegUserSeq AS RegUserSeq ,</p>
+<p>A.RegDateTime AS RegDateTime ,</p>
+<p>A.LaunchDate AS LaunchDate ,</p>
+<p>A.IsSTDItem AS IsSTDItem ,</p>
+<p>A.STDItemSeq AS STDItemSeq ,</p>
+<p>A.AddInfo AS AddInfo ,</p>
+<p>A.IsUpload AS IsUpload ,</p>
+<p>A.UMProperty AS UMProperty</p>
+<p>FROM TEMP_TDAItem AS A</p>
+<p>SELECT '_TDAItem' AS tablenew, (SELECT count(*) FROM _TDAItem WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'TEMP_TDAItem' AS tableold, (SELECT count(*) FROM TEMP_TDAItem) AS tablenewcnt</p>
+<p>-- 02. _TDAItemSales "품목 판매정보"</p>
+<p>INSERT INTO _TDAItemSales</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, IsVat, SMVatKind, SMVatType,</p>
+<p>IsOption, IsSet, LastUserSeq, LastDateTime, Guaranty,</p>
+<p>HSCode, URL, QRCode, IsAutoSet</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>B.IsVat AS IsVat,</p>
+<p>B.SMVatKind AS SMVatKind,</p>
+<p>B.SMVatType AS SMVatType,</p>
+<p>B.IsOption AS IsOption,</p>
+<p>B.IsSet AS IsSet,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>B.LastDateTime AS LastDateTime,</p>
+<p>0 AS Guaranty,</p>
+<p>'' AS HSCode,</p>
+<p>'' AS URL,</p>
+<p>'' AS QRCode,</p>
+<p>'0' AS IsAutoSet</p>
+<p>FROM genuine.danam.dbo._TDAItemSales AS B</p>
+<p>JOIN TEMP_TDAItem AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = B.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDAItemSales' AS tablenew, (SELECT count(*) FROM _TDAItemSales WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemSales' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemSales WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 03. _TDAItemClass "품목 소분류"</p>
+<p>INSERT INTO _TDAItemClass</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, UMajorItemClass, UMItemClass, LastUserSeq,</p>
+<p>LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>B.UMajorItemClass AS UMajorItemClass,</p>
+<p>B.UMItemClass AS UMItemClass,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TDAItemClass AS B</p>
+<p>JOIN TEMP_TDAItem AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = B.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND B.UMajorItemClass IN (2001, 2004) -- 8028 데이터 존재</p>
+<p>SELECT '_TDAItemClass' AS tablenew, (SELECT count(*) FROM _TDAItemClass WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemClass' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemClass WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 04. _TDAItemPurchase "품목 구매정보"</p>
+<p>INSERT INTO _TDAItemPurchase</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, UMPurGroup, MkCustSeq, PurCustSeq,</p>
+<p>MinQty, StepQty, SMPurKind, IsPurVat, IsAutoPurCreate,</p>
+<p>OrderQty, DelvDay, CustomTaxRate, LastUserSeq, --LastDateTime,</p>
+<p>SMPurProdType, TrustCustSeq, IsSet, IsDirectDelv, SMPurchaseReason,</p>
+<p>SMPriceReason, SMPurUnit</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>0 AS UMPurGroup,</p>
+<p>ISNULL(C.NewCode, 0) AS MkCustSeq,</p>
+<p>ISNULL(D.NewCode, 0) AS PurCustSeq,</p>
+<p>ISNULL(B.MinQty, 0) AS MinQty,</p>
+<p>0 AS StepQty, -- 이상한 값들만 있어서 0 으로 INSERT</p>
+<p>CASE WHEN ISNULL(B.DelvDay, 0) &gt;= 140 AND</p>
+<p>ISNULL(B.DelvDay, 0) NOT IN (2003001, 8007001, 8028001) THEN 8047001 ELSE 8047002</p>
+<p>END AS SMPurKind, -- 납기구분 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 8047</p>
+<p>ISNULL(B.IsPurVat, '0') AS IsPurVat,</p>
+<p>ISNULL(B.IsAutoPurCreate, '0') AS IsAutoPurCreate,</p>
+<p>0 AS OrderQty,</p>
+<p>CASE WHEN ISNULL(B.DelvDay, 0) IN (2003001, 8007001, 8028001) THEN 0 ELSE B.DelvDay END AS DelvDay,</p>
+<p>ISNULL(B.CustomTaxRate, 0) AS CustomTaxRate,</p>
+<p>ISNULL(E.NewCode, 1) AS LastUserSeq,</p>
+<p>--@Now AS LastDateTime,</p>
+<p>CASE WHEN ISNULL(B.SMPurProdType, 0) IN (8048001, 8048002) THEN B.SMPurProdType ELSE 0</p>
+<p>END AS SMPurProdType, -- 구매/생산의뢰 구분 / _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 8048</p>
+<p>0 AS TrustCustSeq,</p>
+<p>'0' AS IsSet,</p>
+<p>'0' AS IsDirectDelv,</p>
+<p>0 AS SMPurchaseReason,</p>
+<p>0 AS SMPriceReason,</p>
+<p>0 AS SMPurUnit</p>
+<p>FROM genuine.danam.dbo._TDAItemPurchase AS B</p>
+<p>LEFT OUTER JOIN TEMP_TDAItem AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TDACust AS C ON C.OldSeq = B.MkCustSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS D ON D.OldSeq = B.PurCustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDAItemPurchase' AS tablenew, (SELECT count(*) FROM _TDAItemPurchase WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemPurchase' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemPurchase WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 05. _TDAItemProduct "품목 생산정보"</p>
+<p>INSERT INTO _TDAItemProduct</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, SMConsgnmtKind, BOMUnitSeq, OutLoss,</p>
+<p>InLoss, SMMrpKind, SMOutKind, SMProdMethod, SMProdSpec,</p>
+<p>GoodSeq, ProcSeq, LastUserSeq, LastDateTime, LotSize,</p>
+<p>SMProdReqType, BatchSize, IsBatch, SMMatMrpType, LeadTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>ISNULL(B.SMConsgnmtKind, 0) AS SMConsgnmtKind,</p>
+<p>ISNULL(B.BOMUnitSeq, 0) AS BOMUnitSeq,</p>
+<p>ISNULL(B.OutLoss, 0) AS OutLoss,</p>
+<p>ISNULL(B.InLoss, 0) AS InLoss,</p>
+<p>CASE WHEN ISNULL(B.SMMrpKind, 0) IN (6004001, 6004002) THEN B.SMMrpKind ELSE 0 END AS SMMrpKind, -- 소요량계산방식 (MRP, ROP) // _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 6004</p>
+<p>0 AS SMOutKind, -- 불출구분 (작업지시별 출고요청, 자재투입시 자동출고, 임의 출고요청) // _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 6005</p>
+<p>ISNULL(B.SMProdMethod, 0) AS SMProdMethod, -- 생산유형구분 (수주생산, 계획생산) // _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 6006</p>
+<p>ISNULL(B.SMProdSpec, 0) AS SMProdSpec,</p>
+<p>0 AS GoodSeq,</p>
+<p>0 AS ProcSeq,</p>
+<p>ISNULL(E.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime,</p>
+<p>ISNULL(B.LotSize, 0) AS LotSize,</p>
+<p>0 AS SMProdReqType,</p>
+<p>0 AS BatchSize,</p>
+<p>'0' AS IsBatch,</p>
+<p>0 AS SMMatMrpType, -- 자재소요량산정구분 (개별, 합산) // _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 6006</p>
+<p>0 AS LeadTime</p>
+<p>FROM genuine.danam.dbo._TDAItemProduct AS B</p>
+<p>JOIN TEMP_TDAItem AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDAItemProduct' AS tablenew, (SELECT count(*) FROM _TDAItemProduct WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemProduct' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemProduct WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 06. _TDAItemUnitSpec "품목단위속성"</p>
+<p>INSERT INTO _TDAItemUnitSpec</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, UnitSeq, UMSpecCode, SpecUnit,</p>
+<p>Value, LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>A.UnitSeq AS UnitSeq,</p>
+<p>D.MinorSeq AS UMSpecCode, -- 품목속성 (두께, 폭, 길이공차, 평탄도, 폭평행도) // _TDAUMajor AS A JOIN _TDAUMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 8010</p>
+<p>0 AS SpecUnit,</p>
+<p>0 AS Value,</p>
+<p>ISNULL(F.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime</p>
+<p>FROM TEMP_TDAItem AS A</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS D ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.MajorSeq = 8010</p>
+<p>--JOIN _TDAItem AS E ON E.CompanySeq = A.CompanySeq</p>
+<p>-- AND E.UMProperty = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDAItemUnitSpec' AS tablenew, (SELECT count(*) FROM _TDAItemUnitSpec WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemUnitSpec' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemUnitSpec WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 07. _TDAItemUnitModule "품목단위별업무사용정보"</p>
+<p>INSERT INTO _TDAItemUnitModule</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, UnitSeq, UMModuleSeq, IsUsed,</p>
+<p>LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>A.UnitSeq AS UnitSeq,</p>
+<p>D.MinorSeq AS UMModuleSeq, -- 단위사용구분(WBS) // _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 1116</p>
+<p>'1' AS IsUsed,</p>
+<p>ISNULL(F.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime</p>
+<p>FROM TEMP_TDAItem AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS D ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.MajorSeq = 1116</p>
+<p>--JOIN _TDAItem AS E ON E.CompanySeq = A.CompanySeq</p>
+<p>-- AND E.UMProperty = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.UnitSeq, 0) \&lt;&gt; 0</p>
+<p>SELECT '_TDAItemUnitModule' AS tablenew, (SELECT count(*) FROM _TDAItemUnitModule WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemUnitModule' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemUnitModule WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 08. _TDAItemDefUnit "단위사용구분별 기본단위"</p>
+<p>INSERT INTO _TDAItemDefUnit</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>D.MinorSeq AS UMModuleSeq, -- 단위사용구분(WBS) // _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 1116</p>
+<p>A.UnitSeq AS STDUnitSeq,</p>
+<p>ISNULL(F.NewCode, 1) AS LastUserSeq,</p>
+<p>@Now AS LastDateTime</p>
+<p>FROM TEMP_TDAItem AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS D ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.MajorSeq = 1116</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDAItemDefUnit' AS tablenew, (SELECT count(*) FROM _TDAItemDefUnit WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemDefUnit' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemDefUnit WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 09. _TDAItemUnit "품목 단위환산/속성정보"</p>
+<p>INSERT INTO _TDAItemUnit</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, UnitSeq, BarCode, ConvNum,</p>
+<p>ConvDen, LastUserSeq, LastDateTime, TransConvQty</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>B.ItemSeq AS ItemSeq,</p>
+<p>A.UnitSeq AS UnitSeq,</p>
+<p>'' AS BarCode,</p>
+<p>ISNULL(A.ConvNum, 0) AS ConvNum,</p>
+<p>ISNULL(A.ConvDen, 0) AS ConvDen,</p>
+<p>ISNULL(F.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>ISNULL(A.TransConvQty, 0) AS TransConvQty</p>
+<p>FROM genuine.danam.dbo._TDAItemUnit AS A</p>
+<p>JOIN TEMP_TDAItem AS B ON B.UMProperty = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.UnitSeq, 0) \&lt;&gt; 0</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TDAItemUnit</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND ItemSeq = B.ItemSeq</p>
+<p>AND UnitSeq = B.UnitSeq)</p>
+<p>SELECT '_TDAItemUnit' AS tablenew, (SELECT count(*) FROM _TDAItemUnit WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemUnit' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemUnit WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 10. _TDAItemRemark "품목 비고정보"</p>
+<p>INSERT INTO _TDAItemRemark</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, ItemRemark, LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>ISNULL(B.ItemRemark, '') AS ItemRemark,</p>
+<p>ISNULL(F.NewCode, 1) AS LastUserSeq,</p>
+<p>B.LastDateTime AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TDAItemRemark AS B</p>
+<p>JOIN TEMP_TDAItem AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDAItemRemark' AS tablenew, (SELECT count(*) FROM _TDAItemRemark WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemRemark' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemRemark WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 11. _TDAItemStock "품목 재고정보"</p>
+<p>INSERT INTO _TDAItemStock</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>A.ItemSeq AS ItemSeq,</p>
+<p>ISNULL(B.IsRollUnit, '0') AS IsRollUnit,</p>
+<p>ISNULL(B.IsSerialMng, '0') AS IsSerialMng,</p>
+<p>ISNULL(B.SeriNoCd, '') AS SeriNoCd,</p>
+<p>ISNULL(B.IsLotMng, '0') AS IsLotMng,</p>
+<p>ISNULL(B.IsQtyChange, '0') AS IsQtyChange,</p>
+<p>0 AS SafetyStk,</p>
+<p>8004002 AS SMLimitTermKind, -- 유통기한구분 // _TDASMajor AS A JOIN _TDASMinor AS B ON B.MajorSeq = A.MajorSeq WHERE A.MajorSeq = 8004</p>
+<p>0 AS LimitTerm,</p>
+<p>ISNULL(F.NewCode, 1) AS LastUserSeq,</p>
+<p>B.LastDateTime AS LastDateTime,</p>
+<p>0 AS STDLoadConvQty</p>
+<p>FROM genuine.danam.dbo._TDAItemStock AS B</p>
+<p>JOIN TEMP_TDAItem AS A ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.UMProperty</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT '_TDAItemStock' AS tablenew, (SELECT count(*) FROM _TDAItemStock WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItemStock' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItemStock WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 12. _TDAItemFile "품목 파일정보" -- 이미지 migration 時 진행 --</p>
+<p>-- 13. _TDAItemStdWH "품목기본창고" -- 데이터 미존재 --</p>
+<p>-- 14. _TDAItemClassStdWH "품목분류별기본창고" -- 테이블 미존재 --</p>
+<p>-- 15. _TDAWHItem "창고별품목" -- 데이터 미존재 --</p>
+<p>-- 추가테이블 INSERT</p>
+<p>-- 16. das_TDAItemReq "자재등록요청"</p>
+<p>INSERT INTO das_TDAItemReq</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, ItemName, TrunName, ItemNo,</p>
+<p>Spec, AssetSeq, UnitSeq, SMStatus, SMInOutKind,</p>
+<p>DeptSeq, EmpSeq, IsRLC, UMRLCSeq, RLCValueGubn,</p>
+<p>RLCValue, UMRLCUnitRLCSeq, RLCAGubn, RLCAValue, UMRLCUnitSeq,</p>
+<p>UMRLCMoESeq, UMRLCOperTempSeq, UMRLCAppSeq, UMRLCAuthSeq, UMRLCRohsSeq,</p>
+<p>UMRLCTempSeq, UMMSLLevel, MkCustSeq, Remark, IsVat,</p>
+<p>SMVatKind, SMVatType, DrawingNo, DrawingRevNo, IsLotMng,</p>
+<p>RegDate, RegEmpSeq, RegDeptSeq, IsReturn, ReturnDate,</p>
+<p>ReturnEmpSeq, ReturnRemark, IsCfm, CfmDate, CfmEmpSeq,</p>
+<p>FileSeq, FileName, PgmSeq, LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>Y.ItemSeq AS ItemSeq,</p>
+<p>ISNULL(A.ItemName, '') AS ItemName,</p>
+<p>ISNULL(A.TrunName, '') AS TrunName,</p>
+<p>ISNULL(A.ItemNo, '') AS ItemNo,</p>
+<p>ISNULL(A.Spec, '') AS Spec,</p>
+<p>ISNULL(A.AssetSeq, 0) AS AssetSeq,</p>
+<p>ISNULL(A.UnitSeq, 0) AS UnitSeq,</p>
+<p>ISNULL(A.SMStatus, 0) AS SMStatus,</p>
+<p>ISNULL(A.SMInOutKind, 0) AS SMInOutKind,</p>
+<p>ISNULL(A.DeptSeq, 0) AS DeptSeq,</p>
+<p>ISNULL(M.NewCode, 0) AS EmpSeq,</p>
+<p>CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN '0' ELSE '1' END AS IsRLC, -- RLC 여부</p>
+<p>CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCSeq, 1028164, 1110258) END AS UMRLCSeq, -- (RLC)RLC구분_genuine.danam / das_(RLC)RLC구분</p>
+<p>ISNULL(C1.ValueText, '') AS RLCValueGubn, -- das_(RLC)RLC구분.(RLC)VALUE(구분) / RLC Value 구분</p>
+<p>ISNULL(B.RLCValue, 0) AS RLCValue,</p>
+<p>CASE WHEN ISNULL(B.UMRLCUnitRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCUnitRLCSeq, 1028168, 1110259) END AS UMRLCUnitRLCSeq, -- (RLC)단위(RLC)_genuine.danam / das_(RLC)Value단위</p>
+<p>ISNULL(C2.ValueText, '') AS RLCAGubn, -- das_(RLC)RLC구분.(RLC)정격/포화전류(구분)/ RLC 정격 구분</p>
+<p>ISNULL(B.RLCA, 0) AS RLCAValue,</p>
+<p>CASE WHEN ISNULL(B.UMRLCUnitSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCUnitSeq, 1028200, 1110259) END AS UMRLCUnitSeq, -- (RLC)단위(정격최대전류)_genuine.danam / das_(RLC)정격단위</p>
+<p>CASE WHEN ISNULL(B.UMRLCMoESeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCMoESeq, 1028169, 1110261) END AS UMRLCMoESeq, -- (RLC)허용오차_genuine.danam / das_(RLC)허용오차</p>
+<p>CASE WHEN ISNULL(B.UMRLCOperTempSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCOperTempSeq, 1028170, 1110262) END AS UMRLCOperTempSeq, -- (RLC)작동온도_genuine.danam / das_(RLC)작동온도</p>
+<p>CASE WHEN ISNULL(B.UMRLCAppSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCAppSeq, 1028171, 1110263) END AS UMRLCAppSeq, -- (RLC)외형_genuine.danam / das_(RLC)외형</p>
+<p>CASE WHEN ISNULL(B.UMRLCAuthSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCAuthSeq, 1028172, 1110264) END AS UMRLCAuthSeq, -- (RLC)인증_genuine.danam / das_(RLC)인증</p>
+<p>CASE WHEN ISNULL(B.UMRLCRohsSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCRohsSeq, 1028206, 1110265) END AS UMRLCRohsSeq, -- (RLC)Rohs_genuine.danam / das_(RLC)Rohs</p>
+<p>CASE WHEN ISNULL(B.UMRLCTempSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCTempSeq, 1028173, 1110266) END AS UMRLCTempSeq, -- (RLC)온도계수_genuine.danam / das_(RLC)온도계수</p>
+<p>CASE WHEN ISNULL(D3.MngValSeq, 0) = 0 THEN 0 ELSE REPLACE(D3.MngValSeq, 1013485, 1110267) END AS UMMSLLevel, -- (RLC)Rohs_genuine.danam / das_(RLC)Rohs</p>
+<p>ISNULL(L.NewCode, 0) AS MkCustSeq,</p>
+<p>ISNULL(G.ItemRemark, '') AS Remark,</p>
+<p>ISNULL(F.IsVat, '0') AS IsVat,</p>
+<p>ISNULL(F.SMVatKind, 0) AS SMVatKind,</p>
+<p>ISNULL(F.SMVatType, 0) AS SMVatType,</p>
+<p>ISNULL(D1.MngValText, '') AS DrawingNo, -- 도면번호</p>
+<p>ISNULL(D2.MngValText, '') AS DrawingRevNo, -- 도면개정번호</p>
+<p>ISNULL(H.IsLotMng, '0') AS IsLotMng,</p>
+<p>CONVERT(NCHAR(8), ISNULL(A.RegDateTime, ''), 112) AS RegDate,</p>
+<p>ISNULL(N.NewCode, 0) AS RegEmpSeq,</p>
+<p>ISNULL(J.NewCode, 0) AS RegDeptSeq,</p>
+<p>ISNULL(A.IsReturn, '0') AS IsReturn,</p>
+<p>ISNULL(A.ReturnDate, '') AS ReturnDate,</p>
+<p>ISNULL(O.NewCode, 0) AS ReturnEmpSeq,</p>
+<p>ISNULL(A.ReturnRemark, '') AS ReturnRemark,</p>
+<p>ISNULL(A.IsCfm, '0') AS IsCfm,</p>
+<p>ISNULL(A.CfmDate, '') AS CfmDate,</p>
+<p>ISNULL(P.NewCode, 0) AS CfmEmpSeq,</p>
+<p>0 AS FileSeq,</p>
+<p>'' AS FileName,</p>
+<p>0 AS PgmSeq,</p>
+<p>ISNULL(K.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime</p>
+<p>FROM genuine.danam.dbo.danam_TDAItemReq AS A</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo.danam_TDAItemRLCReq AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C1 ON C1.CompanySeq = B.CompanySeq</p>
+<p>AND C1.MinorSeq = (CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCSeq, 1028164, 1110258) END)</p>
+<p>AND C1.Serl = 15000001</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C2 ON C2.CompanySeq = B.CompanySeq</p>
+<p>AND C2.MinorSeq = (CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCSeq, 1028164, 1110258) END)</p>
+<p>AND C2.Serl = 15000002</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS D1 ON D1.CompanySeq = A.CompanySeq</p>
+<p>AND D1.ItemSeq = A.ItemSeq</p>
+<p>AND D1.MngSerl = 1000004 -- 도면번호</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS D2 ON D2.CompanySeq = A.CompanySeq</p>
+<p>AND D2.ItemSeq = A.ItemSeq</p>
+<p>AND D2.MngSerl = 1000005 -- 도면개정번호</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS D3 ON D3.CompanySeq = A.CompanySeq</p>
+<p>AND D3.ItemSeq = A.ItemSeq</p>
+<p>AND D3.MngSerl = 1000006 -- MSL Level</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo.danam_TDAItemPurchaseReq AS E ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo.danam_TDAItemSalesReq AS F ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo.danam_TDAItemRemarkReq AS G ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo.danam_TDAItemStockReq AS H ON H.CompanySeq = A.CompanySeq</p>
+<p>AND H.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TCAUser AS I ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.UserSeq = A.RegUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS J ON J.OldSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS K ON K.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS L ON L.OldSeq = E.MkCustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS M ON M.OldSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS N ON N.OldSeq = I.EmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS O ON O.OldSeq = A.ReturnEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS P ON P.OldSeq = A.CfmEmpSeq</p>
+<p>JOIN TEMP_TDAItem AS Y ON Y.UMProperty = A.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT 'das_TDAItemReq' AS tablenew, (SELECT count(*) FROM das_TDAItemReq WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo.danam_TDAItemReq' AS tableold, (SELECT count(*) FROM genuine.danam.dbo.danam_TDAItemReq WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 17. das_TDAItemClassReq "자재요청분류"</p>
+<p>INSERT INTO das_TDAItemClassReq</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, UMajorItemClass, UMItemClass, PgmSeq,</p>
+<p>LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>Y.ItemSeq AS ItemSeq,</p>
+<p>ISNULL(B.UMajorItemClass, 0) AS UMajorItemClass,</p>
+<p>ISNULL(B.UMItemClass, 0) AS UMItemClass,</p>
+<p>0 AS PgmSeq,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime</p>
+<p>FROM genuine.danam.dbo.danam_TDAItemReq AS A</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo.danam_TDAItemClassReq AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>JOIN TEMP_TDAItem AS Y ON Y.UMProperty = A.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT 'das_TDAItemClassReq' AS tablenew, (SELECT count(*) FROM das_TDAItemClassReq WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo.danam_TDAItemClassReq' AS tableold, (SELECT count(*) FROM genuine.danam.dbo.danam_TDAItemClassReq WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 18. das_TDAItemDetail "자재상세"</p>
+<p>INSERT INTO das_TDAItemDetail</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, ReqItemSeq, IsRLC, UMRLCSeq,</p>
+<p>RLCValueGubn, RLCValue, UMRLCUnitRLCSeq, RLCAGubn, RLCAValue,</p>
+<p>UMRLCUnitSeq, UMRLCMoESeq, UMRLCOperTempSeq, UMRLCAppSeq,</p>
+<p>UMRLCAuthSeq, UMRLCRohsSeq, UMRLCTempSeq, UMMSLLevel, DrawingNo,</p>
+<p>DrawingRevNo, QualityClass, IsESDS,IsBGAType, Remark,</p>
+<p>PgmSeq, LastUserSeq, LastDateTime, UMBGApreSeq, COCLevelSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>Y.ItemSeq AS ItemSeq,</p>
+<p>0 AS ReqItemSeq, -- 자재등록요청 품목코드</p>
+<p>CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN '0' ELSE '1' END AS IsRLC, -- RLC 여부</p>
+<p>CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCSeq, 1028164, 1110258) END AS UMRLCSeq, -- (RLC)RLC구분_genuine.danam / das_(RLC)RLC구분</p>
+<p>ISNULL(C1.ValueText, '') AS RLCValueGubn, -- das_(RLC)RLC구분.(RLC)VALUE(구분) / RLC Value 구분</p>
+<p>ISNULL(B.RLCValue, 0) AS RLCValue, -- RLC Value 값</p>
+<p>CASE WHEN ISNULL(B.UMRLCUnitRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCUnitRLCSeq, 1028168, 1110259) END AS UMRLCUnitRLCSeq, -- (RLC)단위(RLC)_genuine.danam / das_(RLC)Value단위</p>
+<p>ISNULL(C2.ValueText ,'') AS RLCAGubn, -- das_(RLC)RLC구분.(RLC)정격/포화전류(구분)/ RLC 정격 구분</p>
+<p>ISNULL(B.RLCA, 0) AS RLCAValue, -- RLC 정격 값</p>
+<p>CASE WHEN ISNULL(B.UMRLCUnitSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCUnitSeq, 1028200, 1110259) END AS UMRLCUnitSeq, -- (RLC)단위(정격최대전류)_genuine.danam / das_(RLC)정격단위</p>
+<p>CASE WHEN ISNULL(B.UMRLCMoESeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCMoESeq, 1028169, 1110261) END AS UMRLCMoESeq, -- (RLC)허용오차_genuine.danam / das_(RLC)허용오차</p>
+<p>CASE WHEN ISNULL(B.UMRLCOperTempSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCOperTempSeq, 1028170, 1110262) END AS UMRLCOperTempSeq, -- (RLC)작동온도_genuine.danam / das_(RLC)작동온도</p>
+<p>CASE WHEN ISNULL(B.UMRLCAppSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCAppSeq, 1028171, 1110263) END AS UMRLCAppSeq, -- (RLC)외형_genuine.danam / das_(RLC)외형</p>
+<p>CASE WHEN ISNULL(B.UMRLCAuthSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCAuthSeq, 1028172, 1110264) END AS UMRLCAuthSeq, -- (RLC)인증_genuine.danam / das_(RLC)인증</p>
+<p>CASE WHEN ISNULL(B.UMRLCRohsSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCRohsSeq, 1028206, 1110265) END AS UMRLCRohsSeq, -- (RLC)Rohs_genuine.danam / das_(RLC)Rohs</p>
+<p>CASE WHEN ISNULL(B.UMRLCTempSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCTempSeq, 1028173, 1110266) END AS UMRLCTempSeq, -- (RLC)온도계수_genuine.danam / das_(RLC)온도계수</p>
+<p>CASE WHEN ISNULL(D3.MngValSeq, 0) = 0 THEN 0 ELSE REPLACE(D3.MngValSeq, 1013485, 1110267) END AS UMMSLLevel, -- (RLC)Rohs_genuine.danam / das_(RLC)Rohs</p>
+<p>ISNULL(D1.MngValText, '') AS DrawingNo, -- 도면번호</p>
+<p>ISNULL(D2.MngValText, '') AS DrawingRevNo, -- 도면개정번호</p>
+<p>'' AS QualityClass, -- 품질보증등급</p>
+<p>'' AS IsESDS, -- ESDS 관리대상</p>
+<p>'' AS IsBGAType, -- BGA 유/무연 여부</p>
+<p>'' AS Remark,</p>
+<p>0 AS PgmSeq,</p>
+<p>ISNULL(E.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>0 AS UMBGApreSeq,</p>
+<p>0 AS COCLevelSeq</p>
+<p>FROM genuine.danam.dbo._TDAItem AS A</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo.danam_TDAItemRLC AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C1 ON C1.CompanySeq = B.CompanySeq</p>
+<p>AND C1.MinorSeq = (CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCSeq, 1028164, 1110258) END)</p>
+<p>AND C1.Serl = 15000001</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C2 ON C2.CompanySeq = B.CompanySeq</p>
+<p>AND C2.MinorSeq = (CASE WHEN ISNULL(B.UMRLCSeq, 0) = 0 THEN 0 ELSE REPLACE(B.UMRLCSeq, 1028164, 1110258) END)</p>
+<p>AND C2.Serl = 15000002</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS D1 ON D1.CompanySeq = A.CompanySeq</p>
+<p>AND D1.ItemSeq = A.ItemSeq</p>
+<p>AND D1.MngSerl = 1000004 -- 도면번호</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS D2 ON D2.CompanySeq = A.CompanySeq</p>
+<p>AND D2.ItemSeq = A.ItemSeq</p>
+<p>AND D2.MngSerl = 1000005 -- 도면개정번호</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS D3 ON D3.CompanySeq = A.CompanySeq</p>
+<p>AND D3.ItemSeq = A.ItemSeq</p>
+<p>AND D3.MngSerl = 1000006 -- MSL Level</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>JOIN TEMP_TDAItem AS Y ON Y.UMProperty = A.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT 'das_TDAItemDetail' AS tablenew, (SELECT count(*) FROM das_TDAItemDetail WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo.danam_TDAItemRLC' AS tableold, (SELECT count(*) FROM genuine.danam.dbo.danam_TDAItemRLC WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>-- 19. das_TDAItemPurchase "자재상세(구매)"</p>
+<p>INSERT INTO das_TDAItemPurchase</p>
+<p>(</p>
+<p>CompanySeq, ItemSeq, UMLimitTermKind, RNDUND, IsEL,</p>
+<p>IsDiscontinue, LimitTermDay, PgmSeq, LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT @CompanySeq AS CompanySeq,</p>
+<p>Y.ItemSeq AS ItemSeq,</p>
+<p>CASE WHEN ISNULL(C1.MngValText, '') = '1' THEN 150235001 ELSE 150235002 END AS UMLimitTermKind, -- das_시효자재여부</p>
+<p>'' AS RNDUND, -- RND/UND</p>
+<p>CASE WHEN ISNULL(C2.MngValText, '') IN('True', '1') THEN '1' ELSE '0' END AS IsEL, -- EL여부</p>
+<p>CASE WHEN ISNULL(C3.MngValText, '') IN('True', '1') THEN '1' ELSE '0' END AS IsDiscontinue, -- 단종 여부</p>
+<p>0 AS LimitTermDay, -- 시효기간(일)</p>
+<p>0 AS PgmSeq,</p>
+<p>ISNULL(E.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime</p>
+<p>FROM genuine.danam.dbo._TDAItem AS A</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS C1 ON C1.CompanySeq = A.CompanySeq</p>
+<p>AND C1.ItemSeq = A.ItemSeq</p>
+<p>AND C1.MngSerl = 1000007 -- 도면번호</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS C2 ON C2.CompanySeq = A.CompanySeq</p>
+<p>AND C2.ItemSeq = A.ItemSeq</p>
+<p>AND C2.MngSerl = 1000002 -- EL여부</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemUserDefine AS C3 ON C3.CompanySeq = A.CompanySeq</p>
+<p>AND C3.ItemSeq = A.ItemSeq</p>
+<p>AND C3.MngSerl = 1000008 -- 단종여부</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>JOIN TEMP_TDAItem AS Y ON Y.UMProperty = A.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>SELECT 'das_TDAItemPurchase' AS tablenew, (SELECT count(*) FROM das_TDAItemPurchase WHERE ItemSeq &gt; @NewMaxItemSeq) AS tablenewcnt,</p>
+<p>'genuine.danam.dbo._TDAItem' AS tableold, (SELECT count(*) FROM genuine.danam.dbo._TDAItem WHERE ItemSeq &gt; @OldMaxItemSeq) AS tablenewcnt</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT '품목 오류' RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT '품목 통과'</p>
+<p>END</p>
+<p>-- [03]. 프로젝트</p>
+<p>-- 01. _TPJTProject. "프로젝트"</p>
+<p>/*</p>
+<p>0. CON_TPJTProject</p>
+<p>마이그레이션된 PJTSeq</p>
+<p>1. DELETE</p>
+<p>_TPJTProject. 마이그레이션된 PJTSeq 제외 에이스에서 신규 입력한 PJTSeq 모두 제거</p>
+<p>2. INSERT</p>
+<p>_TPJTProject. CON_TPJTProject에 없는 PJTSeq INSERT</p>
+<p>3. CON_TPJTProject</p>
+<p>마이그레이션된 PJTSeq</p>
+<p>SELECT *</p>
+<p>FROM _TCOMCreateSeqMax</p>
+<p>WHERE TableName LIKE '_TPJTProject'</p>
+<p>SELECT MAX(NewCode) FROM CON_TPJTProject</p>
+<p>SELECT MAX(PJTSeq) FROM _TPJTProject</p>
+<p>*/</p>
+<p>--TRUNCATE TABLE _TPJTProject</p>
+<p>DECLARE @MaxPJTSeq INT</p>
+<p>SELECT @MaxPJTSeq = MAX(OldSeq)</p>
+<p>FROM CON_TPJTProject</p>
+<p>IF (@MaxPJTSeq \&lt;&gt; (SELECT MAX(PJTSeq) FROM _TPJTProject WHERE CompanySeq = 1) )</p>
+<p>BEGIN</p>
+<p>SELECT '실서버에 프로젝트입력 한 건 존재함'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--DELETE FROM _TPJTProject WHERE PJTSeq &gt; @MaxPJTSeq</p>
+<p>TRUNCATE TABLE _TDACCtr</p>
+<p>INSERT INTO _TDACCtr (</p>
+<p>CompanySeq,CCtrSeq,CCtrName,EmpSeq,DeptSeq</p>
+<p>,UMCCtrKind,UMCostType,IsNotUse,IsNotUseDate,RegDate</p>
+<p>,RegUserSeq,IsCCtr,Remark,SMSourceType,LastUserSeq</p>
+<p>,LastDateTime,AccUnit,FactUnit,IsTemp,BizUnit</p>
+<p>,CostUnit,ProfCostUnit,CCtrGroupSeq,DispSeq,PE_IsEDU</p>
+<p>,PgmSeq,Remark2,Dummy1,Dummy2,Dummy3</p>
+<p>,Dummy4,Dummy5,Dummy6,Dummy7,Dummy8</p>
+<p>,Dummy9,Dummy10</p>
+<p>)</p>
+<p>SELECT A.CompanySeq, A.CCtrSeq, A.CCtrName, ISNULL(B.EmpSeq, 0), ISNULL(C.DeptSeq, 0)</p>
+<p>, A.UMCCtrKind, A.UMCostType, A.IsNotUse, A.IsNotUseDate, A.RegDate</p>
+<p>, A.RegUserSeq, A.IsCCtr, A.Remark, A.SMSourceType, ISNULL(F.NewCode, 1)</p>
+<p>, A.LastDateTime, ISNULL(D.NewCode,0), A.FactUnit, A.IsTemp, ISNULL(E.NewCode,0)</p>
+<p>, A.CostUnit, A.ProfCostUnit, A.CCtrGroupSeq, A.DispSeq, A.PE_IsEDU</p>
+<p>, A.PgmSeq, A.Remark2, null, null, null</p>
+<p>, null, null, null, null, null</p>
+<p>, null, null</p>
+<p>FROM genuine.danam.dbo._TDACCtr A</p>
+<p>LEFT OUTER JOIN _TDAEmp B ON A.EmpSeq = B.EmpSort AND B.EmpSort \&lt;&gt; 0</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDADept C ON A.DeptSeq = C.Dummy10</p>
+<p>LEFT OUTER JOIN CON_TDAAccUnit D ON A.AccUnit = D.AccUnitOld</p>
+<p>LEFT OUTER JOIN CON_TDABizUnit E ON A.BizUnit = E.BizUnit</p>
+<p>LEFT OUTER JOIN CON_TCAUser F ON A.LastUserSeq = F.OldSeq</p>
+</blockquote>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TDACCtr AS Z</p>
+<p>WHERE Z.CompanySeq = 1</p>
+<p>AND Z.CCtrSeq = A.CCtrSeq)</p>
+<p>SELECT (SELECT COUNT(*) FROM DANAMTEMP.._TDACCtr WHERE CompanySeq = 1) AS _TDACCtr_danam , (SELECT COUNT(*) FROM _TDACCtr ) AS _TDACCtr_das</p>
+<p>INSERT INTO _TPJTProject(</p>
+<p>CompanySeq, PJTSeq, BizUnit, PJTTypeSeq, PJTNo,</p>
+<p>PJTName, PJTRev, RegDate, ChargeDeptSeq, ChargeEmpSeq,</p>
+<p>SMPriceKind, SMSalesRecognize, PlanFrDate, PlanToDate, CustSeq,</p>
+<p>CurrSeq, CurrRate, PJTAmt, Summary, Object, Etc,</p>
+<p>ISStop, PJTStopDate, PJTStopEmpSeq, ISComplete, PJTCompleteDate,</p>
+<p>PJTCompleteEmpSeq, SalesResultSeq, SMResultKind, LastUserSeq, LastDateTime,</p>
+<p>TFTDeptSeq, WHSeq, PJTItemSeq, CCtrSeq, PJTStopDesc,</p>
+<p>PJTCompleteDesc, SMSalesReceipt, Location, SMExpKind, RegUserSeq,</p>
+<p>PMSeq, BKCustSeq, AGCustSeq, ContractDate, ContractFrDate,</p>
+<p>ContractToDate, WBSResrcLevel, SLTaskSeq, PJTRevSeq, PgmSeq,</p>
+<p>SMAccDate, AlterAccSeq, RelationPJTSeq, PJTEstimateSeq, ItemSerl,</p>
+<p>MDummy1, MDummy2, MDummy3, MDummy4, MDummy5,</p>
+<p>MDummy6, MDummy7, MDummy8, MDummy9, MDummy10</p>
+<p>)</p>
+<p>SELECT</p>
+<p>A.CompanySeq, A.PJTSeq, 1, CASE PjtTypeSeq WHEN 2 THEN 1 WHEN 5 THEN 2 WHEN 7 THEN 3 WHEN 8 THEN 3 WHEN 12 THEN 2 WHEN 13 THEN 6 WHEN 14 THEN 4 WHEN 15 THEN 2 ELSE 5 END AS PJTTypeSeq, A.PJTNo,</p>
+<p>A.PJTName, A.PJTRev, A.RegDate, ISNULL(C.NewCode, 0) AS ChargeDeptSeq, CASE WHEN ISNULL(B.NewCode, 0) = 987 THEN 901 ELSE ISNULL(B.NewCode, 0) END AS ChargeEmpSeq,</p>
+<p>A.SMPriceKind, A.SMSalesRecognize, A.PlanFrDate, A.PlanToDate, ISNULL(D.NewCode, 0) AS CustSeq,</p>
+<p>A.CurrSeq, A.CurrRate, A.PJTAmt, A.Summary, A.Object, A.Etc,</p>
+<p>ISNULL(A.ISStop, 0) AS ISStop, ISNULL(A.PJTStopDate, '') AS PJTStopDate, CASE WHEN ISNULL(E.NewCode, 0) = 987 THEN 901 ELSE ISNULL(E.NewCode, 0) END AS PJTStopEmpSeq, ISNULL(A.ISComplete, '') AS ISComplete, A.PJTCompleteDate,</p>
+<p>CASE WHEN ISNULL(F.NewCode, 0) = 987 THEN 901 ELSE ISNULL(F.NewCode, 0) END AS PJTCompleteEmpSeq, A.SalesResultSeq, A.SMResultKind, CASE WHEN ISNULL(G.NewCode, 1) = 328 THEN 120 ELSE ISNULL(G.NewCode, 1) END AS LastUserSeq, A.LastDateTime,</p>
+<p>J.NewCode AS TFTDeptSeq, A.WHSeq, I.NewCode AS PJTItemSeq, A.CCtrSeq, A.PJTStopDesc,</p>
+<p>A.PJTCompleteDesc, A.SMSalesReceipt, A.Location, A.SMExpKind, CASE WHEN ISNULL(H.NewCode, 1) = 328 THEN 120 ELSE ISNULL(H.NewCode, 1) END AS RegUserSeq,</p>
+<p>ISNULL(L.NewCode, 0) AS PMSeq, A.BKCustSeq, A.AGCustSeq, A.ContractDate, CASE ISNULL(A.ContractFrDate, '') WHEN '' THEN A.PlanFrDate ELSE A.ContractFrDate END AS ContractFrDate,</p>
+<p>CASE ISNULL(A.ContractToDate, '') WHEN '' THEN A.PlanToDate ELSE A.ContractToDate END AS ContractToDate, A.WBSResrcLevel, A.SLTaskSeq, A.PJTRevSeq, A.PgmSeq,</p>
+<p>null SMAccDate, null AlterAccSeq, null RelationPJTSeq, null PJTEstimateSeq, null ItemSerl,</p>
+<p>null MDummy1, null MDummy2, null MDummy3, null MDummy4, null MDummy5,</p>
+<p>null MDummy6, null MDummy7, null MDummy8, null MDummy9, null MDummy10</p>
+<p>FROM genuine.danam.dbo._TPJTProject AS A</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS B ON B.OldSeq = A.ChargeEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS C ON C.OldSeq = A.ChargeDeptSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS D ON D.OldSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS E ON E.OldSeq = A.PJTStopEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS F ON F.OldSeq = A.PJTCompleteEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS H ON H.OldSeq = A.RegUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS I ON I.OldSeq = A.PJTItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS J ON J.OldSeq = A.TFTDeptSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TPJTResource AS K ON K.CompanySeq = A.CompanySeq</p>
+<p>AND K.ResrcSeq = A.PMSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS L ON K.ResrcErpSeq = L.OldSeq</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>SELECT</p>
+<p>A.CompanySeq, A.PJTSeq, 1,</p>
+<p>ISNULL(L.NewCode, 0) AS PMSeq, L.NewName</p>
+<p>FROM genuine.danam.dbo._TPJTProject AS A</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS B ON B.OldSeq = A.ChargeEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS C ON C.OldSeq = A.ChargeDeptSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS D ON D.OldSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS E ON E.OldSeq = A.PJTStopEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS F ON F.OldSeq = A.PJTCompleteEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS H ON H.OldSeq = A.RegUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS I ON I.OldSeq = A.PJTItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS J ON J.OldSeq = A.TFTDeptSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TPJTResource AS K ON K.CompanySeq = A.CompanySeq</p>
+<p>AND K.ResrcSeq = A.PMSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS L ON K.ResrcErpSeq = L.OldSeq</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>SELECT (SELECT COUNT(*) FROM genuine.danam.dbo._TPJTProject WHERE CompanySeq = 1) AS _TPJTProject_genuinedanam , (SELECT COUNT(*) FROM _TPJTProject ) AS _TPJTProject_das</p>
+<p>/*</p>
+<p>UPDATE _TPJTProject</p>
+<p>SET ChargeEmpSeq = CASE WHEN ISNULL(B.NewCode, 0) = 987 THEN 901 ELSE ISNULL(B.NewCode, 0) END,</p>
+<p>ChargeDeptSeq = ISNULL(C.NewCode, 0),</p>
+<p>CustSeq = ISNULL(D.NewCode, 0),</p>
+<p>PJTStopEmpSeq = CASE WHEN ISNULL(E.NewCode, 0) = 987 THEN 901 ELSE ISNULL(E.NewCode, 0) END,</p>
+<p>PJTCompleteEmpSeq = CASE WHEN ISNULL(F.NewCode, 0) = 987 THEN 901 ELSE ISNULL(F.NewCode, 0) END,</p>
+<p>LastUserSeq = CASE WHEN ISNULL(G.NewCode, 1) = 328 THEN 120 ELSE ISNULL(G.NewCode, 1) END,</p>
+<p>RegUserSeq = CASE WHEN ISNULL(H.NewCode, 1) = 328 THEN 120 ELSE ISNULL(H.NewCode, 1) END--,</p>
+<p>--PMSeq = ISNULL(J.NewCode, 0)</p>
+<p>FROM genuine.danam.dbo._TPJTProject AS A</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS B ON B.OldSeq = A.ChargeEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS C ON C.OldSeq = A.ChargeDeptSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS D ON D.OldSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS E ON E.OldSeq = A.PJTStopEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS F ON F.OldSeq = A.PJTCompleteEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS H ON H.OldSeq = A.RegUserSeq</p>
+<p>--LEFT OUTER JOIN genuine.danam.dbo._TPJTResource AS I ON I.CompanySeq = A.CompanySeq AND A.PMSeq = I.ResrcSeq</p>
+<p>--LEFT OUTER JOIN CON_TDAEmp AS J ON I.ResrcErpSeq = J.OldSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>*/</p>
+<p>-- 02. _TPJTProjectDelivery "프로젝트 납품내역"</p>
+<p>--TRUNCATE TABLE _TPJTProjectDelivery</p>
+<p>INSERT INTO _TPJTProjectDelivery (</p>
+<p>CompanySeq, PJTSeq, DelvSerl, ItemSeq, UnitSeq, DelvQty, DelvPrice, DelvAmt,</p>
+<p>DelvDomPrice, DelvDomAmt, DelvExpectDate, DelvCustSeq, WHSeq, WBSSeq, ISPJTSales,</p>
+<p>Remark, LastUserSeq, LastDateTime, ExternalRemark, DelvVatAmt, SumDelvAmt,</p>
+<p>DelvDomVatAmt, SumDelvDomAmt, SMDelvType, AdaptYMFr, AdaptYMTo, ProgFromSeq,</p>
+<p>ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq, ExpReceiptDate,</p>
+<p>Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10,</p>
+<p>EndUser, EndUserText, ISStop, HogiStopDate, HogiStopEmpSeq, HogiStopDesc</p>
+<p>)</p>
+<p>SELECT</p>
+<p>A.CompanySeq, A.PJTSeq, A.DelvSerl, I.NewCode AS ItemSeq, B.NewCode AS UnitSeq, A.DelvQty, A.DelvPrice, A.DelvAmt,</p>
+<p>A.DelvDomPrice, A.DelvDomAmt, A.DelvExpectDate, C.NewCode AS DelvCustSeq, A.WHSeq, A.WBSSeq, A.ISPJTSales,</p>
+<p>A.Remark, ISNULL(G.NewCode, 1) AS LastUserSeq, A.LastDateTime, A.ExternalRemark, A.DelvVatAmt, A.SumDelvAmt,</p>
+<p>A.DelvDomVatAmt, A.SumDelvDomAmt, A.SMDelvType, A.AdaptYMFr, A.AdaptYMTo, A.ProgFromSeq,</p>
+<p>A.ProgFromSerl, A.ProgFromSubSerl, A.ProgFromTableSeq, A.ExpReceiptDate,</p>
+<p>NULL AS Dummy1, NULL AS Dummy2, NULL AS Dummy3, NULL AS Dummy4, NULL AS Dummy5,</p>
+<p>NULL AS Dummy6, NULL AS Dummy7, NULL AS Dummy8, NULL AS Dummy9, NULL AS Dummy10,</p>
+<p>NULL AS EndUser, NULL AS EndUserText, NULL AS ISStop, NULL AS HogiStopDate,</p>
+<p>NULL AS HogiStopEmpSeq, NULL AS HogiStopDesc</p>
+<p>FROM genuine.danam.dbo._TPJTProjectDelivery AS A</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS I ON I.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDAUnit AS B ON B.OldSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS C ON C.OldSeq = A.DelvCustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>AND A.PJTSeq \&lt;&gt; 0</p>
+<p>--UPDATE _TPJTProjectDelivery</p>
+<p>-- SET ItemSeq = B.NewCode,</p>
+<p>-- LastUserSeq = ISNULL(G.NewCode, 1)</p>
+<p>-- FROM _TPJTProjectDelivery AS A</p>
+<p>-- LEFT OUTER JOIN CON_TDAItem AS B ON B.OldSeq = A.ItemSeq</p>
+<p>-- LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>-- WHERE A.CompanySeq = 1</p>
+<p>-- 03. _TPJTProjectDesc "프로젝트 부가정보"</p>
+<p>--TRUNCATE TABLE _TPJTProjectDesc</p>
+<p>INSERT INTO _TPJTProjectDesc (</p>
+<p>CompanySeq, PJTSeq, FactUnit, CalenderKind, ResultStdUnitSeq,</p>
+<p>ConstAsstSeq, ISUnionPJT, QrySort, LastUserSeq, LastDateTime,</p>
+<p>SalesDelvDate, FileSeq</p>
+<p>)</p>
+<p>SELECT</p>
+<p>CompanySeq, PJTSeq, FactUnit, CalenderKind, ResultStdUnitSeq,</p>
+<p>ISNULL(ConstAsstSeq, 0) AS ConstAsstSeq, ISUnionPJT, QrySort, ISNULL(G.NewCode, 1) AS LastUserSeq, LastDateTime,</p>
+<p>SalesDelvDate, FileSeq</p>
+<p>FROM genuine.danam.dbo._TPJTProjectDesc AS A</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>--UPDATE _TPJTProjectDesc</p>
+<p>-- SET LastUserSeq = G.NewCode</p>
+<p>-- FROM _TPJTProjectDesc AS A</p>
+<p>-- LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>-- WHERE A.CompanySeq = 1</p>
+<p>SELECT (SELECT COUNT(*) FROM genuine.danam.dbo._TPJTProjectDesc WHERE CompanySeq = 1) AS _TPJTProjectDesc_genuinedanam , (SELECT COUNT(*) FROM _TPJTProjectDesc ) AS _TPJTProjectDesc_das</p>
+<p>-- 04. _TPJTProjectItem "프로젝트 (계약)품목"</p>
+<p>--TRUNCATE TABLE _TPJTProjectItem</p>
+<p>INSERT INTO _TPJTProjectItem (</p>
+<p>CompanySeq, PJTSeq, PJTItemSerl, SMInputType, ItemName, ItemNo, Spec, ItemSeq,</p>
+<p>UnitSeq, ItemQty, ItemPrice, ItemAmt, ItemDomPrice, ItemDomAmt, Remark,</p>
+<p>LastUserSeq, LastDateTime, WBSSeq, BgtSeq, UMExpenseItem, ExternalRemark,</p>
+<p>ItemVatAmt, SumItemAmt, ItemDomVatAmt, SumItemDomAmt, ProgFromSeq, ProgFromSerl,</p>
+<p>ProgFromSubSerl, ProgFromTableSeq, ProgFromQty, ProgFromSTDQty, ProgFromAmt,</p>
+<p>ProgFromVAT, ProgFromDOMAmt, ProgFromDOMVAT, ProgPrevFromTableSeq, SMPJTItemType,</p>
+<p>Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10</p>
+<p>)</p>
+<p>SELECT</p>
+<p>CompanySeq, PJTSeq, PJTItemSerl, SMInputType, ItemName, ItemNo, Spec, B.NewCode AS ItemSeq,</p>
+<p>C.NewCode AS UnitSeq, ItemQty, ItemPrice, ItemAmt, ItemDomPrice, ItemDomAmt, Remark,</p>
+<p>ISNULL(G.NewCode, 1) AS LastUserSeq, LastDateTime, WBSSeq, BgtSeq, UMExpenseItem, ExternalRemark,</p>
+<p>ItemVatAmt, SumItemAmt, ItemDomVatAmt, SumItemDomAmt, ProgFromSeq, ProgFromSerl,</p>
+<p>ProgFromSubSerl, ProgFromTableSeq,</p>
+<p>NULL AS ProgFromQty, NULL AS ProgFromSTDQty, NULL AS ProgFromAmt, NULL AS ProgFromVAT,</p>
+<p>NULL AS ProgFromDOMAmt, NULL AS ProgFromDOMVAT, NULL AS ProgPrevFromTableSeq,</p>
+<p>NULL AS SMPJTItemType, NULL AS Dummy1, NULL AS Dummy2, NULL AS Dummy3,</p>
+<p>NULL AS Dummy4, NULL AS Dummy5, NULL AS Dummy6, NULL AS Dummy7,</p>
+<p>NULL AS Dummy8, NULL AS Dummy9, NULL AS Dummy10</p>
+<p>FROM genuine.danam.dbo._TPJTProjectItem AS A</p>
+<p>JOIN CON_TDAItem AS B ON B.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDAUnit AS C ON C.OldSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>AND A.PJTSeq \&lt;&gt; 0</p>
+<p>--UPDATE _TPJTProjectItem</p>
+<p>-- SET ItemSeq = B.NewCode,</p>
+<p>-- UnitSeq = C.NewCode,</p>
+<p>-- LastUserSeq = ISNULL(G.NewCode, 1)</p>
+<p>-- FROM _TPJTProjectItem AS A</p>
+<p>-- JOIN CON_TDAItem AS B ON B.OldSeq = A.ItemSeq</p>
+<p>-- LEFT OUTER JOIN CON_TDAUnit AS C ON C.OldSeq = A.UnitSeq</p>
+<p>-- LEFT OUTER JOIN CON_TCAUser AS G ON G.OldSeq = A.LastUserSeq</p>
+<p>-- WHERE A.CompanySeq = 1</p>
+<p>SELECT (SELECT COUNT(*) FROM genuine.danam.dbo._TPJTProjectItem WHERE CompanySeq = 1) AS _TPJTProjectItem_genuinedanam , (SELECT COUNT(*) FROM _TPJTProjectItem ) AS _TPJTProjectItem_das</p>
+<p>-- 05. _TPJTProjectItemBillCond "프로젝트 계약품목별 청구조건"</p>
+<p>--TRUNCATE TABLE _TPJTProjectItemBillCond</p>
+<p>INSERT INTO _TPJTProjectItemBillCond (</p>
+<p>CompanySeq, PJTSeq, CondSerl, PJTItemSerl, BillSerl, ItemSeq,</p>
+<p>UMBillKind, UMBillType, BillRate, BillAmt, BillDomAmt,</p>
+<p>ExpectBillDate, ExpectCollectDay, LastUserSeq, LastDateTime,</p>
+<p>BillVatAmt, SumBillAmt, BillDomVatAmt, SumBillDomAmt, BillRemark,</p>
+<p>DelayRemark, WBSSeq, ProgFromSeq, ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq,</p>
+<p>ProgFromQty, ProgFromSTDQty, ProgFromAmt, ProgFromVAT, ProgFromDOMAmt,</p>
+<p>ProgFromDOMVAT, ProgPrevFromTableSeq, Dummy1, Dummy2, Dummy3, Dummy4,</p>
+<p>Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10</p>
+<p>)</p>
+<p>SELECT</p>
+<p>CompanySeq, PJTSeq, CondSerl, PJTItemSerl, BillSerl, B.NewCode AS ItemSeq,</p>
+<p>CASE WHEN UMBillKind = 7006011 THEN 7006004 ELSE UMBillKind END AS UMBillKind, -- 7006011 -&gt; 7006004 / genuine : 매출정산 -&gt; Ace : 기타</p>
+<p>UMBillType, BillRate, BillAmt, BillDomAmt,</p>
+<p>ExpectBillDate, ExpectCollectDay, ISNULL(LastUserSeq, 1), LastDateTime,</p>
+<p>BillVatAmt, SumBillAmt, BillDomVatAmt, SumBillDomAmt, BillRemark,</p>
+<p>DelayRemark, WBSSeq, ProgFromSeq, ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq,</p>
+<p>NULL AS ProgFromQty, NULL AS ProgFromSTDQty, NULL AS ProgFromAmt, NULL AS ProgFromVAT,</p>
+<p>NULL AS ProgFromDOMAmt, NULL AS ProgFromDOMVAT, NULL AS ProgPrevFromTableSeq,</p>
+<p>NULL AS Dummy1, NULL AS Dummy2, NULL AS Dummy3, NULL AS Dummy4, NULL AS Dummy5,</p>
+<p>NULL AS Dummy6, NULL AS Dummy7, NULL AS Dummy8, NULL AS Dummy9, NULL AS Dummy10</p>
+<p>FROM genuine.danam.dbo._TPJTProjectItemBillCond AS A</p>
+<p>JOIN CON_TDAItem AS B ON B.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>SELECT (SELECT COUNT(*) FROM genuine.danam.dbo._TPJTProjectItemBillCond WHERE CompanySeq = 1) AS _TPJTProjectItemBillCond_genuinedanam , (SELECT COUNT(*) FROM _TPJTProjectItemBillCond ) AS _TPJTProjectItemBillCond_das</p>
+<p>-- 추가테이블 INESRT</p>
+<p>-- 06. das_TPJTProject "프로젝트 마스터 추가 테이블"</p>
+<p>--TRUNCATE TABLE das_TPJTProject</p>
+<p>INSERT INTO das_TPJTProject (</p>
+<p>CompanySeq, PJTSeq, IsSalesPlanned, IsNotDefendCost, UMContractType, UMProductionType,</p>
+<p>IsMassProd, IsSubProject, MasterPjtSeq, UMItemGubun, StdItemSeq, COCLevelSeq,</p>
+<p>AssetSeq, ClassSeq, UMProfitType, UMRiskRewardType, SMImpType, BillCustSeq,</p>
+<p>DelvCustSeq, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8,</p>
+<p>Dummy9, Dummy10, PgmSeq, LastUserSeq, LastDateTime</p>
+<p>)</p>
+<p>SELECT</p>
+<p>A.CompanySeq, A.PJTSeq, ISNULL(A.SalesPlanApply, 0) AS SalesPlanApply, CASE A.UMCostKind WHEN 1011245002 THEN 1 ELSE 0 END AS IsNotDefendCost, /*계약구분이 특정비목인 경우 모두 확정*/CASE UMContType WHEN 1011247001 THEN 1110276001 WHEN 1011247002 THEN 1110276001 WHEN 1011247003 THEN 1110276001 WHEN 1011247004 THEN 1110276004 WHEN 1011247005 THEN 1110276005 ELSE 1110276001 END AS UMContType, CASE UMProdType WHEN 1011246001 THEN 1110277001 WHEN 1011246002 THEN 1110277002 WHEN 1011246003 THEN 1110277003 WHEN 1011246004 THEN 1110277004 ELSE 1110277001 END AS UMProdType,</p>
+<p>CASE UMProdType WHEN 1011246002 THEN 1 WHEN 1011246004 THEN 1 ELSE 0 END AS IsMassProd, CASE F.PjtSeq WHEN Null THEN 0 ELSE 1 END AS IsSubProject, B.PjtSeq AS MasterPjtSeq, CASE ItemGubunSeq WHEN 1011243002 THEN 1110285002 WHEN 1011243003 THEN 1110285003 ELSE 1110285001 END AS ItemGubunSeq,</p>
+<p>NULL AS StdItemSeq, NULL AS COCLevelSeq, CASE D.AssetSeq WHEN 1 THEN 1 WHEN 2 THEN 11 WHEN 3 THEN 18 WHEN 9 THEN 11 ELSE 11 END AS AssetSeq, CASE ISNULL(E.UMItemClass, '') WHEN '' THEN H.UMItemClass ELSE E.UMItemClass END AS ClassSeq,</p>
+<p>NULL AS UMProfitType, NULL AS UMRiskRewardType, NULL AS SMImpType, C.CustSeq AS BillCustSeq,</p>
+<p>NULL AS DelvCustSeq, NULL AS Dummy1, NULL AS Dummy2, NULL AS Dummy3, NULL AS Dummy4,</p>
+<p>NULL AS Dummy5, NULL AS Dummy6, NULL AS Dummy7, NULL AS Dummy8, NULL AS Dummy9,</p>
+<p>NULL AS Dummy10, NULL AS PgmSeq, CASE WHEN ISNULL(I.NewCode, 1) = 328 THEN 120 ELSE ISNULL(I.NewCode, 1) END AS LastUserSeq, A.LastDateTime</p>
+<p>FROM genuine.danam.dbo.danam_TPJTProject A</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TPJTWBSPJTUnion B ON A.CompanySeq = B.CompanySeq AND A.CompanySeq = 1 AND B.CompanySeq = 1 AND A.PJTSeq = B.JoinPJTSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TPJTProject C ON A.CompanySeq = C.CompanySeq AND C.CompanySeq = 1 AND A.PJTSeq = C.PjtSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItem D ON C.CompanySeq = D.CompanySeq AND D.CompanySeq = 1 AND C.PJTItemSeq = D.ItemSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemClass E ON A.CompanySeq = E.CompanySeq AND E.CompanySeq = 1 AND D.ItemSeq = E.ItemSeq</p>
+<p>LEFT OUTER JOIN (SELECT DISTINCT CompanySeq, PJTSeq FROM genuine.danam.dbo._TPJTWBSPJTUnion) F ON A.CompanySeq = F.CompanySeq AND F.CompanySeq = 1 AND A.PjtSeq = F.PJTSeq</p>
+<p>--LEFT OUTER JOIN (SELECT CompanySeq, JoinPJTSeq FROM genuine.danam.dbo._TPJTWBSPJTUnion) F2 ON A.CompanySeq = F.CompanySeq AND F.CompanySeq = 1 AND A.PjtSeq = F.PJTSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TPJTProjectItem G ON A.CompanySeq = G.CompanySeq AND G.CompanySeq = 1 AND A.Pjtseq = G.PjtSeq AND G.PJTItemSerl = 1</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TDAItemClass H ON A.CompanySeq = H.CompanySeq AND H.CompanySeq = 1 AND G.ItemSeq = H.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS I ON I.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>LEFT OUTER JOIN das_TPJTProject AS Y ON Y.PJTSeq = A.PJTSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>AND Y.PJTSeq \&lt;&gt; A.PJTSeq</p>
+<p>SELECT (SELECT COUNT(*) FROM genuine.danam.dbo.danam_TPJTProject WHERE CompanySeq = 1) AS danam_TPJTProject , (SELECT COUNT(*) FROM das_TPJTProject ) AS das_TPJTProject</p>
+<p>UPDATE A</p>
+<p>SET RelationPJTSeq = B.MasterPjtSeq</p>
+<p>FROM _TPJTProject A</p>
+<p>JOIN das_TPJTProject B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.PJTSeq = B.PJTSeq</p>
+<p>AND A.CompanySeq = 1</p>
+<p>UPDATE A</p>
+<p>SET A.UMContractType = C.UMContractType, a.UMProductionType = C.UMProductionType, A.IsMassProd = CASE C.UMProductionType WHEN 1110277002 THEN 1 WHEN 1110277004 THEN 1 ELSE 0 END</p>
+<p>FROM DAS_TPJTProject A</p>
+<p>--JOIN genuine.danam.dbo._TPJTWBSPJTUnion B ON A.CompanySeq = 1 and B.CompanySeq = 1 AND A.CompanySeq = B.CompanySeq and A.PjtSeq = B.JoinPJTSeq</p>
+<p>JOIN DAS_TPJTProject C ON C.CompanySeq = 1</p>
+<p>AND A.MasterPJTSeq = C.PJTSeq</p>
+<p>-- 07. das_TPJTWBSData "프로젝트 WBS"</p>
+<p>IF EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'das_TPJTWBSData')</p>
+<p>BEGIN</p>
+<p>DROP TABLE das_TPJTWBSData</p>
+<p>END</p>
+<p>SELECT DISTINCT</p>
+<p>0 AS PjtSeq,</p>
+<p>0 AS WBSSeq, --ROW_NUMBER() OVER(PARTITION BY LEFT(PJTNo, 6) ORDER BY (SELECT 1)) AS WbsSeq,</p>
+<p>LEFT(PJTNo, 6) AS MasterPjtNo,</p>
+<p>REPLACE(PJTName, '(Pilot)', '') AS WBSName</p>
+<p>INTO das_TPJTWBSData</p>
+<p>FROM _TPJTProject AS A</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE PjtTypeSeq = 2</p>
+<p>AND PjtNo NOT LIKE '%테스트%'</p>
+<p>AND pjtNo NOT LIKE '%L0%'</p>
+<p>AND pjtName NOT LIKE '%L0%'</p>
+<p>AND pjtName NOT LIKE '%L1%'</p>
+<p>AND pjtName NOT LIKE '%개발용역%'</p>
+<p>AND pjtName NOT LIKE '%휴직%'</p>
+<p>AND pjtName NOT LIKE '%기타%'</p>
+<p>AND pjtName NOT LIKE '%창고%'</p>
+<p>AND pjtName NOT LIKE '%자재%'</p>
+<p>AND pjtName NOT LIKE '%교육지원%'</p>
+<p>AND pjtName NOT LIKE '%기술자료%'</p>
+<p>AND pjtName NOT LIKE '%변경비용%'</p>
+<p>AND pjtName NOT LIKE '%기술자료%'</p>
+<p>AND pjtName NOT LIKE '%선확보%'</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>ORDER BY LEFT(PJTNo, 6), REPLACE(PJTName, '(Pilot)', '')</p>
+<p>UPDATE a</p>
+<p>SET WBSSeq = a.RowNum</p>
+<p>FROM (</p>
+<p>SELECT MasterPjtNo, WBSName, WBSSeq ,</p>
+<p>ROW_NUMBER() OVER(PARTITION BY MasterPjtNo ORDER BY (SELECT 1)) AS RowNum</p>
+<p>FROM DAS_TPJTWBSData a</p>
+<p>) a</p>
+<p>UPDATE a</p>
+<p>SET a.PjtSeq = b.PjtSeq</p>
+<p>FROM DAS_TPJTWBSData a JOIN _TPJTProject b ON a.MasterPjtNo = b.PjtNo</p>
+<p>-- 08. _TPJTWBS "프로젝트 WBS"</p>
+<p>--TRUNCATE TABLE _TPJTWBS</p>
+<p>INSERT INTO _TPJTWBS</p>
+<p>(</p>
+<p>CompanySeq, PJTSeq, WBSSeq, WBSName, FrPlanDate</p>
+<p>, ToPlanDate, WorkDate, WeightFactor, ProcSeq, BgtClassSeq</p>
+<p>, DeptSeq, EmpSeq, ERPWorkKindSeq, SMWorkTimeType, CompRate</p>
+<p>, ISFinish, SMRelation, IsMilestone, Remark, SourceNo</p>
+<p>, SortNum, QrySort, UpperWBSSeq, OrderSerl, ISGroup</p>
+<p>, Color, ForeColor, WorkStyle, ISWorkItem, TreeCode</p>
+<p>, LastUserSeq, LastDateTime, PlanHour, UMManageType, ProgFromSeq</p>
+<p>, ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq, ProgFromQty, ProgFromSTDQty</p>
+<p>, ProgFromAmt, ProgFromVAT, ProgFromDOMAmt, ProgFromDOMVAT, ProgPrevFromTableSeq</p>
+<p>, FileSeq, RptFileName, PreWBSSeq</p>
+<p>)</p>
+<p>SELECT</p>
+<p>1 CompanySeq, PJTSeq, WBSSeq, WBSName, '' FrPlanDate</p>
+<p>, '' ToPlanDate, 0 WorkDate, 1 WeightFactor, 0 ProcSeq, 0 BgtClassSeq</p>
+<p>, 0 DeptSeq, 0 EmpSeq, 0 ERPWorkKindSeq, 0 SMWorkTimeType, 0 CompRate</p>
+<p>, 0 ISFinish, 0 SMRelation, 0 IsMilestone, '' Remark, '' SourceNo</p>
+<p>, WBSSeq SortNum, WBSSeq QrySort, -1 UpperWBSSeq, null OrderSerl, null ISGroup</p>
+<p>, null Color, null ForeColor, null WorkStyle, 1 ISWorkItem, '00000'+WBSSeq TreeCode</p>
+<p>, 0 LastUserSeq, GETDATE() LastDateTime, 0 PlanHour, 0 UMManageType, null ProgFromSeq</p>
+<p>, null ProgFromSerl, null ProgFromSubSerl, null ProgFromTableSeq, null ProgFromQty, null ProgFromSTDQty</p>
+<p>, null ProgFromAmt, null ProgFromVAT, null ProgFromDOMAmt, null ProgFromDOMVAT, null ProgPrevFromTableSeq</p>
+<p>, null FileSeq, null RptFileName, null PreWBSSeq</p>
+<p>FROM DAS_TPJTWBSData AS A</p>
+<p>LEFT OUTER JOIN CON_TPJTProject AS Z ON Z.OldSeq = A.PJTSeq</p>
+<p>WHERE PjtSeq \&lt;&gt; 0</p>
+<p>AND ISNULL(Z.OldSeq, 0) = 0</p>
+<p>INSERT INTO CON_TPJTProject</p>
+<p>(</p>
+<p>OldSeq, NewCode, OldName, NewName</p>
+<p>)</p>
+<p>SELECT A.PJTSeq, B.PJTSeq, B.PJTNo, A.PJTNo</p>
+<p>FROM genuine.danam.dbo._TPJTProject AS A</p>
+<p>JOIN _TPJTProject AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM CON_TPJTProject</p>
+<p>WHERE OldSeq = A.PJTSeq)</p>
+<p>-- [04]. 세금계산서&amp;거래명세서</p>
+<p>-- 01. _TSLBill "세금계산서마스터"</p>
+<p>--TRUNCATE TABLE _TSLBill</p>
+<p>INSERT INTO _TSLBill (</p>
+<p>CompanySeq, BillSeq, BizUnit, SMExpKind, BillNo, BillDate, SMBillType,</p>
+<p>UMBillKind, DeptSeq, EmpSeq, CustSeq, CurrSeq, ExRate, Gwon, Ho,</p>
+<p>FundArrangeDate, PrnReqDate, SMBilling, IsPrint, IsDate, IsCust, TaxNo,</p>
+<p>EvidSeq, Remark, AccSeq, VatAccSeq, OppAccSeq, SlipSeq, LastUserSeq,</p>
+<p>LastDateTime, BillID, UMPriceTerms, CondSerl, SMSalesCrtKind, TaxUnit,</p>
+<p>DtiProcType, IsPJT, Email, PgmSeq, SendEmpSeq, RecvContactSeq, MDummy1,</p>
+<p>MDummy2, MDummy3, MDummy4, MDummy5, MDummy6, MDummy7, MDummy8, MDummy9, MDummy10</p>
+<p>)</p>
+<p>SELECT</p>
+<p>A.CompanySeq, A.BillSeq, 1/*BizUnit*/, A.SMExpKind, A.BillNo, A.BillDate, A.SMBillType,</p>
+<p>8027003/*UMBillKind*/, C.NewCode AS DeptSeq, D.NewCode AS EmpSeq, CustSeq, CurrSeq, A.ExRate, A.Gwon, A.Ho,</p>
+<p>A.FundArrangeDate, A.PrnReqDate, A.SMBilling, A.IsPrint, A.IsDate, A.IsCust, A.TaxNo,</p>
+<p>A.EvidSeq, A.Remark, A.AccSeq, A.VatAccSeq, A.OppAccSeq, A.SlipSeq, ISNULL(LastUserSeq, 1),</p>
+<p>A.LastDateTime, A.BillID, A.UMPriceTerms, A.CondSerl, A.SMSalesCrtKind, A.TaxUnit,</p>
+<p>A.DtiProcType, A.IsPJT, A.Email, A.PgmSeq, NULL AS SendEmpSeq, NULL AS RecvContactSeq,</p>
+<p>NULL AS MDummy1, NULL AS MDummy2, NULL AS MDummy3, NULL AS MDummy4,</p>
+<p>NULL AS MDummy5, NULL AS MDummy6, NULL AS MDummy7, NULL AS MDummy8,</p>
+<p>NULL AS MDummy9, NULL AS MDummy10</p>
+<p>FROM genuine.danam.dbo._TSLBill AS A</p>
+<p>LEFT OUTER JOIN _TSLBill AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.BillSeq = A.BillSeq</p>
+<p>LEFT OUTER JOIN CON_TDADept AS C ON C.OldSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS D ON D.OldSeq = A.EmpSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND ISNULL(B.BillSeq, 0) = 0</p>
+<p>SELECT (SELECT COUNT(*) FROM genuine.danam.dbo._TSLBill WHERE CompanySeq = 1) AS _TSLBill_genuinedanam , (SELECT COUNT(*) FROM _TSLBill ) AS _TSLBill_das</p>
+<p>-- 02. _TSLBillItem "세금계산서출력품목"</p>
+<p>TRUNCATE TABLE _TSLBillItem</p>
+<p>INSERT INTO _TSLBillItem (</p>
+<p>CompanySeq, BillSeq, BillSerl, BillPrtDate, ItemName, Spec, Qty, Price,</p>
+<p>CurAmt, CurVAT, KorPrice, DomAmt, DomVAT, Remark, LastUserSeq, LastDateTime,</p>
+<p>PgmSeq, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10</p>
+<p>)</p>
+<p>SELECT</p>
+<p>CompanySeq, BillSeq, BillSerl, BillPrtDate, ItemName, Spec, Qty, Price,</p>
+<p>CurAmt, CurVAT, KorPrice, DomAmt, DomVAT, Remark, ISNULL(LastUserSeq, 1), LastDateTime,</p>
+<p>PgmSeq, NULL AS Dummy1, NULL AS Dummy2, NULL AS Dummy3, NULL AS Dummy4, NULL AS Dummy5,</p>
+<p>NULL AS Dummy6, NULL AS Dummy7, NULL AS Dummy8, NULL AS Dummy9, NULL AS Dummy10</p>
+<p>FROM genuine.danam.dbo._TSLBillItem</p>
+<p>WHERE CompanySeq = 1</p>
+<p>SELECT (SELECT COUNT(*) FROM genuine.danam.dbo._TSLBillItem WHERE CompanySeq = 1) AS _TSLBillItem_genuinedanam , (SELECT COUNT(*) FROM _TSLBillItem ) AS _TSLBillItem_das</p>
+<p>-- 03. _TPJTSLBillItem "프로젝트 세금계산서(선수금) 부가정보"</p>
+<p>TRUNCATE TABLE _TPJTSLBillItem</p>
+<p>INSERT INTO _TPJTSLBillItem(</p>
+<p>CompanySeq, BillSeq, PJTBillSerl, ItemSeq, UnitSeq, ItemPrice, CustPrice, Qty,</p>
+<p>IsInclusedVAT, VATRate, CurAmt, CurVAT, DomAmt, DomVAT, STDUnitSeq, STDQty,</p>
+<p>Remark, PJTSeq, CondSerl, CustSeq, LastUserSeq, LastDateTime, ProgFromSeq,</p>
+<p>ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq, ProgFromQty, ProgFromSTDQty,</p>
+<p>ProgFromAmt, ProgFromVAT, ProgFromDOMAmt, ProgFromDOMVAT, ProgPrevFromTableSeq,</p>
+<p>Price, Dummy1, Dummy2, Dummy3, Dummy4, Dummy5, Dummy6, Dummy7, Dummy8, Dummy9, Dummy10</p>
+<p>)</p>
+<p>SELECT</p>
+<p>A.CompanySeq ,A.BillSeq ,ROW_NUMBER() OVER(PARTITION BY BillSeq ORDER BY A.SalesSerl DESC) /*A.SalesSerl*/ PJTBillSerl ,ItemSeq</p>
+<p>,UnitSeq,ItemPrice,CustPrice,Qty,IsInclusedVAT</p>
+<p>,VATRate,A.CurAmt,A.CurVAT,A.DomAmt,A.DomVAT</p>
+<p>,STDUnitSeq,STDQty,Remark,PJTSeq,1 AS CondSerl /*CondSerl*/ -- 이거 답이 없는데.</p>
+<p>,B.CustSeq,A.LastUserSeq,A.LastDateTime,ProgFromSeq</p>
+<p>,ProgFromSerl,ProgFromSubSerl,ProgFromTableSeq</p>
+<p>,null AS ProgFromQty ,null AS ProgFromSTDQty, null AS ProgFromAmt, null AS ProgFromVAT</p>
+<p>,null AS ProgFromDOMAmt,null AS ProgFromDOMVAT,null AS ProgPrevFromTableSeq</p>
+<p>,Price,null as Dummy1,null as Dummy2,null as Dummy3</p>
+<p>,null as Dummy4,null as Dummy5,null as Dummy6,null as Dummy7</p>
+<p>,null as Dummy8,null as Dummy9,null as Dummy10</p>
+<p>FROM genuine.danam.dbo._TSLSalesBillRelation a</p>
+<p>JOIN genuine.danam.dbo._TSLSalesItem C ON a.CompanySeq = C.CompanySeq AND C.CompanySeq = 1 AND A.SalesSeq = C.SalesSeq and A.SalesSerl = C.SalesSerl</p>
+<p>JOIN genuine.danam.dbo._TSLSales B ON a.CompanySeq = b.CompanySeq and B.CompanySeq = 1 AND a.SalesSeq = b.SalesSeq</p>
+<p>UPDATE A</p>
+<p>SET EmpSeq = B.NewCode , DeptSeq = C.NewCode</p>
+<p>FROM _TSLBill A</p>
+<p>JOIN CON_TDAEmp B ON A.EmpSeq = B.OldSeq</p>
+<p>JOIN CON_TDADept C ON A.DeptSeq = C.OldSeq</p>
+<p>UPDATE A</p>
+<p>SET ItemSeq = C.NewCode</p>
+<p>FROM _TPJTSLBillItem A</p>
+<p>JOIN CON_TDAItem C ON A.ItemSeq = C.OldSeq</p>
+<p>-- 04. _TSLInvoice "거래명세서마스터"</p>
+<p>TRUNCATE TABLE _TSLInvoice</p>
+<p>INSERT INTO _TSLInvoice</p>
+<p>(</p>
+<p>CompanySeq, InvoiceSeq, BizUnit, SMExpKind, InvoiceNo,</p>
+<p>InvoiceDate, UMOutKind, DeptSeq, EmpSeq, CustSeq,</p>
+<p>BKCustSeq, AGCustSeq, DVPlaceSeq, CurrSeq, ExRate,</p>
+<p>IsOverCredit, IsMinAmt, IsStockSales, Remark, Memo,</p>
+<p>ArrivalDate, ArrivalTime, IsDelvCfm, DelvCfmEmpSeq, DelvCfmDate,</p>
+<p>LastUserSeq, LastDateTime, IsAuto, SMSalesCrtKind, IsPJT,</p>
+<p>BillSeq, SMConsignKind, SMTransKind, UMDVConditionSeq, PgmSeq,</p>
+<p>DVPlace, DVCondition, UMPriceTerms, Shipper, Consignee,</p>
+<p>Notify, FileSeq, InvoiceRefNo, ImpPermitDate, ImpPermitNo,</p>
+<p>OppAccSeq, SMCancelSlip, SourceInvoiceSeq, MDummy1, MDummy10,</p>
+<p>MDummy2, MDummy3, MDummy4, MDummy5, MDummy6,</p>
+<p>MDummy7, MDummy8, MDummy9, IsInspection, PriceType</p>
+<p>)</p>
+<p>SELECT A.CompanySeq AS CompanySeq,</p>
+<p>A.InvoiceSeq AS InvoiceSeq,</p>
+<p>1 AS BizUnit,</p>
+<p>A.SMExpKind AS SMExpKind,</p>
+<p>A.InvoiceNo AS InvoiceNo,</p>
+<p>A.InvoiceDate AS InvoiceDate,</p>
+<p>A.UMOutKind AS UMOutKind,</p>
+<p>ISNULL(B.NewCode, 0) AS DeptSeq,</p>
+<p>ISNULL(D.NewCode, 0) AS EmpSeq,</p>
+<p>ISNULL(C.NewCode, 0) AS CustSeq,</p>
+<p>ISNULL(E.NewCode, 0) AS BKCustSeq,</p>
+<p>ISNULL(F.NewCode, 0) AS AGCustSeq,</p>
+<p>A.DVPlaceSeq AS DVPlaceSeq,</p>
+<p>A.CurrSeq AS CurrSeq,</p>
+<p>A.ExRate AS ExRate,</p>
+<p>A.IsOverCredit AS IsOverCredit,</p>
+<p>A.IsMinAmt AS IsMinAmt,</p>
+<p>A.IsStockSales AS IsStockSales,</p>
+<p>A.Remark AS Remark,</p>
+<p>A.Memo AS Memo,</p>
+<p>A.ArrivalDate AS ArrivalDate,</p>
+<p>A.ArrivalTime AS ArrivalTime,</p>
+<p>A.IsDelvCfm AS IsDelvCfm,</p>
+<p>ISNULL(G.NewCode, 0) AS DelvCfmEmpSeq,</p>
+<p>A.DelvCfmDate AS DelvCfmDate,</p>
+<p>ISNULL(H.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>A.IsAuto AS IsAuto,</p>
+<p>A.SMSalesCrtKind AS SMSalesCrtKind,</p>
+<p>A.IsPJT AS IsPJT,</p>
+<p>A.BillSeq AS BillSeq,</p>
+<p>A.SMConsignKind AS SMConsignKind,</p>
+<p>A.SMTransKind AS SMTransKind,</p>
+<p>A.UMDVConditionSeq AS UMDVConditionSeq,</p>
+<p>0 AS PgmSeq,</p>
+<p>'' AS DVPlace,</p>
+<p>'' AS DVCondition,</p>
+<p>0 AS UMPriceTerms,</p>
+<p>'' AS Shipper,</p>
+<p>'' AS Consignee,</p>
+<p>'' AS Notify,</p>
+<p>0 AS FileSeq,</p>
+<p>'' AS InvoiceRefNo,</p>
+<p>'' AS ImpPermitDate,</p>
+<p>'' AS ImpPermitNo,</p>
+<p>0 AS OppAccSeq,</p>
+<p>0 AS SMCancelSlip,</p>
+<p>0 AS SourceInvoiceSeq,</p>
+<p>'' AS MDummy1,</p>
+<p>0 AS MDummy10,</p>
+<p>'' AS MDummy2,</p>
+<p>'' AS MDummy3,</p>
+<p>'' AS MDummy4,</p>
+<p>'' AS MDummy5,</p>
+<p>0 AS MDummy6,</p>
+<p>0 AS MDummy7,</p>
+<p>0 AS MDummy8,</p>
+<p>0 AS MDummy9,</p>
+<p>'' AS IsInspection,</p>
+<p>0 AS PriceType</p>
+<p>FROM genuine.danam.dbo._TSLInvoice AS A</p>
+<p>LEFT OUTER JOIN CON_TDADept AS B ON B.OldSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS C ON C.OldSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS D ON D.OldSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS E ON E.OldSeq = A.BKCustSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS F ON F.OldSeq = A.AGCustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAEmp AS G ON G.OldSeq = A.DelvCfmEmpSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS H ON H.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TSLInvoice</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND InvoiceSeq = A.InvoiceSeq</p>
+<p>)</p>
+<p>-- 05. _TSLInvoiceItem "거래명세서품목"</p>
+<p>SELECT 'invoiceitemseq null check',A.CompanySeq AS CompanySeq,</p>
+<p>A.InvoiceSeq AS InvoiceSeq,</p>
+<p>A.InvoiceSerl AS InvoiceSerl,</p>
+<p>a.itemseq as invoiceitemseq,</p>
+<p>d.oldseq as oldseq,</p>
+<p>D.NewCode AS ItemSeq,</p>
+<p>E.NewCode AS UnitSeq,</p>
+<p>A.ItemPrice AS ItemPrice,</p>
+<p>A.CustPrice AS CustPrice,</p>
+<p>A.Qty AS Qty,</p>
+<p>A.IsInclusedVAT AS IsInclusedVAT,</p>
+<p>A.VATRate AS VATRate,</p>
+<p>A.CurAmt AS CurAmt,</p>
+<p>A.CurVAT AS CurVAT,</p>
+<p>A.DomAmt AS DomAmt,</p>
+<p>A.DomVAT AS DomVAT,</p>
+<p>A.STDUnitSeq AS STDUnitSeq,</p>
+<p>A.STDQty AS STDQty,</p>
+<p>9 AS WHSeq,</p>
+<p>A.Remark AS Remark,</p>
+<p>A.UMEtcOutKind AS UMEtcOutKind,</p>
+<p>B.NewCode AS TrustCustSeq,</p>
+<p>A.LotNo AS LotNo,</p>
+<p>A.SerialNo AS SerialNo,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>A.PJTSeq AS PJTSeq,</p>
+<p>A.WBSSeq AS WBSSeq,</p>
+<p>A.SourceInvoiceSerl AS SourceInvoiceSerl,</p>
+<p>A.SourceOptionSeq AS SourceOptionSeq,</p>
+<p>A.CCtrSeq AS CCtrSeq,</p>
+<p>A.DVPlaceSeq AS DVPlaceSeq,</p>
+<p>A.IsLocal AS IsLocal,</p>
+<p>A.LocalInvoiceSeq AS LocalInvoiceSeq,</p>
+<p>A.LocalInvoiceSerl AS LocalInvoiceSerl,</p>
+<p>A.CountryofOrigin AS CountryofOrigin,</p>
+<p>A.ProgFromSeq AS ProgFromSeq,</p>
+<p>A.ProgFromSerl AS ProgFromSerl,</p>
+<p>A.ProgFromSubSerl AS ProgFromSubSerl,</p>
+<p>A.ProgFromTableSeq AS ProgFromTableSeq,</p>
+<p>A.Price AS Price,</p>
+<p>0 AS PgmSeq,</p>
+<p>0 AS ProgFromQty,</p>
+<p>0 AS ProgFromSTDQty,</p>
+<p>0 AS ProgFromAmt,</p>
+<p>0 AS ProgFromVAT,</p>
+<p>0 AS ProgFromDOMAmt,</p>
+<p>0 AS ProgFromDOMVAT,</p>
+<p>0 AS ProgPrevFromTableSeq,</p>
+<p>0 AS GrossWeight,</p>
+<p>0 AS NetWeight,</p>
+<p>0 AS Volume,</p>
+<p>0 AS Capacity,</p>
+<p>'' AS ContainerNo,</p>
+<p>'' AS CottonNo,</p>
+<p>A.Dummy1 AS Dummy1,</p>
+<p>A.Dummy2 AS Dummy2,</p>
+<p>A.Dummy3 AS Dummy3,</p>
+<p>A.Dummy4 AS Dummy4,</p>
+<p>A.Dummy5 AS Dummy5,</p>
+<p>A.Dummy6 AS Dummy6,</p>
+<p>CASE A.Dummy7 WHEN '' THEN 0 ELSE A.Dummy7 END AS Dummy7,</p>
+<p>CASE A.Dummy8 WHEN '' THEN 0 ELSE A.Dummy8 END AS Dummy8,</p>
+<p>CASE A.Dummy9 WHEN '' THEN 0 ELSE A.Dummy9 END AS Dummy9,</p>
+<p>CASE A.Dummy10 WHEN '' THEN 0 ELSE A.Dummy10 END AS Dummy10,</p>
+<p>A.RetroactivityQty AS RetroactivityQty,</p>
+<p>'' AS Memo,</p>
+<p>0 AS SMPriceType,</p>
+<p>'' AS IsSale,</p>
+<p>0 AS EndUser,</p>
+<p>'' AS EndUserText</p>
+<p>FROM genuine.danam.dbo._TSLInvoiceItem AS A</p>
+<p>LEFT OUTER JOIN CON_TDACust AS B ON B.OldSeq = A.TrustCustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS D ON D.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDAUnit AS E ON E.OldSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TSLInvoice AS F ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.InvoiceSeq = A.InvoiceSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TSLInvoiceItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND InvoiceSeq = A.InvoiceSeq</p>
+<p>AND InvoiceSerl = A.InvoiceSerl</p>
+<p>)</p>
+<p>and isnull(d.newcode, 0) = 0</p>
+<p>TRUNCATE TABLE _TSLInvoiceItem</p>
+<p>INSERT INTO _TSLInvoiceItem</p>
+<p>(</p>
+<p>CompanySeq, InvoiceSeq, InvoiceSerl, ItemSeq, UnitSeq,</p>
+<p>ItemPrice, CustPrice, Qty, IsInclusedVAT, VATRate,</p>
+<p>CurAmt, CurVAT, DomAmt, DomVAT, STDUnitSeq,</p>
+<p>STDQty, WHSeq, Remark, UMEtcOutKind, TrustCustSeq,</p>
+<p>LotNo, SerialNo, LastUserSeq, LastDateTime, PJTSeq,</p>
+<p>WBSSeq, SourceInvoiceSerl, SourceOptionSeq, CCtrSeq, DVPlaceSeq,</p>
+<p>IsLocal, LocalInvoiceSeq, LocalInvoiceSerl, CountryofOrigin, ProgFromSeq,</p>
+<p>ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq, Price, PgmSeq,</p>
+<p>ProgFromQty, ProgFromSTDQty, ProgFromAmt, ProgFromVAT, ProgFromDOMAmt,</p>
+<p>ProgFromDOMVAT, ProgPrevFromTableSeq, GrossWeight, NetWeight, Volume,</p>
+<p>Capacity, ContainerNo, CottonNo, Dummy1, Dummy2,</p>
+<p>Dummy3, Dummy4, Dummy5, Dummy6, Dummy7,</p>
+<p>Dummy8, Dummy9, Dummy10, RetroactivityQty, Memo,</p>
+<p>SMPriceType, IsSale, EndUser, EndUserText</p>
+<p>)</p>
+<p>SELECT A.CompanySeq AS CompanySeq,</p>
+<p>A.InvoiceSeq AS InvoiceSeq,</p>
+<p>A.InvoiceSerl AS InvoiceSerl,</p>
+<p>D.NewCode AS ItemSeq,</p>
+<p>E.NewCode AS UnitSeq,</p>
+<p>A.ItemPrice AS ItemPrice,</p>
+<p>A.CustPrice AS CustPrice,</p>
+<p>A.Qty AS Qty,</p>
+<p>A.IsInclusedVAT AS IsInclusedVAT,</p>
+<p>A.VATRate AS VATRate,</p>
+<p>A.CurAmt AS CurAmt,</p>
+<p>A.CurVAT AS CurVAT,</p>
+<p>A.DomAmt AS DomAmt,</p>
+<p>A.DomVAT AS DomVAT,</p>
+<p>A.STDUnitSeq AS STDUnitSeq,</p>
+<p>A.STDQty AS STDQty,</p>
+<p>9 AS WHSeq,</p>
+<p>A.Remark AS Remark,</p>
+<p>A.UMEtcOutKind AS UMEtcOutKind,</p>
+<p>B.NewCode AS TrustCustSeq,</p>
+<p>A.LotNo AS LotNo,</p>
+<p>A.SerialNo AS SerialNo,</p>
+<p>ISNULL(C.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>A.PJTSeq AS PJTSeq,</p>
+<p>A.WBSSeq AS WBSSeq,</p>
+<p>A.SourceInvoiceSerl AS SourceInvoiceSerl,</p>
+<p>A.SourceOptionSeq AS SourceOptionSeq,</p>
+<p>A.CCtrSeq AS CCtrSeq,</p>
+<p>A.DVPlaceSeq AS DVPlaceSeq,</p>
+<p>A.IsLocal AS IsLocal,</p>
+<p>A.LocalInvoiceSeq AS LocalInvoiceSeq,</p>
+<p>A.LocalInvoiceSerl AS LocalInvoiceSerl,</p>
+<p>A.CountryofOrigin AS CountryofOrigin,</p>
+<p>A.ProgFromSeq AS ProgFromSeq,</p>
+<p>A.ProgFromSerl AS ProgFromSerl,</p>
+<p>A.ProgFromSubSerl AS ProgFromSubSerl,</p>
+<p>A.ProgFromTableSeq AS ProgFromTableSeq,</p>
+<p>A.Price AS Price,</p>
+<p>0 AS PgmSeq,</p>
+<p>0 AS ProgFromQty,</p>
+<p>0 AS ProgFromSTDQty,</p>
+<p>0 AS ProgFromAmt,</p>
+<p>0 AS ProgFromVAT,</p>
+<p>0 AS ProgFromDOMAmt,</p>
+<p>0 AS ProgFromDOMVAT,</p>
+<p>0 AS ProgPrevFromTableSeq,</p>
+<p>0 AS GrossWeight,</p>
+<p>0 AS NetWeight,</p>
+<p>0 AS Volume,</p>
+<p>0 AS Capacity,</p>
+<p>'' AS ContainerNo,</p>
+<p>'' AS CottonNo,</p>
+<p>A.Dummy1 AS Dummy1,</p>
+<p>A.Dummy2 AS Dummy2,</p>
+<p>A.Dummy3 AS Dummy3,</p>
+<p>A.Dummy4 AS Dummy4,</p>
+<p>A.Dummy5 AS Dummy5,</p>
+<p>A.Dummy6 AS Dummy6,</p>
+<p>CASE A.Dummy7 WHEN '' THEN 0 ELSE A.Dummy7 END AS Dummy7,</p>
+<p>CASE A.Dummy8 WHEN '' THEN 0 ELSE A.Dummy8 END AS Dummy8,</p>
+<p>CASE A.Dummy9 WHEN '' THEN 0 ELSE A.Dummy9 END AS Dummy9,</p>
+<p>CASE A.Dummy10 WHEN '' THEN 0 ELSE A.Dummy10 END AS Dummy10,</p>
+<p>A.RetroactivityQty AS RetroactivityQty,</p>
+<p>'' AS Memo,</p>
+<p>0 AS SMPriceType,</p>
+<p>'' AS IsSale,</p>
+<p>0 AS EndUser,</p>
+<p>'' AS EndUserText</p>
+<p>FROM genuine.danam.dbo._TSLInvoiceItem AS A</p>
+<p>LEFT OUTER JOIN CON_TDACust AS B ON B.OldSeq = A.TrustCustSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS C ON C.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS D ON D.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDAUnit AS E ON E.OldSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN genuine.danam.dbo._TSLInvoice AS F ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.InvoiceSeq = A.InvoiceSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TSLInvoiceItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND InvoiceSeq = A.InvoiceSeq</p>
+<p>AND InvoiceSerl = A.InvoiceSerl</p>
+<p>)</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT '프로젝트 오류' RETURN</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT '프로젝트 통과'</p>
+<p>END</p>
+<p>-- [05]. 프로젝트재료자원</p>
+<p>/*</p>
+<p>--=============================================--</p>
+<p>-- 프로젝트자재조달구분. _TPJTBOM.UMSupplyType -- 7010001</p>
+<p>--=============================================--</p>
+<p>SELECT DISTINCT UMSupplyType</p>
+<p>FROM genuine.danam.dbo._TPJTBOM</p>
+<p>WHERE CompanySeq = 1</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM genuine.danam.dbo._TDAUMajor AS A</p>
+<p>JOIN genuine.danam.dbo._TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.MajorSeq = 7010</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM DASTEST.._TDAUMajor AS A</p>
+<p>JOIN DASTEST.._TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.MajorSeq = 7010</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>--=========================================--</p>
+<p>-- 프로젝트BOM등록구분. _TPJTBOM.UMRegType -- 추가정보정의확인 필요</p>
+<p>--=========================================--</p>
+<p>SELECT DISTINCT UMSupplyType</p>
+<p>FROM genuine.danam.dbo._TPJTBOM</p>
+<p>WHERE CompanySeq = 1</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM genuine.danam.dbo._TDAUMajor AS A</p>
+<p>JOIN genuine.danam.dbo._TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.MajorSeq = 7007</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>SELECT A.MajorName, B.*</p>
+<p>FROM DASTEST.._TDAUMajor AS A</p>
+<p>JOIN DASTEST.._TDAUMinor AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.MajorSeq = 7007</p>
+<p>ORDER BY B.MinorSeq</p>
+<p>*/</p>
+<p>-- 01. _TPJTBOM "프로젝트재료자원등록"</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_BOMAssetUMSupply')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE TEMP_BOMAssetUMSupply</p>
+<p>(</p>
+<p>AssetSeq INT,</p>
+<p>AssetName NVARCHAR(100),</p>
+<p>UMSupplyType INT,</p>
+<p>UMSupplyTypeName NVARCHAR(200)</p>
+<p>)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE TEMP_BOMAssetUMSupply</p>
+<p>END</p>
+<p>INSERT INTO TEMP_BOMAssetUMSupply</p>
+<p>(</p>
+<p>AssetSeq, AssetName, UMSupplyType, UMSupplyTypeName</p>
+<p>)</p>
+<p>SELECT B.ValueSeq AS AssetSeq, B1.AssetName AS '폼목자산분류', F.ValueSeq AS UMSupplyType, G.MinorName AS '조달구분'</p>
+<p>FROM _TDAUMinor AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MinorSeq = A.MinorSeq</p>
+<p>AND B.Serl = 15000001</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS B1 WITH(NOLOCK) ON B1.CompanySeq = B.CompanySeq</p>
+<p>AND B1.AssetSeq = B.ValueSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS F WITH (NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.MinorSeq = A.MinorSeq</p>
+<p>AND F.Serl = 15000003</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS G WITH (NOLOCK) ON G.CompanySeq = F.CompanySeq</p>
+<p>AND G.MinorSeq = F.ValueSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1110245</p>
+<p>INSERT INTO _TPJTBOM</p>
+<p>(</p>
+<p>CompanySeq, PJTSeq, BOMSerl, DWGNo, DWGVer,</p>
+<p>ISStd, ItemSeq, BasicQty, ProdCnt, SurPlusQty,</p>
+<p>TotQty, UMSupplyType, UMRegType, ReqDelvDate, DelvPlaceName,</p>
+<p>Receiver, RcvPlaceName, MakerSeq, UMMatQuality, VenPartNo,</p>
+<p>AssemblingNo, DWGSerl, BOMSourceNo, Number, Remark,</p>
+<p>MakeQty, UMLossType, BOMLevel, QrySort, UpperBOMSerl,</p>
+<p>WidthValue, LengthValue, HeightValue, WeightValue, BulkValue,</p>
+<p>LengthUnit, AreaUnit, WeightUnit, BulkUnit, OrderSerl,</p>
+<p>CurrSeq, Price, BgtSeq, PurchaseCustSeq, TreeCd,</p>
+<p>ClassSeq, WBSSeq, CurrRate, TreeCode, LastUserSeq,</p>
+<p>LastDateTime, OutReqDate, BOMRev, BeforeBOMSerl, IssueSeq,</p>
+<p>MTreeCode, ProgFromSeq, ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq,</p>
+<p>FileSeq, FileName, IsCfm, Amt, CfmUserSeq,</p>
+<p>CfmDate, ProgFromQty, ProgPrevFromTableSeq, ProgFromVAT, ProgFromDOMAmt,</p>
+<p>ProgFromAmt, ProgFromDOMVAT, ProgFromSTDQty, ItemName, ItemNo,</p>
+<p>Spec, HogiItemSeq, DWGDate, MatQualityText, Dummy1,</p>
+<p>Dummy10, Dummy2, Dummy3, Dummy4, Dummy5,</p>
+<p>Dummy6, Dummy7, Dummy8, Dummy9, APIRemark,</p>
+<p>FileExtension1, FileExtension2, FileName1, FileName2, FileSize1,</p>
+<p>FileSize2, FileURL1, FileURL2, IsCheck, IsDel,</p>
+<p>IsUpdate, DownloadURL, PDFINFO, DWGINFO, RegUserSeq,</p>
+<p>RegDateTime, PGMSeq, CurAmt</p>
+<p>)</p>
+<p>SELECT A.CompanySeq AS CompanySeq,</p>
+<p>A.PJTSeq AS PJTSeq,</p>
+<p>A.BOMSerl AS BOMSerl,</p>
+<p>A.DWGNo AS DWGNo,</p>
+<p>A.DWGVer AS DWGVer,</p>
+<p>A.ISStd AS ISStd,</p>
+<p>ISNULL(C.NewCode, 0) AS ItemSeq,</p>
+<p>A.BasicQty AS BasicQty,</p>
+<p>A.ProdCnt AS ProdCnt,</p>
+<p>A.SurPlusQty AS SurPlusQty,</p>
+<p>A.TotQty AS TotQty,</p>
+<p>H.UMSupplyType AS UMSupplyType,</p>
+<p>A.UMRegType AS UMRegType,</p>
+<p>A.ReqDelvDate AS ReqDelvDate,</p>
+<p>A.DelvPlaceName AS DelvPlaceName,</p>
+<p>A.Receiver AS Receiver,</p>
+<p>A.RcvPlaceName AS RcvPlaceName,</p>
+<p>ISNULL(I.NewCode, 0) AS MakerSeq,</p>
+<p>0 AS UMMatQuality, -- 데이터미존재</p>
+<p>A.VenPartNo AS VenPartNo,</p>
+<p>A.AssemblingNo AS AssemblingNo,</p>
+<p>A.DWGSerl AS DWGSerl,</p>
+<p>A.BOMSourceNo AS BOMSourceNo,</p>
+<p>A.Number AS Number,</p>
+<p>A.Remark AS Remark,</p>
+<p>A.MakeQty AS MakeQty,</p>
+<p>0 AS UMLossType, -- 데이터미존재</p>
+<p>A.BOMLevel AS BOMLevel,</p>
+<p>A.QrySort AS QrySort,</p>
+<p>A.UpperBOMSerl AS UpperBOMSerl,</p>
+<p>A.WidthValue AS WidthValue,</p>
+<p>A.LengthValue AS LengthValue,</p>
+<p>A.HeightValue AS HeightValue,</p>
+<p>A.WeightValue AS WeightValue,</p>
+<p>A.BulkValue AS BulkValue,</p>
+<p>A.LengthUnit AS LengthUnit,</p>
+<p>A.AreaUnit AS AreaUnit,</p>
+<p>A.WeightUnit AS WeightUnit,</p>
+<p>A.BulkUnit AS BulkUnit,</p>
+<p>A.OrderSerl AS OrderSerl,</p>
+<p>ISNULL(D.NewCode, 0) AS CurrSeq,</p>
+<p>A.Price AS Price,</p>
+<p>A.BgtSeq AS BgtSeq,</p>
+<p>ISNULL(B.NewCode,0) AS PurchaseCustSeq,</p>
+<p>A.TreeCd AS TreeCd,</p>
+<p>A.ClassSeq AS ClassSeq,</p>
+<p>A.WBSSeq AS WBSSeq,</p>
+<p>A.CurrRate AS CurrRate,</p>
+<p>A.TreeCode AS TreeCode,</p>
+<p>ISNULL(E.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>A.OutReqDate AS OutReqDate,</p>
+<p>A.BOMRev AS BOMRev,</p>
+<p>A.BeforeBOMSerl AS BeforeBOMSerl,</p>
+<p>A.IssueSeq AS IssueSeq,</p>
+<p>A.MTreeCode AS MTreeCode,</p>
+<p>A.ProgFromSeq AS ProgFromSeq,</p>
+<p>A.ProgFromSerl AS ProgFromSerl,</p>
+<p>A.ProgFromSubSerl AS ProgFromSubSerl,</p>
+<p>A.ProgFromTableSeq AS ProgFromTableSeq,</p>
+<p>A.FileSeq AS FileSeq,</p>
+<p>A.FileName AS FileName,</p>
+<p>A.IsCfm AS IsCfm,</p>
+<p>A.Amt AS Amt,</p>
+<p>ISNULL(F.NewCode, 1) AS CfmUserSeq,</p>
+<p>A.CfmDate AS CfmDate,</p>
+<p>0 AS ProgFromQty,</p>
+<p>0 AS ProgPrevFromTableSeq,</p>
+<p>0 AS ProgFromVAT,</p>
+<p>0 AS ProgFromDOMAmt,</p>
+<p>0 AS ProgFromAmt,</p>
+<p>0 AS ProgFromDOMVAT,</p>
+<p>0 AS ProgFromSTDQty,</p>
+<p>'' AS ItemName,</p>
+<p>'' AS ItemNo,</p>
+<p>'' AS Spec,</p>
+<p>0 AS HogiItemSeq,</p>
+<p>'' AS DWGDate,</p>
+<p>'' AS MatQualityText,</p>
+<p>'' AS Dummy1,</p>
+<p>0 AS Dummy10,</p>
+<p>'' AS Dummy2,</p>
+<p>'' AS Dummy3,</p>
+<p>'' AS Dummy4,</p>
+<p>'' AS Dummy5,</p>
+<p>'' AS Dummy6,</p>
+<p>0 AS Dummy7,</p>
+<p>0 AS Dummy8,</p>
+<p>0 AS Dummy9,</p>
+<p>'' AS APIRemark,</p>
+<p>'' AS FileExtension1,</p>
+<p>'' AS FileExtension2,</p>
+<p>'' AS FileName1,</p>
+<p>'' AS FileName2,</p>
+<p>'' AS FileSize1,</p>
+<p>'' AS FileSize2,</p>
+<p>'' AS FileURL1,</p>
+<p>'' AS FileURL2,</p>
+<p>'' AS IsCheck,</p>
+<p>'' AS IsDel,</p>
+<p>'' AS IsUpdate,</p>
+<p>'' AS DownloadURL,</p>
+<p>'' AS PDFINFO,</p>
+<p>'' AS DWGINFO,</p>
+<p>1 AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>0 AS PGMSeq,</p>
+<p>0 AS CurAmt</p>
+<p>FROM genuine.danam.dbo._TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN CON_TDACust AS B ON B.OldSeq = A.PurchaseCustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS C ON C.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TDACurr AS D ON D.OldSeq = A.CurrSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.CfmUserSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G ON G.ItemSeq = C.NewCode</p>
+<p>LEFT OUTER JOIN TEMP_BOMAssetUMSupply AS H ON H.AssetSeq = G.AssetSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS I ON I.OldSeq = A.MakerSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TPJTBOM</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq</p>
+<p>AND BOMSerl = A.BOMSerl</p>
+<p>)</p>
+<p>-- 20250620. GENUINE. 품목소분류가 "프로젝트"와 "항재밍 점검장비"로 되어 있어서 "항재밍 점검장비"로 통일</p>
+<p>UPDATE _TPJTBOM SET ClassSeq = 2001013 WHERE ItemSeq = 63873</p>
+<p>-- 추가테이블 INSERT</p>
+<p>-- 02. das_TPJTBOM "프로젝트재료자원등록"</p>
+<p>INSERT INTO das_TPJTBOM</p>
+<p>(</p>
+<p>CompanySeq, PJTSeq, BOMSerl, AssetSeq, Revision,</p>
+<p>UMSurQtyReason, DWGVerTxt, LastUserSeq, LastDateTime, RegUserSeq,</p>
+<p>RegDateTime</p>
+<p>)</p>
+<p>SELECT A.CompanySeq AS CompanySeq,</p>
+<p>A.PJTSeq AS PJTSeq,</p>
+<p>A.BOMSerl AS BOMSerl,</p>
+<p>G.AssetSeq AS AssetSeq,</p>
+<p>'' AS Revision,</p>
+<p>0 AS UMSurQtyReason,</p>
+<p>'' AS DWGVerTxt,</p>
+<p>ISNULL(E.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>@UserSeq AS RegUserSeq,</p>
+<p>A.LastDateTime AS RegDateTime</p>
+<p>FROM genuine.danam.dbo._TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS C ON C.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G ON G.ItemSeq = C.NewCode</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM _TPJTBOM</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq</p>
+<p>AND BOMSerl = A.BOMSerl</p>
+<p>)</p>
+<p>-- 03. das_TPJTBOMRev "프로젝트재료자원등록(차수)"</p>
+<p>INSERT INTO das_TPJTBOMRev</p>
+<p>(</p>
+<p>CompanySeq, Rev, PJTSeq, BOMSerl, DWGNo,</p>
+<p>DWGVer, ISStd, ItemSeq, BasicQty, ProdCnt,</p>
+<p>SurPlusQty, TotQty, UMSupplyType, UMRegType, ReqDelvDate,</p>
+<p>DelvPlaceName, Receiver, RcvPlaceName, MakerSeq, UMMatQuality,</p>
+<p>VenPartNo, AssemblingNo, DWGSerl, BOMSourceNo, Number,</p>
+<p>Remark, MakeQty, UMLossType, BOMLevel, QrySort,</p>
+<p>UpperBOMSerl, WidthValue, LengthValue, HeightValue, WeightValue,</p>
+<p>BulkValue, LengthUnit, AreaUnit, WeightUnit, BulkUnit,</p>
+<p>OrderSerl, CurrSeq, Price, BgtSeq, PurchaseCustSeq,</p>
+<p>TreeCd, ClassSeq, WBSSeq, CurrRate, TreeCode,</p>
+<p>OutReqDate, BOMRev, BeforeBOMSerl, IssueSeq, MTreeCode,</p>
+<p>ProgFromSeq, ProgFromSerl, ProgFromSubSerl, ProgFromTableSeq, FileSeq,</p>
+<p>FileName, IsCfm, Amt, CfmUserSeq, CfmDate,</p>
+<p>LastUserSeq, LastDateTime, HogiItemSeq, ProgFromQty, ProgPrevFromTableSeq,</p>
+<p>ProgFromVAT, ProgFromDOMAmt, ProgFromAmt, ProgFromDOMVAT, ProgFromSTDQty,</p>
+<p>ItemName, ItemNo, Spec, MatQualityText, DWGDate,</p>
+<p>Dummy1, Dummy2, Dummy3, Dummy6, Dummy4,</p>
+<p>Dummy5, Dummy7, Dummy8, Dummy9, Dummy10,</p>
+<p>IsDel, IsUpdate, IsCheck, APIRemark, FileURL1,</p>
+<p>FileName1, FileSize1, FileExtension1, FileURL2, FileName2,</p>
+<p>FileSize2, FileExtension2, DownloadURL, PDFINFO, DWGINFO,</p>
+<p>RegUserSeq, RegDateTime, AssetSeq, Revision, UMSurQtyReason,</p>
+<p>DWGVerTxt</p>
+<p>)</p>
+<p>SELECT A.CompanySeq AS CompanySeq,</p>
+<p>0 AS Rev,</p>
+<p>A.PJTSeq AS PJTSeq,</p>
+<p>A.BOMSerl AS BOMSerl,</p>
+<p>A.DWGNo AS DWGNo,</p>
+<p>A.DWGVer AS DWGVer,</p>
+<p>A.ISStd AS ISStd,</p>
+<p>ISNULL(C.NewCode, 0) AS ItemSeq,</p>
+<p>A.BasicQty AS BasicQty,</p>
+<p>A.ProdCnt AS ProdCnt,</p>
+<p>A.SurPlusQty AS SurPlusQty,</p>
+<p>A.TotQty AS TotQty,</p>
+<p>H.UMSupplyType AS UMSupplyType,</p>
+<p>A.UMRegType AS UMRegType,</p>
+<p>A.ReqDelvDate AS ReqDelvDate,</p>
+<p>A.DelvPlaceName AS DelvPlaceName,</p>
+<p>A.Receiver AS Receiver,</p>
+<p>A.RcvPlaceName AS RcvPlaceName,</p>
+<p>ISNULL(I.NewCode, 0) AS MakerSeq,</p>
+<p>A.UMMatQuality AS UMMatQuality,</p>
+<p>A.VenPartNo AS VenPartNo,</p>
+<p>A.AssemblingNo AS AssemblingNo,</p>
+<p>A.DWGSerl AS DWGSerl,</p>
+<p>A.BOMSourceNo AS BOMSourceNo,</p>
+<p>A.Number AS Number,</p>
+<p>A.Remark AS Remark,</p>
+<p>A.MakeQty AS MakeQty,</p>
+<p>A.UMLossType AS UMLossType,</p>
+<p>A.BOMLevel AS BOMLevel,</p>
+<p>A.QrySort AS QrySort,</p>
+<p>A.UpperBOMSerl AS UpperBOMSerl,</p>
+<p>A.WidthValue AS WidthValue,</p>
+<p>A.LengthValue AS LengthValue,</p>
+<p>A.HeightValue AS HeightValue,</p>
+<p>A.WeightValue AS WeightValue,</p>
+<p>A.BulkValue AS BulkValue,</p>
+<p>A.LengthUnit AS LengthUnit,</p>
+<p>A.AreaUnit AS AreaUnit,</p>
+<p>A.WeightUnit AS WeightUnit,</p>
+<p>A.BulkUnit AS BulkUnit,</p>
+<p>A.OrderSerl AS OrderSerl,</p>
+<p>A.CurrSeq AS CurrSeq,</p>
+<p>A.Price AS Price,</p>
+<p>A.BgtSeq AS BgtSeq,</p>
+<p>ISNULL(B.NewCode, 0) AS PurchaseCustSeq,</p>
+<p>A.TreeCd AS TreeCd,</p>
+<p>A.ClassSeq AS ClassSeq,</p>
+<p>A.WBSSeq AS WBSSeq,</p>
+<p>A.CurrRate AS CurrRate,</p>
+<p>A.TreeCode AS TreeCode,</p>
+<p>A.OutReqDate AS OutReqDate,</p>
+<p>A.BOMRev AS BOMRev,</p>
+<p>A.BeforeBOMSerl AS BeforeBOMSerl,</p>
+<p>A.IssueSeq AS IssueSeq,</p>
+<p>A.MTreeCode AS MTreeCode,</p>
+<p>A.ProgFromSeq AS ProgFromSeq,</p>
+<p>A.ProgFromSerl AS ProgFromSerl,</p>
+<p>A.ProgFromSubSerl AS ProgFromSubSerl,</p>
+<p>A.ProgFromTableSeq AS ProgFromTableSeq,</p>
+<p>A.FileSeq AS FileSeq,</p>
+<p>A.FileName AS FileName,</p>
+<p>A.IsCfm AS IsCfm,</p>
+<p>A.Amt AS Amt,</p>
+<p>ISNULL(F.NewCode, 0) AS CfmUserSeq,</p>
+<p>A.CfmDate AS CfmDate,</p>
+<p>ISNULL(E.NewCode, 0) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>0 AS HogiItemSeq,</p>
+<p>0 AS ProgFromQty,</p>
+<p>0 AS ProgPrevFromTableSeq,</p>
+<p>0 AS ProgFromVAT,</p>
+<p>0 AS ProgFromDOMAmt,</p>
+<p>0 AS ProgFromAmt,</p>
+<p>0 AS ProgFromDOMVAT,</p>
+<p>0 AS ProgFromSTDQty,</p>
+<p>'' AS ItemName,</p>
+<p>'' AS ItemNo,</p>
+<p>'' AS Spec,</p>
+<p>'' AS MatQualityText,</p>
+<p>'' AS DWGDate,</p>
+<p>'' AS Dummy1,</p>
+<p>'' AS Dummy2,</p>
+<p>'' AS Dummy3,</p>
+<p>'' AS Dummy6,</p>
+<p>'' AS Dummy4,</p>
+<p>'' AS Dummy5,</p>
+<p>0 AS Dummy7,</p>
+<p>0 AS Dummy8,</p>
+<p>0 AS Dummy9,</p>
+<p>0 AS Dummy10,</p>
+<p>'' AS IsDel,</p>
+<p>'' AS IsUpdate,</p>
+<p>'' AS IsCheck,</p>
+<p>'' AS APIRemark,</p>
+<p>0 AS FileURL1,</p>
+<p>'' AS FileName1,</p>
+<p>'' AS FileSize1,</p>
+<p>'' AS FileExtension1,</p>
+<p>0 AS FileURL2,</p>
+<p>'' AS FileName2,</p>
+<p>'' AS FileSize2,</p>
+<p>'' AS FileExtension2,</p>
+<p>'' AS DownloadURL,</p>
+<p>'' AS PDFINFO,</p>
+<p>'' AS DWGINFO,</p>
+<p>1 AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>G.AssetSeq AS AssetSeq,</p>
+<p>'' AS Revision,</p>
+<p>0 AS UMSurQtyReason,</p>
+<p>'' AS DWGVerTxt</p>
+<p>FROM genuine.danam.dbo._TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN CON_TDACust AS B ON B.OldSeq = A.PurchaseCustSeq</p>
+<p>LEFT OUTER JOIN CON_TDAItem AS C ON C.OldSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS F ON F.OldSeq = A.CfmUserSeq</p>
+<p>LEFT OUTER JOIN CON_TDACust AS I ON I.OldSeq = A.MakerSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G ON G.ItemSeq = C.NewCode</p>
+<p>LEFT OUTER JOIN TEMP_BOMAssetUMSupply AS H ON H.AssetSeq = G.AssetSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM das_TPJTBOMRev</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq</p>
+<p>AND BOMSerl = A.BOMSerl</p>
+<p>AND Rev = '0'</p>
+<p>)</p>
+<p>-- 04. das_TPJTBOMMaster "프로젝트재료자원등록 마스터" -- 신규 테이블 --</p>
+<p>INSERT INTO das_TPJTBOMMaster</p>
+<p>(</p>
+<p>CompanySeq, PJTSeq, Rev, RevDate, RevRemark,</p>
+<p>LastUserSeq, LastDateTime, RegUserSeq, RegDateTime, CDRDate,</p>
+<p>IsCDR</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>@CompanySeq AS CompanySeq,</p>
+<p>A.PJTSeq AS PJTSeq,</p>
+<p>0 AS Rev,</p>
+<p>CONVERT(NCHAR(8), GETDATE(), 112) AS RevDate,</p>
+<p>'' AS RevRemark,</p>
+<p>ISNULL(E.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>1 AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>'' AS CDRDate,</p>
+<p>'0' AS IsCDR</p>
+<p>FROM genuine.danam.dbo._TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS E ON E.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM das_TPJTBOMRev</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq</p>
+<p>)</p>
+<p>-- 05. das_TPJTBOMMasterRev "프로젝트재료자원등록 마스터(차수)" -- 신규 테이블 --</p>
+<p>INSERT INTO das_TPJTBOMMasterRev</p>
+<p>(</p>
+<p>CompanySeq, PJTSeq, Rev, RevDate, LastUserSeq,</p>
+<p>LastDateTime, RegUserSeq, RegDateTime, RevRemark, CDRDate,</p>
+<p>IsCDR</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>@CompanySeq AS CompanySeq,</p>
+<p>PJTSeq AS PJTSeq,</p>
+<p>0 AS Rev,</p>
+<p>CONVERT(NCHAR(8), GETDATE(), 112) AS RevDate,</p>
+<p>ISNULL(B.NewCode, 1) AS LastUserSeq,</p>
+<p>A.LastDateTime AS LastDateTime,</p>
+<p>1 AS RegUserSeq,</p>
+<p>@Now AS RegDateTime,</p>
+<p>'' AS RevRemark,</p>
+<p>'' AS CDRDate,</p>
+<p>'0' AS IsCDR</p>
+<p>FROM genuine.danam.dbo._TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN CON_TCAUser AS B ON B.OldSeq = A.LastUserSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND NOT EXISTS (SELECT 1</p>
+<p>FROM das_TPJTBOMRev</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTSeq = A.PJTSeq</p>
+<p>AND BOMSerl = A.BOMSerl</p>
+<p>AND Rev = '0'</p>
+<p>)</p>
+<p>-- [06]. 제품별공정별소요자재</p>
+<p>DECLARE @Serl_ProcWC INT</p>
+<p>,@Serl_RevFactUnit INT</p>
+<p>SELECT @Serl_ProcWC = MAX(Serl) FROM _TPDROUItemProcWC WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>IF @Serl_ProcWC IS NULL SELECT @Serl_ProcWC = 0</p>
+<p>SELECT @Serl_RevFactUnit = MAX(Serl) FROM _TPDROUItemProcRevFactUnit WHERE CompanySeq = @CompanySeq</p>
+<p>IF @Serl_RevFactUnit IS NULL SELECT @Serl_RevFactUnit = 0</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_TDAItemClass')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE TEMP_TDAItemClass</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>AssetSeq INT,</p>
+<p>UMItemClass INT</p>
+<p>)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE TEMP_TDAItemClass</p>
+<p>END</p>
+<p>-- 1안. 품목소분류 존재</p>
+<p>INSERT INTO TEMP_TDAItemClass(ItemSeq,AssetSeq,UMItemClass)</p>
+<p>SELECT DISTINCT A.ItemSeq, IIF(ISNULL(B.AssetSeq,0) = 0 , C.AssetSeq, B.AssetSeq), ISNULL(A.ClassSeq, 0) -- ISNULL(ClassSeq, 0) 존재</p>
+<p>FROM _TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN das_TPJTBOM AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>AND B.BOMSerl = A.BOMSerl</p>
+<p>LEFT OUTER JOIN _TDAItem AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.BomSerl \&lt;&gt; -1</p>
+<p>-- 2안. 품목소분류 무시</p>
+<p>--INSERT INTO TEMP_TDAItemClass(ItemSeq,AssetSeq,UMItemClass)</p>
+<p>--SELECT DISTINCT A.ItemSeq, a.AssetSeq, 0</p>
+<p>-- FROM _TDAItem AS A</p>
+<p>-- WHERE A.ItemSeq = 137980</p>
+<p>-- 생산품목공정워크센터</p>
+<p>IF NOT EXISTS(SELECT 1 FROM SYSOBJECTS WHERE NAME = 'TEMP_TPDROUItemProc')</p>
+<p>BEGIN</p>
+<p>CREATE TABLE TEMP_TPDROUItemProc</p>
+<p>(</p>
+<p>DataSeq INT IDENTITY(1,1),</p>
+<p>ItemSeq INT, -- 품목내부코드</p>
+<p>Serl INT, -- 순번</p>
+<p>ProcSeq INT, -- 공정내부코드</p>
+<p>ProcRev NCHAR(2), -- 공정차수</p>
+<p>BizUnit INT, -- 사업단위</p>
+<p>WorkcenterSeq INT, -- 워크센터코드</p>
+<p>TimeUnit INT -- 시간단위</p>
+<p>)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>TRUNCATE TABLE TEMP_TPDROUItemProc</p>
+<p>END</p>
+<p>INSERT INTO TEMP_TPDROUItemProc</p>
+<p>(</p>
+<p>ItemSeq, -- 품목내부코드</p>
+<p>Serl, -- 순번</p>
+<p>ProcSeq, -- 공정내부코드</p>
+<p>ProcRev, -- 공정차수</p>
+<p>BizUnit, -- 사업단위</p>
+<p>WorkcenterSeq, -- 워크센터코드</p>
+<p>TimeUnit -- 시간단위</p>
+<p>)</p>
+<p>SELECT A.ItemSeq</p>
+<p>,0 AS Serl</p>
+<p>,IIF(ISNULL(B.CompanySeq,0) \&lt;&gt; 0, C.ProcSeq, C2.ProcSeq) AS ProcSeq</p>
+<p>,'00' AS ProcRev</p>
+<p>,IIF(ISNULL(B.CompanySeq,0) \&lt;&gt; 0, B.BizUnit, B2.BizUnit) AS BizUnit</p>
+<p>,IIF(ISNULL(B.CompanySeq,0) \&lt;&gt; 0, C.WorkcenterSeq, C2.WorkcenterSeq) AS WorkCenterSeq</p>
+<p>,IIF(ISNULL(B.CompanySeq,0) \&lt;&gt; 0, C.TimeUnit , C2.TimeUnit ) AS TimeUnit</p>
+<p>FROM TEMP_TDAItemClass AS A</p>
+<p>LEFT OUTER JOIN _TPJTProjectItemClass AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.AssetSeq = A.AssetSeq</p>
+<p>AND B.UMItemClass = A.UMItemClass</p>
+<p>LEFT OUTER JOIN das_TPJTProjectItemClass AS C ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ClassSeq = B.ClassSeq</p>
+<p>LEFT OUTER JOIN _TPJTProjectItemClass AS B2 ON B2.CompanySeq = @CompanySeq -- 프로젝트품목분류</p>
+<p>AND B2.AssetSeq = A.AssetSeq</p>
+<p>AND B2.UMItemClass = 0</p>
+<p>LEFT OUTER JOIN das_TPJTProjectItemClass AS C2 ON C2.CompanySeq = B2.CompanySeq</p>
+<p>AND C2.ClassSeq = B2.ClassSeq</p>
+<p>WHERE ( (B.BizUnit \&lt;&gt; 0</p>
+<p>AND C.ProcSeq \&lt;&gt; 0</p>
+<p>AND C.WorkCenterSeq \&lt;&gt; 0</p>
+<p>AND C.TimeUnit \&lt;&gt; 0</p>
+<p>AND C.StdWorkTime \&lt;&gt; 0)</p>
+<p>OR (B2.BizUnit \&lt;&gt; 0</p>
+<p>AND C2.ProcSeq \&lt;&gt; 0</p>
+<p>AND C2.WorkCenterSeq \&lt;&gt; 0</p>
+<p>AND C2.TimeUnit \&lt;&gt; 0</p>
+<p>AND C2.StdWorkTime \&lt;&gt; 0)</p>
+<p>)</p>
+<p>/*</p>
+<p>DROP TABLE #TEMP_TPDROUItemProc</p>
+<p>SELECT A.ItemSeq ,A.BizUnit, COUNT(*)</p>
+<p>FROM TEMP_TPDROUItemProc AS A</p>
+<p>WHERE NOT EXISTS (SELECT 1 FROM _TPDROUItemProc WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND ProcRev = A.ProcRev</p>
+<p>AND ProcSeq = A.ProcSeq</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>group by a.itemseq, a.bizunit</p>
+<p>having count(*) &gt; 1</p>
+<p>SELECT A.ItemSeq AS ItemSeq, A.BizUnit AS BizUnit, COUNT(*) AS COUNT</p>
+<p>into #TEMP_TPDROUItemProc</p>
+<p>FROM TEMP_TPDROUItemProc AS A</p>
+<p>WHERE NOT EXISTS (SELECT 1 FROM _TPDROUItemProc WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND ProcRev = A.ProcRev</p>
+<p>AND ProcSeq = A.ProcSeq</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>group by a.itemseq, a.bizunit</p>
+<p>having count(*) &gt; 1</p>
+<p>select '#TEMP_TPDROUItemProc', B.*</p>
+<p>from #TEMP_TPDROUItemProc AS A</p>
+<p>JOIN TEMP_TPDROUItemProc AS B ON B.ItemSeq = A.ItemSeq</p>
+<p>AND B.BizUnit = A.BizUnit</p>
+<p>*/</p>
+<p>-- 01. _TPDROUItemProc "생산품목공정"</p>
+<p>INSERT INTO _TPDROUItemProc</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ProcRev , Serl , ProcSeq ,</p>
+<p>AssyItemSeq , AssyQty , ProcNo , ToProcNo , IsProcQC ,</p>
+<p>IsLastProc , IsBNProc , OverLapRate , SMToProcMovType , IsCriticalPath,</p>
+<p>AssyQtyNumerator , AssyQtyDenominator , MatProcSeq , LastUserSeq , LastDateTime ,</p>
+<p>BizUnit</p>
+<p>)</p>
+<p>SELECT @CompanySeq , A.ItemSeq , '00' AS ProcRev , 1 AS Serl , A.ProcSeq ,</p>
+<p>A.ItemSeq , 0 AS AssyQty , 1 AS ProcNo , 1 AS ToProcNo , 0 AS IsProcQC ,</p>
+<p>1 AS IsLastProc , 0 AS IsBNProc , 0 AS OverLapRate , 0 AS SMToProcMovType, '' AS IsCriticalPath,</p>
+<p>1 AS AssyQtyNumerator, 1 AS AssyQtyDenominator, 0 AS MatProcSeq , @UserSeq , @Now,</p>
+<p>A.BizUnit</p>
+<p>FROM TEMP_TPDROUItemProc AS A</p>
+<p>WHERE NOT EXISTS (SELECT 1 FROM _TPDROUItemProc WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND ProcRev = A.ProcRev</p>
+<p>AND ProcSeq = A.ProcSeq</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>SELECT '_TPDROUItemProc' AS TableName, COUNT(*) FROM _TPDROUItemProc</p>
+<p>-- 02. _TPDROUItemProcWC "생산품목공정워크센터"</p>
+<p>INSERT INTO _TPDROUItemProcWC</p>
+<p>(</p>
+<p>CompanySeq , BizUnit , ItemSeq , BOMRev , ProcRev ,</p>
+<p>ProcSeq , Serl , WorkcenterSeq , IsBatch , BatchSize ,</p>
+<p>TimeUnit , StdSetUpTime , StdWorkTime , StdReadyTime , StdMovTime,</p>
+<p>Ranking , WorkRate , IsQC , LastUserSeq , LastDateTime,</p>
+<p>FactUnit</p>
+<p>)</p>
+<p>SELECT @CompanySeq , A.BizUnit , A.ItemSeq , '' , '00' AS ProcRev ,</p>
+<p>A.ProcSeq , @Serl_ProcWC + A.DataSeq , A.WorkCenterSeq , '' , 0 ,</p>
+<p>A.TimeUnit , 0 , 1 , 0 , 0 ,</p>
+<p>1 , 100 , '' , @UserSeq , @Now ,</p>
+<p>0</p>
+<p>FROM TEMP_TPDROUItemProc AS A</p>
+<p>WHERE A.WorkCenterSeq &gt; 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDROUItemProcWC WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND ProcRev = A.ProcRev</p>
+<p>AND ProcSeq = A.ProcSeq</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>SELECT '_TPDROUItemProcWC' AS TableName, COUNT(*) FROM _TPDROUItemProcWC</p>
+<p>-- 03. _TPDROUItemProcManagement "공정차수관리"</p>
+<p>INSERT INTO _TPDROUItemProcManagement</p>
+<p>( CompanySeq , ItemSeq , ProcRev , BOMRev , RegDate ,</p>
+<p>UptDate , RegUserSeq, UptUserSeq, Remark , LastUserSeq ,</p>
+<p>LastDateTime, BizUnit, IsMatNotSum</p>
+<p>)</p>
+<p>SELECT @CompanySeq , A.ItemSeq , '00' AS ProcRev , '' AS BOMRev , @Now ,</p>
+<p>@Now , @UserSeq , @UserSeq , '' AS Remark , @UserSeq ,</p>
+<p>@Now , A.BizUnit , 0</p>
+<p>FROM TEMP_TPDROUItemProc AS A</p>
+<p>WHERE NOT EXISTS (SELECT 1 FROM _TPDROUItemProcManagement WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND ProcRev = A.ProcRev</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>SELECT '_TPDROUItemProcManagement' AS TableName, COUNT(*) FROM _TPDROUItemProcManagement</p>
+<p>-- 04. _TPDROUItemProcRevFactUnit "사업단위별생산품목"</p>
+<p>INSERT INTO _TPDROUItemProcRevFactUnit</p>
+<p>(</p>
+<p>CompanySeq , BizUnit , ItemSeq , Serl , BOMRev ,</p>
+<p>ProcRev , FrDate , ToDate , LastUserSeq ,LastDateTime ,</p>
+<p>FactUnit</p>
+<p>)</p>
+<p>SELECT @CompanySeq</p>
+<p>, A.BizUnit</p>
+<p>, A.ItemSeq</p>
+<p>, ISNULL(@Serl_RevFactUnit, 0) + A.DataSeq</p>
+<p>, ''</p>
+<p>, '00' AS ProcRev</p>
+<p>, @Now</p>
+<p>, N'99991231'</p>
+<p>, @UserSeq</p>
+<p>, @Now</p>
+<p>, 0</p>
+<p>FROM TEMP_TPDROUItemProc AS A</p>
+<p>WHERE NOT EXISTS (SELECT 1 FROM _TPDROUItemProcRevFactUnit WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND ProcRev = A.ProcRev</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>SELECT '_TPDROUItemProcRevFactUnit' AS TableName, COUNT(*) FROM _TPDROUItemProcRevFactUnit</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

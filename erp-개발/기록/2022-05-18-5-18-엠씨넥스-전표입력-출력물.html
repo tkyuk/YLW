@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/18 엠씨넥스 전표입력 출력물</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>5/18 엠씨넥스 전표입력 출력물</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="518">5/18 엠씨넥스 전표입력 출력물</h1>
+<p>select * from _TDAAccount WHERE AccSeq = 4 -- 계정과목</p>
+<p>select * from _TDAAccountSub WHERE AccSeq = 4 -- 계정과목의관리항목</p>
+<p>select * from _TDAAccountRem WHERE RemSeq IN (9001,9002,9003) -- 관리항목테이블</p>
+<p>SELECT * FROM _TACSlip WHERE SlipMstId = 'PC202205001' -- 전표 M테이블</p>
+<p>select * from _TACSlipRow WHERE SlipMstSeq = 5056 -- 전표 D테이블</p>
+<p>SELECT * FROM _TACSlipRem WHERE SlipSeq IN (23499,23500)</p>
+<p>계정별관리항목현황 =&gt; 관리항목1~n 볼수있ㅇ므</p>
+<p>-- _tdaacount</p>
+<p>--1 차변</p>
+<p>--smdrprcr</p>
+<p>--전표조회 - 기표자, 승인자</p>
+  </article>
+</div>
+</body>
+</html>

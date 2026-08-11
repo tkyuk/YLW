@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자동전표 환경설정 복사 스크립트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>자동전표 환경설정 복사 스크립트</h1>
+    <div class="meta">
+      <span class="note-date">2025-08-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">자동전표 환경설정 복사 스크립트</h1>
+<p>CREATE PROC sys_SDASlipAutoEnvCopy</p>
+<p>@FromSlipKindNo NVARCHAR(100),</p>
+<p>@ToSlipKindNo NVARCHAR(100)</p>
+<p>AS</p>
+<p>DECLARE @FromSlipAutoEnvSeq INT,</p>
+<p>@ToSlipAutoEnvSeq INT,</p>
+<p>@FromSlipKind INT,</p>
+<p>@ToSlipKind INT,</p>
+<p>@FromPgmSeq INT,</p>
+<p>@ToPgmSeq INT</p>
+<p>SELECT @FromSlipKind = SlipKind,</p>
+<p>@FromPgmSeq = PgmSeq</p>
+<p>FROM _TACSlipKind</p>
+<p>WHERE SlipKindNo = @FromSlipKindNo</p>
+<p>SELECT @ToSlipKind = SlipKind,</p>
+<p>@ToPgmSeq = PgmSeq</p>
+<p>FROM _TACSlipKind</p>
+<p>WHERE SlipKindNo = @ToSlipKindNo</p>
+<p>SELECT @FromSlipAutoEnvSeq = @FromSlipKind,</p>
+<p>@ToSlipAutoEnvSeq = @ToSlipKind</p>
+<p>DELETE _TACSlipAutoEnv WHERE SlipAutoEnvSeq = @ToSlipAutoEnvSeq</p>
+<p>DELETE _TACSlipPgmControls WHERE PgmSeq = @ToPgmSeq</p>
+<p>DELETE _TACSlipAutoEnvRow WHERE SlipAutoEnvSeq = @ToSlipAutoEnvSeq</p>
+<p>DELETE _TACSlipAutoEnvKey WHERE SlipAutoEnvSeq = @ToSlipAutoEnvSeq</p>
+<p>INSERT _TACSlipAutoEnv</p>
+<p>SELECT CompanySeq, @ToSlipAutoEnvSeq, @ToSlipKindNo, ControlAccUnit, ControlAccUnitSheet, ControlSlipUnit, ControlSlipUnitSheet, ControlAccDate, ControlRemark1, ControlRemark2, ControlRemark3, LastUserSeq, LastDateTime</p>
+<p>FROM _TACSlipAutoEnv</p>
+<p>WHERE SlipAutoEnvSeq = @FromSlipAutoEnvSeq</p>
+<p>INSERT _TACSlipPgmControls</p>
+<p>SELECT CompanySeq, @ToPgmSeq, Serl, ControlName, ControlType, DataBlockName, DataFieldName, DataFieldCd, CellType, ControlCaption, WordSeq, LastUserSeq, LastDateTime, CodeHelpConst, CodeHelpParams</p>
+<p>FROM _TACSlipPgmControls</p>
+<p>WHERE PgmSeq = @FromPgmSeq</p>
+<p>INSERT _TACSlipAutoEnvRow</p>
+<p>SELECT CompanySeq, @ToSlipAutoEnvSeq, Serl, AccSeq, UMCostType, SMDrOrCr, RowSort, IsAnti, IsDftAcc, IsSumProc, IsUseCash, DefaultEvidSeq, DefaultTaxKindSeq, SMCostItemKind,</p>
+<p>ControlAccSeq, ControlAccName, ControlAmt, ControlForAmt, ControlCurrSeq, ControlCurrName, ControlExRate, ControlDivExRate, ControlEvidSeq, ControlEvidName,</p>
+<p>ControlUMCostType, ControlUMCostTypeName, ControlCostItemSeq, ControlCostItemName, ControlCashDate, ControlCashMethod, ControlCashMethodName,</p>
+<p>ControlSummary1, ControlSummary2, ControlSummary3, ControlOnSlipSeq, ControlOnSlipID, ControlCostDeptSeq, ControlCostDeptName, ControlBgtDeptSeq, ControlBgtDeptName,</p>
+<p>ControlCostCCtrSeq, ControlCostCCtrName, ControlBgtCCtrSeq, ControlBgtCCtrName, ControlMtCostDeptSeq, ControlMtCostDeptName, ControlMtCostCCtrSeq, ControlMtCostCCtrName,</p>
+<p>ControlMtAmt, ControlSumCol1, ControlSumCol2, ControlSumCol3, ControlSumCol4, ControlSumCol5, ControlSelRow, ControlSourceSeq, ControlSourceID,</p>
+<p>DefaultSMCashMethod, ControlCoCustSeq, ControlCoCustName, ProcTypeName, ControlSMProcType, ControlSMProcTypeName, ControlControlSeq, ControlControlName,</p>
+<p>ControlCodeHelpSeq, ControlCodeHelpName, ControlProcAccType, ControlProcAccTypeName, ControlEtcCol1, ControlEtcCol2, ControlEtcCol3,</p>
+<p>ControlEtcCol4, ControlEtcCol5, ControlCashItemSeq, LastDateTime, LastUserSeq, RegDateTime, RegUserSeq, ControlCostItemSeq2, SMCostItemKind2</p>
+<p>FROM _TACSlipAutoEnvRow</p>
+<p>WHERE SlipAutoEnvSeq = @FromSlipAutoEnvSeq</p>
+<p>INSERT _TACSlipAutoEnvKey</p>
+<p>SELECT CompanySeq, @ToSlipAutoEnvSeq, ControlSeq, TableName, ColumnName, IsUsedQry, IsUsedInput, LastUserSeq, LastDateTime</p>
+<p>FROM _TACSlipAutoEnvKey</p>
+<p>WHERE SlipAutoEnvSeq = @FromSlipAutoEnvSeq</p>
+<p>RETURN</p>
+<p>DECLARE @FromSlipKindNo NVARCHAR(100),</p>
+<p>@ToSlipKindNo NVARCHAR(100)</p>
+<p>SELECT @FromSlipKindNo = 'FrmWSLInvoice',</p>
+<p>@ToSlipKindNo = 'FrmWSLInvoice_svs'</p>
+<p>/*=================================================================--</p>
+<p>@FromSlipKindNo 데이터가 @ToSlipKindNo 로 복사 됨</p>
+<p>FrmWSIAFebCardCfm 데이터가 FrmWSIAFebCardCfm_hct로 복사 됨</p>
+<p>@ToSlipKindNo에 기존 저장 데이터는 삭제 후 복사하기때문에 조심!!</p>
+<p>--=================================================================*/</p>
+<p>DECLARE @FromSlipAutoEnvSeq INT,</p>
+<p>@ToSlipAutoEnvSeq INT,</p>
+<p>@FromSlipKind INT,</p>
+<p>@ToSlipKind INT,</p>
+<p>@FromPgmSeq INT,</p>
+<p>@ToPgmSeq INT,</p>
+<p>@JourMethod INT</p>
+<p>SELECT @FromSlipKind = SlipKind,</p>
+<p>@FromPgmSeq = PgmSeq</p>
+<p>FROM _TACSlipKind</p>
+<p>WHERE SlipKindNo = @FromSlipKindNo</p>
+<p>SELECT @ToSlipKind = SlipKind,</p>
+<p>@ToPgmSeq = PgmSeq</p>
+<p>FROM _TACSlipKind</p>
+<p>WHERE SlipKindNo = @ToSlipKindNo</p>
+<p>SELECT @FromSlipAutoEnvSeq = @FromSlipKind,</p>
+<p>@ToSlipAutoEnvSeq = @ToSlipKind</p>
+<p>-- 테이블 방식이 아닌 경우</p>
+<p>IF @JourMethod \&lt;&gt; 4030003</p>
+<p>BEGIN</p>
+<p>-- 여기서 기존 데이터 삭제</p>
+<p>DELETE _TACSlipAutoEnv WHERE SlipAutoEnvSeq = @ToSlipAutoEnvSeq</p>
+<p>DELETE _TACSlipPgmControls WHERE PgmSeq = @ToPgmSeq</p>
+<p>DELETE _TACSlipAutoEnvRow WHERE SlipAutoEnvSeq = @ToSlipAutoEnvSeq</p>
+<p>DELETE _TACSlipAutoEnvKey WHERE SlipAutoEnvSeq = @ToSlipAutoEnvSeq</p>
+<p>DELETE _TACSlipAutoEnvRowCol WHERE SlipAutoEnvSeq = @ToSlipAutoEnvSeq</p>
+<p>INSERT _TACSlipAutoEnv</p>
+<p>SELECT CompanySeq, @ToSlipAutoEnvSeq, @ToSlipKindNo, ControlAccUnit, ControlAccUnitSheet, ControlSlipUnit, ControlSlipUnitSheet, ControlAccDate, ControlRemark1, ControlRemark2, ControlRemark3, LastUserSeq, LastDateTime</p>
+<p>FROM _TACSlipAutoEnv</p>
+<p>WHERE SlipAutoEnvSeq = @FromSlipAutoEnvSeq</p>
+<p>INSERT _TACSlipPgmControls</p>
+<p>SELECT CompanySeq, @ToPgmSeq, Serl, ControlName, ControlType, DataBlockName, DataFieldName, DataFieldCd, CellType, ControlCaption, WordSeq, LastUserSeq, LastDateTime, CodeHelpConst, CodeHelpParams</p>
+<p>FROM _TACSlipPgmControls</p>
+<p>WHERE PgmSeq = @FromPgmSeq</p>
+<p>INSERT _TACSlipAutoEnvRow</p>
+<p>SELECT CompanySeq, @ToSlipAutoEnvSeq, Serl, AccSeq, UMCostType, SMDrOrCr, RowSort, IsAnti, IsDftAcc, IsSumProc, IsUseCash, DefaultEvidSeq, DefaultTaxKindSeq, SMCostItemKind,</p>
+<p>ControlAccSeq, ControlAccName, ControlAmt, ControlForAmt, ControlCurrSeq, ControlCurrName, ControlExRate, ControlDivExRate, ControlEvidSeq, ControlEvidName,</p>
+<p>ControlUMCostType, ControlUMCostTypeName, ControlCostItemSeq, ControlCostItemName, ControlCashDate, ControlCashMethod, ControlCashMethodName,</p>
+<p>ControlSummary1, ControlSummary2, ControlSummary3, ControlOnSlipSeq, ControlOnSlipID, ControlCostDeptSeq, ControlCostDeptName, ControlBgtDeptSeq, ControlBgtDeptName,</p>
+<p>ControlCostCCtrSeq, ControlCostCCtrName, ControlBgtCCtrSeq, ControlBgtCCtrName, ControlMtCostDeptSeq, ControlMtCostDeptName, ControlMtCostCCtrSeq, ControlMtCostCCtrName,</p>
+<p>ControlMtAmt, ControlSumCol1, ControlSumCol2, ControlSumCol3, ControlSumCol4, ControlSumCol5, ControlSelRow, ControlSourceSeq, ControlSourceID,</p>
+<p>DefaultSMCashMethod, ControlCoCustSeq, ControlCoCustName, ProcTypeName, ControlSMProcType, ControlSMProcTypeName, ControlControlSeq, ControlControlName,</p>
+<p>ControlCodeHelpSeq, ControlCodeHelpName, ControlProcAccType, ControlProcAccTypeName, ControlEtcCol1, ControlEtcCol2, ControlEtcCol3,</p>
+<p>ControlEtcCol4, ControlEtcCol5, ControlCashItemSeq, LastDateTime, LastUserSeq, RegDateTime, RegUserSeq, ControlCostItemSeq2, SMCostItemKind2</p>
+<p>FROM _TACSlipAutoEnvRow</p>
+<p>WHERE SlipAutoEnvSeq = @FromSlipAutoEnvSeq</p>
+<p>INSERT _TACSlipAutoEnvKey</p>
+<p>SELECT CompanySeq, @ToSlipAutoEnvSeq, ControlSeq, TableName, ColumnName, IsUsedQry, IsUsedInput, LastUserSeq, LastDateTime</p>
+<p>FROM _TACSlipAutoEnvKey</p>
+<p>WHERE SlipAutoEnvSeq = @FromSlipAutoEnvSeq</p>
+<p>INSERT INTO _TACSlipAutoEnvRowCol</p>
+<p>SELECT CompanySeq, @ToSlipAutoEnvSeq, Serl, ColKey, EnvControlSeq</p>
+<p>FROM _TACSlipAutoEnvRowCol</p>
+<p>WHERE SlipAutoEnvSeq = @FromSlipAutoEnvSeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 여기서 기존 데이터 삭제</p>
+<p>DELETE _TACSlipAutoInsertTbl WHERE SlipKindNo = @ToSlipKindNo</p>
+<p>DELETE _TACSlipAutoInsertTblCol WHERE SlipKindNo = @ToSlipKindNo</p>
+<p>DELETE _TACSlipAutoEnvTable WHERE SlipKindNo = @ToSlipKindNo</p>
+<p>DELETE _TACSlipRowAutoEnvTable WHERE SlipKindNo = @ToSlipKindNo</p>
+<p>INSERT INTO _TACSlipAutoInsertTbl(CompanySeq,SlipKindNo,TableName,TableAlias,LastUserSeq,LastDateTime)</p>
+<p>SELECT CompanySeq,@ToSlipKindNo,TableName,TableAlias,LastUserSeq,GETDATE()</p>
+<p>FROM _TACSlipAutoInsertTbl</p>
+<p>WHERE SlipKindNo = @FromSlipKindNo</p>
+<p>INSERT INTO _TACSlipAutoInsertTblCol(CompanySeq,SlipKindNo,CodeSeq,TableName,CodeName,ColName,SMKeyColumn,IsEnvColumn,JoinTable,JoinCode,JoinName,MajorSeq,CodeSort,Remark,LastUserSeq,LastDateTime,CodeHelpConst,CodeHelpParams)</p>
+<p>SELECT CompanySeq,@ToSlipKindNo,CodeSeq,TableName,CodeName,ColName,SMKeyColumn,IsEnvColumn,JoinTable,JoinCode,JoinName,MajorSeq,CodeSort,Remark,LastUserSeq,GETDATE(),CodeHelpConst,CodeHelpParams</p>
+<p>FROM _TACSlipAutoInsertTblCol</p>
+<p>WHERE SlipKindNo = @FromSlipKindNo</p>
+<p>INSERT INTO _TACSlipAutoEnvTable(CompanySeq,SlipKindNo,AccUnit,SlipUnit,AccDate,RegEmpSeq,RegDeptSeq,Remark,LastUserSeq,LastDateTime)</p>
+<p>SELECT CompanySeq,@ToSlipKindNo,AccUnit,SlipUnit,AccDate,RegEmpSeq,RegDeptSeq,Remark,LastUserSeq,GETDATE()</p>
+<p>FROM _TACSlipAutoEnvTable</p>
+<p>WHERE SlipKindNo = @FromSlipKindNo</p>
+<p>INSERT INTO _TACSlipRowAutoEnvTable(</p>
+<p>CompanySeq,SlipKindNo,Serl,RowSort,AccSeq,AccSeqCol,UMCostType,UMCostTypeCol,EvidSeq,SMDrOrCr,IsEnvKey,IsSumProc,SumGroup1,SumGroup2,SumGroup3</p>
+<p>,DrAmt,CrAmt,EvidSeqCol,Summary1,Summary2,Summary3,IsCash,SMCashMethod,CashDate,SMInOrOut,OnSlipID,CurrSeq,ExRate,DivExRate,DrForAmt,CrForAmt,BgtDeptSeq</p>
+<p>,BgtCCtrSeq,CashItemSeq,SMCostItemKind,CostItemSeq,CoCustSeq,CostDeptSeq,CostCCtrSeq,RemSeq1,RemVal1,RemSeq2,RemVal2,RemSeq3,RemVal3,RemSeq4,RemVal4</p>
+<p>,RemSeq5,RemVal5,RemSeq6,RemVal6,RemSeq7,RemVal7,RemSeq8,RemVal8,RemSeq9,RemVal9,RemSeq10,RemVal10,LastUserSeq,LastDateTime,SMProcType,ControlSeq,ProcAccType,StdTableName,ProcTypeName</p>
+<p>,Sort1,IsAnti,SMSubCostItemKind,SubCostItemSeq</p>
+<p>)</p>
+<p>SELECT</p>
+<p>CompanySeq,@ToSlipKindNo,Serl,RowSort,AccSeq,AccSeqCol,UMCostType,UMCostTypeCol,EvidSeq,SMDrOrCr,IsEnvKey,IsSumProc,SumGroup1,SumGroup2,SumGroup3</p>
+<p>,DrAmt,CrAmt,EvidSeqCol,Summary1,Summary2,Summary3,IsCash,SMCashMethod,CashDate,SMInOrOut,OnSlipID,CurrSeq,ExRate,DivExRate,DrForAmt,CrForAmt,BgtDeptSeq</p>
+<p>,BgtCCtrSeq,CashItemSeq,SMCostItemKind,CostItemSeq,CoCustSeq,CostDeptSeq,CostCCtrSeq,RemSeq1,RemVal1,RemSeq2,RemVal2,RemSeq3,RemVal3,RemSeq4,RemVal4</p>
+<p>,RemSeq5,RemVal5,RemSeq6,RemVal6,RemSeq7,RemVal7,RemSeq8,RemVal8,RemSeq9,RemVal9,RemSeq10,RemVal10,LastUserSeq,GETDATE(),SMProcType,ControlSeq,ProcAccType,StdTableName,ProcTypeName</p>
+<p>,Sort1,IsAnti,SMSubCostItemKind,SubCostItemSeq</p>
+<p>FROM _TACSlipRowAutoEnvTable</p>
+<p>WHERE SlipKindNo = @FromSlipKindNo</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

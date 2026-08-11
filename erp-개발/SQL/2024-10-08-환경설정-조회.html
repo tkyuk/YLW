@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환경설정 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>환경설정 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">환경설정 조회</h1>
+<p>--==============================================================</p>
+<p>-- 환경설정 조회</p>
+<p>--==============================================================</p>
+<p>SELECT Z.ConfigName,B.*</p>
+<p>FROM _TCOMEnvConfig AS Z</p>
+<p>JOIN _TCOMEnvConfigItem AS A WITH(NOLOCK) ON A.ConfigSeq = Z.ConfigSeq</p>
+<p>JOIN _TCOMEnv AS B WITH(NOLOCK) ON A.EnvSeq = B.EnvSeq</p>
+<p>WHERE B.EnvSeq LIKE '%8876%'</p>
+<p>AND B.EnvName LIKE '%%'</p>
+  </article>
+</div>
+</body>
+</html>

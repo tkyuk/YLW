@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구매 기준단가 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구매 기준단가 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2022-06-30</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">구매 기준단가 가져오기</h1>
+<p>구매단가등록 =&gt; 단가를 볼 수 있다</p>
+<p>자재등록 =&gt; 기타정보 =&gt; 추가사용단위를 넣을 수 있다</p>
+<p>구매요청입력 =&gt; 단위에 새로 넣은 값과 요청수량을 넣으면</p>
+<blockquote>
+<p>자동으로 기준단위와 기준단위수량이 나온다</p>
+<p>(재고는 기준단위로 넣어야하기 때문에, 어떤 화면이든 이러한 경우에 기준단위를 가져간다)</p>
+<p>(기준단위 가져오는 sp =&gt; _SWLGIFMoveCrt)</p>
+<p>UPDATE #TLGInOutDailyItem</p>
+<p>SET STDQty = ROUND((CASE WHEN ISNULL(B.ConvDen,0) = 0 THEN 0 ELSE ISNULL(A.Qty,0) * ISNULL(B.ConvNum,0) / ISNULL(B.ConvDen,0) END), @GoodQtyDecLength)</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>JOIN _TDAItemUnit AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>JOIN _TDAItemStock AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>WHERE ISNULL(A.Qty,0) \&lt;&gt; 0</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인사 근태 휴일 테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>인사 근태 휴일 테이블</h1>
+    <div class="meta">
+      <span class="note-date">2025-06-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">인사 근태 휴일 테이블</h1>
+<p>_TXPRWkCalendarHoliday</p>
+<p>근태일자기준정보등록</p>
+<p>/*********************************************************************************</p>
+<p>설 명 - 근태휴일기준등록조회(상세)</p>
+<p>작 성 일 - 2019.07.01</p>
+<p>작 성 자 -</p>
+<p>수정내역 -</p>
+<p>**********************************************************************************/</p>
+<p>CREATE PROCEDURE _SXPRWkCalendarHolidayQuery</p>
+<p>@ServiceSeq INT = 0 ,</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 1 ,</p>
+<p>@LanguageSeq INT = 1 ,</p>
+<p>@UserSeq INT = 0 ,</p>
+<p>@PgmSeq INT = 0 ,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>-- 사용할 변수 선언</p>
+<p>DECLARE @BaseYY NCHAR(4), -- 기준연도</p>
+<p>@BegYm NCHAR(6), -- 시작월</p>
+<p>@EndYm NCHAR(6), -- 종료월</p>
+<p>@SMHolidayTypeSeq NCHAR(8), -- 휴일구분코드</p>
+<p>@DayTypeSeq INT , -- 일구분코드</p>
+<p>@HoliBaseSeq INT</p>
+<p>SELECT @BaseYY = ISNULL(BaseYY , ''),</p>
+<p>@BegYm = ISNULL(BegYm , ''),</p>
+<p>@EndYm = ISNULL(EndYm , ''),</p>
+<p>@SMHolidayTypeSeq = ISNULL(SMHolidayTypeSeq, 0),</p>
+<p>@DayTypeSeq = ISNULL(DayTypeSeq , 0),</p>
+<p>@HoliBaseSeq = ISNULL(HoliBaseSeq , 0)</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<blockquote>
+<p>-- 요일을 언어별로 가져오기 위해서</p>
+<p>IF @LanguageSeq = 1</p>
+<p>BEGIN</p>
+<p>SET LANGUAGE 'Korean'</p>
+<p>END</p>
+<p>ELSE IF @LanguageSeq = 3</p>
+<p>BEGIN</p>
+<p>SET LANGUAGE 'Japanese'</p>
+<p>END</p>
+<p>ELSE IF @LanguageSeq = 4</p>
+<p>BEGIN</p>
+<p>SET LANGUAGE 'Simplified Chinese'</p>
+<p>END</p>
+<p>ELSE IF @LanguageSeq = 5</p>
+<p>BEGIN</p>
+<p>SET LANGUAGE 'Traditional Chinese'</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SET LANGUAGE 'English'</p>
+<p>END</p>
+</blockquote>
+<p>-- 시트에 값을 출력 하는 부분</p>
+<p>SELECT ISNULL(A.HoliBaseSeq , 0) AS HoliBaseSeq , -- 휴일기준코드</p>
+<p>ISNULL(A.SolarDate , '') AS SolarDate , -- 일자</p>
+<p>--DATENAME(WEEKDAY, A.SolarDate) AS WeekName , -- 요일</p>
+<p>CASE WHEN @LanguageSeq IN (1, 3, 4, 5) THEN</p>
+<blockquote>
+<p>LEFT(DATENAME(WEEKDAY, A.SolarDate), 1)</p>
+<p>ELSE</p>
+<p>LEFT(DATENAME(WEEKDAY, A.SolarDate), 3) END AS WeekName ,</p>
+<p>ISNULL(A.HolidayName , '') AS HolidayName , -- 휴일</p>
+</blockquote>
+<p>ISNULL(B.MinorName , '') AS SMHolidayTypeName, -- 휴일구분</p>
+<p>ISNULL(A.SMHolidayTypeSeq, 0) AS SMHolidayTypeSeq , -- 휴일구분코드</p>
+<p>ISNULL(C.DayTypeName , '') AS DayTypeName , -- 일구분</p>
+<p>ISNULL(A.DayTypeSeq , 0) AS DayTypeSeq , -- 일구분코드</p>
+<p>ISNULL(A.Remark , '') AS Remark , -- 비고</p>
+<p>ISNULL(A.SolarDate , '') AS SolarDateOld -- 이전일자</p>
+<p>FROM _TXPRWkCalendarHoliday AS A WITH(NOLOCK) LEFT OUTER JOIN _TXBMSMinor AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.SMHolidayTypeSeq = B.MinorSeq</p>
+<p>LEFT OUTER JOIN _TXPRWkDayType AS C ON A.CompanySeq = C.Companyseq</p>
+<p>AND A.DayTypeSeq = C.DayTypeSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.HoliBaseSeq = @HoliBaseSeq</p>
+<p>AND LEFT(SolarDate, 4) = @BaseYY</p>
+<p>AND (LEFT(A.SolarDate, 6) BETWEEN @BegYm AND @EndYm OR @BegYm = '')</p>
+<p>AND (LEFT(A.SolarDate, 6) BETWEEN @BegYm AND @EndYm OR @EndYm = '')</p>
+<p>AND (A.DayTypeSeq = @DayTypeSeq OR @DayTypeSeq = 0)</p>
+<p>AND (A.SMHolidayTypeSeq = @SMHolidayTypeSeq OR @SMHolidayTypeSeq = 0)</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

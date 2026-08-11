@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>키값 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>키값 생성</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">키값 생성</h1>
+<p>SELECT @Count = COUNT(1) FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'A' --@Count값수정(AND Status = 0 제외)</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq, 'MCNK_TWACLoanFund', 'LoanFundSeq', @Count</p>
+<p>-- Temp Table 에 생성된 키값 UPDATE</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET LoanFundSeq = @Seq + DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

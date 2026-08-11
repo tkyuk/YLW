@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.05.16 싸이맥스 구매외주정산 누락 건 insert</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.05.16 싸이맥스 구매외주정산 누락 건 insert</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250516-insert">25.05.16 싸이맥스 구매외주정산 누락 건 insert</h1>
+<p>BEGIN TRAN</p>
+<p>DECLARE @BuyingAccSeq INT = 0</p>
+<p>SELECT @BuyingAccSeq = (SELECT MAX(BuyingAccSeq) + 1 FROM _TPUBuyingAcc WITH(NOLOCK) WHERE CompanySeq = 1)</p>
+<p>INSERT INTO _TPUBuyingAcc(CompanySeq ,BuyingAccSeq ,SourceType ,SourceSeq ,SourceSerl ,</p>
+<p>BizUnit ,FactUnit ,BuyingAccDate ,DelvInNo ,DelvInDate ,</p>
+<p>ItemSeq ,CustSeq ,EmpSeq ,DeptSeq ,UnitSeq ,</p>
+<p>CurrSeq ,ExRate ,Price ,DomPrice ,Qty ,</p>
+<p>PriceUnitSeq ,PriceQty ,CurAmt ,CurVAT ,DomAmt ,</p>
+<p>DomVAT ,StdUnitSeq ,StdUnitQty ,IsVAT ,SMImpType ,</p>
+<p>WHSeq ,DelvCustSeq ,SMPayType ,AccSeq ,MatAccSeq ,</p>
+<p>AntiAccSeq ,VatAccSeq ,IsFiction ,FicRateNum ,FicRateDen ,</p>
+<p>EvidSeq ,PjtSeq ,WBSSeq ,Remark ,IsReturn ,</p>
+<p>SlipSeq ,TaxDate ,PayDate ,ImpDomAmt ,ImpCurAmt ,</p>
+<blockquote>
+<p>LastUserSeq ,LastDateTime ,SMRNPMethod ,CCtrSeq                 ,SupplyAmt                 ,SupplyVAT,</p>
+<p>PgmSeq) -- 활동센터 추가 2010.05.11 by bgKeum</p>
+</blockquote>
+<p>SELECT A.CompanySeq ,@BuyingAccSeq ,'1' ,A.DelvInSeq ,A.DelvInSerl ,</p>
+<p>B.BizUnit ,0 ,B.DelvInDate ,B.DelvInNo ,B.DelvInDate ,</p>
+<p>A.ItemSeq ,B.CustSeq ,B.EmpSeq ,B.DeptSeq ,A.UnitSeq ,</p>
+<p>B.CurrSeq ,B.ExRate ,A.Price ,A.DomPrice ,A.Qty ,</p>
+<p>A.UnitSEq ,A.Qty ,A.CurAmt ,A.CurVAT ,A.DomAmt ,</p>
+<p>A.DomVAT ,A.StdUnitSeq ,A.StdUnitQty ,A.IsVAT ,A.SMImpType ,</p>
+<p>A.WHSeq ,A.DelvCustSeq ,A.SMPayType ,A.AccSeq ,0 ,</p>
+<p>A.AntiAccSeq ,50 ,A.IsFiction ,A.FicRateNum ,A.FicRateDen ,</p>
+<p>A.EvidSeq ,A.PjtSeq ,A.WBSSeq ,A.Remark , '' ,</p>
+<p>0 ,'' ,'' ,0 ,0 ,</p>
+<p>--@UserSeq ,GETDATE() ,C.SMRNPMethod ,ISNULL(D.CCtrSeq, ISNULL(CC.CCtrSeq, 0)) -- 활동센터 추가 2010.05.11 by bgKeum</p>
+<p>1 ,GETDATE() ,0 ,</p>
+<p>210715, -- 20110407 윤삼혁 프로젝트 활동센터</p>
+<blockquote>
+<p>A.DomAmt                ,0--A.DomVAT                        -- 2012. 5. 22 hkim 공급가액 컬럼 추가</p>
+<p>,9999</p>
+</blockquote>
+<p>FROM _TPUDelvInItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUDelvIn AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.DelvInSeq = B.DelvInSeq</p>
+<p>WHERE A.DelvInSeq = 960660</p>
+<p>Update _TCOMCreateSeqMax set maxseq = (select max(buyingaccseq) from _TPUBuyingAcc) where TableName = '_TPUBuyingAcc'</p>
+<blockquote>
+<p>select * from _TPUBuyingAcc where SourceSeq in(960653,960655,960657,960660)</p>
+</blockquote>
+<p>COMMIT TRAN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>쇼핑몰매출내역업로드_SD</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>쇼핑몰매출내역업로드_SD</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_sd">쇼핑몰매출내역업로드_SD</h1>
+<p>DROP PROC dbo.SD_SWFPSLShoppingMallSalesUploadQuery_ttest</p>
+<p>GO</p>
+<p>/********************************</p>
+<p>설 명 - 쇼핑몰매출내역업로드:매출집계내역조회_SD</p>
+<p>작 성 일 - 2022.05.18</p>
+<p>작 성 자 - 전명진</p>
+<p>수정내역 -</p>
+<p>*********************************/</p>
+<p>CREATE PROC dbo.SD_SWFPSLShoppingMallSalesUploadQuery_ttest</p>
+<p>@ServiceSeq INT = 0 ,</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 1 ,</p>
+<p>@LanguageSeq INT = 1 ,</p>
+<p>@UserSeq INT = 0 ,</p>
+<p>@PgmSeq INT = 0 ,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @SalesYM NCHAR(8) ,</p>
+<p>@MallSeq INT ,</p>
+<p>@MallOrderNo NVARCHAR(50),</p>
+<p>@GoodPriceDecLength INT ,</p>
+<p>@CurAmtDecLength INT ,</p>
+<p>@DomAmtDecLength INT ,</p>
+<p>@DeptSeq INT ,</p>
+<p>@EmpSeq INT ,</p>
+<p>@SalesState NCHAR(1),</p>
+<p>@CustSeq INT</p>
+<p>SELECT @SalesYM = ISNULL(SalesYM , 0 ),</p>
+<p>@MallSeq = ISNULL(MallSeq , 0 ),</p>
+<p>@MallOrderNo = ISNULL(MallOrderNo, ''),</p>
+<p>@DeptSeq = ISNULL(QDeptSeq,0),</p>
+<p>@EmpSeq = ISNULL(QEmpSeq ,0),</p>
+<p>@SalesState = ISNULL(SalesState, '0')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>SELECT @CustSeq = CustSeq</p>
+<p>FROM _TFPSLShoppingMall</p>
+<p>WHERE MallSeq = @MallSeq</p>
+<p>IF @SalesState = ''</p>
+<p>BEGIN</p>
+<p>SELECT @SalesState = '0'</p>
+<p>END</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 9 , @UserSeq, @@PROCID, @GoodPriceDecLength OUTPUT -- 판매/제품 원화단가 소수점 자릿수</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 14, @UserSeq, @@PROCID, @CurAmtDecLength OUTPUT -- 거래금액 소수점 자릿수</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 15, @UserSeq, @@PROCID, @DomAmtDecLength OUTPUT -- 자국통화금액 소수점 자릿수</p>
+<p>-- 1) 진행여부 체크 하기위한 임시테이블</p>
+<p>SELECT A.CompanySeq, A.Dummy2, ISNULL(B.ToSeq,0) AS ToSeq, ISNULL(B.ToSerl,0) AS ToSerl, ISNULL(C.BillSeq,0) AS BillSeq, ISNULL(D.UploadSeq,0) AS UploadSeq</p>
+<p>INTO #ProgInoviceItem</p>
+<p>FROM _TSLInvoiceItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TSLInvoice AS A1 WITH(NOLOCK) ON A.CompanySeq = A1.CompanySeq</p>
+<p>AND A.InvoiceSeq = A1.InvoiceSeq</p>
+<p>LEFT JOIN _TCOMSourceDaily AS B WITH(NOLOCK, INDEX(IDX1_TCOMSourceDaily)) ON B.FromTableSeq = 18</p>
+<p>AND B.ToTableSeq = 20</p>
+<p>AND B.FromSeq = A.InvoiceSeq</p>
+<p>AND B.FromSerl = A.InvoiceSerl</p>
+<p>LEFT JOIN _TSLSalesBillRelation AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ToSeq = C.SalesSeq</p>
+<p>AND B.ToSerl = C.SalesSerl</p>
+<p>LEFT JOIN SD_TFPSLShoppingMallSaleUpload AS D WITH(NOLOCK, INDEX(OrderNo_INDEX)) ON REPLACE(A.Dummy2,'_사은품','') = D.OrderNo</p>
+<p>AND ISNULL(C.BillSeq,0) = ISNULL(D.BillSeq,0)</p>
+<p>AND D.UploadSeq = 2142</p>
+<p>WHERE A1.IsDelvCfm = '1'</p>
+<p>AND ISNULL(A.Dummy2,'') \&lt;&gt; ''</p>
+<p>AND A1.InvoiceDate \&lt;= D.SalesDate</p>
+<p>-- 1-1) 조회 시 해당 업로드 건으로 매출 된 건이 삭제되어 있다면 BillSeq = 0으로 변경</p>
+<p>UPDATE A1</p>
+<p>SET IsProg = '0',</p>
+<p>BillSeq = 0</p>
+<p>FROM SD_TFPSLShoppingMallSaleUpload AS A1</p>
+<p>LEFT JOIN #ProgInoviceItem AS B WITH(NOLOCK) ON A1.CompanySeq = B.CompanySeq</p>
+<p>AND A1.OrderNo = REPLACE(B.Dummy2,'_사은품','')</p>
+<p>AND A1.UploadSeq = B.UploadSeq</p>
+<p>WHERE A1.CompanySeq = @CompanySeq</p>
+<p>AND A1.IsProg \&lt;&gt; '0'</p>
+<p>AND ISNULL(A1.BillSeq,0) \&lt;&gt; 0</p>
+<p>AND A1.SalesDate = @SalesYM</p>
+<p>AND B.ToSeq IS NULL</p>
+<p>AND B.UploadSeq IS NULL</p>
+<p>-- 2) 위의 진행 키값 정리 후 주문번호별 거래명세서 집계를 위한 임시테이블 생성</p>
+<p>SELECT A.*, ISNULL(B.ToSeq,0) AS ToSeq, ISNULL(B.ToSerl,0) AS ToSerl, ISNULL(C.BillSeq,0) AS BillSeq, ISNULL(D.UploadSeq,0) AS UploadSeq</p>
+<p>INTO #DailyInoviceItem</p>
+<p>FROM _TSLInvoiceItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TSLInvoice AS A1 WITH(NOLOCK) ON A.CompanySeq = A1.CompanySeq</p>
+<p>AND A.InvoiceSeq = A1.InvoiceSeq</p>
+<p>AND A1.InvoiceDate \&lt;= @SalesYM</p>
+<p>LEFT JOIN _TCOMSourceDaily AS B WITH(NOLOCK, INDEX(IDX1_TCOMSourceDaily)) ON B.FromTableSeq = 18</p>
+<p>AND B.ToTableSeq = 20</p>
+<p>AND B.FromSeq = A.InvoiceSeq</p>
+<p>AND B.FromSerl = A.InvoiceSerl</p>
+<p>LEFT JOIN _TSLSalesBillRelation AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ToSeq = C.SalesSeq</p>
+<p>AND B.ToSerl = C.SalesSerl</p>
+<p>LEFT JOIN SD_TFPSLShoppingMallSaleUpload AS D WITH(NOLOCK, INDEX(OrderNo_INDEX)) ON REPLACE(A.Dummy2,'_사은품','') = D.OrderNo</p>
+<p>AND ISNULL(C.BillSeq,0) = ISNULL(D.BillSeq,0)</p>
+<p>AND D.SalesDate = @SalesYM</p>
+<p>WHERE A1.IsDelvCfm = '1'</p>
+<p>AND ISNULL(A.Dummy2,'') \&lt;&gt; ''</p>
+<p>AND A1.InvoiceDate \&lt;= D.SalesDate</p>
+<p>AND (A1.CustSeq = @CustSeq OR ISNULL(@CustSeq,0) = 0) -- 거래처내부코드 조회조건 추가</p>
+<p>AND (D.MallSeq = @MallSeq OR @MallSeq = 0)</p>
+<p>-- 주문번호 - 거래명세서 집계</p>
+<p>SELECT SUM(ISNULL(A.CurAmt,0)) AS CurAmt, SUM(ISNULL(A.CurVAT,0)) AS CurVAT,</p>
+<p>SUM(ISNULL(A.DomAmt,0)) AS DomAmt, SUM(ISNULL(A.DomVAT,0)) AS DomVAT,</p>
+<p>REPLACE(A.Dummy2,'_사은품','') AS MallOrderNo, ISNULL(A.BillSeq,0) AS BillSeq --, ISNULL(C.UploadSeq,0) AS UploadSeq</p>
+<p>INTO #InvoiceItem</p>
+<p>FROM #DailyInoviceItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TSLInvoice AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.InvoiceSeq = B.InvoiceSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND B.IsDelvCfm = '1'</p>
+<p>AND ISNULL(A.Dummy2,'') \&lt;&gt; ''</p>
+<p>GROUP BY REPLACE(A.Dummy2,'_사은품',''), ISNULL(A.BillSeq,0)--, ISNULL(C.UploadSeq,0)</p>
+<p>SELECT CASE WHEN ISNULL(E.BillNo, '') = '' THEN '0'</p>
+<p>ELSE '1' END AS IsSales ,</p>
+<p>E.BillNo AS BillNo ,</p>
+<p>E.BillID AS BillID ,</p>
+<p>B.MallName,</p>
+<p>B.MallID AS MallUserID,</p>
+<p>ISNULL(C.MallOrderNo,'') AS MallOrderNo_In,</p>
+<p>A.SalesDate,</p>
+<p>C.DomAmt,C.DomVAT,</p>
+<p>ISNULL(C.DomAmt,0) + ISNULL(C.DomVAT,0) AS InvoiceAmt,</p>
+<p>--C.CurAmt + C.CurVAT AS InvoiceAmt,</p>
+<p>(ISNULL(C.DomAmt,0) + ISNULL(C.DomVAT,0)) - A.SaleAmt AS DiffAmt,</p>
+<p>--(C.CurAmt + C.CurVAT) - A.SaleAmt AS DiffAmt,</p>
+<p>A.OrderNo AS MallOrderNo_Sale,</p>
+<p>A.SaleAmt AS SalesAmt,</p>
+<p>A.MallSeq,</p>
+<p>A.UploadSeq,</p>
+<p>E.SalesSeq AS SalesSeq,</p>
+<p>E.BillSeq AS BillSeq,</p>
+<p>G.EmpName AS EmpName, -- 사원명</p>
+<p>G.EmpSeq, -- 사원내부코드</p>
+<p>H.DeptName AS DeptName, -- 부서명</p>
+<p>H.DeptSeq -- 부서내부코드</p>
+<p>FROM SD_TFPSLShoppingMallSaleUpload AS A WITH(NOLOCK)</p>
+<p>JOIN _TFPSLShoppingMall AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MallSeq = A.MallSeq</p>
+<p>LEFT JOIN #InvoiceItem AS C ON A.OrderNo = C.MallOrderNo</p>
+<p>AND ISNULL(A.BillSeq,0) = ISNULL(C.BillSeq,0)</p>
+<p>OUTER APPLY ( SELECT DISTINCT</p>
+<p>X.BillNo ,</p>
+<p>X.BillSeq ,</p>
+<p>X.BillID ,</p>
+<p>Y.SalesSeq</p>
+<p>FROM _TCOMSourceDaily AS Z WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TSLSalesBillRelation AS Y WITH(NOLOCK) ON Y.CompanySeq = Z.CompanySeq</p>
+<p>AND Y.SalesSeq = Z.ToSeq</p>
+<p>AND Y.SalesSerl = Z.ToSerl</p>
+<p>LEFT OUTER JOIN _TSLBill AS X WITH(NOLOCK) ON X.CompanySeq = Y.CompanySeq</p>
+<p>AND X.Billseq = Y.BillSeq</p>
+<p>LEFT OUTER JOIN _TSLSalesItem AS W WITH(NOLOCK) ON Y.CompanySeq = W.CompanySeq</p>
+<p>AND Y.SalesSeq = W.SalesSeq</p>
+<p>AND Y.SalesSerl = W.SalesSerl</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.FromTableSeq = 18 -- 거래명세서</p>
+<p>AND Z.ToTableSeq = 20 -- 매출</p>
+<p>AND Y.BillSeq = C.BillSeq</p>
+<p>) AS E</p>
+<p>LEFT JOIN _TCAUser AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.LastUserSeq = F.UserSeq</p>
+<p>LEFT JOIN _TDAEmp AS G WITH(NOLOCK) ON F.CompanySeq = G.CompanySeq</p>
+<p>AND F.EmpSeq = G.EmpSeq</p>
+<p>--LEFT JOIN _TDADept AS H WITH(NOLOCK) ON F.CompanySeq = H.CompanySeq</p>
+<p>-- AND F.DeptSeq = H.DeptSeq</p>
+<p>LEFT OUTER JOIN _FnXHREmpIn(@CompanySeq, '', '0') AS H ON G.EmpSeq = H.EmpSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.Salesdate = @SalesYM</p>
+<p>AND (@MallSeq = 0 OR A.MallSeq = @MallSeq)</p>
+<p>AND (@MallOrderNo = '' OR A.OrderNo LIKE @MallOrderNo + '%')</p>
+<p>AND (@EmpSeq = 0 OR F.EmpSeq = @EmpSeq)</p>
+<p>AND (@DeptSeq = 0 OR F.DeptSeq = @DeptSeq)</p>
+<p>AND (@SalesState = '0' OR (@SalesState = '1' AND ISNULL(E.BillNo, '') = '')</p>
+<p>OR (@SalesState = '2' AND ISNULL(E.BillNo, '') \&lt;&gt; ''))</p>
+<p>ORDER BY B.MallName, A.SalesDate, A.OrderNo</p>
+<p>RETURN</p>
+<p>go</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock2 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock3 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock3 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock3 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock3 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, SalesYM NCHAR(8), MallSeq INT, MallOrderNo NVARCHAR(50), IsMapped NCHAR(1), QDeptSeq INT, QEmpSeq INT, SalesState NCHAR(1)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, SalesYM NCHAR(8), MallSeq INT, BizUnit INT, BillDate NCHAR(8), UMOutKind INT, UMBillKind INT, SMBillType INT, EmpSeq INT, DeptSeq INT, Remark NVARCHAR(1000), MallName NVARCHAR(200), MallUserID NVARCHAR(200), MallOrderNo NVARCHAR(50), SalesDate NCHAR(8), OrderQty DECIMAL(19, 5), SalesQty DECIMAL(19, 5), InvoiceAmt DECIMAL(19, 5), OrderAmt DECIMAL(19, 5), OrderVAT DECIMAL(19, 5), OrderTotAmt DECIMAL(19, 5), SalesAmt DECIMAL(19, 5), SalesVAT DECIMAL(19, 5), SalesTotAmt DECIMAL(19, 5), DiffQty DECIMAL(19, 5), DiffAmt DECIMAL(19, 5), DiffVAT DECIMAL(19, 5), DiffTotAmt DECIMAL(19, 5), UploadSeq INT, InvoiceSeq INT, CurrSeq INT, ExRate DECIMAL(19, 5), EvidSeq INT, IsSales NCHAR(1), BillNo NVARCHAR(20), BillSeq INT, BillID INT, SalesSeq INT, IsMapped NCHAR(1), SMOrderKindName NVARCHAR(200), Bill NVARCHAR(100), MallOrderNo_In NVARCHAR(100), MallOrderNo_Sale NVARCHAR(100), TotInvoiceAmt DECIMAL(19, 5), TotSalesAmt DECIMAL(19, 5), QDeptSeq INT, EmpName NVARCHAR(100), DeptName NVARCHAR(100), QEmpSeq INT, SalesState NCHAR(1)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, MallName NVARCHAR(200), MallSeq INT, MallOrderNo NVARCHAR(50), OrderDate NCHAR(8), ItemName NVARCHAR(200), ItemNo NVARCHAR(100), Spec NVARCHAR(200), Qty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5), TotAmt DECIMAL(19, 5), SMOrderKindName NVARCHAR(200), UMReturnReqTypeName NVARCHAR(200), InvoiceNo NVARCHAR(100), CustName NVARCHAR(100), IsGift NCHAR(1), InvoiceSeq INT, InvoiceSerl INT, MallItemName NVARCHAR(200), MallItemNo NVARCHAR(100), MallItemOptionName NVARCHAR(200)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock2 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, MallName NVARCHAR(200), MallSeq INT, MallOrderNo NVARCHAR(50), OrderDate NCHAR(8), ItemName NVARCHAR(200), ItemNo NVARCHAR(100), Spec NVARCHAR(200), Qty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5), TotAmt DECIMAL(19, 5), SMOrderKindName NVARCHAR(200), UMReturnReqTypeName NVARCHAR(200), InvoiceNo NVARCHAR(100), CustName NVARCHAR(100), IsGift NCHAR(1), InvoiceSeq INT, InvoiceSerl INT, MallItemName NVARCHAR(200), MallItemNo NVARCHAR(100), MallItemOptionName NVARCHAR(200)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock2 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock3 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, MallName NVARCHAR(200), MallSeq INT, MallOrderNo NVARCHAR(50), SalesDate NCHAR(8), ItemName NVARCHAR(200), ItemNo NVARCHAR(100), Qty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5), TotAmt DECIMAL(19, 5), Dummy1 INT, Dummy2 INT, Dummy3 NVARCHAR(100), Dummy4 NVARCHAR(100), Dummy5 DECIMAL(19, 5), SMOrderKindName NVARCHAR(200), IsGift NCHAR(1), BillNo NVARCHAR(100), CustName NVARCHAR(100), BillDate NCHAR(8), MallItemName NVARCHAR(200), MallItemNo NVARCHAR(100), Spec NVARCHAR(100), MallItemOptionName NVARCHAR(200), SalesSeq INT, SalesSerl INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock3 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock3 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, MallName NVARCHAR(200), MallSeq INT, MallOrderNo NVARCHAR(50), SalesDate NCHAR(8), ItemName NVARCHAR(200), ItemNo NVARCHAR(100), Qty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5), TotAmt DECIMAL(19, 5), Dummy1 INT, Dummy2 INT, Dummy3 NVARCHAR(100), Dummy4 NVARCHAR(100), Dummy5 DECIMAL(19, 5), SMOrderKindName NVARCHAR(200), IsGift NCHAR(1), BillNo NVARCHAR(100), CustName NVARCHAR(100), BillDate NCHAR(8), MallItemName NVARCHAR(200), MallItemNo NVARCHAR(100), Spec NVARCHAR(100), MallItemOptionName NVARCHAR(200), SalesSeq INT, SalesSerl INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock3 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, SalesYM, MallSeq, MallOrderNo, IsMapped, QDeptSeq, QEmpSeq, SalesState)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'1', N'DataBlock1', N'20240331', N'164', N'', NULL, N'', N'', N''</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 70320058</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 241</p>
+<p>SET @PgmSeq = 70320083</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC SD_SWFPSLShoppingMallSalesUploadQuery_ttest</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>DROP TABLE #BIZ_IN_DataBlock2</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock2</p>
+<p>DROP TABLE #BIZ_IN_DataBlock3</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock3</p>
+<p>SELECT Z.*</p>
+<p>FROM SD_TFPSLShoppingMallSaleUpload AS Z WITH(NOLOCK)</p>
+<p>JOIN _TFPSLShoppingMall AS Y WITH(NOLOCK) ON Y.CompanySeq = Z.CompanySeq</p>
+<p>AND Y.MallSeq = Z.MallSeq</p>
+<p>WHERE Y.MallName = 'Cafe24(신)'</p>
+<p>AND REPLACE(Z.OrderNo,'_사은품','') like '20240304%'</p>
+<p>AND ISNULL(Z.IsProg,'0') = '0'</p>
+<p>SELECT * FROM _TCAPgm WHERE PgmSeq = 70320083</p>
+<p>SELECT* FROM SD_TFPSLShoppingMallSaleUpload</p>
+<p>EXEC _SWCOMGetTableLog 'SD_TFPSLShoppingMallSaleUpload', 1, 'UploadSeq', 2142</p>
+<p>SELECT* FROM SD_TFPSLShoppingMallSaleUpload where LastDateTime = '2024-04-05 14:30:58.230'</p>
+<p>SELECT MallSeq,* FROM SD_TFPSLShoppingMallSaleUpload where UploadSeq = 2142</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>체크인 UPDATE문 (제뉴인)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>체크인 UPDATE문 (제뉴인)</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="update">체크인 UPDATE문 (제뉴인)</h1>
+<p>-- common DB에서 해야함</p>
+<p>-- 서비스 Seq 확인</p>
+<p>SELECT * FROM _TCAService WHERE ServiceID ='Angkor.danam.PD.DatPDWorkHourResult_danam'</p>
+<p>-- UPDATE</p>
+<p>UPDATE _TCAService</p>
+<p>SET CheckOutYN = 0,</p>
+<p>CheckOutDateTime = null,</p>
+<p>CheckOutUserSeq = 0,</p>
+<p>CheckInDateTime = @CurrDate</p>
+<p>WHERE ServiceSeq = @ServiceSeq</p>
+  </article>
+</div>
+</body>
+</html>

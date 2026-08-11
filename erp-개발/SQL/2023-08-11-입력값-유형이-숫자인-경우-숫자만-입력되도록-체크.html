@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>입력값 유형이 숫자인 경우 숫자만 입력되도록 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>입력값 유형이 숫자인 경우 숫자만 입력되도록 체크</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">입력값 유형이 숫자인 경우 숫자만 입력되도록 체크</h1>
+<p>DROP PROC dbo.djb_SWPDQAItemExtQCSubCheck</p>
+<p>GO</p>
+<p>CREATE PROC dbo.djb_SWPDQAItemExtQCSubCheck</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @Count INT,</p>
+<p>@MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<hr />
+<p>-- 중복여부체크</p>
+<hr />
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>476, N'검사항목등록' -- SELECT * FROM _TCADictionary WHERE Word like '%검사항목%'</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = REPLACE(@Results,'@2', ''),</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A JOIN _TPDQAItemQcTitle AS B WITH(NOLOCK) ON A.UMQCTitleSeq = B.UMQCTitleSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.SMQCKind = B.SMQcKind</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND A.WorkingTag IN ('A')</p>
+<p>AND A.Status = 0</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = REPLACE(@Results,'@2', ''),</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A JOIN _TPDQAItemQcTitle AS B WITH(NOLOCK) ON 1=1 -- A.UMQCTitleSeq \&lt;&gt; B.UMQCTitleSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.UMQCTitleSeq = B.UMQcTitleSeq</p>
+<p>AND A.SMQCKind = B.SMQcKind</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>WHERE A.WorkingTag IN ('U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.UMQCTitleSeq \&lt;&gt; A.UMQCTitleOldSeq</p>
+<p>UPDATE A</p>
+<p>SET Result = REPLACE(@Results,'@2', ''),</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A JOIN #BIZ_OUT_DataBlock2 AS B ON A.UMQCTitleSeq = B.UMQCTitleSeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>AND A.IDX_NO \&lt;&gt; B.IDX_NO</p>
+<p>AND A.SMQCKind = B.SMQcKind</p>
+<p>WHERE A.WorkingTag IN ('U','A')</p>
+<p>AND A.Status = 0</p>
+<hr />
+<p>-- 품목 입력 여부</p>
+<hr />
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1008 , -- @1을(를) 입력하지 않았습니다. (SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 1008)</p>
+<p>@LanguageSeq ,</p>
+<p>20899, N'품목명' -- SELECT * FROM _TCADictionary WHERE Word like '%품목명%'</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>WHERE A.WorkingTag IN ('A')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.ItemSeq = 0</p>
+<p>-- 입력방법이 숫자인경우 상한치,하한치 체크 23.08.11 SJPARK</p>
+<p>CREATE TABLE #TempNumResultCheck(</p>
+<p>IDX_NO INT,</p>
+<p>WorkingTag NCHAR(1),</p>
+<p>Status INT,</p>
+<p>Result NVARCHAR(255),</p>
+<p>MessageType INT,</p>
+<p>SMInputType INT,</p>
+<p>LowerLimit NVARCHAR(100),</p>
+<p>UpperLimit NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TempNumResultCheck(</p>
+<p>IDX_NO ,</p>
+<p>WorkingTag ,</p>
+<p>Status ,</p>
+<p>Result ,</p>
+<p>MessageType ,</p>
+<p>SMInputType ,</p>
+<p>LowerLimit ,</p>
+<p>UpperLimit</p>
+<p>)</p>
+<p>SELECT IDX_NO ,</p>
+<p>WorkingTag ,</p>
+<p>Status ,</p>
+<p>'' ,</p>
+<p>0 ,</p>
+<p>SMInputType ,</p>
+<p>ISNULL(LowerLimit , ''),</p>
+<p>ISNULL(UpperLimit , '')</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(A.ItemSeq,0) \&lt;&gt; 0</p>
+<p>-- 입력구분이 숫자인데 문자가 들어온경우</p>
+<p>UPDATE #TempNumResultCheck</p>
+<p>SET Result = CASE WHEN ISNUMERIC(CASE WHEN ISNULL(A.LowerLimit ,'') = '' THEN '0' ELSE A.LowerLimit END) \&lt;&gt; '1' OR (CHARINDEX(',',A.LowerLimit) \&lt;&gt; 0) THEN '합격하한치에 '</p>
+<p>WHEN ISNUMERIC(CASE WHEN ISNULL(A.UpperLimit ,'') = '' THEN '0' ELSE A.UpperLimit END) \&lt;&gt; '1' OR (CHARINDEX(',',A.UpperLimit) \&lt;&gt; 0) THEN '합격상한치에 '</p>
+<p>END + '숫자를 입력하세요',</p>
+<p>MessageType = 99999,</p>
+<p>Status = 99999</p>
+<p>FROM #TempNumResultCheck AS A</p>
+<p>WHERE A.WorkingTag IN ('A','U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.SMInputType = 1018001 -- 입력구분 - 숫자</p>
+<p>AND (ISNUMERIC(CASE WHEN ISNULL(A.LowerLimit ,'') = '' THEN '0' ELSE A.LowerLimit END) \&lt;&gt; '1'</p>
+<p>OR ISNUMERIC(CASE WHEN ISNULL(A.UpperLimit ,'') = '' THEN '0' ELSE A.UpperLimit END) \&lt;&gt; '1'</p>
+<p>OR CHARINDEX(',',A.LowerLimit) \&lt;&gt; 0</p>
+<p>OR CHARINDEX(',',A.UpperLimit) \&lt;&gt; 0</p>
+<p>)</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TempNumResultCheck WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE B</p>
+<p>SET Result = A.Result ,</p>
+<p>MessageType = A.MessageType,</p>
+<p>Status = A.Status</p>
+<p>FROM #TempNumResultCheck AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock2 AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status = 0</p>
+<p>AND A.Status \&lt;&gt; 0</p>
+<p>END</p>
+<p>RETURN</p>
+<p>/*******************************************************************************************************************/</p>
+<p>/*******************************************************************************************************************/</p>
+  </article>
+</div>
+</body>
+</html>

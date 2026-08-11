@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서브폼 컨트롤 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>서브폼 컨트롤 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">서브폼 컨트롤 가져오기</h1>
+<table>
+<thead>
+<tr>
+<th><strong>구성 요소</strong></th>
+<th><strong>설명</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pgmControlName</td>
+<td>값을 설정할 대상 <strong>프로그램(폼)의 ID</strong>입니다. <sup>2</sup></td>
+</tr>
+<tr>
+<td>controlName</td>
+<td>값을 설정할 프로그램 내의 <strong>Control Name</strong>입니다. <sup>3</sup></td>
+</tr>
+<tr>
+<td><strong>반환 값</strong></td>
+<td>지정한 controlName에 해당하는 <strong>컨트롤 객체</strong>를 반환합니다.</td>
+</tr>
+</tbody>
+</table>
+<p>-- Lua Script -- pgmID는 AddPgmUserControl 등으로 서브폼을 추가할 때 받은 프로그램 ID 변수입니다.</p>
+<p>-- 서브폼(pgmID) 내의 'fltQCSeq' 컨트롤에 -- 메인 폼의 'fltQCSeq' 컨트롤이 가진 'Value' 값을 설정합니다.</p>
+<p>GetPgmUserControl(pgmID, 'fltQCSeq').Value = fltQCSeq.Value</p>
+<blockquote>
+<p>pgmID = AddPgmUserControl('GridCanvasItem',500774, false)</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'cmbPuName').Value = cmbPuName.Value</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'cmbPuName').TextCd = cmbPuName.TextCd</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'cmbPb').Value = cmbPbName.Value</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'cmbPb').TextCd = cmbPbName.TextCd</p>
+</blockquote>
+<p>if SS1.DataRowCnt &gt; 0 then</p>
+<blockquote>
+<p>SS1.DblClickRow = 0</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'txtEmpNameQ').Value = CellText(SS1, SS1.DblClickRow, 'EmpSeq')</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'txtEmpNameQ').TextCd = CellText(SS1, SS1.DblClickRow, 'EmpSeq')</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'txtEmpNameQ').Value = 0</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'txtEmpNameQ').TextCd = 0</p>
+</blockquote>
+<p>end</p>
+<blockquote>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'cmbEntRetTypeName').Value = 0</p>
+<p>GetPgmUserControl('FrmWPRBasEmpAmt', 'cmbEntRetTypeName').TextCd = ''</p>
+<p>ExecuteEvent('FrmWPRBasEmpAmt', 'PgmLoadSetting')</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

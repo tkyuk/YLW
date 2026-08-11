@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>강제 체크아웃</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>강제 체크아웃</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">강제 체크아웃</h1>
+<p>--시스웨어-방산에서 체크인 된 건에 대해 체크아웃이 안되는 현상</p>
+<p>--(아마 영림원 서버를 이용하면서 발생한 문제로 사료)</p>
+<p>-- 강제로 체크아웃</p>
+<p>USE DANAMCommon</p>
+<p>SELECT * FROM _TCAService WHERE ServiceID = 'Angkor.Ylw.Sales.DatLGLotMaster_danam'</p>
+<p>update _TCAService</p>
+<p>set CheckOutYN         = '1' ,</p>
+<p>CheckOutUserSeq = '1' ,</p>
+<p>CheckOutDateTime = GETDATE()</p>
+<p>where ServiceSeq = 1036523</p>
+<p>-- _TCAServiceHistory 여기에는 안해도 작업하는데 문제는 없음</p>
+<p>-- 체크인</p>
+<p>update _TCAService</p>
+<p>set CheckOutYN         = '0' ,</p>
+<p>CheckOutUserSeq = '0' ,</p>
+<p>CheckOutDateTime = NULL</p>
+<p>where ServiceSeq = 1036523</p>
+<p>강제 체크인</p>
+<p>update _TCAService</p>
+<p>set CheckOutYN         = '0' ,</p>
+<p>CheckOutUserSeq = '0' ,</p>
+<p>CheckOutDateTime = NULL</p>
+<p>where ServiceSeq = 1036523</p>
+  </article>
+</div>
+</body>
+</html>

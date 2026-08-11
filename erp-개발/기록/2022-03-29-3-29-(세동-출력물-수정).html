@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3/29 (세동 - 출력물 수정)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>3/29 (세동 - 출력물 수정)</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="329-">3/29 (세동 - 출력물 수정)</h1>
+<p>1. 출력물의 발주처 가져오는 로직 수정요청</p>
+<p>(1) 납품창고 기준으로 발주처가 조회되도록 수정요청합니다.</p>
+<p>- 납품창고에 연결된 사업단위로 [사업단위별 사업자번호 연결]의 사업자 번호 정보 조회</p>
+<p>- 사업자등록의 상호, 대표자, 사업자번호, 도로명주소 조회</p>
+<p>- 품목별 납품창고가 달라 사업자번호가 다른건이 있으면 사업자번호별로 페이지 넘겨서 출력</p>
+<p><img alt="" src="assets/3-29-(세동-출력물-수정)/image30.png" /></p>
+<p><img alt="" src="assets/3-29-(세동-출력물-수정)/image31.png" /></p>
+<p>sdng_SWPUORDPOPrintQuery</p>
+<p>납품창고 -&gt; 사업단위 -&gt;</p>
+<table>
+<thead>
+<tr>
+<th>업체명</th>
+<th>MyCompanyName</th>
+<th>T.TaxName</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>대표자</td>
+<td>MyOwner</td>
+<td>T.Owner</td>
+</tr>
+<tr>
+<td>사업자번호</td>
+<td>MyBizNo</td>
+<td>T.TaxNo</td>
+</tr>
+<tr>
+<td>주소</td>
+<td>MyTaxUnitAddr</td>
+<td>T.TaxUnitAddr</td>
+</tr>
+</tbody>
+</table>
+<p>_TPUORDPOItem : WhSeq = _TDAWH:Whseq</p>
+<p>_TDAWH : BizUnit = _TDATaxUnit : TaxUnit</p>
+  </article>
+</div>
+</body>
+</html>

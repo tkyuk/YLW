@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단암 - 이동요청 / Lot분할</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>단암 - 이동요청 / Lot분할</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-lot">단암 - 이동요청 / Lot분할</h1>
+<p>1-2</p>
+<p>select L.MoveDate,A.ComDate,LDMSeq,</p>
+<p>Case When IsNull(L.MoveDate, '') = '' Then IsNull(A.ComDate, '') Else L.MoveDate End As ComDate</p>
+<blockquote>
+<p>FROM danam_TLGMoveReq A WITH(NOLOCK)</p>
+</blockquote>
+<p>LEFT OUTER JOIN (SELECT m.LDMSeq,M.CompanySeq, Max(M.LDMDate) AS MoveDate, D.MoveReqSeq, Max(D.LotNo) AS LotNo, SUM(ISNULL(D.Qty,0)) AS Qty</p>
+<p>FROM danam_TLGLotDivMove M WITH(NOLOCK) JOIN 00 D WITH(NOLOCK)</p>
+<p>ON M.CompanySeq = D.CompanySeq</p>
+<p>AND M.LDMSeq = D.LDMSeq</p>
+<p>Where M.CompanySeq = 1</p>
+<p>GROUP BY M.CompanySeq, D.MoveReqSeq,m.LDMSeq) AS L ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.Seq = L.MoveReqSeq</p>
+<p>2-3</p>
+<p>select C.*</p>
+<p>from danam_TLGLotDivMoveItem AS A</p>
+<p>JOIN _TLGInOutDailyItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.LOTNO = A.LOTNO</p>
+<p>AND B.OutWHSeq = A.OutWHSeq</p>
+<p>AND B.INWHSEQ = A.INWHSEQ</p>
+<p>JOIN _TLGInOutDaily AS C ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.InOutType = B.InOutType</p>
+<p>AND C.InOutSeq = B.InOutSeq</p>
+<p>where LDMSeq = 136518</p>
+<p>select A.*</p>
+<p>from danam_TLGLotDivMoveItem AS A</p>
+<p>JOIN _TLGInOutDailyItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.LOTNO = A.LOTNO</p>
+<p>AND B.OutWHSeq = A.OutWHSeq</p>
+<p>AND B.INWHSEQ = A.INWHSEQ</p>
+<p>JOIN _TLGInOutDaily AS C ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.InOutType = B.InOutType</p>
+<p>AND C.InOutSeq = B.InOutSeq</p>
+<p>where C.InOutSeq = 408641</p>
+<p>AND C.InOutType = 82</p>
+<ol>
+<li>
+<p>(2075D)이동요청등록</p>
+</li>
+<li>
+<p>(2025D2)Location지정(일괄)_danam</p>
+</li>
+</ol>
+<hr />
+<ol start="3">
+<li>
+<p>(2005)창고별 LOT재고조회</p>
+</li>
+<li>
+<p>(2006)창고별 LOT재고원장조회 =&gt; 처리번호(이동번호확인 가능)</p>
+</li>
+<li>
+<p>자재이동품목조회</p>
+</li>
+</ol>
+<blockquote></blockquote>
+<ol>
+<li>
+<p>danam_TLGMoveReq</p>
+</li>
+<li>
+<p>danam_TLGLotDivMove</p>
+</li>
+<li>
+<p>_TLGInOutDaily / _TLGInOutDailyItem</p>
+</li>
+</ol>
+<p>24.05.17 처리작업</p>
+<p>(2025D2)Location지정(일괄)_danam 에서 동일한 건에 대해 2번 작업하면서</p>
+<p>(-) 재고수량이 발생</p>
+<p>DB에서 danam_TLGLotDivMove 테이블 삭제</p>
+<p>ERP에서 자재이동 테이블 삭제</p>
+<p>삭제 건에 대해 모두 백업 테이블 생성</p>
+<p>24.05.17 백업</p>
+<p>select L.MoveDate,A.ComDate,LDMSeq,</p>
+<p>Case When IsNull(L.MoveDate, '') = '' Then IsNull(A.ComDate, '') Else L.MoveDate End As ComDate</p>
+<blockquote>
+<p>FROM danam_TLGMoveReq A WITH(NOLOCK)</p>
+</blockquote>
+<p>LEFT OUTER JOIN (SELECT m.LDMSeq,M.CompanySeq, Max(M.LDMDate) AS MoveDate, D.MoveReqSeq, Max(D.LotNo) AS LotNo, SUM(ISNULL(D.Qty,0)) AS Qty</p>
+<p>FROM danam_TLGLotDivMove M WITH(NOLOCK) JOIN 00 D WITH(NOLOCK)</p>
+<p>ON M.CompanySeq = D.CompanySeq</p>
+<p>AND M.LDMSeq = D.LDMSeq</p>
+<p>Where M.CompanySeq = 1</p>
+<p>GROUP BY M.CompanySeq, D.MoveReqSeq,m.LDMSeq) AS L ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.Seq = L.MoveReqSeq</p>
+<blockquote></blockquote>
+<p>where a.Seq = 25126</p>
+<p>select LDMDate, * from danam_TLGLotDivMove where LDMSeq = 136518</p>
+<p>select * from danam_TLGLotDivMoveItem where LDMSeq = 136518</p>
+<p>select * From _TLGInOutDaily where InOutNo = '202404260623'</p>
+<p>select * From _TLGInOutDailyItem where InOutSeq = 408649 and InOutType = 82</p>
+<p>select * From _TLGInOutDaily where InOutSeq = 408649 and InOutType = 82</p>
+<p>INSERT INTO _TLGInOutDailyItem_BAK240517 select * From _TLGInOutDailyItem where InOutSeq = 408641 and InOutType = 82</p>
+<p>INSERT INTO _TLGInOutDaily_BAK240517 select * From _TLGInOutDaily where InOutSeq = 408641 and InOutType = 82</p>
+<p>--_TLGMovereq</p>
+<p>-- 1. danam_TLGMoveReq - 이동요청</p>
+<p>-- 2. danam_TLGLotDivMove -- Lot 분할</p>
+<p>-- 3. _TLGInOutDaily -- 이동</p>
+<p>select C.*</p>
+<p>from danam_TLGLotDivMoveItem AS A</p>
+<p>JOIN _TLGInOutDailyItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.LOTNO = A.LOTNO</p>
+<p>AND B.OutWHSeq = A.OutWHSeq</p>
+<p>AND B.INWHSEQ = A.INWHSEQ</p>
+<p>JOIN _TLGInOutDaily AS C ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.InOutType = B.InOutType</p>
+<p>AND C.InOutSeq = B.InOutSeq</p>
+<p>where LDMSeq = 136518</p>
+<p>select A.*</p>
+<p>from danam_TLGLotDivMoveItem AS A</p>
+<p>JOIN _TLGInOutDailyItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.LOTNO = A.LOTNO</p>
+<p>AND B.OutWHSeq = A.OutWHSeq</p>
+<p>AND B.INWHSEQ = A.INWHSEQ</p>
+<p>JOIN _TLGInOutDaily AS C ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.InOutType = B.InOutType</p>
+<p>AND C.InOutSeq = B.InOutSeq</p>
+<p>where C.InOutSeq = 408641</p>
+<p>AND C.InOutType = 82</p>
+<p>INSERT INTO danam_TLGLotDivMoveItem_BAK240517</p>
+<p>SELECT * FROM danam_TLGLotDivMoveItem WHERE LDMSeq = 134763</p>
+<p>--DELETE FROM danam_TLGLotDivMoveItem WHERE LDMSeq = 134764</p>
+<p>INSERT INTO danam_TLGLotDivMove_BAK240517</p>
+<p>SELECT * FROM danam_TLGLotDivMove WHERE LDMSeq = 134763</p>
+<p>BEGIN TRAN</p>
+<p>DELETE FROM danam_TLGLotDivMove WHERE LDMSeq = 134763</p>
+<p>DELETE FROM danam_TLGLotDivMoveItem WHERE LDMSeq = 134763</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT * FROM _TLGInOutDaily AS C WHERE C.InOutSeq = 408643 AND C.InOutType = 82</p>
+<p>SELECT * FROM _TLGInOutDailyItem AS C WHERE C.InOutSeq = 408643 AND C.InOutType = 82</p>
+<p>--INSERT INTO _TLGInOutDailyItem_BAK240517 SELECT * FROM _TLGInOutDailyItem AS C WHERE C.InOutSeq = 408643 AND C.InOutType = 82</p>
+<p>-- _TLGInOutDaily_BAK240517</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE _TLGInOutDaily</p>
+<p>SET InOutDate = '20240507'</p>
+<p>FROM _TLGInOutDaily WHERE INOUTTYPE = 82 AND INOUTSEQ = 410506</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT * INTO danam_TLGLotDivMove_BAK240517 FROM danam_TLGLotDivMove_BAK</p>
+<p>DROP TABLE danam_TLGLotDivMove_BAK</p>
+<p>-- danam_TLGLotDivMove_BAK</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE danam_TLGLotDivMove</p>
+<p>SET LDMDate = '20240430'</p>
+<p>FROM danam_TLGLotDivMove where LDMSeq = 136518</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

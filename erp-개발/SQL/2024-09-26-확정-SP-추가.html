@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정 SP 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정 SP 추가</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">확정 SP 추가</h1>
+<p>UPDATE A</p>
+<p>SET CfmSeq = B.CustBankAccSerl</p>
+<p>,Result = B.Result</p>
+<p>,MessageType = B.MessageType</p>
+<p>,Status = B.Status</p>
+<p>FROM #TCOMConfirmCreate AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>EXEC _SWCOMConfirmCreate</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, 2720759</p>
+<p>, @IsTransaction</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result</p>
+<p>,MessageType = B.MessageType</p>
+<p>,Status = B.Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN #TCOMConfirmCreate AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>확정관리에서 화면 사용하지 못하는 경우</p>
+<p>IF OBJECT_ID ('tempdb..#TCOMConfirmCreate') IS NULL</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #TCOMConfirmCreate ( WorkingTag NCHAR(1) , IDX_NO INT , DataSeq INT , CfmSeq INT , CfmSerl INT , CfmSubSerl INT , Result NVARCHAR(255) , MessageType INT , Status INT , CfmCode INT , IsAuto NCHAR(1) , IsNotUsed NCHAR(1) , IsCfmData NCHAR(1) )</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 확정 생성</p>
+<p>--============================================================================================================================================</p>
+<p>INSERT #TCOMConfirmCreate(WorkingTag, IDX_NO, DataSeq, CfmSeq, CfmSerl, CfmSubSerl, Result, MessageType, Status, CfmCode, IsAuto, IsNotUsed, IsCfmData)</p>
+<p>SELECT 'A', IDX_NO, DataSeq, CustBankAccSerl AS CfmSeq, 0 AS CfmSerl, 0, '', 0, 0, 0 AS CfmCode, N'0' AS IsAuto, N'0' AS IsNotUsed, N'1' AS IsCfmData</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>EXEC _SWCOMConfirmCreateCHECK</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = B.Result</p>
+<p>, MessageType = B.MessageType</p>
+<p>, Status = B.Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN #TCOMConfirmCreate AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>EXEC _SWCOMConfirmCreate @ServiceSeq, @WorkingTag, @CompanySeq, @LanguageSeq, @UserSeq, 101820396, @IsTransaction</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result</p>
+<p>,MessageType = B.MessageType</p>
+<p>,Status = B.Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN #TCOMConfirmCreate AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

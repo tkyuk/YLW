@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\_TCOMEnv / \_TCOMEnvConfigItem</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\_TCOMEnv / \_TCOMEnvConfigItem</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_tcomenv-_tcomenvconfigitem">_TCOMEnv / _TCOMEnvConfigItem</h1>
+<p>INSERT INTO _TCOMEnv VALUES(</p>
+<p>'1','2000243','품목수량단위','품목수량단위','2','0','84003','10007','0','3','0','1',GETDATE(),'0','','','0','NULL'</p>
+<p>)</p>
+<p>INSERT INTO _TCOMEnv VALUES(</p>
+<p>'1','2000244','품목길이단위','품목길이단위','2','0','84003','10007','0','3','0','1',GETDATE(),'0','','','0','NULL'</p>
+<p>)</p>
+<p>select * from _TCOMEnv WHERE EnvSeq IN</p>
+<p>(</p>
+<p>2000243,2000244,2000101,2000102,2000096,2000097,2000099,2000098,2000100,2000092,2000087,2000093,2000084,2000105,2000089,2000088</p>
+<p>)</p>
+<p>BEGIN TRAN</p>
+<p>INSERT INTO _TCOMEnvConfigItem VALUES('991015','2000243','1',GETDATE())</p>
+<p>INSERT INTO _TCOMEnvConfigItem VALUES('991015','2000244','1',GETDATE())</p>
+<p>select * from _TCOMEnvConfigItem where ConfigSeq = 991015</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

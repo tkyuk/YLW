@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로그테이블 조회 / 이력조회 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>로그테이블 조회 / 이력조회 SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">로그테이블 조회 / 이력조회 SP</h1>
+<p>DROP TABLE #Temp_mcnk_TSLForecastYm</p>
+<p>CREATE TABLE #Temp_mcnk_TSLForecastYm(</p>
+<p>LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100),</p>
+<p>CompanySeq INT,</p>
+<p>BizUnit INT,</p>
+<p>DeptSeq INT</p>
+<p>,ForecastYM         NCHAR(6)</p>
+<p>,StartYM         NCHAR(6)</p>
+<p>,EndYM         NCHAR(6)</p>
+<p>,Remark         NVARCHAR(1000)</p>
+<p>,LastUserSeq         INT        </p>
+<p>,LastDateTime DATETIME        </p>
+<p>,PlusMonth         INT        </p>
+<p>)</p>
+<p>CREATE TABLE #Temp_mcnk_TSLForecastYmSales(</p>
+<p>LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100)</p>
+<p>,CompanySeq INT</p>
+<p>,BizUnit INT</p>
+<p>,DeptSeq INT</p>
+<p>,ForecastYM         NCHAR(6)</p>
+<p>,Serl INT</p>
+<p>,CustSeq         INT</p>
+<p>,ItemSeq         INT</p>
+<p>,UnitSeq         INT</p>
+<p>,Remark         NVARCHAR(1000)</p>
+<p>,LastUserSeq         INT        </p>
+<p>,LastDateTime DATETIME        </p>
+<p>,PlusMonth         INT        </p>
+<p>)</p>
+<p>CREATE TABLE #Temp_mcnk_TSLForecastYmSalesItem(</p>
+<p>LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100)</p>
+<p>,CompanySeq INT</p>
+<p>,BizUnit INT</p>
+<p>,DeptSeq INT</p>
+<p>,ForecastYM         NCHAR(6)</p>
+<p>,Serl INT</p>
+<p>,ForeYM          NCHAR(6)</p>
+<p>,Qty DECIMAL(19,5)</p>
+<p>,LastUserSeq INT</p>
+<p>,LastDateTime DATETIME</p>
+<p>)</p>
+<p>DECLARE @XmlData1 NVARCHAR(MAX)</p>
+<p>,@DocHandle1 INT</p>
+<p>,@XmlData2 NVARCHAR(MAX)</p>
+<p>,@DocHandle2 INT</p>
+<p>,@XmlData3 NVARCHAR(MAX)</p>
+<p>,@DocHandle3 INT</p>
+<p>SELECT @XmlData1 = ''</p>
+<p>SELECT @XmlData1 = @XmlData1 +</p>
+<p>REPLACE(CONVERT(NVARCHAR(MAX), A.xmlData),</p>
+<p>'\&lt;A',</p>
+<p>'\&lt;A LogType="' + A.LogType+ '" ' +</p>
+<p>'LogSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogSeq, 0)) + '" ' +</p>
+<p>'LogUserSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogUserSeq, 0)) + '" ' +</p>
+<p>'LogPgmSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogPgmSeq , 0)) + '" ' +</p>
+<p>'LogDateTime="' + CONVERT(NVARCHAR(100), A.LogDateTime, 120) + '" ')</p>
+<p>FROM _TCOMTableLog AS A WITH(NOLOCK)</p>
+<p>WHERE A.TableName in( 'mcnk_TSLForecastYm')</p>
+<p>SELECT @XmlData2 = ''</p>
+<p>SELECT @XmlData2 = @XmlData2 +</p>
+<p>REPLACE(CONVERT(NVARCHAR(MAX), A.xmlData),</p>
+<p>'\&lt;A',</p>
+<p>'\&lt;A LogType="' + A.LogType+ '" ' +</p>
+<p>'LogSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogSeq, 0)) + '" ' +</p>
+<p>'LogUserSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogUserSeq, 0)) + '" ' +</p>
+<p>'LogPgmSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogPgmSeq , 0)) + '" ' +</p>
+<p>'LogDateTime="' + CONVERT(NVARCHAR(100), A.LogDateTime, 120) + '" ')</p>
+<p>FROM _TCOMTableLog AS A WITH(NOLOCK)</p>
+<p>WHERE A.TableName in( 'mcnk_TSLForecastYmSales')</p>
+<p>SELECT @XmlData3 = ''</p>
+<p>SELECT @XmlData3 = @XmlData3 +</p>
+<p>REPLACE(CONVERT(NVARCHAR(MAX), A.xmlData),</p>
+<p>'\&lt;A',</p>
+<p>'\&lt;A LogType="' + A.LogType+ '" ' +</p>
+<p>'LogSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogSeq, 0)) + '" ' +</p>
+<p>'LogUserSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogUserSeq, 0)) + '" ' +</p>
+<p>'LogPgmSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogPgmSeq , 0)) + '" ' +</p>
+<p>'LogDateTime="' + CONVERT(NVARCHAR(100), A.LogDateTime, 120) + '" ')</p>
+<p>FROM _TCOMTableLog AS A WITH(NOLOCK)</p>
+<p>WHERE A.TableName in( 'mcnk_TSLForecastYmSalesItem')</p>
+<p>SELECT @XmlData1 = '\&lt;ROOT&gt;' + @XmlData1 + '\&lt;/ROOT&gt;'</p>
+<p>EXEC sp_xml_preparedocument @DocHandle1 OUTPUT, @XmlData1</p>
+<p>SELECT @XmlData2 = '\&lt;ROOT&gt;' + @XmlData2 + '\&lt;/ROOT&gt;'</p>
+<p>EXEC sp_xml_preparedocument @DocHandle2 OUTPUT, @XmlData2</p>
+<p>SELECT @XmlData3 = '\&lt;ROOT&gt;' + @XmlData3 + '\&lt;/ROOT&gt;'</p>
+<p>EXEC sp_xml_preparedocument @DocHandle3 OUTPUT, @XmlData3</p>
+<p>INSERT INTO #Temp_mcnk_TSLForecastYm</p>
+<p>SELECT LogType ,</p>
+<p>LogSeq ,</p>
+<p>LogUserSeq ,</p>
+<p>LogPgmSeq ,</p>
+<p>LogDateTime ,</p>
+<p>CompanySeq ,</p>
+<p>BizUnit ,</p>
+<p>DeptSeq ,</p>
+<p>ForecastYM ,</p>
+<p>StartYM ,</p>
+<p>EndYM ,</p>
+<p>Remark ,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime ,</p>
+<p>PlusMonth</p>
+<p>FROM OPENXML (@DocHandle1, '/ROOT/A', 1)</p>
+<p>WITH (LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100),</p>
+<p>CompanySeq INT,</p>
+<p>BizUnit INT,</p>
+<p>DeptSeq INT</p>
+<p>,ForecastYM         NCHAR(6)</p>
+<p>,StartYM         NCHAR(6)</p>
+<p>,EndYM         NCHAR(6)</p>
+<p>,Remark         NVARCHAR(1000)</p>
+<p>,LastUserSeq         INT        </p>
+<p>,LastDateTime DATETIME        </p>
+<p>,PlusMonth         INT        </p>
+<p>)</p>
+<p>INSERT INTO #Temp_mcnk_TSLForecastYmSales</p>
+<p>SELECT LogType</p>
+<p>,LogSeq</p>
+<p>,LogUserSeq</p>
+<p>,LogPgmSeq</p>
+<p>,LogDateTime</p>
+<p>,CompanySeq</p>
+<p>,BizUnit</p>
+<p>,DeptSeq</p>
+<p>,ForecastYM        </p>
+<p>,Serl</p>
+<p>,CustSeq        </p>
+<p>,ItemSeq        </p>
+<p>,UnitSeq        </p>
+<p>,Remark        </p>
+<p>,LastUserSeq        </p>
+<p>,LastDateTime</p>
+<p>,PlusMonth        </p>
+<p>FROM OPENXML (@DocHandle2, '/ROOT/A', 1)</p>
+<p>WITH (</p>
+<p>LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100)</p>
+<p>,CompanySeq INT</p>
+<p>,BizUnit INT</p>
+<p>,DeptSeq INT</p>
+<p>,ForecastYM         NCHAR(6)</p>
+<p>,Serl INT</p>
+<p>,CustSeq         INT</p>
+<p>,ItemSeq         INT</p>
+<p>,UnitSeq         INT</p>
+<p>,Remark         NVARCHAR(1000)</p>
+<p>,LastUserSeq         INT        </p>
+<p>,LastDateTime DATETIME        </p>
+<p>,PlusMonth         INT        </p>
+<p>)</p>
+<p>INSERT INTO #Temp_mcnk_TSLForecastYmSalesItem</p>
+<p>SELECT LogType</p>
+<p>,LogSeq</p>
+<p>,LogUserSeq</p>
+<p>,LogPgmSeq</p>
+<p>,LogDateTime</p>
+<p>,CompanySeq</p>
+<p>,BizUnit</p>
+<p>,DeptSeq</p>
+<p>,ForecastYM        </p>
+<p>,Serl</p>
+<p>,ForeYM         </p>
+<p>,Qty</p>
+<p>,LastUserSeq</p>
+<p>,LastDateTime</p>
+<p>FROM OPENXML (@DocHandle3, '/ROOT/A', 1)</p>
+<p>WITH (</p>
+<p>LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100)</p>
+<p>,CompanySeq INT</p>
+<p>,BizUnit INT</p>
+<p>,DeptSeq INT</p>
+<p>,ForecastYM         NCHAR(6)</p>
+<p>,Serl INT</p>
+<p>,ForeYM          NCHAR(6)</p>
+<p>,Qty DECIMAL(19,5)</p>
+<p>,LastUserSeq INT</p>
+<p>,LastDateTime DATETIME</p>
+<p>)</p>
+<p>SELECT * FROM #Temp_mcnk_TSLForecastYm</p>
+<p>SELECT * FROM #Temp_mcnk_TSLForecastYmSales</p>
+<p>SELECT * FROM #Temp_mcnk_TSLForecastYmSalesItem</p>
+  </article>
+</div>
+</body>
+</html>

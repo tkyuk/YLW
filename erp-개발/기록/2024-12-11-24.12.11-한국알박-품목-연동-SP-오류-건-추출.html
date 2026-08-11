@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.11 한국알박 품목 연동 SP 오류 건 추출</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.11 한국알박 품목 연동 SP 오류 건 추출</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241211-sp">24.12.11 한국알박 품목 연동 SP 오류 건 추출</h1>
+<p>-- 1. ERP, MES 품번이나 품명 다른 건에 대해 DISTINCT 로 ItemSeq 뽑기</p>
+<p>CREATE TABLE #TMP_ItemSeq(</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #TMP_ItemSeq(ItemSeq)</p>
+<p>SELECT DISTINCT A.ItemSeq</p>
+<p>FROM uck_TMESITEMMASTER AS A</p>
+<p>JOIN _TDAItem AS B ON B.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.ItemNo \&lt;&gt; B.ItemNo</p>
+<p>OR A.ItemName \&lt;&gt; B.ItemName</p>
+<p>SELECT 'U' AS AUDType ,</p>
+<p>GETDATE() AS CrtDateTime ,</p>
+<p>'N' AS RecvYn ,</p>
+<p>NULL AS RecvDateTime,</p>
+<p>A.CompanySeq AS CompanySeq ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>A.ItemName AS ItemName ,</p>
+<p>A.ItemNo AS ItemNo ,</p>
+<p>A.Spec AS Spec ,</p>
+<p>A.AssetSeq AS AssetSeq ,</p>
+<p>ISNULL(C.AssetName, '') AS AssetName,</p>
+<p>ISNULL(L.ValueSeq,0) AS ItemClassLSeq ,</p>
+<p>CASE WHEN ISNULL(L.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = 1 AND MinorSeq = L.ValueSeq ) END AS ItemClassLName, -- 품목대분류</p>
+<p>ISNULL(K.ValueSeq,0) AS ItemClassMSeq,</p>
+<p>CASE WHEN ISNULL(K.ValueSeq,0) = 0 THEN ''</p>
+<p>ELSE ( SELECT ISNULL(MinorName,'')</p>
+<p>FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = 1 AND MinorSeq = K.ValueSeq ) END AS ItemClassMName, -- 품목중분류</p>
+<p>ISNULL(B1.UMItemClass,0) AS ItemClassSSeq, -- 품목소분류코드</p>
+<p>ISNULL(H.MinorName,'') AS ItemClassSName, -- 품목소분류</p>
+<p>A.UnitSeq ,</p>
+<p>ISNULL(B.UnitName , '') ,</p>
+<p>ISNULL(A.SMStatus,0) AS SMStatus, -- 품목 상태</p>
+<p>CASE WHEN ISNULL(A.SMStatus,0) = 0 THEN '' ELSE (SELECT ISNULL(MinorName,'') FROM _TDASMinor WITH (NOLOCK) WHERE CompanySeq = 1 AND MajorSeq = 2001 AND MinorSeq = A.SMStatus) END AS SMStatusName, -- 품목 상태</p>
+<p>ISNULL(F.IsInQc , '0') ,</p>
+<p>ISNULL(F.IsLastQc, '0') ,</p>
+<p>ISNULL(M.StdTime,0) ,</p>
+<p>A.LastUserSeq ,</p>
+<p>A.LastDateTime</p>
+<p>FROM #TMP_ItemSeq AS Z</p>
+<p>JOIN _TDAItem AS A WITH(NOLOCK) ON A.CompanySeq = 1</p>
+<p>AND A.ItemSeq = Z.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.UnitSeq = B.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.AssetSeq = C.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.SMStatus = E.MinorSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseItemQCType AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS B1 WITH(NOLOCK) ON ( A.CompanySeq = B1.CompanySeq AND A.ItemSeq = B1.ItemSeq AND B1.UMajorItemClass IN (2001,2004) )</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON ( B1.CompanySeq = H.CompanySeq AND H.MajorSeq = LEFT( B1.UMItemClass, 4 ) AND B1.UMItemClass = H.MinorSeq )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON ( H.CompanySeq = K.CompanySeq AND K.MajorSeq IN (2001,2004) AND H.MinorSeq = K.MinorSeq AND K.Serl IN (1001,2001) )</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS L WITH(NOLOCK) ON ( K.CompanySeq = L.CompanySeq AND L.MajorSeq IN (2002,2005) AND K.ValueSeq = L.MinorSeq AND L.Serl = 2001 )</p>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, SUM(StdWorkTime) AS StdTime, MAX(LastDateTime) AS LastDateTime FROM _TPDROUItemProcWC GROUP BY ItemSeq) AS M ON A.ItemSeq = M.ItemSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.AssetSeq IN ('1','6', '10','16','2','4')</p>
+<p>DROP TABLE #TMP_ItemSeq</p>
+  </article>
+</div>
+</body>
+</html>

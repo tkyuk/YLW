@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\<\<0209.txt\>\></title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\<\<0209.txt\>\></h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#교육 및 자료</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="0209txt">\&lt;\&lt;0209.txt&gt;&gt;</h1>
+<p>나누기 할 경우 분모가 0 일수 있으므로 CASE WHEN써야한다</p>
+<p>Sales - Item 관계는 하나가 없으면 무조건 다른 하나도 없으므로</p>
+<p>JOIN으로 걸어준다</p>
+<p>WITH(NOLOCK)</p>
+<p>6번</p>
+<p>공백으로 정렬 / 별도로 0,1만들어서 정렬</p>
+<p>UNION</p>
+<hr />
+<p>2001 품목</p>
+<p>2004 자재</p>
+<p>_TDAItemClass - 소분류 (2004001 : 자재 소분류)</p>
+<p>UM_ : 사용자 정의 (_TDAUMinor)</p>
+<p>Major - 대분류</p>
+<p>Minor - 소분류 코드</p>
+<p>여러개 이기 때문에 Serl번호를 해줘야한다</p>
+<p>_TDAMinorValue WHERE MinorSeq = 200101 AND Serl = 1001</p>
+<p>==&gt; 중분류의 키값을 가져올 수 있다 ValueSeq</p>
+<p>MinorSeq</p>
+<p>ValueSeq - 추가 정보 정의 키값 (중분류 키값)</p>
+<p>=&gt; 대분류와 연결되어 있다</p>
+<p>중분류의 ValueSeq와 일련번호로 대분류 구할 수 있다</p>
+<p>여기서 나오는 ValueSeq가 대분류의 키 값</p>
+<p>==&gt; 대분류 위에는 없으므로 명칭만 뽑으면 된다</p>
+<p>`2/10 ACE 등록화면</p>
+  </article>
+</div>
+</body>
+</html>

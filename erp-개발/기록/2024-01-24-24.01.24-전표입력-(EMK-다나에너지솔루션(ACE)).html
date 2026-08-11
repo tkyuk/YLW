@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.01.24 전표입력 (EMK-다나에너지솔루션(ACE))</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.01.24 전표입력 (EMK-다나에너지솔루션(ACE))</h1>
+    <div class="meta">
+      <span class="note-date">2024-01-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="240124-emk-ace">24.01.24 전표입력 (EMK-다나에너지솔루션(ACE))</h1>
+<p>BEGIN TRAN</p>
+<p>EXEC _SWCOMGroupWarePrint 1 , 1 , 1 , 502082 , 'Slip' , 92999 , 'DN'</p>
+<p>ROLLBACK TRAN</p>
+<p>--SELECT TOP 100 * FROM _TACSlip WHERE SlipMstSeq = 92999</p>
+<p>select * from _TDAAccount WHERE AccSeq = 977 -- 계정과목</p>
+<p>select * from _TDAAccountSub WHERE AccSeq = 977 -- 계정과목의관리항목</p>
+<p>select * from _TDAAccountRem WHERE RemSeq IN (3009) -- 관리항목테이블</p>
+<p>_TDAAccountSub</p>
+<p>SELECT * FROM _TACSlip WHERE SlipMstSeq = 92999 -- 전표 M테이블</p>
+<p>select SlipSeq,* from _TACSlipRow</p>
+<p>WHERE SlipMstSeq = 92999 -- 전표 D테이블</p>
+<p>AND SlipSeq = 263409</p>
+<p>SELECT SlipSeq,P.RemValText,*</p>
+<p>--,CASE WHEN CHARINDEX(',', ISNULL(P.RemValText , '')) \&lt;&gt; 0 OR ISNULL(P.RemValText , '') = '' THEN ISNULL(P.RemValText , '')</p>
+<p>-- ELSE dbo._fnGWAmtCommma(1,0,5,ISNULL(P.RemValText , ''),0,0,2,0)</p>
+<p>-- END AS SupplyAmt</p>
+<p>FROM _TACSliprem AS P</p>
+<p>WHERE SlipSeq = 263409</p>
+<p>select * from _TDAAccountSub -- CompanySeq, AccSeq, RemSeq</p>
+<p>select top 100 * from _TACSlip -- CompanySeq, SlipMstSeq</p>
+<p>select top 100 accseq,* from _TACSlipRow -- CompanySeq, SlipMstSeq, SlipSeq</p>
+<p>select top 100 RemSeq,* from _TACSlipRem --CompanySeq, SlipSeq, RemSeq</p>
+<p>select top 100 C.CompanySeq,dbo._fnGWAmtCommma(1,0,5,ISNULL(P.RemValText , ''),0,0,2,0),</p>
+<p>CASE WHEN CHARINDEX(',', ISNULL(P.RemValText , '')) \&lt;&gt; 0 OR ISNULL(P.RemValText , '') = '' THEN '11111111'+ISNULL(P.RemValText , '')</p>
+<p>ELSE '111111'+dbo._fnGWAmtCommma(1,0,5,ISNULL(P.RemValText , ''),0,0,2,0)</p>
+<p>END AS SupplyAmt,*</p>
+<p>from _TACSlipRow as a</p>
+<p>LEFT OUTER join _TACSlipRem as P on P.SlipSeq = a.SlipSeq</p>
+<p>AND P.RemSeq = 3009</p>
+<p>LEFT OUTER join _TDAAccountSub as c on c.AccSeq = a.AccSeq</p>
+<p>and c.RemSeq = P.RemSeq</p>
+<p>WHERE P.SlipSeq = 263409</p>
+  </article>
+</div>
+</body>
+</html>

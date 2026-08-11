@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>문자 찾아서 변환 하기 ex. FO(숫자)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>문자 찾아서 변환 하기 ex. FO(숫자)</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ex-fo">문자 찾아서 변환 하기 ex. FO(숫자)</h1>
+<p>CASE -- FO 패턴 찾기 (소수점 포함)</p>
+<p>WHEN GoodItemSpec LIKE '%FO([0-9]% %' THEN</p>
+<p>'Fail Open (' +</p>
+<p>SUBSTRING(</p>
+<p>GoodItemSpec,</p>
+<p>CHARINDEX('FO(', GoodItemSpec) + 3,</p>
+<p>CHARINDEX(')', GoodItemSpec, CHARINDEX('FO(', GoodItemSpec)) - CHARINDEX('FO(', GoodItemSpec) - 3</p>
+<p>) + ')'</p>
+<p>-- FC 패턴 찾기 (소수점 포함)</p>
+<p>WHEN GoodItemSpec LIKE '%FC([0-9]% %' THEN</p>
+<p>'Fail Close (' +</p>
+<p>SUBSTRING(</p>
+<p>GoodItemSpec,</p>
+<p>CHARINDEX('FC(', GoodItemSpec) + 3,</p>
+<p>CHARINDEX(')', GoodItemSpec, CHARINDEX('FC(', GoodItemSpec)) - CHARINDEX('FC(', GoodItemSpec) - 3</p>
+<p>) + ')'</p>
+<p>ELSE NULL</p>
+  </article>
+</div>
+</body>
+</html>

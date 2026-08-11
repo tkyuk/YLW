@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.16 바이오노트 이동요청조회_biont WMS 확정 시 오류</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.16 바이오노트 이동요청조회_biont WMS 확정 시 오류</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241216-_biont-wms">24.12.16 바이오노트 이동요청조회_biont WMS 확정 시 오류</h1>
+<p>--SELECT PRDT_LOT_NO FROM IFT_COB_TRANSFER_D_ERP</p>
+<p>SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH</p>
+<p>FROM INFORMATION_SCHEMA.COLUMNS</p>
+<p>WHERE TABLE_NAME = 'IFT_COB_TERANSFER_D_ERP'</p>
+<p>AND COLUMN_NAME = 'PRDT_LOT_NO'</p>
+<p>SELECT C.LotNo</p>
+<p>FROM _TLGInOutReq AS B</p>
+<p>LEFT OUTER JOIN biont_TLGInOutReq AS B2 WITH(NOLOCK) ON B.CompanySeq = B2.CompanySeq</p>
+<p>AND B.ReqSeq = B2.ReqSeq</p>
+<p>JOIN _TLGInOutReqItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ReqSeq = C.ReqSeq</p>
+<p>WHERE B.ReqSeq = 12299</p>
+<p>BEGIN TRAN</p>
+<p>-- PRDT_LOT_NO NVARCHAR(20)</p>
+<p>INSERT INTO IFT_COB_TRANSFER_D_ERP</p>
+<p>(</p>
+<p>IF_SEQ , -- I/F 식별 값</p>
+<p>IF_SEQ_DETL_NO , -- I/F 수신 키값의 상세</p>
+<p>REF_NO , -- 이동번호</p>
+<p>REF_DETL_NO , -- 이동라인번호</p>
+<p>ITEM_CD , -- 품번</p>
+<p>ITEM_NM , -- 품명</p>
+<p>STDS_NM , -- 규격</p>
+<p>MV_ECT_QTY , -- 요청수량</p>
+<p>ITEM_STRG_CD , -- 취급단위</p>
+<p>CNVT_STRG_QTY , -- 환산수량</p>
+<p>CNVT_STRG_CD , -- 환산단위</p>
+<p>INVN_SCD , -- 재고상태</p>
+<p>PRDT_LOT_NO , -- 생산LOT번호</p>
+<p>PRDT_DATE , -- 생산일</p>
+<p>FROM_WH_CD , -- 보내는 창고(출고창고)</p>
+<p>FROM_WH_NM , -- 보내는 창고명</p>
+<p>TO_WH_CD , -- 받는 창고(입고창고)</p>
+<p>TO_WH_NM , -- 받는 창고명</p>
+<p>VALID_DATETIME , -- 유통기한</p>
+<p>MEMO , -- 비고</p>
+<p>STATUS_TCD , -- 인터페이스 타입</p>
+<p>INS_DATETIME , -- 수신시간</p>
+<p>INS_PERSON_ID , -- 송신자</p>
+<p>UPD_DATETIME , -- 수정시간</p>
+<p>UPD_PERSON_ID , -- 수정자</p>
+<p>BATCH_STATUS , -- N: New, P: Processing, S: Success, E: Error, O: Ov</p>
+<p>BATCH_INSERT_ID , -- Batch ID</p>
+<p>BATCH_INSERT_DATE, -- Batch Executing Date Time</p>
+<p>BATCH_UPDATE_DATE, -- Batch Finished Date/Time</p>
+<p>BATCH_MSG , -- Batch Error Message and Log</p>
+<p>DOC_NO -- 문안번호</p>
+<p>)</p>
+<p>SELECT '1','1' ,'1','1' ,'26532','Chikungunya IgG ELISA Plate' ,'','33.00000' ,'1','33.00000' ,'1','','ECH1-CP2403' ,'20241128','26','ELISA 실적창고','38','외부창고(제품)','20261127','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','2' ,'1','2' ,'26533','Chikungunya IgM ELISA Plate' ,'','33.00000' ,'1','33.00000' ,'1','','ECH2-CP2403' ,'20241128','26','ELISA 실적창고','38','외부창고(제품)','20261127','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','3' ,'1','3' ,'19609','Human TB-Feron ELISA Plate' ,'','510.00000' ,'1','510.00000' ,'1','','ETB1-CP2426' ,'20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','4' ,'1','4' ,'19609','Human TB-Feron ELISA Plate' ,'','510.00000' ,'1','510.00000' ,'1','','ETB1-CP2427' ,'20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','5' ,'1','5' ,'19609','Human TB-Feron ELISA Plate' ,'','510.00000' ,'1','510.00000' ,'1','','ETB1-CP2428' ,'20241127','26','ELISA 실적창고','38','외부창고(제품)','20261126','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','6' ,'1','6' ,'19609','Human TB-Feron ELISA Plate' ,'','510.00000' ,'1','510.00000' ,'1','','ETB1-CP2429' ,'20241127','26','ELISA 실적창고','38','외부창고(제품)','20261126','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','7' ,'1','7' ,'19649','Human TB-Feron ELISA Standards' ,'','6360.00000' ,'1','6360.00000' ,'1','','ETB1-STDT241106[12/10]','20241106','26','ELISA 실적창고','38','외부창고(제품)','20291105','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','8' ,'1','8' ,'19894','Lyophilized Vial (Dengue Antigen)' ,'','10.00000' ,'1','10.00000' ,'1','','EA01-2410' ,'20241204','26','ELISA 실적창고','38','외부창고(제품)','20291203','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','9' ,'1','9' ,'19900','Malaria Ag ELISA Plate' ,'','33.00000' ,'1','33.00000' ,'1','','EMA1-CP2417' ,'20241203','26','ELISA 실적창고','38','외부창고(제품)','20261202','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','10','1','10','19898','Human TB-Feron ELISA Enzyme Conjugate','','220.00000' ,'3','220.00000' ,'3','','ETB1-CS2408-1' ,'20241106','26','ELISA 실적창고','38','외부창고(제품)','20261105','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','11','1','11','19895','Human TB-Feron ELISA Assay Diluent' ,'','31800.00000','3','31800.00000','3','','ED05-2408' ,'20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+<p>UNION SELECT '1','12','1','12','23065','mAb anti-CHIKV 8A #14-HRP' ,'','2.00000' ,'6','2.00000' ,'6','','MAF0901-HRP2401' ,'20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+<p>ROLLBACK TRAN</p>
+<p>-- SELECT 'MV0000000000122990001','1' ,'LGReq202412160007','1','26532','Chikungunya IgG ELISA Plate','','33.00000','1','33.00000','1','','ECH1-CP2403','20241128','26','ELISA 실적창고','38','외부창고(제품)','20261127','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','2' ,'LGReq202412160007','2','26533','Chikungunya IgM ELISA Plate','','33.00000','1','33.00000','1','','ECH2-CP2403','20241128','26','ELISA 실적창고','38','외부창고(제품)','20261127','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','3' ,'LGReq202412160007','3','19609','Human TB-Feron ELISA Plate','','510.00000','1','510.00000','1','','ETB1-CP2426','20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','4' ,'LGReq202412160007','4','19609','Human TB-Feron ELISA Plate','','510.00000','1','510.00000','1','','ETB1-CP2427','20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','5' ,'LGReq202412160007','5','19609','Human TB-Feron ELISA Plate','','510.00000','1','510.00000','1','','ETB1-CP2428','20241127','26','ELISA 실적창고','38','외부창고(제품)','20261126','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','6' ,'LGReq202412160007','6','19609','Human TB-Feron ELISA Plate','','510.00000','1','510.00000','1','','ETB1-CP2429','20241127','26','ELISA 실적창고','38','외부창고(제품)','20261126','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','7' ,'LGReq202412160007','7','19649','Human TB-Feron ELISA Standards','','6360.00000','1','6360.00000','1','','ETB1-STDT241106[12/10]','20241106','26','ELISA 실적창고','38','외부창고(제품)','20291105','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','8' ,'LGReq202412160007','8','19894','Lyophilized Vial (Dengue Antigen)','','10.00000','1','10.00000','1','','EA01-2410','20241204','26','ELISA 실적창고','38','외부창고(제품)','20291203','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','9' ,'LGReq202412160007','9','19900','Malaria Ag ELISA Plate','','33.00000','1','33.00000','1','','EMA1-CP2417','20241203','26','ELISA 실적창고','38','외부창고(제품)','20261202','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','10','LGReq202412160007','10','19898','Human TB-Feron ELISA Enzyme Conjugate','','220.00000','3','220.00000','3','','ETB1-CS2408-1','20241106','26','ELISA 실적창고','38','외부창고(제품)','20261105','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','11','LGReq202412160007','11','19895','Human TB-Feron ELISA Assay Diluent','','31800.00000','3','31800.00000','3','','ED05-2408','20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+<p>--UNION SELECT 'MV0000000000122990001','12','LGReq202412160007','12','23065','mAb anti-CHIKV 8A #14-HRP','','2.00000','6','2.00000','6','','MAF0901-HRP2401','20241126','26','ELISA 실적창고','38','외부창고(제품)','20261125','','A','','','','','N','','','','',''</p>
+  </article>
+</div>
+</body>
+</html>

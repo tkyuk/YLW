@@ -1,0 +1,3066 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOM 전개</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>BOM 전개</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="bom">BOM 전개</h1>
+<p>DROP PROCEDURE ssv_SWSLOrderOptionCfmOptProc_TTEST</p>
+<p>GO</p>
+<p>CREATE PROCEDURE ssv_SWSLOrderOptionCfmOptProc_TTEST</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>SET NOCOUNT ON</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<p>@OrderSeq INT,</p>
+<p>@OrderSerl INT,</p>
+<p>@CASE INT,</p>
+<p>@WorkDate NCHAR(8),</p>
+<p>@ProdReqSeq INT,</p>
+<p>@ProdReqSerl INT,</p>
+<p>@PUYN NCHAR(1),</p>
+<p>@CurrDate NCHAR(8),</p>
+<p>@SQL NVARCHAR(MAX),</p>
+<p>@DBName NVARCHAR(100),</p>
+<p>@NewItemSeq INT,</p>
+<p>@OrderNo NVARCHAR(100) = '',</p>
+<p>@OrderItemSeq INT = 0</p>
+<p>SELECT @OrderSeq = OrderSeq ,</p>
+<p>@OrderSerl = OrderSerl ,</p>
+<p>@ProdReqSeq = ProdReqSeq ,</p>
+<p>@ProdReqSerl = ProdReqSerl,</p>
+<p>@PUYN = PUYN</p>
+<p>FROM #BIZ_OUT_DataBlock2</p>
+<p>SELECT @CurrDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>SELECT @DBName = BizDNS FROM sys_TMDMBiz WHERE IsMainBiz = '1' -- 본사</p>
+<p>---- 수주태그 담기</p>
+<p>--SELECT A.OrderSeq, A.OrderSerl, A.TagSerl, A.Qty AS TagQty</p>
+<p>-- INTO #TSLOrderItemTag</p>
+<p>-- FROM ssv_TSLOrderItemTag AS A WITH(NOLOCK)</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.OrderSeq = @OrderSeq</p>
+<p>-- AND A.OrderSerl = @OrderSerl</p>
+<p>---- 진행 된 Tag는 제거</p>
+<p>--DELETE A</p>
+<p>-- FROM #TSLOrderItemTag AS A</p>
+<p>-- JOIN ssv_TPDSFCWorkOrder AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.OrderSeq = A.OrderSeq</p>
+<p>-- AND B.OrderSerl = A.OrderSerl</p>
+<p>-- AND B.TagSerl = A.TagSerl</p>
+<p>--SELECT @WorkDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>-- 수주태그 담기</p>
+<p>SELECT ROW_NUMBER() OVER(ORDER BY A.OrderSeq, A.OrderSerl, A.TagSerl, B.number) AS IDX_NO,</p>
+<p>A.OrderSeq, A.OrderSerl, A.TagSerl, A.Qty AS TagQty, B.number</p>
+<p>INTO #TSLOrderItemTag_Temp</p>
+<p>FROM ssv_TSLOrderItemTag AS A WITH(NOLOCK)</p>
+<p>JOIN master..spt_values AS B WITH(NOLOCK) ON A.Qty &gt; B.number</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND A.OrderSerl = @OrderSerl</p>
+<p>AND A.Qty \&lt;&gt; 0</p>
+<p>AND B.type = 'P'</p>
+<p>AND NOT EXISTS (SELECT TOP 1 1</p>
+<p>FROM ssv_TPDSFCWorkOrder AS Z</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.OrderSeq = A.OrderSeq</p>
+<p>AND Z.OrderSerl = A.OrderSerl</p>
+<p>AND Z.TagSerl = A.TagSerl)</p>
+<p>SELECT *</p>
+<p>INTO #TSLOrderItemTag</p>
+<p>FROM #TSLOrderItemTag_Temp AS A</p>
+<p>WHERE A.IDX_NO \&lt;= (SELECT Qty</p>
+<p>FROM _TPDMPSProdReqItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdReqSeq = @ProdReqSeq</p>
+<p>AND A.Serl = @ProdReqSerl)</p>
+<p>-- 수주품목, 조립품목, 표준품목, 조립품, 반조립품, 구동기, BPV, EQV, 수주품목구분 담기</p>
+<p>SELECT @OrderNo = C.OrderNo + '-' + B.OrderSerlNo, -- 수주번호</p>
+<p>@OrderItemSeq = A.ItemSeq -- 수주품목</p>
+<p>FROM _TSLOrderItem AS A WITH(NOLOCK)</p>
+<p>JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>JOIN _TSLOrder AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.OrderSeq = A.OrderSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND A.OrderSerl = @OrderSerl</p>
+<hr />
+<p>-- BOM전개</p>
+<hr />
+<p>CREATE TABLE #BOMSpread -- BOM전개</p>
+<p>(</p>
+<p>ItemSeq INT , -- 품목내부코드</p>
+<p>ItemBOMRev NCHAR(2) , -- 품목BOM차수</p>
+<p>UnitSeq INT , -- 단위내부코드</p>
+<p>BOMLevelText NVARCHAR(50) , -- BOM Level</p>
+<p>Location NVARCHAR(2000) , -- Location</p>
+<p>Remark NVARCHAR(500) , -- 비고</p>
+<p>Serl INT , -- 순번</p>
+<p>NeedQtyNumerator DECIMAL(19,5) , -- 소요량(분자)</p>
+<p>NeedQtyDenominator DECIMAL(19,5) , -- 소요량(분모)</p>
+<p>NeedQty DECIMAL(19,10) , -- 소요량</p>
+<p>Seq INT IDENTITY(1,1) , -- Seq</p>
+<p>ParentSeq INT , -- 모품목Seq</p>
+<p>Sort INT , -- Tree Sort</p>
+<p>BOMLevel INT , -- Level</p>
+<p>BOMLevelTree NVARCHAR(100) , -- Tree Level</p>
+<p>ParentItemSeq INT NULL, -- 모품목코드</p>
+<p>ParentBomRev NCHAR(2) NULL, -- 모품목차수</p>
+<p>InLossRate DECIMAL(19,5) NULL, -- 사내로스율 --2015.06.01 추가 박수영</p>
+<p>OutLossRate DECIMAL(19,5) NULL, -- 사외로스율 --2015.06.01 추가 박수영</p>
+<p>IsBOMOnly NCHAR(1) NULL, -- BOM조회용 --2015.06.13 추가 박수영</p>
+<p>IsIncludeProcMat NCHAR(1) NULL, -- 하위공정소요자재포함여부 --2015.06.13 추가 박수영</p>
+<p>)</p>
+<p>DECLARE @BizUnit INT ,</p>
+<p>@ItemSeq INT ,</p>
+<p>@ItemBomRev NCHAR(2),</p>
+<p>@SemiType NCHAR(1),</p>
+<p>@IsReverse NCHAR(1),</p>
+<p>@QryLevel INT</p>
+<p>SELECT @BizUnit = A.BizUnit ,</p>
+<p>@ItemSeq = B.STDItemSeq ,</p>
+<p>@ItemBomRev = MAX(C.ItemBOMRev),</p>
+<p>@SemiType = '0' ,</p>
+<p>@IsReverse = '0' ,</p>
+<p>@QryLevel = 0</p>
+<p>FROM _TSLOrder AS A WITH(NOLOCK)</p>
+<p>JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>LEFT OUTER JOIN _TPDBOMManagement AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.STDItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND B.OrderSerl = @OrderSerl</p>
+<p>GROUP BY B.STDItemSeq, A.BizUnit</p>
+<p>ORDER BY B.STDItemSeq</p>
+<p>IF ISNULL(@ProdReqSeq, 0) = 0 OR ISNULL(@ProdReqSerl, 0) = 0</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '생산의뢰건을 선택하지 않았습니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 수주옵션확정체크 &gt; 수주테이블에서 생산의뢰테이블로 기준으로 변경 20231219 KHKANG</p>
+<p>--============================================================================================================================================</p>
+<p>IF (SELECT IsOptionCfm FROM ssv_TPDMPSProdReqItem WHERE CompanySeq = @CompanySeq AND ProdReqSeq = @ProdReqSeq AND Serl = @ProdReqSerl) = '1'</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '이미 확정되었습니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 상태 체크 &gt; 진행이 아니면 모두 에러</p>
+<p>--============================================================================================================================================</p>
+<p>DECLARE @UMStatus INT</p>
+<p>SELECT @UMStatus = UMStatus</p>
+<p>FROM ssv_TSLOrderItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND OrderSeq = @OrderSeq</p>
+<p>AND OrderSerl = @OrderSerl</p>
+<p>IF @UMStatus \&lt;&gt; 1000786001</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '상태가 진행이 아닌 데이터는 처리할 수 없습니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 구매품으로 진행 건은 확정처리만(가공품)</p>
+<p>--============================================================================================================================================</p>
+<p>IF @PUYN = '1'</p>
+<p>BEGIN</p>
+<p>-- 수주옵션확정처리</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM #BIZ_OUT_DataBlock2 WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET IsOptionCfm = '1' ,</p>
+<p>OptionCfmDate = @CurrDate, -- 현재일</p>
+<p>OptionCfmEmpUserSeq = (SELECT EmpSeq FROM _TCAUser WHERE CompanySeq = @CompanySeq AND UserSeq = @UserSeq)</p>
+<p>FROM ssv_TPDMPSProdReqItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdReqSeq = @ProdReqSeq</p>
+<p>AND A.Serl = @ProdReqSerl</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET IsOptionCfm = '1' ,</p>
+<p>OptionCfmDate = @CurrDate, -- 현재일</p>
+<p>OptionCfmEmpUserSeq = (SELECT EmpSeq FROM _TCAUser WHERE CompanySeq = @CompanySeq AND UserSeq = @UserSeq)</p>
+<p>TRUNCATE TABLE #BOMSpread</p>
+<p>-- BOM전개</p>
+<p>EXEC _SWPDBOMSpread @CompanySeq,</p>
+<p>@BizUnit ,</p>
+<p>@ItemSeq ,</p>
+<p>@ItemBomRev,</p>
+<p>@SemiType ,</p>
+<p>@IsReverse ,</p>
+<p>@QryLevel</p>
+<p>-- 가공품인 경우 수주제품코드 품명, 품번, 규격등을 가공품에서 선택된 품목 기준으로 명칭을 변경하고 기타 분류정보도 가공품기준으로 재생성한다.</p>
+<p>-- 옵션체크된 품목만 담기</p>
+<p>SELECT A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>A.Seq ,</p>
+<p>A.ParentSeq ,</p>
+<p>A.Level ,</p>
+<p>A.NodeImg ,</p>
+<p>A.IsChk ,</p>
+<p>A.UMOption ,</p>
+<p>A.UMItemType ,</p>
+<p>A.ItemSeq ,</p>
+<p>A.UnitSeq ,</p>
+<p>A.Qty ,</p>
+<p>A.DWGNo ,</p>
+<p>A.WorkCenterSeq,</p>
+<p>A.IsWorkOrder ,</p>
+<p>A.Sort ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl</p>
+<p>INTO #TSLOrderItemOption_PUYN</p>
+<p>FROM ssv_TSLOrderItemOption AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdReqSeq = @ProdReqSeq</p>
+<p>AND A.ProdReqSerl = @ProdReqSerl</p>
+<p>AND A.IsChk = '1'</p>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>DELETE A</p>
+<p>FROM #TSLOrderItemOption_PUYN A LEFT OUTER JOIN #TSLOrderItemOption_PUYN B ON A.ParentSeq = B.Seq</p>
+<p>WHERE A.Level &gt;= 3</p>
+<p>AND B.Seq IS NULL</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>END</p>
+<p>-- EA이면서 소수점이면 에러처리 20240126 KHKANG</p>
+<p>-- 해당하는 데이터만 체크 하도록 변경 20240315 KHKANG</p>
+<p>IF EXISTS (SELECT TOP 1 1</p>
+<p>FROM #BOMSpread AS A</p>
+<p>JOIN _TDAUnit AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.UnitSeq = A.UnitSeq</p>
+<p>JOIN #TSLOrderItemOption_PUYN AS C ON C.ItemSeq = A.ItemSeq</p>
+<p>WHERE B.UnitName = 'EA'</p>
+<p>AND ROUND(A.NeedQty, 10) - FLOOR(ROUND(A.NeedQty, 10)) \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '단위가 EA인 경우 소요량에 소수점이 존재할 수 없습니다. BOM을 확인하세요.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>SELECT @NewItemSeq = 0</p>
+<p>SELECT TOP 1</p>
+<p>@NewItemSeq = A.ItemSeq</p>
+<p>FROM #BOMSpread AS A</p>
+<p>JOIN #TSLOrderItemOption_PUYN AS B ON B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.AssetSeq = C.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.MinorSeq = D.SMAssetGrp</p>
+<p>WHERE A.ParentSeq \&lt;&gt; 0</p>
+<p>AND E.MinorValue = 1 -- 자재</p>
+<p>SELECT @SQL = ''</p>
+<p>-- 성환도 동일한 화면 사용으로 본사 테이블에 업데이트 처리하여 MCO 작동하게 한다.</p>
+<p>-- 딜레이 때문에 즉시 업데이트 처리</p>
+<p>-- 품목명칭 변경 &gt; 품목명칭, 조립품목명칭 변경하도록 수정 20240621 KHKANG</p>
+<p>-- 품목명칭</p>
+<p>UPDATE _TDAItem</p>
+<p>SET ItemName = (SELECT ItemName FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq),</p>
+<p>ItemNo = (SELECT ItemNo FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq) + '-' + @OrderNo,</p>
+<p>Spec = (SELECT Spec FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq)</p>
+<p>FROM _TDAItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = @OrderItemSeq</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' UPDATE '+ @DBName + '.._TDAItem ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' SET ItemName = (SELECT ItemName FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + '), ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ItemNo = (SELECT ItemNo FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ') + ''-' + @OrderNo + ''', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' Spec = (SELECT Spec FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ') ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '.._TDAItem AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq ) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.ItemSeq = ' + CONVERT(NVARCHAR, @OrderItemSeq) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>-- 조립품목명칭</p>
+<p>DECLARE @ProdItemSeqPU INT</p>
+<p>SELECT @ProdItemSeqPU = B.ProdItemSeq -- 조립품목</p>
+<p>FROM _TSLOrderItem AS A WITH(NOLOCK)</p>
+<p>JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND A.OrderSerl = @OrderSerl</p>
+<p>UPDATE _TDAItem</p>
+<p>SET ItemName = (SELECT ItemName FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq),</p>
+<p>ItemNo = (SELECT ItemNo FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq) + '-' + @OrderNo + '_조립',</p>
+<p>Spec = (SELECT Spec FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq)</p>
+<p>FROM _TDAItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = @ProdItemSeqPU</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' UPDATE '+ @DBName + '.._TDAItem ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' SET ItemName = (SELECT ItemName FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + '), ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ItemNo = (SELECT ItemNo FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ') + ''-' + @OrderNo + '_조립'', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' Spec = (SELECT Spec FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ') ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '.._TDAItem AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq ) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.ItemSeq = ' + CONVERT(NVARCHAR, @ProdItemSeqPU) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>-- 품목코드 조립품코드에 입력 &gt; 품목코드 구매용품목코드에 입력하도록 수정 20240621 KHKANG</p>
+<p>UPDATE ssv_TSLOrderItem</p>
+<p>--SET ProdItemSeq = @NewItemSeq</p>
+<p>SET PUItemSeq = @NewItemSeq</p>
+<p>FROM ssv_TSLOrderItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND A.OrderSerl = @OrderSerl</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' UPDATE '+ @DBName + '..ssv_TSLOrderItem ' + CHAR(13)</p>
+<p>--SELECT @SQL = @SQL + ' SET ProdItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' SET PUItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '..ssv_TSLOrderItem AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.OrderSeq = ' + CONVERT(NVARCHAR, @OrderSeq ) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.OrderSerl = ' + CONVERT(NVARCHAR, @OrderSerl ) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>-- 기존 기타분류정보 삭제</p>
+<p>--DELETE _TDAItemClass</p>
+<p>-- FROM _TDAItemClass AS A</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.ItemSeq = @OrderItemSeq</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' DELETE '+ @DBName + '.._TDAItemClass ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '.._TDAItemClass AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq ) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.ItemSeq = ' + CONVERT(NVARCHAR, @OrderItemSeq) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>-- 가공품기준 기타분류정보 입력</p>
+<p>--INSERT _TDAItemClass</p>
+<p>--SELECT @CompanySeq ,</p>
+<p>-- @OrderItemSeq ,</p>
+<p>-- A.UMajorItemClass,</p>
+<p>-- A.UMItemClass ,</p>
+<p>-- @UserSeq ,</p>
+<p>-- GETDATE()</p>
+<p>-- FROM _TDAItemClass AS A</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.ItemSeq = @NewItemSeq</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' INSERT '+ @DBName + '.._TDAItemClass ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' SELECT ' + CONVERT(NVARCHAR, @CompanySeq ) + ', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ' + CONVERT(NVARCHAR, @OrderItemSeq) + ', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' A.UMajorItemClass, ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' A.UMItemClass , ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ' + CONVERT(NVARCHAR, @UserSeq) + ', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' GETDATE() ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '.._TDAItemClass AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>END</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 워크센터 입력 체크</p>
+<p>--============================================================================================================================================</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM ssv_TSLOrderItemOption WHERE CompanySeq = @CompanySeq AND ProdReqSeq = @ProdReqSeq AND ProdReqSerl = @ProdReqSeq AND WorkCenterSeq = 0)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '워크센터가 입력되지 않은 데이터가 존재합니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>AND WorkCenterSeq = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 작업지시 임시테이블 생성</p>
+<p>--============================================================================================================================================</p>
+<p>CREATE TABLE #TPDSFCWorkOrder</p>
+<p>(</p>
+<p>-- _TPDSFCWorkOrder</p>
+<p>Seq INT IDENTITY(1,1),</p>
+<p>WorkingTag NCHAR(1) DEFAULT 'A',</p>
+<p>Selected INT DEFAULT 0,</p>
+<p>MessageType INT DEFAULT 0,</p>
+<p>Status INT DEFAULT 0,</p>
+<p>Result NVARCHAR(255) DEFAULT '',</p>
+<p>ROW_IDX INT DEFAULT 0,</p>
+<p>IsChangedMst NCHAR(1) DEFAULT '0',</p>
+<p>TABLE_NAME NVARCHAR(255) DEFAULT '',</p>
+<p>IDX_NO INT ,</p>
+<p>DataSeq INT ,</p>
+<p>WorkOrderSeq INT ,</p>
+<p>WorkOrderSerl INT ,</p>
+<p>WorkOrderNo NVARCHAR(30) ,</p>
+<p>WorkDate NCHAR(8) ,</p>
+<p>WorkOrderDate NCHAR(8) ,</p>
+<p>ProcSeq INT ,</p>
+<p>GoodItemSeq INT ,</p>
+<p>WorkCenterSeq INT ,</p>
+<p>DeptSeq INT ,</p>
+<p>GoodUnitSeq INT ,</p>
+<p>AssyItemSeq INT ,</p>
+<p>ProdUnitSeq INT ,</p>
+<p>NeedQty DECIMAL(19,5) ,</p>
+<p>OrderQty DECIMAL(19,5) ,</p>
+<p>StdUnitQty DECIMAL(19,5) ,</p>
+<p>BizUnit INT ,</p>
+<p>ProcRev NCHAR(2) DEFAULT '00',</p>
+<p>ProdPlanSeq INT DEFAULT 0,</p>
+<p>WorkStartTime NCHAR(4) DEFAULT '',</p>
+<p>WorkEndTime NCHAR(4) DEFAULT '',</p>
+<p>WorkType INT DEFAULT 6041001,</p>
+<p>Remark NVARCHAR(500) DEFAULT '',</p>
+<p>IsProcQC NCHAR(1) DEFAULT '0',</p>
+<p>IsLastProc NCHAR(1) DEFAULT '1',</p>
+<p>IsConfirm NCHAR(1) DEFAULT '0',</p>
+<p>ProdRemark NVARCHAR(200) DEFAULT '',</p>
+<p>Priority INT DEFAULT 0,</p>
+<p>WorkCond1 NVARCHAR(500) DEFAULT '',</p>
+<p>WorkCond2 NVARCHAR(500) DEFAULT '',</p>
+<p>WorkCond3 NVARCHAR(500) DEFAULT '',</p>
+<p>WorkCond4 DECIMAL(19,5) DEFAULT 0,</p>
+<p>WorkCond5 DECIMAL(19,5) DEFAULT 0,</p>
+<p>WorkCond6 DECIMAL(19,5) DEFAULT 0,</p>
+<p>WorkCond7 DECIMAL(19,5) DEFAULT 0,</p>
+<p>WorkCond8 NVARCHAR(500) DEFAULT '',</p>
+<p>WorkCond9 NVARCHAR(500) DEFAULT '',</p>
+<p>WorkCond10 NVARCHAR(500) DEFAULT '',</p>
+<p>WorkPlanSerl INT DEFAULT 0,</p>
+<p>DailyWorkPlanSerl INT DEFAULT 0,</p>
+<p>WorkReportSeq INT DEFAULT 0,</p>
+<p>IsAfterWork NCHAR(1) DEFAULT '0',</p>
+<p>ProcNo INT DEFAULT '',</p>
+<p>ToProcNo INT DEFAULT '',</p>
+<p>WorkOrderDateFr NCHAR(8) DEFAULT '',</p>
+<p>WorkOrderDateTo NCHAR(8) DEFAULT '',</p>
+<p>OrderQtyOld DECIMAL(19,5) DEFAULT 0,</p>
+<p>BadQCSeq INT DEFAULT 0,</p>
+<p>Confirm NCHAR(1) ,</p>
+<p>ConfirmDate NCHAR(8) ,</p>
+<p>ConfirmEmp NVARCHAR(100) ,</p>
+<p>ConfirmReason NVARCHAR(500) ,</p>
+<p>IsStop NCHAR(1) ,</p>
+<p>StopDate NCHAR(8) ,</p>
+<p>StopEmp NVARCHAR(100) ,</p>
+<p>StopReason NVARCHAR(500) ,</p>
+<p>BatchSize DECIMAL(19,5) DEFAULT 0,</p>
+<p>BatchQty DECIMAL(19,5) DEFAULT 0,</p>
+<p>ToolSeq INT DEFAULT 0,</p>
+<p>FactUnit INT DEFAULT 0,</p>
+<p>ChainGoodsSeq INT DEFAULT 0,</p>
+<p>IsPjt NCHAR(1) DEFAULT '0',</p>
+<p>PJTSeq INT DEFAULT 0,</p>
+<p>WBSSeq INT DEFAULT 0,</p>
+<p>ItemBomRev NCHAR(2) DEFAULT '00',</p>
+<p>SMToProcMovType INT DEFAULT 0,</p>
+<p>ProdOrderSeq INT DEFAULT 0,</p>
+<p>IsCancel NCHAR(1) DEFAULT '0',</p>
+<p>BatchSeq INT DEFAULT 0,</p>
+<p>IsJobOrderEnd NCHAR(1) DEFAULT '0',</p>
+<p>JobOrderEndDate NCHAR(8) DEFAULT '',</p>
+<p>WorkTimeGroup INT DEFAULT 0,</p>
+<p>-- ssv_TPDSFCWorkOrder</p>
+<p>OrderSeq INT ,</p>
+<p>OrderSerl INT ,</p>
+<p>TagSerl INT ,</p>
+<p>DwgNo NVARCHAR(100) ,</p>
+<p>IsQC NCHAR(1) ,</p>
+<p>HeatNo NVARCHAR(100) DEFAULT '',</p>
+<p>ProdReqSeq INT ,</p>
+<p>ProdReqSerl INT ,</p>
+<p>IsUpper NCHAR(1) -- 상위데이터</p>
+<p>)</p>
+<p>CREATE TABLE #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>WorkOrderSeq INT ,</p>
+<p>WorkOrderSerl INT ,</p>
+<p>WorkOrderNo NVARCHAR(30) ,</p>
+<p>WorkDate NCHAR(8) ,</p>
+<p>WorkOrderDate NCHAR(8) ,</p>
+<p>ProcSeq INT ,</p>
+<p>GoodItemSeq INT ,</p>
+<p>WorkCenterSeq INT ,</p>
+<p>DeptSeq INT ,</p>
+<p>GoodUnitSeq INT ,</p>
+<p>AssyItemSeq INT ,</p>
+<p>ProdUnitSeq INT ,</p>
+<p>NeedQty DECIMAL(19,5) ,</p>
+<p>OrderQty DECIMAL(19,5) ,</p>
+<p>StdUnitQty DECIMAL(19,5) ,</p>
+<p>BizUnit INT ,</p>
+<p>OrderSeq INT ,</p>
+<p>OrderSerl INT ,</p>
+<p>TagSerl INT ,</p>
+<p>DwgNo NVARCHAR(100) ,</p>
+<p>IsQC NCHAR(1) ,</p>
+<p>ProdReqSeq INT ,</p>
+<p>ProdReqSerl INT ,</p>
+<p>IsUpper NCHAR(1) -- 상위데이터</p>
+<p>)</p>
+<p>CREATE TABLE #TPDSFCWorkOrderMat</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1) DEFAULT 'A',</p>
+<p>Selected INT DEFAULT 0,</p>
+<p>MessageType INT DEFAULT 0,</p>
+<p>Status INT DEFAULT 0,</p>
+<p>Result NVARCHAR(255) DEFAULT '',</p>
+<p>ROW_IDX INT DEFAULT 0,</p>
+<p>IsChangedMst NCHAR(1) DEFAULT '0',</p>
+<p>TABLE_NAME NVARCHAR(255) DEFAULT '',</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>DataSeq INT DEFAULT 0,</p>
+<p>ParentItemSeq INT ,</p>
+<p>Sort INT ,</p>
+<p>WorkOrderSeq INT ,</p>
+<p>WorkOrderSerl INT ,</p>
+<p>MatSerl INT ,</p>
+<p>ItemSeq INT ,</p>
+<p>UnitSeq INT ,</p>
+<p>Qty DECIMAL(19,5) ,</p>
+<p>DwgNo NVARCHAR(100) ,</p>
+<p>HeatNo NVARCHAR(100) DEFAULT '',</p>
+<p>Width DECIMAL(19,5) ,</p>
+<p>Height DECIMAL(19,5) ,</p>
+<p>Thickness DECIMAL(19,5) ,</p>
+<p>Exdiameter DECIMAL(19,5) ,</p>
+<p>Gravity DECIMAL(19,5) ,</p>
+<p>Weight DECIMAL(19,5) ,</p>
+<p>EachQty DECIMAL(19,5) ,</p>
+<p>UMMatType INT ,</p>
+<p>OrderSeq INT ,</p>
+<p>OrderSerl INT ,</p>
+<p>TagSerl INT ,</p>
+<p>ProdReqSeq INT ,</p>
+<p>ProdReqSerl INT ,</p>
+<p>ParentIDX_NO INT ,</p>
+<p>UMItemType INT</p>
+<p>)</p>
+<p>CREATE TABLE #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1),</p>
+<p>ParentItemSeq INT ,</p>
+<p>Sort INT ,</p>
+<p>WorkOrderSeq INT ,</p>
+<p>WorkOrderSerl INT ,</p>
+<p>MatSerl INT ,</p>
+<p>ItemSeq INT ,</p>
+<p>UnitSeq INT ,</p>
+<p>Qty DECIMAL(19,5) ,</p>
+<p>DwgNo NVARCHAR(100) ,</p>
+<p>Width DECIMAL(19,5) ,</p>
+<p>Height DECIMAL(19,5) ,</p>
+<p>Thickness DECIMAL(19,5) ,</p>
+<p>Exdiameter DECIMAL(19,5) ,</p>
+<p>Gravity DECIMAL(19,5) ,</p>
+<p>Weight DECIMAL(19,5) ,</p>
+<p>EachQty DECIMAL(19,5) ,</p>
+<p>UMMatType INT ,</p>
+<p>OrderSeq INT ,</p>
+<p>OrderSerl INT ,</p>
+<p>ProdReqSeq INT ,</p>
+<p>ProdReqSerl INT ,</p>
+<p>UMItemType INT</p>
+<p>)</p>
+<p>CREATE TABLE #TPDSFCWorkOrderMat_Item</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>OrderQty DECIMAL(19,5),</p>
+<p>ItemBOMRev NCHAR(2)</p>
+<p>)</p>
+<p>--============================================================================================================================================</p>
+<p>-- 옵션데이터 처리</p>
+<p>--============================================================================================================================================</p>
+<p>DECLARE @STDItemSeq INT = 0,</p>
+<p>@ProdItemSeq INT = 0,</p>
+<p>@ProcItemSeq INT = 0,</p>
+<p>@DriverSeq INT = 0,</p>
+<p>@UMOrderType INT = 0,</p>
+<p>@BPVOrderSeq INT = 0,</p>
+<p>@BPVOrderSerl INT = 0,</p>
+<p>@BPVItemSeq INT = 0,</p>
+<p>@BPVOrderQty INT = 0,</p>
+<p>@EQVOrderSeq INT = 0,</p>
+<p>@EQVOrderSerl INT = 0,</p>
+<p>@EQVItemSeq INT = 0,</p>
+<p>@EQVOrderQty INT = 0,</p>
+<p>@OrderUnitSeq INT = 0,</p>
+<p>@ProdUnitSeq INT = 0,</p>
+<p>@ProcUnitSeq INT = 0,</p>
+<p>@OrderQty DECIMAL(19,5) = 0,</p>
+<p>@UMProdCust INT = 0,</p>
+<p>@SMStatus INT</p>
+<p>-- 정상</p>
+<p>SELECT @SMStatus = 2001002</p>
+<p>-- 수주품목, 표준품목, 조립품, 반조립품, 구동기, BPV, EQV, 수주품목구분 담기</p>
+<p>SELECT @OrderNo = C.OrderNo + '-' + B.OrderSerlNo, -- 수주번호</p>
+<p>@OrderItemSeq = A.ItemSeq , -- 수주품목</p>
+<p>--@STDItemSeq = B.STDItemSeq , -- 표준품목</p>
+<p>--@ProdItemSeq = B.ProdItemSeq , -- 조립품목</p>
+<p>--@ProcItemSeq = B.ProcItemSeq , -- 반조립품목</p>
+<p>@STDItemSeq = ISNULL(D.ItemSeq, 0) , -- 표준품목 -- 상태가 정상이 아니면 0으로 처리 20240207 KHKANG</p>
+<p>@ProdItemSeq = ISNULL(E.ItemSeq, 0) , -- 조립품목 -- 상태가 정상이 아니면 0으로 처리 20240207 KHKANG</p>
+<p>@ProcItemSeq = ISNULL(F.ItemSeq, 0) , -- 반조립품목 -- 상태가 정상이 아니면 0으로 처리 20240207 KHKANG</p>
+<p>@DriverSeq = B.DriverSeq , -- 구동기</p>
+<p>@BPVOrderSeq = B.BPVOrderSeq , -- BPV수주내부코드</p>
+<p>@BPVOrderSerl = B.BPVOrderSerl , -- BPV수주내부순번</p>
+<p>@BPVOrderQty = B.BPVOrderQty , -- BPV수주수량</p>
+<p>@EQVOrderSeq = B.EQVOrderSeq , -- EQV수주내부코드</p>
+<p>@EQVOrderSerl = B.EQVOrderSerl , -- EQV수주내부순번</p>
+<p>@EQVOrderQty = B.EQVOrderQty , -- EQV수주수량</p>
+<p>@UMOrderType = B.UMOrderType , -- 수주품목구분</p>
+<p>--@OrderQty = A.Qty , -- 수주수량</p>
+<p>@WorkDate = A.DVDate -- 작업예정일 &gt; 수주 납기일</p>
+<p>FROM _TSLOrderItem AS A WITH(NOLOCK)</p>
+<p>JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>JOIN _TSLOrder AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.OrderSeq = A.OrderSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq</p>
+<p>AND D.ItemSeq = B.STDItemSeq</p>
+<p>AND D.SMStatus = @SMStatus</p>
+<p>LEFT OUTER JOIN _TDAItem AS E WITH(NOLOCK) ON E.CompanySeq = B.CompanySeq</p>
+<p>AND E.ItemSeq = B.ProdItemSeq</p>
+<p>AND E.SMStatus = @SMStatus</p>
+<p>LEFT OUTER JOIN _TDAItem AS F WITH(NOLOCK) ON F.CompanySeq = B.CompanySeq</p>
+<p>AND F.ItemSeq = B.ProcItemSeq</p>
+<p>AND F.SMStatus = @SMStatus</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND A.OrderSerl = @OrderSerl</p>
+<p>-- 구동기가 없는 경우 반조립품은 0으로 처리 20240207 KHKANG</p>
+<p>IF @DriverSeq = 0</p>
+<p>SELECT @ProcItemSeq = 0</p>
+<p>-- 작업예정일 = 수주납기일 -1달 20231221 KHKANG</p>
+<p>SELECT @WorkDate = CONVERT(NCHAR(8), DATEADD(MONTH, -1, @WorkDate), 112)</p>
+<p>-- 수량, 생산처는 생산의뢰 기준으로 처리</p>
+<p>SELECT @OrderQty = A.Qty,</p>
+<p>@UMProdCust = B.UMProdCust</p>
+<p>FROM _TPDMPSProdReqItem AS A</p>
+<p>JOIN ssv_TPDMPSProdReqItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ProdReqSeq = A.ProdReqSeq</p>
+<p>AND B.Serl = A.Serl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdReqSeq = @ProdReqSeq</p>
+<p>AND A.Serl = @ProdReqSerl</p>
+<p>-- 생산처에 해당하는 조립워크센터, 반조립워크센터 구하기 20240111 KHKANG</p>
+<p>DECLARE @UMProdWorkCenterSeq INT = 0,</p>
+<p>@UMProcWorkCenterSeq INT = 0</p>
+<p>SELECT @UMProdWorkCenterSeq = ISNULL(B.ValueSeq, 0),</p>
+<p>@UMProcWorkCenterSeq = ISNULL(C.ValueSeq, 0)</p>
+<p>FROM _TDAUMinor AS A</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MinorSeq = A.MinorSeq</p>
+<p>AND B.Serl = 15000003</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.MinorSeq = A.MinorSeq</p>
+<p>AND C.Serl = 15000004</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MinorSeq = @UMProdCust</p>
+<p>-- Tag 필수입력 여부</p>
+<p>DECLARE @IsTag NCHAR(1)</p>
+<p>SELECT @IsTag = '0'</p>
+<p>SELECT @IsTag = '1'</p>
+<p>FROM _TDAUMajor AS A</p>
+<p>JOIN _TDAUMinorValue AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>AND B.Serl = 15000003 -- Tag입력</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1000846 -- ssv_수주품목구분</p>
+<p>AND B.ValueText = '1'</p>
+<p>AND B.MinorSeq = @UMOrderType</p>
+<p>IF @STDItemSeq \&lt;&gt; 0 AND</p>
+<p>NOT EXISTS (SELECT TOP 1 1 FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @STDItemSeq AND SMStatus = @SMStatus)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '표준품목에 해당하는 품목이 존재하지 않습니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF @ProdItemSeq \&lt;&gt; 0 AND</p>
+<p>NOT EXISTS (SELECT TOP 1 1 FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @ProdItemSeq AND SMStatus = @SMStatus)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '조립품목에 해당하는 품목이 존재하지 않습니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF @ProcItemSeq \&lt;&gt; 0 AND</p>
+<p>NOT EXISTS (SELECT TOP 1 1 FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @ProcItemSeq AND SMStatus = @SMStatus)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '반조립품목에 해당하는 품목이 존재하지 않습니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>SELECT @BPVItemSeq = ItemSeq</p>
+<p>FROM _TSLOrderItem AS A WITH(NOLOCK)</p>
+<p>JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.MajorSeq = 1000846 -- ssv_수주품목구분</p>
+<p>AND C.MinorSeq = B.UMOrderType</p>
+<p>AND C.Serl = 15000013 -- 생산여부</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @BPVOrderSeq</p>
+<p>AND A.OrderSerl = @BPVOrderSerl</p>
+<p>AND C.ValueText = '1'</p>
+<p>SELECT @EQVItemSeq = ItemSeq</p>
+<p>FROM _TSLOrderItem AS A WITH(NOLOCK)</p>
+<p>JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.MajorSeq = 1000846 -- ssv_수주품목구분</p>
+<p>AND C.MinorSeq = B.UMOrderType</p>
+<p>AND C.Serl = 15000013 -- 생산여부</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @EQVOrderSeq</p>
+<p>AND A.OrderSerl = @EQVOrderSerl</p>
+<p>AND C.ValueText = '1'</p>
+<p>SELECT @BPVItemSeq = ISNULL(@BPVItemSeq, 0),</p>
+<p>@EQVItemSeq = ISNULL(@EQVItemSeq, 0)</p>
+<p>-- 수주품목생산단위, 조립품생산단위, 반조립품생산단위 담기</p>
+<p>SELECT @OrderUnitSeq = ISNULL((SELECT ISNULL(B.STDUnitSeq, A.UnitSeq) FROM _TDAItem AS A LEFT OUTER JOIN _TDAItemDefUnit AS B ON A.CompanySeq = B.CompanySeq AND A.ItemSeq = B.ItemSeq AND B.UMModuleSeq = 1116005 WHERE A.CompanySeq = @CompanySeq AND A.ItemSeq = @OrderItemSeq), 0),</p>
+<p>@ProdUnitSeq = ISNULL((SELECT ISNULL(B.STDUnitSeq, A.UnitSeq) FROM _TDAItem AS A LEFT OUTER JOIN _TDAItemDefUnit AS B ON A.CompanySeq = B.CompanySeq AND A.ItemSeq = B.ItemSeq AND B.UMModuleSeq = 1116005 WHERE A.CompanySeq = @CompanySeq AND A.ItemSeq = @ProdItemSeq ), 0),</p>
+<p>@ProcUnitSeq = ISNULL((SELECT ISNULL(B.STDUnitSeq, A.UnitSeq) FROM _TDAItem AS A LEFT OUTER JOIN _TDAItemDefUnit AS B ON A.CompanySeq = B.CompanySeq AND A.ItemSeq = B.ItemSeq AND B.UMModuleSeq = 1116005 WHERE A.CompanySeq = @CompanySeq AND A.ItemSeq = @ProcItemSeq ), 0)</p>
+<p>-- 수주품목, 조립품, 반조립품의 워크센터 담기(ssv_수주품목구분)</p>
+<p>DECLARE @OrderWorkCenterSeq INT,</p>
+<p>@ProdWorkCenterSeq INT,</p>
+<p>@ProcWorkCenterSeq INT,</p>
+<p>@OrderProcSeq INT,</p>
+<p>@ProdProcSeq INT,</p>
+<p>@ProcProcSeq INT,</p>
+<p>@OrderDeptSeq INT,</p>
+<p>@ProdDeptSeq INT,</p>
+<p>@ProcDeptSeq INT,</p>
+<p>@OrderBizUnit INT,</p>
+<p>@ProdBizUnit INT,</p>
+<p>@ProcBizUnit INT</p>
+<p>SELECT @OrderWorkCenterSeq = B.ValueSeq,</p>
+<p>@ProdWorkCenterSeq = IIF(@UMProdWorkCenterSeq = 0, C.ValueSeq, @UMProdWorkCenterSeq), -- 생산처에 해당하는 조립워크센터가 있으면 먼저 반영 20240111 KHKANG</p>
+<p>@ProcWorkCenterSeq = IIF(@UMProcWorkCenterSeq = 0, D.ValueSeq, @UMProcWorkCenterSeq), -- 생산처에 해당하는 반조립워크센터가 있으면 먼저 반영 20240111 KHKANG</p>
+<p>@OrderProcSeq = (SELECT ProcSeq FROM ssv_TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = B.ValueSeq),</p>
+<p>@ProdProcSeq = (SELECT ProcSeq FROM ssv_TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = IIF(@UMProdWorkCenterSeq = 0, C.ValueSeq, @UMProdWorkCenterSeq)),</p>
+<p>@ProcProcSeq = (SELECT ProcSeq FROM ssv_TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = IIF(@UMProcWorkCenterSeq = 0, D.ValueSeq, @UMProcWorkCenterSeq)),</p>
+<p>@OrderDeptSeq = (SELECT DeptSeq FROM _TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = B.ValueSeq),</p>
+<p>@ProdDeptSeq = (SELECT DeptSeq FROM _TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = C.ValueSeq),</p>
+<p>@ProcDeptSeq = (SELECT DeptSeq FROM _TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = D.ValueSeq),</p>
+<p>@OrderBizUnit = (SELECT BizUnit FROM _TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = B.ValueSeq),</p>
+<p>@ProdBizUnit = (SELECT BizUnit FROM _TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = C.ValueSeq),</p>
+<p>@ProcBizUnit = (SELECT BizUnit FROM _TPDBaseWorkCenter WHERE CompanySeq = @CompanySeq AND WorkCenterSeq = D.ValueSeq)</p>
+<p>FROM _TDAUMinor AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MajorSeq = A.MajorSeq</p>
+<p>AND B.MinorSeq = A.MinorSeq</p>
+<p>AND B.Serl = 15000014 -- 품목워크센터</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.MajorSeq = A.MajorSeq</p>
+<p>AND C.MinorSeq = A.MinorSeq</p>
+<p>AND C.Serl = 15000015 -- 조립품목워크센터</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.MajorSeq = A.MajorSeq</p>
+<p>AND D.MinorSeq = A.MinorSeq</p>
+<p>AND D.Serl = 15000016 -- 반조립품목워크센터</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.MajorSeq = 1000846 -- ssv_수주품목구분</p>
+<p>AND A.MinorSeq = @UMOrderType</p>
+<p>TRUNCATE TABLE #BOMSpread</p>
+<p>-- BOM전개</p>
+<p>EXEC _SWPDBOMSpread @CompanySeq,</p>
+<p>@BizUnit ,</p>
+<p>@ItemSeq ,</p>
+<p>@ItemBomRev,</p>
+<p>@SemiType ,</p>
+<p>@IsReverse ,</p>
+<p>@QryLevel</p>
+<p>-- EA이면서 소수점이면 에러처리 20240126 KHKANG</p>
+<p>IF EXISTS (SELECT TOP 1 1</p>
+<p>FROM #BOMSpread AS A</p>
+<p>JOIN _TDAUnit AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.UnitSeq = A.UnitSeq</p>
+<p>WHERE B.UnitName = 'EA'</p>
+<p>AND ROUND(A.NeedQty, 10) - FLOOR(ROUND(A.NeedQty, 10)) \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '단위가 EA인 경우 소요량에 소수점이 존재할 수 없습니다. BOM을 확인하세요.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>-- CASE 구분</p>
+<hr />
+<p>SELECT @CASE = CASE WHEN B.UMOrderType IN (1000846001, 1000846012) AND B.DriverSeq = 0 THEN 1 -- 수주품목구분 = 제품 (구동기 무) / OEM반제품</p>
+<p>WHEN B.UMOrderType IN (1000846001, 1000846012) AND B.DriverSeq \&lt;&gt; 0 THEN 2 -- 수주품목구분 = 제품 (구동기 유) / OEM반제품</p>
+<p>WHEN B.UMOrderType = 1000846003 THEN 3 -- 수주품목구분 = 가공품</p>
+<p>WHEN B.UMOrderType = 1000846005 THEN 4 -- 수주품목구분 = 보수품</p>
+<p>WHEN B.UMOrderType = 1000846011 THEN 5 -- 수주품목구분 = OEM제품 (구동기 무)</p>
+<p>WHEN B.UMOrderType = 1000846010 THEN 6 -- 수주품목구분 = OEM제품 (구동기 유)</p>
+<p>END</p>
+<p>FROM _TSLOrderItem AS A WITH(NOLOCK)</p>
+<p>JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>JOIN _TSLOrder AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.OrderSeq = A.OrderSeq</p>
+<p>JOIN ssv_TSLOrder AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.OrderSeq = C.OrderSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND A.OrderSerl = @OrderSerl</p>
+<p>-- 조립품, 반조립품 워크센터 체크</p>
+<p>IF @CASE IN (1,2,4,6)</p>
+<p>BEGIN</p>
+<p>IF ISNULL(@ProdBizUnit, 0) = 0</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '조립품의 워크센터를 확인하세요.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>IF @CASE = 2</p>
+<p>BEGIN</p>
+<p>IF ISNULL(@ProcBizUnit, 0) = 0</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '반조립품의 워크센터를 확인하세요.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<hr />
+<p>-- 생성대상 옵션품 담기</p>
+<hr />
+<p>-- 옵션체크된 품목만 담기</p>
+<p>SELECT A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>A.Seq ,</p>
+<p>A.ParentSeq ,</p>
+<p>A.Level ,</p>
+<p>A.NodeImg ,</p>
+<p>A.IsChk ,</p>
+<p>A.UMOption ,</p>
+<p>A.UMItemType ,</p>
+<p>A.ItemSeq ,</p>
+<p>A.UnitSeq ,</p>
+<p>A.Qty ,</p>
+<p>A.DWGNo ,</p>
+<p>A.WorkCenterSeq ,</p>
+<p>A.IsWorkOrder ,</p>
+<p>A.Sort ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>A.PUYN ,</p>
+<p>A.GoodItemSeq ,</p>
+<p>A.GoodItemBomRev,</p>
+<p>A.Serl</p>
+<p>INTO #TSLOrderItemOption</p>
+<p>FROM ssv_TSLOrderItemOption AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdReqSeq = @ProdReqSeq</p>
+<p>AND A.ProdReqSerl = @ProdReqSerl</p>
+<p>AND A.IsChk = '1'</p>
+<p>-- 가공품은 명칭 업데이트가 있어서 데이터가 없는 경우 에러 발생 20240221 KHKANG</p>
+<p>IF @CASE = 3</p>
+<p>BEGIN</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM #TSLOrderItemOption WHERE PUYN = @PUYN)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '선택된 옵션이 없어 처리할 수 없습니다.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>DELETE A</p>
+<p>FROM #TSLOrderItemOption A LEFT OUTER JOIN #TSLOrderItemOption B ON A.ParentSeq = B.Seq</p>
+<p>WHERE A.Level &gt;= 3</p>
+<p>AND B.Seq IS NULL</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>END</p>
+<p>-- BOM에서 옵션체크된 품목 담기</p>
+<p>SELECT ROW_NUMBER() OVER(ORDER BY A.BOMLevelText) AS IDX_NO,</p>
+<p>A.ItemSeq ,</p>
+<p>A.ItemBOMRev ,</p>
+<p>A.UnitSeq ,</p>
+<p>A.BOMLevelText ,</p>
+<p>A.Location ,</p>
+<p>A.Remark ,</p>
+<p>A.Serl ,</p>
+<p>A.NeedQtyNumerator ,</p>
+<p>A.NeedQtyDenominator,</p>
+<p>--A.NeedQty ,</p>
+<p>IIF(A.NeedQtyDenominator = 0, 0, A.NeedQtyNumerator / A.NeedQtyDenominator) AS NeedQty, -- 상위 품목 수량과 상관없는 소요량으로 처리 20240112 KHKANG</p>
+<p>A.Seq ,</p>
+<p>A.ParentSeq ,</p>
+<p>A.Sort ,</p>
+<p>A.BOMLevel ,</p>
+<p>A.BOMLevelTree ,</p>
+<p>A.ParentItemSeq ,</p>
+<p>A.ParentBomRev ,</p>
+<p>A.InLossRate ,</p>
+<p>A.OutLossRate ,</p>
+<p>A.IsBOMOnly ,</p>
+<p>A.IsIncludeProcMat ,</p>
+<p>B.DWGNo ,</p>
+<p>ISNULL(B.WorkCenterSeq, F.WorkCenterSeq) AS WorkCenterSeq,</p>
+<p>E.MinorValue AS MatYN,</p>
+<p>IIF(B.Seq IS NULL, '0', '1') AS OptionYN,</p>
+<p>@OrderQty AS OrderQty,</p>
+<p>IIF(B.UMItemType = H.UMItemType, '1', '0') AS UMItemTypeYN</p>
+<p>INTO #BOMSpread_Option</p>
+<p>FROM #BOMSpread AS A</p>
+<p>LEFT OUTER JOIN #TSLOrderItemOption AS B ON B.GoodItemSeq = A.ParentItemSeq</p>
+<p>AND B.GoodItemBomRev = A.ParentBomRev</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.AssetSeq = C.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.MinorSeq = D.SMAssetGrp</p>
+<p>LEFT OUTER JOIN ssv_TPDBOMManagement AS F WITH(NOLOCK) ON F.CompanySeq = @CompanySeq</p>
+<p>AND F.ItemSeq = A.ItemSeq</p>
+<p>AND F.ItemBomRev = A.ItemBomRev</p>
+<p>LEFT OUTER JOIN _TPDBOM AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq</p>
+<p>AND G.ItemSeq = A.ParentItemSeq</p>
+<p>AND G.ItemBomRev = A.ParentBomRev</p>
+<p>AND G.SubItemSeq = A.ItemSeq</p>
+<p>AND G.SubItemBomRev = A.ItemBomRev</p>
+<p>AND G.Serl = A.Serl</p>
+<p>LEFT OUTER JOIN ssv_TPDBOM AS H WITH(NOLOCK) ON H.CompanySeq = G.CompanySeq</p>
+<p>AND H.ItemSeq = G.ItemSeq</p>
+<p>AND H.ItemBomRev = G.ItemBomRev</p>
+<p>AND H.Serl = G.Serl</p>
+<p>WHERE A.ParentSeq \&lt;&gt; 0</p>
+<p>AND (ISNULL(D.SMAssetGrp, 0) \&lt;&gt; 6008004 OR (ISNULL(D.SMAssetGrp, 0) = 6008004 AND B.ItemSeq IS NOT NULL))</p>
+<p>ORDER BY A.BOMLevelText, A.Seq</p>
+<p>-- BOM에서 옵션체크된 품목과 하위자재 묶어서 담기</p>
+<p>SELECT ROW_NUMBER() OVER(ORDER BY B.BOMLevelText, A.BOMLevelText) AS IDX_NO,</p>
+<p>IIF(A.ParentSeq = 1, A.BOMLevelText, I.BOMLevelText) AS ParentBOMLevelText,</p>
+<p>I.BOMLevel AS ParentBOMLevel,</p>
+<p>A.ItemSeq ,</p>
+<p>A.ItemBOMRev ,</p>
+<p>A.UnitSeq ,</p>
+<p>A.BOMLevelText ,</p>
+<p>A.Location ,</p>
+<p>A.Remark ,</p>
+<p>A.Serl ,</p>
+<p>A.NeedQtyNumerator ,</p>
+<p>A.NeedQtyDenominator,</p>
+<p>--A.NeedQty ,</p>
+<p>IIF(A.NeedQtyDenominator = 0, 0, A.NeedQtyNumerator / A.NeedQtyDenominator) AS NeedQty, -- 상위 품목 수량과 상관없는 소요량으로 처리 20240112 KHKANG</p>
+<p>A.Seq ,</p>
+<p>A.ParentSeq ,</p>
+<p>A.Sort ,</p>
+<p>A.BOMLevel ,</p>
+<p>A.BOMLevelTree ,</p>
+<p>A.ParentItemSeq ,</p>
+<p>A.ParentBomRev ,</p>
+<p>A.InLossRate ,</p>
+<p>A.OutLossRate ,</p>
+<p>A.IsBOMOnly ,</p>
+<p>A.IsIncludeProcMat ,</p>
+<p>@OrderQty AS OrderQty,</p>
+<p>B.OptionYN,</p>
+<p>B.UMItemTypeYN</p>
+<p>INTO #BOMSpread_List</p>
+<p>FROM #BOMSpread AS A</p>
+<p>LEFT OUTER JOIN #BOMSpread_Option AS B ON B.ParentItemSeq = A.ParentItemSeq</p>
+<p>AND B.ParentBomRev = A.ParentBomRev</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN ssv_TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.MajorSeq = 150123 -- ssv_품목분류</p>
+<p>AND D.MinorSeq = C.UMItemType</p>
+<p>AND D.Serl = 15000010 -- 재고생산여부</p>
+<p>LEFT OUTER JOIN _TDAItem AS E WITH(NOLOCK) ON E.CompanySeq = @CompanySeq</p>
+<p>AND E.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS F WITH(NOLOCK) ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.AssetSeq = E.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq</p>
+<p>AND G.ItemSeq = A.ParentItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS H WITH(NOLOCK) ON H.CompanySeq = G.CompanySeq</p>
+<p>AND H.AssetSeq = G.AssetSeq</p>
+<p>LEFT OUTER JOIN #BOMSpread AS I WITH(NOLOCK) ON I.Seq = A.ParentSeq</p>
+<p>WHERE ISNULL(D.ValueText, '') \&lt;&gt; '1' -- 재고생산인 건은 제외</p>
+<p>AND (ISNULL(F.SMAssetGrp, 0) \&lt;&gt; 6008004 OR (ISNULL(F.SMAssetGrp, 0) = 6008004 AND B.OptionYN = '1'))</p>
+<p>AND H.SMAssetGrp IN (6008002, 6008004) -- 상위제품이 제품, 반제품만 처리되도록</p>
+<p>ORDER BY B.BOMLevelText, A.BOMLevelText, A.Seq</p>
+<p>-- 상위제품이 재고생산이라 처리하지 않는 경우 하위자재도 제거(상위품목이 없는 경우 제거) 20231218 KHKANG</p>
+<p>DELETE A</p>
+<p>FROM #BOMSpread_List AS A</p>
+<p>LEFT OUTER JOIN #BOMSpread_List AS B ON A.ParentItemSeq = B.ItemSeq</p>
+<p>AND A.ParentBomRev = B.ItemBOMRev</p>
+<p>WHERE A.BOMLevel \&lt;&gt; 2</p>
+<p>AND B.IDX_NO IS NULL</p>
+<p>--</p>
+<p>UPDATE A</p>
+<p>SET OptionYN = B.OptionYN</p>
+<p>FROM #BOMSpread_List AS A</p>
+<p>JOIN (SELECT ParentBOMLevelText, OptionYN FROM #BOMSpread_List WHERE OptionYN = '1') AS B ON A.BOMLevelText LIKE B.ParentBOMLevelText + '%'</p>
+<p>-- 최상위 품목의 품목분류일치여부를 적용</p>
+<p>UPDATE A</p>
+<p>SET UMItemTypeYN = B.UMItemTypeYN</p>
+<p>FROM #BOMSpread_List AS A</p>
+<p>JOIN (SELECT ParentBOMLevelText, UMItemTypeYN FROM #BOMSpread_List WHERE ParentSeq = 1) AS B ON A.BOMLevelText LIKE B.ParentBOMLevelText + '%'</p>
+<hr />
+<p>-- CASE별 처리</p>
+<hr />
+<p>-- 수주품목구분 = 제품 (구동기 무)</p>
+<p>IF @CASE = 1</p>
+<p>BEGIN</p>
+<p>-- 조립품(@ProdItemSeq) 생산품목리스트(#BOMSpread_Option)</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>@ProdProcSeq AS ProcSeq ,</p>
+<p>@ProdItemSeq AS GoodItemSeq ,</p>
+<p>@ProdWorkCenterSeq AS WorkCenterSeq,</p>
+<p>@ProdDeptSeq AS DeptSeq ,</p>
+<p>@ProdUnitSeq AS GoodUnitSeq ,</p>
+<p>@ProdItemSeq AS AssyItemSeq ,</p>
+<p>@ProdUnitSeq AS ProdUnitSeq ,</p>
+<p>1 AS NeedQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@OrderQty AS OrderQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@OrderQty AS StdUnitQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@ProdBizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>'9999999' AS DwgNo ,</p>
+<p>'1' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'1' AS IsUpper</p>
+<p>INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT @ProdItemSeq AS ParentItemSeq,</p>
+<p>2 AS Sort ,</p>
+<p>0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>0 AS MatSerl ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>A.UnitSeq AS UnitSeq ,</p>
+<p>A.NeedQty AS Qty ,</p>
+<p>C.DwgNo AS DwgNo ,</p>
+<p>C.Width AS Width ,</p>
+<p>C.Height AS Height ,</p>
+<p>C.Thickness AS Thickness ,</p>
+<p>C.Exdiameter AS Exdiameter ,</p>
+<p>C.Gravity AS Gravity ,</p>
+<p>C.Weight AS Weight ,</p>
+<p>C.EachQty AS EachQty ,</p>
+<p>C.UMMatType AS UMMatType ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>C.UMItemType AS UMItemType</p>
+<p>FROM #BOMSpread_Option AS A</p>
+<p>LEFT OUTER JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ParentItemSeq</p>
+<p>AND B.ItemBomRev = A.ParentBomRev</p>
+<p>AND B.SubItemSeq = A.ItemSeq</p>
+<p>AND B.SubItemBomRev = A.ItemBomRev</p>
+<p>AND B.Serl = A.Serl</p>
+<p>LEFT OUTER JOIN ssv_TPDBOM AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>AND C.ItemBomRev = B.ItemBomRev</p>
+<p>AND C.Serl = B.Serl</p>
+<p>WHERE A.BOMLevel = 2 -- 1레벨만 들어가야 한다</p>
+<p>-- 생산품목리스트(#BOMSpread_Option) 해당생산품목의 하위 자재(#BOMSpread_List)</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>D.ProcSeq AS ProcSeq ,</p>
+<p>A.ItemSeq AS GoodItemSeq ,</p>
+<p>A.WorkCenterSeq AS WorkCenterSeq,</p>
+<p>C.DeptSeq AS DeptSeq ,</p>
+<p>A.UnitSeq AS GoodUnitSeq ,</p>
+<p>A.ItemSeq AS AssyItemSeq ,</p>
+<p>A.UnitSeq AS ProdUnitSeq ,</p>
+<p>A.NeedQty AS NeedQty ,</p>
+<p>A.OrderQty AS OrderQty ,</p>
+<p>A.OrderQty AS StdUnitQty ,</p>
+<p>C.BizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>A.DWGNo AS DwgNo ,</p>
+<p>'0' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'0' AS IsUpper</p>
+<p>FROM #BOMSpread_Option AS A</p>
+<p>--LEFT OUTER JOIN ssv_TPDBOMManagement AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.ItemSeq = A.ItemSeq</p>
+<p>-- AND B.ItemBomRev = A.ItemBomRev</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.WorkCenterSeq = A.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN ssv_TPDBaseWorkCenter AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.WorkCenterSeq = C.WorkCenterSeq</p>
+<p>WHERE A.MatYN = '0'</p>
+<p>AND A.OptionYN = '1' -- 옵션 존재시에만 처리</p>
+<p>INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT A.ParentItemSeq AS ParentItemSeq,</p>
+<p>3 AS Sort ,</p>
+<p>0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>0 AS MatSerl ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>A.UnitSeq AS UnitSeq ,</p>
+<p>A.NeedQty AS Qty ,</p>
+<p>C.DwgNo AS DwgNo ,</p>
+<p>C.Width AS Width ,</p>
+<p>C.Height AS Height ,</p>
+<p>C.Thickness AS Thickness ,</p>
+<p>C.Exdiameter AS Exdiameter ,</p>
+<p>C.Gravity AS Gravity ,</p>
+<p>C.Weight AS Weight ,</p>
+<p>C.EachQty AS EachQty ,</p>
+<p>C.UMMatType AS UMMatType ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>C.UMItemType AS UMItemType</p>
+<p>FROM #BOMSpread_List AS A</p>
+<p>LEFT OUTER JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ParentItemSeq</p>
+<p>AND B.ItemBomRev = A.ParentBomRev</p>
+<p>AND B.SubItemSeq = A.ItemSeq</p>
+<p>AND B.SubItemBomRev = A.ItemBomRev</p>
+<p>AND B.Serl = A.Serl</p>
+<p>LEFT OUTER JOIN ssv_TPDBOM AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>AND C.ItemBomRev = B.ItemBomRev</p>
+<p>AND C.Serl = B.Serl</p>
+<p>WHERE A.ParentBOMLevelText \&lt;&gt; A.BOMLevelText</p>
+<p>AND A.OptionYN = '1' -- 옵션 존재시에만 처리</p>
+<p>END</p>
+<p>-- 수주품목구분 = 제품 (구동기 유)</p>
+<p>ELSE IF @CASE = 2</p>
+<p>BEGIN</p>
+<p>-- 조립품(@ProdItemSeq) 반조리품(@ProcItemSeq), 구동기(@DriverSeq), BVP, EVQ</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>@ProdProcSeq AS ProcSeq ,</p>
+<p>@ProdItemSeq AS GoodItemSeq ,</p>
+<p>@ProdWorkCenterSeq AS WorkCenterSeq,</p>
+<p>@ProdDeptSeq AS DeptSeq ,</p>
+<p>@ProdUnitSeq AS GoodUnitSeq ,</p>
+<p>@ProdItemSeq AS AssyItemSeq ,</p>
+<p>@ProdUnitSeq AS ProdUnitSeq ,</p>
+<p>1 AS NeedQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@OrderQty AS OrderQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@OrderQty AS StdUnitQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@ProdBizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>'9999999' AS DwgNo ,</p>
+<p>'1' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'1' AS IsUpper</p>
+<p>-- 조립품(@ProdItemSeq) 반조리품(@ProcItemSeq), 구동기(@DriverSeq), BVP, EVQ</p>
+<p>INSERT #TPDSFCWorkOrderMat_Item(ItemSeq, OrderQty, ItemBOMRev)</p>
+<p>SELECT A.ItemSeq, ISNULL(SUM(A.OrderQty), 0), '00'</p>
+<p>FROM (SELECT @ProcItemSeq AS ItemSeq, 1 AS OrderQty UNION ALL</p>
+<p>SELECT @DriverSeq AS ItemSeq, 1 AS OrderQty UNION ALL</p>
+<p>SELECT @BPVItemSeq AS ItemSeq, @BPVOrderQty AS OrderQty UNION ALL</p>
+<p>SELECT @EQVItemSeq AS ItemSeq, @EQVOrderQty AS OrderQty ) AS A</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT @ProdItemSeq AS ParentItemSeq,</p>
+<p>1 AS Sort ,</p>
+<p>0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>0 AS MatSerl ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>B.UnitSeq AS UnitSeq ,</p>
+<p>A.OrderQty AS Qty ,</p>
+<p>'' AS DwgNo ,</p>
+<p>0 AS Width ,</p>
+<p>0 AS Height ,</p>
+<p>0 AS Thickness ,</p>
+<p>0 AS Exdiameter ,</p>
+<p>0 AS Gravity ,</p>
+<p>0 AS Weight ,</p>
+<p>A.OrderQty AS EachQty ,</p>
+<p>0 AS UMMatType ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>0 AS UMItemType</p>
+<p>FROM #TPDSFCWorkOrderMat_Item AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.UnitSeq = B.UnitSeq</p>
+<p>TRUNCATE TABLE #TPDSFCWorkOrderMat_Item</p>
+<p>-- 반조립품(@ProcItemSeq) 생산품목리스트(#BOMSpread_Option)</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>@ProcProcSeq AS ProcSeq ,</p>
+<p>@ProcItemSeq AS GoodItemSeq ,</p>
+<p>@ProcWorkCenterSeq AS WorkCenterSeq,</p>
+<p>@ProcDeptSeq AS DeptSeq ,</p>
+<p>@ProcUnitSeq AS GoodUnitSeq ,</p>
+<p>@ProcItemSeq AS AssyItemSeq ,</p>
+<p>@ProcUnitSeq AS ProdUnitSeq ,</p>
+<p>1 AS NeedQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@OrderQty AS OrderQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@OrderQty AS StdUnitQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@ProcBizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>'9999999' AS DwgNo ,</p>
+<p>'0' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'1' AS IsUpper</p>
+<p>INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT @ProcItemSeq AS ParentItemSeq,</p>
+<p>2 AS Sort ,</p>
+<p>0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>0 AS MatSerl ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>A.UnitSeq AS UnitSeq ,</p>
+<p>A.NeedQty AS Qty ,</p>
+<p>C.DwgNo AS DwgNo ,</p>
+<p>C.Width AS Width ,</p>
+<p>C.Height AS Height ,</p>
+<p>C.Thickness AS Thickness ,</p>
+<p>C.Exdiameter AS Exdiameter ,</p>
+<p>C.Gravity AS Gravity ,</p>
+<p>C.Weight AS Weight ,</p>
+<p>C.EachQty AS EachQty ,</p>
+<p>C.UMMatType AS UMMatType ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>C.UMItemType AS UMItemType</p>
+<p>FROM #BOMSpread_Option AS A</p>
+<p>LEFT OUTER JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ParentItemSeq</p>
+<p>AND B.ItemBomRev = A.ParentBomRev</p>
+<p>AND B.SubItemSeq = A.ItemSeq</p>
+<p>AND B.SubItemBomRev = A.ItemBomRev</p>
+<p>AND B.Serl = A.Serl</p>
+<p>LEFT OUTER JOIN ssv_TPDBOM AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>AND C.ItemBomRev = B.ItemBomRev</p>
+<p>AND C.Serl = B.Serl</p>
+<p>WHERE A.BOMLevel = 2 -- 1레벨만 들어가야 한다</p>
+<p>-- 생산품목리스트(#BOMSpread_Option) 해당생산품목의 하위 자재(#BOMSpread_List)</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>D.ProcSeq AS ProcSeq ,</p>
+<p>A.ItemSeq AS GoodItemSeq ,</p>
+<p>A.WorkCenterSeq AS WorkCenterSeq,</p>
+<p>C.DeptSeq AS DeptSeq ,</p>
+<p>A.UnitSeq AS GoodUnitSeq ,</p>
+<p>A.ItemSeq AS AssyItemSeq ,</p>
+<p>A.UnitSeq AS ProdUnitSeq ,</p>
+<p>A.NeedQty AS NeedQty ,</p>
+<p>A.OrderQty AS OrderQty ,</p>
+<p>A.OrderQty AS StdUnitQty ,</p>
+<p>C.BizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>A.DWGNo AS DwgNo ,</p>
+<p>'0' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'0' AS IsUpper</p>
+<p>FROM #BOMSpread_Option AS A</p>
+<p>--LEFT OUTER JOIN ssv_TPDBOMManagement AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.ItemSeq = A.ItemSeq</p>
+<p>-- AND B.ItemBomRev = A.ItemBomRev</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.WorkCenterSeq = A.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN ssv_TPDBaseWorkCenter AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.WorkCenterSeq = C.WorkCenterSeq</p>
+<p>WHERE A.MatYN = '0'</p>
+<p>AND A.OptionYN = '1' -- 옵션 존재시에만 처리</p>
+<p>INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT A.ParentItemSeq AS ParentItemSeq,</p>
+<p>3 AS Sort ,</p>
+<p>0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>0 AS MatSerl ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>A.UnitSeq AS UnitSeq ,</p>
+<p>A.NeedQty AS Qty ,</p>
+<p>C.DwgNo AS DwgNo ,</p>
+<p>C.Width AS Width ,</p>
+<p>C.Height AS Height ,</p>
+<p>C.Thickness AS Thickness ,</p>
+<p>C.Exdiameter AS Exdiameter ,</p>
+<p>C.Gravity AS Gravity ,</p>
+<p>C.Weight AS Weight ,</p>
+<p>C.EachQty AS EachQty ,</p>
+<p>C.UMMatType AS UMMatType ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>C.UMItemType AS UMItemType</p>
+<p>FROM #BOMSpread_List AS A</p>
+<p>LEFT OUTER JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ParentItemSeq</p>
+<p>AND B.ItemBomRev = A.ParentBomRev</p>
+<p>AND B.SubItemSeq = A.ItemSeq</p>
+<p>AND B.SubItemBomRev = A.ItemBomRev</p>
+<p>AND B.Serl = A.Serl</p>
+<p>LEFT OUTER JOIN ssv_TPDBOM AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>AND C.ItemBomRev = B.ItemBomRev</p>
+<p>AND C.Serl = B.Serl</p>
+<p>WHERE A.ParentBOMLevelText \&lt;&gt; A.BOMLevelText</p>
+<p>AND A.OptionYN = '1' -- 옵션 존재시에만 처리</p>
+<p>END</p>
+<p>-- 수주품목구분 = 가공품</p>
+<p>ELSE IF @CASE = 3</p>
+<p>BEGIN</p>
+<p>-- 생산품목리스트(#BOMSpread_Option) 해당생산품목의 하위 자재(#BOMSpread_List)</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>D.ProcSeq AS ProcSeq ,</p>
+<p>A.ItemSeq AS GoodItemSeq ,</p>
+<p>A.WorkCenterSeq AS WorkCenterSeq,</p>
+<p>C.DeptSeq AS DeptSeq ,</p>
+<p>A.UnitSeq AS GoodUnitSeq ,</p>
+<p>A.ItemSeq AS AssyItemSeq ,</p>
+<p>A.UnitSeq AS ProdUnitSeq ,</p>
+<p>1 AS NeedQty , -- Tag수량 * 소요량과 같이 처리하기 위해 1로 입력</p>
+<p>@OrderQty AS OrderQty ,</p>
+<p>@OrderQty AS StdUnitQty ,</p>
+<p>C.BizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>A.DWGNo AS DwgNo ,</p>
+<p>'1' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'1' AS IsUpper</p>
+<p>FROM #BOMSpread_Option AS A</p>
+<p>--LEFT OUTER JOIN ssv_TPDBOMManagement AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.ItemSeq = A.ItemSeq</p>
+<p>-- AND B.ItemBomRev = A.ItemBomRev</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.WorkCenterSeq = A.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN ssv_TPDBaseWorkCenter AS D WITH(NOLOCK) ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.WorkCenterSeq = C.WorkCenterSeq</p>
+<p>WHERE A.MatYN = '0'</p>
+<p>AND A.OptionYN = '1' -- 옵션 존재시에만 처리</p>
+<p>AND A.UMItemTypeYN = '1' -- BOM대분류랑 일치하는 데이터만</p>
+<p>INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT A.ParentItemSeq AS ParentItemSeq,</p>
+<p>3 AS Sort ,</p>
+<p>0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>0 AS MatSerl ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>A.UnitSeq AS UnitSeq ,</p>
+<p>A.NeedQty AS Qty ,</p>
+<p>C.DwgNo AS DwgNo ,</p>
+<p>C.Width AS Width ,</p>
+<p>C.Height AS Height ,</p>
+<p>C.Thickness AS Thickness ,</p>
+<p>C.Exdiameter AS Exdiameter ,</p>
+<p>C.Gravity AS Gravity ,</p>
+<p>C.Weight AS Weight ,</p>
+<p>C.EachQty AS EachQty ,</p>
+<p>C.UMMatType AS UMMatType ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>C.UMItemType AS UMItemType</p>
+<p>FROM #BOMSpread_List AS A</p>
+<p>LEFT OUTER JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ParentItemSeq</p>
+<p>AND B.ItemBomRev = A.ParentBomRev</p>
+<p>AND B.SubItemSeq = A.ItemSeq</p>
+<p>AND B.SubItemBomRev = A.ItemBomRev</p>
+<p>AND B.Serl = A.Serl</p>
+<p>LEFT OUTER JOIN ssv_TPDBOM AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>AND C.ItemBomRev = B.ItemBomRev</p>
+<p>AND C.Serl = B.Serl</p>
+<p>WHERE A.ParentBOMLevelText \&lt;&gt; A.BOMLevelText</p>
+<p>AND A.OptionYN = '1' -- 옵션 존재시에만 처리</p>
+<p>AND A.UMItemTypeYN = '1' -- BOM대분류랑 일치하는 데이터만</p>
+<p>-- 가공품인 경우 수주제품코드 품명, 품번, 규격등을 가공품에서 선택된 품목 기준으로 명칭을 변경하고 기타 분류정보도 가공품기준으로 재생성한다.</p>
+<p>SELECT @NewItemSeq = 0</p>
+<p>SELECT TOP 1</p>
+<p>@NewItemSeq = GoodItemSeq</p>
+<p>FROM #TPDSFCWorkOrder_Temp</p>
+<p>-- 성환도 동일한 화면 사용으로 본사 테이블에 업데이트 처리하여 MCO 작동하게 한다.</p>
+<p>-- 딜레이 때문에 즉시 업데이트 처리</p>
+<p>-- 품목명칭 변경</p>
+<p>UPDATE _TDAItem</p>
+<p>SET ItemName = (SELECT ItemName FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq),</p>
+<p>ItemNo = (SELECT ItemNo FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq) + '-' + @OrderNo,</p>
+<p>Spec = (SELECT Spec FROM _TDAItem WHERE CompanySeq = @CompanySeq AND ItemSeq = @NewItemSeq)</p>
+<p>FROM _TDAItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = @OrderItemSeq</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' UPDATE '+ @DBName + '.._TDAItem ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' SET ItemName = (SELECT ItemName FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + '), ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ItemNo = (SELECT ItemNo FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ') + ''-' + @OrderNo + ''', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' Spec = (SELECT Spec FROM _TDAItem WHERE CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' AND ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ') ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '.._TDAItem AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq ) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.ItemSeq = ' + CONVERT(NVARCHAR, @OrderItemSeq) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>-- 품목코드 조립품코드에 입력</p>
+<p>UPDATE ssv_TSLOrderItem</p>
+<p>SET ProdItemSeq = @NewItemSeq</p>
+<p>FROM ssv_TSLOrderItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<p>AND A.OrderSerl = @OrderSerl</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' UPDATE '+ @DBName + '..ssv_TSLOrderItem ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' SET ProdItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '..ssv_TSLOrderItem AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.OrderSeq = ' + CONVERT(NVARCHAR, @OrderSeq ) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.OrderSerl = ' + CONVERT(NVARCHAR, @OrderSerl ) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>-- 기존 기타분류정보 삭제</p>
+<p>--DELETE _TDAItemClass</p>
+<p>-- FROM _TDAItemClass AS A</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.ItemSeq = @OrderItemSeq</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' DELETE '+ @DBName + '.._TDAItemClass ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '.._TDAItemClass AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq ) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.ItemSeq = ' + CONVERT(NVARCHAR, @OrderItemSeq) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>-- 가공품기준 기타분류정보 입력</p>
+<p>--INSERT _TDAItemClass</p>
+<p>--SELECT @CompanySeq ,</p>
+<p>-- @OrderItemSeq ,</p>
+<p>-- A.UMajorItemClass,</p>
+<p>-- A.UMItemClass ,</p>
+<p>-- @UserSeq ,</p>
+<p>-- GETDATE()</p>
+<p>-- FROM _TDAItemClass AS A</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.ItemSeq = @NewItemSeq</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + ' INSERT '+ @DBName + '.._TDAItemClass ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' SELECT ' + CONVERT(NVARCHAR, @CompanySeq ) + ', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ' + CONVERT(NVARCHAR, @OrderItemSeq) + ', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' A.UMajorItemClass, ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' A.UMItemClass , ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' ' + CONVERT(NVARCHAR, @UserSeq) + ', ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' GETDATE() ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' FROM '+ @DBName + '.._TDAItemClass AS A ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' WHERE A.CompanySeq = ' + CONVERT(NVARCHAR, @CompanySeq) + ' ' + CHAR(13)</p>
+<p>SELECT @SQL = @SQL + ' AND A.ItemSeq = ' + CONVERT(NVARCHAR, @NewItemSeq) + ' ' + CHAR(13)</p>
+<p>EXEC (@SQL)</p>
+<p>END</p>
+<p>-- 수주품목구분 = 보수품</p>
+<p>ELSE IF @CASE = 4</p>
+<p>BEGIN</p>
+<p>-- 조립품(@ProdItemSeq) 하위 X</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>@ProdProcSeq AS ProcSeq ,</p>
+<p>@ProdItemSeq AS GoodItemSeq ,</p>
+<p>@ProdWorkCenterSeq AS WorkCenterSeq,</p>
+<p>@ProdDeptSeq AS DeptSeq ,</p>
+<p>@ProdUnitSeq AS GoodUnitSeq ,</p>
+<p>@ProdItemSeq AS AssyItemSeq ,</p>
+<p>@ProdUnitSeq AS ProdUnitSeq ,</p>
+<p>1 AS NeedQty ,</p>
+<p>@OrderQty AS OrderQty ,</p>
+<p>@OrderQty AS StdUnitQty ,</p>
+<p>@ProdBizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>'9999999' AS DwgNo ,</p>
+<p>'1' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'1' AS IsUpper</p>
+<p>---- 조립품(@ProdItemSeq) 수주품목</p>
+<p>--INSERT #TPDSFCWorkOrderMat_Item(ItemSeq, OrderQty, ItemBOMRev)</p>
+<p>--SELECT A.ItemSeq, SUM(A.OrderQty), ISNULL(MAX(B.ItemBOMRev), '00')</p>
+<p>-- FROM (SELECT @OrderItemSeq AS ItemSeq, @OrderQty AS OrderQty ) AS A</p>
+<p>-- JOIN _TPDBOMManagement AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.ItemSeq = A.ItemSeq</p>
+<p>-- GROUP BY A.ItemSeq</p>
+<p>--INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>--(</p>
+<p>-- ParentItemSeq,</p>
+<p>-- Sort ,</p>
+<p>-- WorkOrderSeq ,</p>
+<p>-- WorkOrderSerl,</p>
+<p>-- MatSerl ,</p>
+<p>-- ItemSeq ,</p>
+<p>-- UnitSeq ,</p>
+<p>-- Qty ,</p>
+<p>-- DwgNo ,</p>
+<p>-- Width ,</p>
+<p>-- Height ,</p>
+<p>-- Thickness ,</p>
+<p>-- Exdiameter ,</p>
+<p>-- Gravity ,</p>
+<p>-- Weight ,</p>
+<p>-- EachQty ,</p>
+<p>-- UMMatType ,</p>
+<p>-- OrderSeq ,</p>
+<p>-- OrderSerl ,</p>
+<p>-- ProdReqSeq ,</p>
+<p>-- ProdReqSerl ,</p>
+<p>-- UMItemType</p>
+<p>--)</p>
+<p>--SELECT @ProdItemSeq AS ParentItemSeq,</p>
+<p>-- 1 AS Sort ,</p>
+<p>-- 0 AS WorkOrderSeq ,</p>
+<p>-- 0 AS WorkOrderSerl,</p>
+<p>-- 0 AS MatSerl ,</p>
+<p>-- @ProcItemSeq AS ItemSeq ,</p>
+<p>-- B.UnitSeq AS UnitSeq ,</p>
+<p>-- A.OrderQty AS Qty ,</p>
+<p>-- C.DwgNo AS DwgNo ,</p>
+<p>-- C.Width AS Width ,</p>
+<p>-- C.Height AS Height ,</p>
+<p>-- C.Thickness AS Thickness ,</p>
+<p>-- C.Exdiameter AS Exdiameter ,</p>
+<p>-- C.Gravity AS Gravity ,</p>
+<p>-- C.Weight AS Weight ,</p>
+<p>-- C.EachQty AS EachQty ,</p>
+<p>-- C.UMMatType AS UMMatType ,</p>
+<p>-- @OrderSeq AS OrderSeq ,</p>
+<p>-- @OrderSerl AS OrderSerl ,</p>
+<p>-- @ProdReqSeq AS ProdReqSeq ,</p>
+<p>-- @ProdReqSerl AS ProdReqSerl ,</p>
+<p>-- C.UMItemType AS UMItemType</p>
+<p>-- FROM #TPDSFCWorkOrderMat_Item AS A</p>
+<p>-- LEFT OUTER JOIN _TPDBOM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.ItemSeq = A.ItemSeq</p>
+<p>-- AND B.ItemBomRev = A.ItemBomRev</p>
+<p>-- LEFT OUTER JOIN ssv_TPDBOM AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>-- AND C.ItemSeq = B.ItemSeq</p>
+<p>-- AND C.ItemBomRev = B.ItemBomRev</p>
+<p>-- AND C.Serl = B.Serl</p>
+<p>--TRUNCATE TABLE #TPDSFCWorkOrderMat_Item</p>
+<p>END</p>
+<p>-- 수주품목구분 = OEM제품 (구동기 무)</p>
+<p>ELSE IF @CASE = 5</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 수주품목구분 = OEM제품 (구동기 유)</p>
+<p>ELSE IF @CASE = 6</p>
+<p>BEGIN</p>
+<p>-- 조립품(@ProdItemSeq) 반조리품(@ProcItemSeq), 구동기(@DriverSeq), BVP, EVQ</p>
+<p>INSERT #TPDSFCWorkOrder_Temp</p>
+<p>(</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT 0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>'' AS WorkOrderNo ,</p>
+<p>@WorkDate AS WorkDate ,</p>
+<p>@CurrDate AS WorkOrderDate,</p>
+<p>@ProdProcSeq AS ProcSeq ,</p>
+<p>@ProdItemSeq AS GoodItemSeq ,</p>
+<p>@ProdWorkCenterSeq AS WorkCenterSeq,</p>
+<p>@ProdDeptSeq AS DeptSeq ,</p>
+<p>@ProdUnitSeq AS GoodUnitSeq ,</p>
+<p>@ProdItemSeq AS AssyItemSeq ,</p>
+<p>@ProdUnitSeq AS ProdUnitSeq ,</p>
+<p>1 AS NeedQty ,</p>
+<p>@OrderQty AS OrderQty ,</p>
+<p>@OrderQty AS StdUnitQty ,</p>
+<p>@ProdBizUnit AS BizUnit ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>0 AS TagSerl ,</p>
+<p>'9999999' AS DwgNo ,</p>
+<p>'1' AS IsQC ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>'1' AS IsUpper</p>
+<p>-- 조립품(@ProdItemSeq) 반조리품(@ProcItemSeq), 구동기(@DriverSeq), BVP, EVQ</p>
+<p>INSERT #TPDSFCWorkOrderMat_Item(ItemSeq, OrderQty, ItemBOMRev)</p>
+<p>SELECT A.ItemSeq, SUM(A.OrderQty), '00'</p>
+<p>FROM (SELECT @ProcItemSeq AS ItemSeq, 1 AS OrderQty UNION ALL</p>
+<p>SELECT @DriverSeq AS ItemSeq, 1 AS OrderQty UNION ALL</p>
+<p>SELECT @BPVItemSeq AS ItemSeq, @BPVOrderQty AS OrderQty UNION ALL</p>
+<p>SELECT @EQVItemSeq AS ItemSeq, @EQVOrderQty AS OrderQty ) AS A</p>
+<p>GROUP BY A.ItemSeq</p>
+<p>INSERT #TPDSFCWorkOrderMat_Temp</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT @ProdItemSeq AS ParentItemSeq,</p>
+<p>1 AS Sort ,</p>
+<p>0 AS WorkOrderSeq ,</p>
+<p>0 AS WorkOrderSerl,</p>
+<p>0 AS MatSerl ,</p>
+<p>A.ItemSeq AS ItemSeq ,</p>
+<p>B.UnitSeq AS UnitSeq ,</p>
+<p>A.OrderQty AS Qty ,</p>
+<p>'' AS DwgNo ,</p>
+<p>0 AS Width ,</p>
+<p>0 AS Height ,</p>
+<p>0 AS Thickness ,</p>
+<p>0 AS Exdiameter ,</p>
+<p>0 AS Gravity ,</p>
+<p>0 AS Weight ,</p>
+<p>A.OrderQty AS EachQty ,</p>
+<p>0 AS UMMatType ,</p>
+<p>@OrderSeq AS OrderSeq ,</p>
+<p>@OrderSerl AS OrderSerl ,</p>
+<p>@ProdReqSeq AS ProdReqSeq ,</p>
+<p>@ProdReqSerl AS ProdReqSerl ,</p>
+<p>0</p>
+<p>FROM #TPDSFCWorkOrderMat_Item AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.UnitSeq = B.UnitSeq</p>
+<p>TRUNCATE TABLE #TPDSFCWorkOrderMat_Item</p>
+<p>END</p>
+<p>-- Tag테이블 JOIN 여부 담기</p>
+<p>DECLARE @TagProcYN NCHAR(1)</p>
+<p>SELECT @TagProcYN = EnvValue</p>
+<p>FROM _TCOMEnv WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EnvSeq = 2000302 -- Tag사용안함</p>
+<p>-- ssv_품목분류의 추가정보 작업지시가 체크되어 있는 데이터는 수량만큼 작업지시 생성 20240118 KHKANG</p>
+<p>DECLARE @Cnt INT</p>
+<p>SELECT @Cnt = FLOOR(@OrderQty)</p>
+<p>SELECT number AS IDX_NO,</p>
+<p>1 AS Qty</p>
+<p>INTO #Qty</p>
+<p>FROM master..spt_values</p>
+<p>WHERE type = 'P'</p>
+<p>AND number \&lt; @OrderQty</p>
+<p>SELECT MinorSeq AS UMItemType</p>
+<p>INTO #WorkOrder</p>
+<p>FROM _TDAUMinorValue</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND MajorSeq = 150123 -- ssv_품목분류</p>
+<p>AND Serl = 15000012 -- 작업지시</p>
+<p>AND ValueText = '1'</p>
+<p>SELECT A.IDX_NO, B.UMItemType, A.Qty</p>
+<p>INTO #WorkOrderUMItemType</p>
+<p>FROM #Qty AS A</p>
+<p>JOIN #WorkOrder AS B ON 1=1</p>
+<p>ORDER BY B.UMItemType, A.IDX_NO</p>
+<p>-- 작업지시 체크되어 수량별로 생성인 데이터는 소요량 소수점이면 에러처리 20240126 KHKANG</p>
+<p>IF EXISTS (SELECT TOP 1 1</p>
+<p>FROM #TPDSFCWorkOrder_Temp AS A</p>
+<p>JOIN ssv_TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.GoodItemSeq</p>
+<p>JOIN #WorkOrder AS C ON C.UMItemType = B.UMItemType</p>
+<p>WHERE ROUND(A.NeedQty, 10) - FLOOR(ROUND(A.NeedQty, 10)) \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '수량별 생성인 경우 소요량에 소수점이 존재할 수 없습니다. BOM을 확인하세요.',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>IF @TagProcYN = '1'</p>
+<p>BEGIN</p>
+<p>-- Tag순번별로 처리할 테이블에 담기</p>
+<p>INSERT #TPDSFCWorkOrder</p>
+<p>(</p>
+<p>IDX_NO ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT A.IDX_NO ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl,</p>
+<p>@OrderNo + '-01', -- + '-' + RIGHT('000'+ CONVERT(NVARCHAR(3), A.IDX_NO), 3),</p>
+<p>A.WorkDate ,</p>
+<p>A.WorkOrderDate,</p>
+<p>A.ProcSeq ,</p>
+<p>A.GoodItemSeq ,</p>
+<p>A.WorkCenterSeq,</p>
+<p>A.DeptSeq ,</p>
+<p>A.GoodUnitSeq ,</p>
+<p>A.AssyItemSeq ,</p>
+<p>A.ProdUnitSeq ,</p>
+<p>A.NeedQty ,</p>
+<p>A.OrderQty * A.NeedQty,</p>
+<p>A.StdUnitQty * A.NeedQty,</p>
+<p>A.BizUnit ,</p>
+<p>A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>0 ,</p>
+<p>A.DwgNo ,</p>
+<p>A.IsQC ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>A.IsUpper</p>
+<p>FROM #TPDSFCWorkOrder_Temp AS A</p>
+<p>LEFT OUTER JOIN ssv_TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.GoodItemSeq</p>
+<p>LEFT OUTER JOIN #WorkOrder AS C ON C.UMItemType = B.UMItemType</p>
+<p>WHERE C.UMItemType IS NULL</p>
+<p>UNION ALL</p>
+<p>SELECT A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl,</p>
+<p>@OrderNo + '-01', -- + '-' + RIGHT('000'+ CONVERT(NVARCHAR(3), A.IDX_NO), 3),</p>
+<p>A.WorkDate ,</p>
+<p>A.WorkOrderDate,</p>
+<p>A.ProcSeq ,</p>
+<p>A.GoodItemSeq ,</p>
+<p>A.WorkCenterSeq,</p>
+<p>A.DeptSeq ,</p>
+<p>A.GoodUnitSeq ,</p>
+<p>A.AssyItemSeq ,</p>
+<p>A.ProdUnitSeq ,</p>
+<p>A.NeedQty ,</p>
+<p>1 , -- 분할 생성하기 때문에 1로 처리</p>
+<p>1 , -- 분할 생성하기 때문에 1로 처리</p>
+<p>A.BizUnit ,</p>
+<p>A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>0 ,</p>
+<p>A.DwgNo ,</p>
+<p>A.IsQC ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>A.IsUpper</p>
+<p>FROM #TPDSFCWorkOrder_Temp AS A</p>
+<p>LEFT OUTER JOIN ssv_TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.GoodItemSeq</p>
+<p>JOIN #WorkOrder AS C ON C.UMItemType = B.UMItemType</p>
+<p>LEFT OUTER JOIN master..spt_values AS D ON D.type = 'P'</p>
+<p>AND D.number \&lt; A.OrderQty * A.NeedQty</p>
+<p>ORDER BY A.OrderSeq, A.OrderSerl</p>
+<p>UPDATE A</p>
+<p>SET IDX_NO = NewIDX_NO</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN (SELECT Seq, ROW_NUMBER() OVER(ORDER BY TagSerl, IDX_NO) AS NewIDX_NO FROM #TPDSFCWorkOrder) AS B ON A.Seq = B.Seq</p>
+<p>-- 중간에 데이터가 들어가기 때문에 후처리로 번호 처리</p>
+<p>UPDATE #TPDSFCWorkOrder</p>
+<p>SET WorkOrderNo = WorkOrderNo + '-' + RIGHT('000'+ CONVERT(NVARCHAR(3), IDX_NO), 3)</p>
+<p>-- Tag순번별로 처리할 테이블에 담기</p>
+<p>INSERT #TPDSFCWorkOrderMat</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>ParentIDX_NO ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT A.ParentItemSeq,</p>
+<p>A.Sort ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl,</p>
+<p>A.MatSerl ,</p>
+<p>A.ItemSeq ,</p>
+<p>A.UnitSeq ,</p>
+<p>A.Qty ,</p>
+<p>A.DwgNo ,</p>
+<p>A.Width ,</p>
+<p>A.Height ,</p>
+<p>A.Thickness ,</p>
+<p>A.Exdiameter ,</p>
+<p>A.Gravity ,</p>
+<p>A.Weight ,</p>
+<p>A.EachQty ,</p>
+<p>A.UMMatType ,</p>
+<p>A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>0 ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>B.IDX_NO ,</p>
+<p>A.UMItemType</p>
+<p>FROM #TPDSFCWorkOrderMat_Temp AS A</p>
+<p>LEFT OUTER JOIN #TPDSFCWorkOrder AS B ON B.GoodItemSeq = A.ParentItemSeq</p>
+<p>ORDER BY A.OrderSeq, A.OrderSerl</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- Tag순번별로 처리할 테이블에 담기</p>
+<p>INSERT #TPDSFCWorkOrder</p>
+<p>(</p>
+<p>IDX_NO ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>WorkOrderNo ,</p>
+<p>WorkDate ,</p>
+<p>WorkOrderDate,</p>
+<p>ProcSeq ,</p>
+<p>GoodItemSeq ,</p>
+<p>WorkCenterSeq,</p>
+<p>DeptSeq ,</p>
+<p>GoodUnitSeq ,</p>
+<p>AssyItemSeq ,</p>
+<p>ProdUnitSeq ,</p>
+<p>NeedQty ,</p>
+<p>OrderQty ,</p>
+<p>StdUnitQty ,</p>
+<p>BizUnit ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>DwgNo ,</p>
+<p>IsQC ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>IsUpper</p>
+<p>)</p>
+<p>SELECT A.IDX_NO ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl,</p>
+<p>@OrderNo + '-' + ISNULL(RIGHT('000'+ CONVERT(NVARCHAR(4), B.TagSerl), 2), '01'), -- + '-' + RIGHT('000'+ CONVERT(NVARCHAR(3), A.IDX_NO), 3),</p>
+<p>A.WorkDate ,</p>
+<p>A.WorkOrderDate,</p>
+<p>A.ProcSeq ,</p>
+<p>A.GoodItemSeq ,</p>
+<p>A.WorkCenterSeq,</p>
+<p>A.DeptSeq ,</p>
+<p>A.GoodUnitSeq ,</p>
+<p>A.AssyItemSeq ,</p>
+<p>A.ProdUnitSeq ,</p>
+<p>A.NeedQty ,</p>
+<p>IIF(@IsTag = '1', ISNULL(B.TagQty, A.OrderQty ), A.OrderQty ) * A.NeedQty,</p>
+<p>IIF(@IsTag = '1', ISNULL(B.TagQty, A.StdUnitQty), A.StdUnitQty) * A.NeedQty,</p>
+<p>A.BizUnit ,</p>
+<p>A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>ISNULL(B.TagSerl, 0),</p>
+<p>A.DwgNo ,</p>
+<p>A.IsQC ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>A.IsUpper</p>
+<p>FROM #TPDSFCWorkOrder_Temp AS A</p>
+<p>LEFT OUTER JOIN #TSLOrderItemTag AS B ON A.OrderSeq = B.OrderSeq</p>
+<p>AND A.OrderSerl = B.OrderSerl</p>
+<p>LEFT OUTER JOIN ssv_TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.GoodItemSeq</p>
+<p>LEFT OUTER JOIN #WorkOrder AS D ON D.UMItemType = C.UMItemType</p>
+<p>WHERE D.UMItemType IS NULL</p>
+<p>UNION ALL</p>
+<p>SELECT A.IDX_NO ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl,</p>
+<p>@OrderNo + '-' + ISNULL(RIGHT('000'+ CONVERT(NVARCHAR(4), B.TagSerl), 2), '01'), -- + '-' + RIGHT('000'+ CONVERT(NVARCHAR(3), A.IDX_NO), 3),</p>
+<p>A.WorkDate ,</p>
+<p>A.WorkOrderDate,</p>
+<p>A.ProcSeq ,</p>
+<p>A.GoodItemSeq ,</p>
+<p>A.WorkCenterSeq,</p>
+<p>A.DeptSeq ,</p>
+<p>A.GoodUnitSeq ,</p>
+<p>A.AssyItemSeq ,</p>
+<p>A.ProdUnitSeq ,</p>
+<p>A.NeedQty ,</p>
+<p>1 , -- 분할 생성하기 때문에 1로 처리</p>
+<p>1 , -- 분할 생성하기 때문에 1로 처리</p>
+<p>A.BizUnit ,</p>
+<p>A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>ISNULL(B.TagSerl, 0),</p>
+<p>A.DwgNo ,</p>
+<p>A.IsQC ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>A.IsUpper</p>
+<p>FROM #TPDSFCWorkOrder_Temp AS A</p>
+<p>LEFT OUTER JOIN #TSLOrderItemTag AS B ON A.OrderSeq = B.OrderSeq</p>
+<p>AND A.OrderSerl = B.OrderSerl</p>
+<p>LEFT OUTER JOIN ssv_TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.GoodItemSeq</p>
+<p>JOIN #WorkOrder AS D ON D.UMItemType = C.UMItemType</p>
+<p>LEFT OUTER JOIN master..spt_values AS E ON E.type = 'P'</p>
+<p>AND E.number \&lt; IIF(@IsTag = '1', ISNULL(B.TagQty, A.OrderQty), A.OrderQty) * A.NeedQty</p>
+<p>ORDER BY A.OrderSeq, A.OrderSerl, ISNULL(B.TagSerl, 0), A.IDX_NO</p>
+<p>UPDATE A</p>
+<p>SET IDX_NO = NewIDX_NO</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN (SELECT Seq, ROW_NUMBER() OVER(ORDER BY TagSerl, IDX_NO) AS NewIDX_NO FROM #TPDSFCWorkOrder) AS B ON A.Seq = B.Seq</p>
+<p>-- 중간에 데이터가 들어가기 때문에 후처리로 번호 처리</p>
+<p>UPDATE #TPDSFCWorkOrder</p>
+<p>SET WorkOrderNo = WorkOrderNo + '-' + RIGHT('000'+ CONVERT(NVARCHAR(3), IDX_NO), 3)</p>
+<p>SELECT * FROM #TPDSFCWorkOrderMat_Temp</p>
+<p>-- Tag순번별로 처리할 테이블에 담기</p>
+<p>INSERT #TPDSFCWorkOrderMat</p>
+<p>(</p>
+<p>ParentItemSeq,</p>
+<p>Sort ,</p>
+<p>WorkOrderSeq ,</p>
+<p>WorkOrderSerl,</p>
+<p>MatSerl ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>DwgNo ,</p>
+<p>Width ,</p>
+<p>Height ,</p>
+<p>Thickness ,</p>
+<p>Exdiameter ,</p>
+<p>Gravity ,</p>
+<p>Weight ,</p>
+<p>EachQty ,</p>
+<p>UMMatType ,</p>
+<p>OrderSeq ,</p>
+<p>OrderSerl ,</p>
+<p>TagSerl ,</p>
+<p>ProdReqSeq ,</p>
+<p>ProdReqSerl ,</p>
+<p>ParentIDX_NO ,</p>
+<p>UMItemType</p>
+<p>)</p>
+<p>SELECT A.ParentItemSeq,</p>
+<p>A.Sort ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl,</p>
+<p>A.MatSerl ,</p>
+<p>A.ItemSeq ,</p>
+<p>A.UnitSeq ,</p>
+<p>A.Qty ,</p>
+<p>A.DwgNo ,</p>
+<p>A.Width ,</p>
+<p>A.Height ,</p>
+<p>A.Thickness ,</p>
+<p>A.Exdiameter ,</p>
+<p>A.Gravity ,</p>
+<p>A.Weight ,</p>
+<p>A.EachQty ,</p>
+<p>A.UMMatType ,</p>
+<p>A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>ISNULL(B.TagSerl, 0),</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>C.IDX_NO ,</p>
+<p>A.UMItemType</p>
+<p>FROM #TPDSFCWorkOrderMat_Temp AS A</p>
+<p>LEFT OUTER JOIN #TSLOrderItemTag AS B ON A.OrderSeq = B.OrderSeq</p>
+<p>AND A.OrderSerl = B.OrderSerl</p>
+<p>LEFT OUTER JOIN #TPDSFCWorkOrder AS C ON C.GoodItemSeq = A.ParentItemSeq</p>
+<p>AND C.TagSerl = ISNULL(B.TagSerl, 0)</p>
+<p>ORDER BY A.OrderSeq, A.OrderSerl, B.TagSerl, A.IDX_NO, C.IDX_NO</p>
+<p>END</p>
+<p>-- 동일하게 처리</p>
+<p>UPDATE #TPDSFCWorkOrder</p>
+<p>SET DataSeq = IDX_NO</p>
+<p>-- 순번처리</p>
+<p>UPDATE A</p>
+<p>SET DataSeq = B.DataSeq</p>
+<p>FROM #TPDSFCWorkOrderMat AS A</p>
+<p>JOIN (SELECT IDX_NO, ROW_NUMBER() OVER(PARTITION BY TagSerl, Sort, ParentItemSeq, ParentIDX_NO ORDER BY TagSerl, Sort, ParentItemSeq, ParentIDX_NO, IDX_NO) AS DataSeq</p>
+<p>FROM #TPDSFCWorkOrderMat) AS B ON B.IDX_NO = A.IDX_NO</p>
+<p>--============================================================================================================================================</p>
+<p>-- 확정체크</p>
+<p>--============================================================================================================================================</p>
+<p>CREATE TABLE #TCOMConfirmCreate</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1) ,</p>
+<p>IDX_NO INT ,</p>
+<p>DataSeq INT ,</p>
+<p>CfmSeq INT ,</p>
+<p>CfmSerl INT ,</p>
+<p>CfmSubSerl INT ,</p>
+<p>Result NVARCHAR(255),</p>
+<p>MessageType INT ,</p>
+<p>Status INT ,</p>
+<p>CfmCode INT ,</p>
+<p>IsAuto NCHAR(1) ,</p>
+<p>IsNotUsed NCHAR(1) ,</p>
+<p>IsCfmData NCHAR(1)</p>
+<p>)</p>
+<p>DECLARE @IsNotUsed NCHAR(1) , -- 확정사용안함여부</p>
+<p>@ConfirmSeq INT -- 확정Seq</p>
+<p>-- 확정템프테이블 ISNULL 처리</p>
+<p>UPDATE #TCOMConfirmCreate</p>
+<p>SET CfmSeq = ISNULL(CfmSeq , 0),</p>
+<p>CfmSerl = ISNULL(CfmSerl , 0),</p>
+<p>CfmSubSerl = ISNULL(CfmSubSerl, 0),</p>
+<p>CfmCode = ISNULL(CfmCode , 0),</p>
+<p>IsAuto = ISNULL(IsAuto , '0')</p>
+<p>-- 확정 설정값 가져오기</p>
+<p>SELECT @ConfirmSeq = B.ConfirmSeq , -- 확정Seq</p>
+<p>@IsNotUsed = B.IsNotUsed -- 확정사용안함여부</p>
+<p>FROM _TCOMConfirmPgm AS A WITH(NOLOCK)</p>
+<p>JOIN _TCOMConfirmDef AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ConfirmSeq = B.ConfirmSeq</p>
+<p>JOIN _TCOMConfirmTable AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ConfirmTableSeq = C.ConfirmTableSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PgmSeq = @PgmSeq</p>
+<p>--_TCOMConfirmDefinition &amp; _TCOMConfirmDetailDefinition 에서 미사용여부 및 상세권한SP, 자동 확정여부 관련</p>
+<p>UPDATE #TCOMConfirmCreate</p>
+<p>SET IsNotUsed = @IsNotUsed</p>
+<p>-- 데이터 확정여부</p>
+<p>UPDATE #TCOMConfirmCreate</p>
+<p>SET CfmCode = B.CfmCode,</p>
+<p>IsAuto = B.IsAuto</p>
+<p>FROM #TCOMConfirmCreate AS A</p>
+<p>JOIN _TCOMConfirm AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ConfirmSeq = @ConfirmSeq</p>
+<p>AND B.CfmSeq = A.CfmSeq</p>
+<p>AND B.CfmSerl = A.CfmSerl</p>
+<p>AND B.CfmSubSerl = A.CfmSubSerl</p>
+<p>WHERE A.Status = 0</p>
+<p>-- 확정데이터가 존재하지 않으면 확정으로 인식 2017-08-31 JMKIM</p>
+<p>UPDATE #TCOMConfirmCreate</p>
+<p>SET CfmCode = ISNULL(B.CfmCode, 1),</p>
+<p>IsAuto = ISNULL(B.IsAuto , '0')</p>
+<p>FROM #TCOMConfirmCreate AS A</p>
+<p>LEFT OUTER JOIN _TCOMConfirm B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ConfirmSeq = @ConfirmSeq</p>
+<p>AND B.CfmSeq = A.CfmSeq</p>
+<p>AND B.CfmSerl = A.CfmSerl</p>
+<p>AND B.CfmSubSerl = A.CfmSubSerl</p>
+<p>WHERE @IsNotUsed \&lt; '1'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag \&lt;&gt; 'A'</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result ,</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN #TCOMConfirmCreate AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>--============================================================================================================================================</p>
+<p>-- 작업지시체크</p>
+<p>--============================================================================================================================================</p>
+<p>-- 변수 선언</p>
+<p>DECLARE @Count INT,</p>
+<p>@Seq INT</p>
+<p>-- 제품단위코드가 없는 경우</p>
+<p>UPDATE A</p>
+<p>SET GoodUnitSeq = B.STDUnitSeq</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN _TDAItemDefUnit AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.GoodItemSeq</p>
+<p>AND B.UMModuleSeq = 1116005 -- 생산단위</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(A.GoodUnitSeq, 0) = 0</p>
+<p>-- 공정품단위코드 UPDATE</p>
+<p>UPDATE A</p>
+<p>SET ProdUnitSeq = B.STDUnitSeq</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN _TDAItemDefUnit AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.AssyItemSeq</p>
+<p>AND B.UMModuleSeq = 1116005 -- 생산단위</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(A.ProdUnitSeq, 0) = 0</p>
+<p>-- 최종공정의 공정품 체크</p>
+<p>IF EXISTS (SELECT 1 FROM #TPDSFCWorkOrder WHERE GoodItemSeq \&lt;&gt; AssyItemSeq</p>
+<p>AND IsLastProc = N'1'</p>
+<p>AND WorkingTag IN (N'U', N'A'))</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1291 , -- @1은 @2을 @3으로 등록해야 합니다.</p>
+<p>@LanguageSeq ,</p>
+<p>25469 , N'최종공정',</p>
+<p>2031 , N'제품' ,</p>
+<p>3970 , N'공정품'</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results ,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>WHERE A.GoodItemSeq \&lt;&gt; A.AssyItemSeq</p>
+<p>AND A.IsLastProc = N'1'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag IN (N'U', N'A')</p>
+<p>END</p>
+<p>-- INSERT 번호부여 (맨 마지막 처리)</p>
+<p>SELECT @Count = (SELECT COUNT(1) FROM #TPDSFCWorkOrder WHERE WorkingTag = N'A')</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq, '_TPDSFCWorkOrder', 'WorkOrderSeq', @Count</p>
+<p>UPDATE A</p>
+<p>SET WorkOrderSeq = @Seq + A.DataSeq,</p>
+<p>WorkOrderSerl = 1</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>WHERE A.WorkingTag = N'A'</p>
+<p>AND A.Status = 0</p>
+<p>UPDATE B</p>
+<p>SET WorkOrderSeq = A.WorkOrderSeq ,</p>
+<p>WorkOrderSerl = A.WorkOrderSerl</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN #TPDSFCWorkOrderMat AS B ON B.TagSerl = A.TagSerl</p>
+<p>AND B.ParentItemSeq = A.GoodItemSeq</p>
+<p>AND B.ParentIDX_NO = A.IDX_NO</p>
+<p>WHERE B.WorkingTag = N'A'</p>
+<p>AND B.Status = 0</p>
+<p>END</p>
+<p>IF EXISTS(SELECT TOp 1 1 FROM #TPDSFCWorkOrderMat WHERE ISNULL(WorkOrderSeq, 0) = 0 OR ISNULL(WorkOrderSerl, 0) = 0)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Result = '작업지시번호가 입력되지 않았습니다.(_TPDSFCWorkOrderMat)',</p>
+<p>MessageType = 17001,</p>
+<p>Status = 99999</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>WHERE Status = 0</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 자재체크</p>
+<p>--============================================================================================================================================</p>
+<p>-- INSERT 번호부여</p>
+<p>UPDATE #TPDSFCWorkOrderMat</p>
+<p>SET MatSerl = DataSeq</p>
+<p>WHERE WorkingTag = N'A'</p>
+<p>AND Status = 0</p>
+<p>--============================================================================================================================================</p>
+<p>-- 에러시 RETURN</p>
+<p>--============================================================================================================================================</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TPDSFCWorkOrder WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result ,</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #TPDSFCWorkOrder AS B ON B.ProdReqSeq = A.ProdReqSeq</p>
+<p>AND B.ProdReqSerl = A.ProdReqSerl</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 작업지시저장</p>
+<p>--============================================================================================================================================</p>
+<p>-- 기준단위수량 UPDATE (로직 변경 2020.04.06 방혁)</p>
+<p>UPDATE #TPDSFCWorkOrder</p>
+<p>SET StdUnitQty = (CASE ISNULL(C.ConvDen,0) WHEN 0 THEN 0 ELSE OrderQty * (C.ConvNum/C.ConvDen) END)</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>LEFT OUTER JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.AssyItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemUnit AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.AssyItemSeq = C.ItemSeq</p>
+<p>AND A.ProdUnitSeq = C.UnitSeq</p>
+<p>DECLARE @Dec INT</p>
+<p>-- 구매/자재 수량 소숫점 자릿수</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 5, @UserSeq, @@PROCID, @Dec OUTPUT</p>
+<p>UPDATE #TPDSFCWorkOrder</p>
+<p>SET StdUnitQty = dbo._FWPDGetDecPointQty(A.StdUnitQty, @Dec, C.SMDecPointSeq)</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.AssyItemSeq</p>
+<p>JOIN _TDAUnit AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.UnitSeq = B.UnitSeq</p>
+<p>-- INSERT</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TPDSFCWorkOrder WHERE WorkingTag = N'A' AND Status = 0)</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TPDSFCWorkOrder</p>
+<p>(</p>
+<p>CompanySeq , BizUnit , WorkOrderSeq , WorkOrderSerl , WorkOrderNo ,</p>
+<p>WorkOrderDate , ProdPlanSeq , WorkCenterSeq , GoodItemSeq , ItemUnitSeq ,</p>
+<p>ProcSeq , ProcRev , AssyItemSeq , ProdUnitSeq , OrderQty ,</p>
+<p>StdUnitQty , WorkDate , WorkStartTime , WorkEndTime , WorkType ,</p>
+<p>DeptSeq , IsProcQC , IsLastProc , ProcNo , ToProcNo ,</p>
+<p>SMToProcMovType , Remark , BatchSeq , LastUserSeq , LastDateTime ,</p>
+<p>WorkCond1 , WorkCond2 , WorkCond3 , WorkCond4 , WorkCond5 ,</p>
+<p>WorkCond6 , WorkCond7 , WorkCond8 , WorkCond9 , WorkCond10 ,</p>
+<p>ChainGoodsSeq , WorkPlanSerl , DailyWorkPlanSerl, IsPjt , PJTSeq ,</p>
+<p>WBSSeq , ItemBomRev , IsJobOrderEnd , JobOrderEndDate , Priority ,</p>
+<p>ProdOrderSeq , IsCancel , WorkTimeGroup , FactUnit , BatchSize ,</p>
+<p>BatchQty , PgmSeq , ToolSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,</p>
+<p>A.BizUnit ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl ,</p>
+<p>A.WorkOrderNo ,</p>
+<p>A.WorkOrderDate ,</p>
+<p>A.ProdPlanSeq ,</p>
+<p>A.WorkCenterSeq ,</p>
+<p>A.GoodItemSeq ,</p>
+<p>A.GoodUnitSeq ,</p>
+<p>A.ProcSeq ,</p>
+<p>A.ProcRev ,</p>
+<p>A.AssyItemSeq ,</p>
+<p>A.ProdUnitSeq ,</p>
+<p>A.OrderQty ,</p>
+<p>A.StdUnitQty ,</p>
+<p>A.WorkDate ,</p>
+<p>ISNULL(A.WorkStartTime , ''),</p>
+<p>ISNULL(A.WorkEndTime , ''),</p>
+<p>A.WorkType ,</p>
+<p>ISNULL(A.DeptSeq , 0 ),</p>
+<p>ISNULL(A.IsProcQC , ''),</p>
+<p>A.IsLastProc ,</p>
+<p>ISNULL(A.ProcNo , 0 ),</p>
+<p>ISNULL(A.ToProcNo , 0 ),</p>
+<p>ISNULL(A.SMToProcMovType, 0 ),</p>
+<p>ISNULL(A.Remark , ''),</p>
+<p>A.BatchSeq ,</p>
+<p>@UserSeq ,</p>
+<p>GETDATE() ,</p>
+<p>A.WorkCond1 ,</p>
+<p>A.WorkCond2 ,</p>
+<p>A.WorkCond3 ,</p>
+<p>A.WorkCond4 ,</p>
+<p>A.WorkCond5 ,</p>
+<p>A.WorkCond6 ,</p>
+<p>A.WorkCond7 ,</p>
+<p>A.WorkCond8 ,</p>
+<p>A.WorkCond9 ,</p>
+<p>A.WorkCond10 ,</p>
+<p>A.ChainGoodsSeq ,</p>
+<p>A.WorkPlanSerl ,</p>
+<p>A.DailyWorkPlanSerl ,</p>
+<p>A.IsPjt ,</p>
+<p>A.PJTSeq ,</p>
+<p>A.WBSSeq ,</p>
+<p>A.ItemBomRev ,</p>
+<p>A.IsJobOrderEnd ,</p>
+<p>A.JobOrderEndDate ,</p>
+<p>A.Priority ,</p>
+<p>A.ProdOrderSeq ,</p>
+<p>A.IsCancel ,</p>
+<p>A.WorkTimeGroup ,</p>
+<p>A.FactUnit ,</p>
+<p>ISNULL(A.BatchSize , 0 ) ,</p>
+<p>ISNULL(A.BatchQty , 0 ) ,</p>
+<p>@PgmSeq ,</p>
+<p>A.ToolSeq</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>WHERE A.WorkingTag = N'A'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>INSERT INTO ssv_TPDSFCWorkOrder</p>
+<p>(</p>
+<p>CompanySeq , WorkOrderSeq , WorkOrderSerl, OrderSeq , OrderSerl ,</p>
+<p>TagSerl , DwgNo , HeatNo , IsQC , LastUserSeq ,</p>
+<p>LastDateTime , SourceType , ProdReqSeq , ProdReqSerl , IsUpper</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>A.WorkOrderSerl,</p>
+<p>A.OrderSeq ,</p>
+<p>A.OrderSerl ,</p>
+<p>A.TagSerl ,</p>
+<p>A.DwgNo ,</p>
+<p>A.HeatNo ,</p>
+<p>A.IsQC ,</p>
+<p>@UserSeq ,</p>
+<p>GETDATE() ,</p>
+<p>2 ,</p>
+<p>A.ProdReqSeq ,</p>
+<p>A.ProdReqSerl ,</p>
+<p>A.IsUpper</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>WHERE A.WorkingTag = N'A'</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>SELECT @CompanySeq ,</p>
+<p>B.WorkOrderSeq ,</p>
+<p>B.WorkOrderSerl,</p>
+<p>B.MatSerl ,</p>
+<p>B.ItemSeq ,</p>
+<p>B.UnitSeq ,</p>
+<p>ROUND(B.Qty, 1), -- 소수점 1자리 반올림 처리</p>
+<p>B.DwgNo ,</p>
+<p>B.HeatNo ,</p>
+<p>B.Width ,</p>
+<p>B.Height ,</p>
+<p>B.Thickness ,</p>
+<p>B.Exdiameter ,</p>
+<p>B.Gravity ,</p>
+<p>B.Weight ,</p>
+<p>B.EachQty ,</p>
+<p>B.UMMatType ,</p>
+<p>@UserSeq ,</p>
+<p>GETDATE() ,</p>
+<p>IIF(ISNULL(B.UMItemType, 0) = 0, A.UMItemType, B.UMItemType)</p>
+<p>FROM #TPDSFCWorkOrderMat AS B</p>
+<p>LEFT OUTER JOIN ssv_TDAItem AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag = N'A'</p>
+<p>AND B.Status = 0</p>
+<p>--============================================================================================================================================</p>
+<p>-- 자재저장</p>
+<p>--============================================================================================================================================</p>
+<p>-- INSERT</p>
+<p>IF EXISTS (SELECT 1 FROM #TPDSFCWorkOrderMat WHERE WorkingTag = 'A' AND Status = 0)</p>
+<p>BEGIN</p>
+<p>INSERT INTO ssv_TPDSFCWorkOrderMat</p>
+<p>(</p>
+<p>CompanySeq , WorkOrderSeq , WorkOrderSerl, MatSerl , ItemSeq ,</p>
+<p>UnitSeq , Qty , DwgNo , HeatNo , Width ,</p>
+<p>Height , Thickness , Exdiameter , Gravity , Weight ,</p>
+<p>EachQty , UMMatType , LastUserSeq , LastDateTime , UMItemType</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,</p>
+<p>B.WorkOrderSeq ,</p>
+<p>B.WorkOrderSerl,</p>
+<p>B.MatSerl ,</p>
+<p>B.ItemSeq ,</p>
+<p>B.UnitSeq ,</p>
+<p>ROUND(B.Qty, 1), -- 소수점 1자리 반올림 처리</p>
+<p>B.DwgNo ,</p>
+<p>B.HeatNo ,</p>
+<p>B.Width ,</p>
+<p>B.Height ,</p>
+<p>B.Thickness ,</p>
+<p>B.Exdiameter ,</p>
+<p>B.Gravity ,</p>
+<p>B.Weight ,</p>
+<p>B.EachQty ,</p>
+<p>B.UMMatType ,</p>
+<p>@UserSeq ,</p>
+<p>GETDATE() ,</p>
+<p>IIF(ISNULL(B.UMItemType, 0) = 0, A.UMItemType, B.UMItemType)</p>
+<p>FROM #TPDSFCWorkOrderMat AS B</p>
+<p>LEFT OUTER JOIN ssv_TDAItem AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag = N'A'</p>
+<p>AND B.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>--============================================================================================================================================</p>
+<p>-- 확정저장</p>
+<p>--============================================================================================================================================</p>
+<p>UPDATE #TCOMConfirmCreate</p>
+<p>SET CfmSeq = B.WorkOrderSeq ,</p>
+<p>CfmSerl = B.WorkOrderSerl,</p>
+<p>Result = B.Result ,</p>
+<p>MessageType = B.MessageType ,</p>
+<p>Status = B.Status</p>
+<p>FROM #TCOMConfirmCreate AS A</p>
+<p>JOIN #TPDSFCWorkOrder AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>DECLARE @TABLEName NVARCHAR(50) ,</p>
+<p>@DetailConfirmAppSPName NVARCHAR(50) ,</p>
+<p>@DetailConfirmAppSPSql NVARCHAR(4000),</p>
+<p>@AutoConfirmSPName NVARCHAR(50) ,</p>
+<p>@AutoConfirmSPSql NVARCHAR(4000),</p>
+<p>@INSERTSQL NVARCHAR(4000),</p>
+<p>@IsNotAll NCHAR(1)</p>
+<p>SELECT @ConfirmSeq = B.ConfirmSeq,</p>
+<p>@IsNotAll = A.IsNotAll</p>
+<p>FROM _TCOMConfirmPgm AS A</p>
+<p>JOIN _TCOMConfirmDef AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ConfirmSeq = B.ConfirmSeq</p>
+<p>LEFT OUTER JOIN _TCOMConfirmTable AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ConfirmTableSeq = C.ConfirmTableSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PgmSeq = @PgmSeq</p>
+<p>-- Status \&lt;&gt; 0 인건은 생성하지 않는다.</p>
+<p>IF EXISTS(SELECT 1 FROM #TCOMConfirmCreate WHERE Status \&lt;&gt; 0) AND @IsNotAll \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>UPDATE #TCOMConfirmCreate</p>
+<p>SET CfmSeq = IsNULL(CfmSeq , 0),</p>
+<p>CfmSerl = IsNULL(CfmSerl , 0),</p>
+<p>CfmSubSerl = IsNULL(CfmSubSerl, 0)</p>
+<p>CREATE TABLE #TCOMConfirmCreate_TEMP</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1) ,</p>
+<p>IDX_NO INT ,</p>
+<p>DataSeq INT ,</p>
+<p>CfmSeq INT ,</p>
+<p>CfmSerl INT ,</p>
+<p>CfmSubSerl INT ,</p>
+<p>Result NVARCHAR(255),</p>
+<p>MessageType INT ,</p>
+<p>Status INT ,</p>
+<p>CfmCode INT ,</p>
+<p>IsAuto NCHAR(1) ,</p>
+<p>IsNotUsed NCHAR(1)</p>
+<p>)</p>
+<p>INSERT #TCOMConfirmCreate_TEMP(WorkingTag, IDX_NO, DataSeq, CfmSeq, CfmSerl, CfmSubSerl, Result, MessageType, Status, CfmCode, IsAuto, IsNotUsed)</p>
+<p>SELECT WorkingTag, IDX_NO, DataSeq, CfmSeq, CfmSerl, CfmSubSerl, Result, MessageType, Status, CfmCode, IsAuto, IsNotUsed</p>
+<p>FROM #TCOMConfirmCreate</p>
+<p>WHERE IDX_NO IN (SELECT MIN(IDX_NO) FROM #TCOMConfirmCreate where IsCfmData = '1' GROUP BY CfmSeq, CfmSerl, CfmSubSerl)</p>
+<p>AND IsCfmData = '1'</p>
+<p>DELETE #TCOMConfirmCreate</p>
+<p>INSERT #TCOMConfirmCreate(WorkingTag, IDX_NO, DataSeq, CfmSeq, CfmSerl, CfmSubSerl, Result, MessageType, Status, CfmCode, IsAuto, IsNotUsed)</p>
+<p>SELECT WorkingTag, IDX_NO, DataSeq, CfmSeq, CfmSerl, CfmSubSerl, Result, MessageType, Status, CfmCode, IsAuto, IsNotUsed</p>
+<p>FROM #TCOMConfirmCreate_TEMP</p>
+<p>--- ADD &amp; Update</p>
+<p>EXEC _SWCOMConfirmCreateSub @CompanySeq, @UserSeq, @PgmSeq</p>
+<p>DECLARE @STableSeq INT</p>
+<p>SELECT @STableSeq = ProgTableSeq</p>
+<p>FROM _TCAPgmDEV</p>
+<p>WHERE PgmSeq = @PgmSeq</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result ,</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #TPDSFCWorkOrder AS A</p>
+<p>JOIN #TCOMConfirmCreate AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>UPDATE A</p>
+<p>SET Result = B.Result ,</p>
+<p>MessageType = B.MessageType,</p>
+<p>Status = B.Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #TPDSFCWorkOrder AS B ON B.ProdReqSeq = A.ProdReqSeq</p>
+<p>AND B.ProdReqSerl = A.ProdReqSerl</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>--============================================================================================================================================</p>
+<p>-- 수주옵션확정처리</p>
+<p>--============================================================================================================================================</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM #BIZ_OUT_DataBlock2 WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET IsOptionCfm = '1' ,</p>
+<p>OptionCfmDate = @CurrDate, -- 현재일</p>
+<p>OptionCfmEmpUserSeq = (SELECT EmpSeq FROM _TCAUser WHERE CompanySeq = @CompanySeq AND UserSeq = @UserSeq)</p>
+<p>FROM ssv_TPDMPSProdReqItem AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ProdReqSeq = @ProdReqSeq</p>
+<p>AND A.Serl = @ProdReqSerl</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET IsOptionCfm = '1' ,</p>
+<p>OptionCfmDate = @CurrDate, -- 현재일</p>
+<p>OptionCfmEmpUserSeq = (SELECT EmpSeq FROM _TCAUser WHERE CompanySeq = @CompanySeq AND UserSeq = @UserSeq),</p>
+<p>PUYN = @PUYN</p>
+<p>END</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock2 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, OrderSeq INT, OrderSerl INT, ProdReqSeq INT, ProdReqSerl INT, PUYN NCHAR(1)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock2 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, OrderSeq INT, OrderSerl INT, UMOptionName NVARCHAR(100), UMOption INT, UMItemTypeName NVARCHAR(100), UMItemType INT, ItemNo NVARCHAR(100), ItemName NVARCHAR(100), Spec NVARCHAR(100), ItemSeq INT, UnitName NVARCHAR(100), UnitSeq INT, NeedQty DECIMAL(19, 5), DWGNo NVARCHAR(100), WorkCenterName NVARCHAR(100), WorkCenterSeq INT, WorkDate NCHAR(8), ProdQty DECIMAL(19, 5), POQty DECIMAL(19, 5), DelvQty DECIMAL(19, 5), IsChk NCHAR(1), IsWorkOrder NCHAR(1), Seq INT, ParentSeq INT, Level INT, Sort INT, NodeName NVARCHAR(200), NodeImg NVARCHAR(100), IsFile INT, ParentSeqOld INT, LevelOld INT, ProdReqSeq INT, ProdReqSerl INT, IsOptionCfm NCHAR(1), OptionCfmDate NVARCHAR(100), OptionCfmEmpUserSeq INT, Size NVARCHAR(100), UMMaterialsName NVARCHAR(100), UMMaterials INT, Properties NVARCHAR(100), GoodItemSeq INT, GoodItemBomRev NVARCHAR(100), Serl INT, PUYN NCHAR(1), UMOrderType INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock2 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock2 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, OrderSeq, OrderSerl, ProdReqSeq, ProdReqSerl, PUYN)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'0', N'', N'100664', N'12', N'100069', N'3', N'0'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 108720044</p>
+<p>--SET @MethodSeq = 3</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 1</p>
+<p>SET @PgmSeq = 108720053</p>
+<p>SET @IsTransaction = 1</p>
+<p>-- InputData를 OutputData에 복사</p>
+<p>INSERT INTO #BIZ_OUT_DataBlock2(WorkingTag, IDX_NO, DataSeq, Selected, MessageType, Status, Result, ROW_IDX, IsChangedMst, OrderSeq, OrderSerl, ProdReqSeq, ProdReqSerl, PUYN)</p>
+<p>SELECT WorkingTag, IDX_NO, DataSeq, Selected, MessageType, Status, Result, ROW_IDX, IsChangedMst, OrderSeq, OrderSerl, ProdReqSeq, ProdReqSerl, PUYN</p>
+<p>FROM #BIZ_IN_DataBlock2</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>SET @UseTransaction = N'1'</p>
+<p>BEGIN TRAN</p>
+<p>EXEC ssv_SWSLOrderOptionCfmOptProc_TTEST</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0 OR EXISTS(SELECT * FROM #BIZ_OUT_DataBlock2 WHERE Status != 0)</p>
+<p>BEGIN</p>
+<p>--ROLLBACK TRAN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>ROLLBACK TRAN</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>GOTO_END:</p>
+<p>SELECT WorkingTag, IDX_NO, DataSeq, Selected, MessageType</p>
+<p>, CASE</p>
+<p>WHEN Status = 0 OR Status IS NULL THEN</p>
+<p>-- 정상인건 중에</p>
+<p>CASE</p>
+<p>WHEN @HasError = N'1' THEN</p>
+<p>-- 오류가 발생된 건이면</p>
+<p>CASE</p>
+<p>WHEN @UseTransaction = N'1' THEN</p>
+<p>999999 -- 트랜잭션인 경우</p>
+<p>ELSE</p>
+<p>999998 -- 트랜잭션이 아닌 경우</p>
+<p>END</p>
+<p>ELSE</p>
+<p>-- 오류가 발생되지 않은 건이면</p>
+<p>0</p>
+<p>END</p>
+<p>ELSE</p>
+<p>Status</p>
+<p>END AS Status</p>
+<p>, Result, ROW_IDX, IsChangedMst, OrderSeq, OrderSerl, ProdReqSeq, ProdReqSerl, IsOptionCfm, OptionCfmDate, OptionCfmEmpUserSeq, PUYN</p>
+<p>FROM #BIZ_OUT_DataBlock2</p>
+<p>ORDER BY IDX_NO, ROW_IDX</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock2</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock2</p>
+  </article>
+</div>
+</body>
+</html>

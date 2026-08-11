@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>원천 테이블 (구매)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>원천 테이블 (구매)</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">원천 테이블 (구매)</h1>
+<p>-- 원천 테이블</p>
+<p>CREATE TABLE #TMP_SOURCETABLE(IDOrder INT, TABLENAME NVARCHAR(100))</p>
+<p>-- 원천 공통 SP OUTPUT 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking(IDX_NO INT, IDOrder INT, Seq INT, Serl INT, SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5), STDQty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5))</p>
+<p>-- 현재 데이터 테이블</p>
+<p>CREATE TABLE #DelvInSource(IDX_NO INT IDENTITY, DelvInSeq INT, DelvInSerl INT, DelvInNo NVARCHAR(100), DelvInDate NCHAR(8), DelvInQty DECIMAL(19,5))</p>
+<p>-- 원천 테이블명 INSERT</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TPUDelvItem' -- 구매납품</p>
+<p>UNION</p>
+<p>SELECT 2, '_TPUORDPOItem' -- 구매발주</p>
+<p>UNION</p>
+<p>SELECT 3, '_TPUORDApprovalReqItem' -- 구매품의</p>
+<p>UNION</p>
+<p>SELECT 4, '_TPUORDPOReqItem' -- 구매요청</p>
+<p>-- 현재 데이터 테이블 INSERT</p>
+<p>INSERT INTO #DelvInSource(DelvInSeq, DelvInSerl, DelvInNo, DelvInDate, DelvInQty)</p>
+<p>SELECT A.DelvInSeq, B.DelvInSerl, A.DelvInNo, A.DelvInDate, B.Qty</p>
+<p>FROM _TPUDelvIn AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TPUDelvInItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.DelvInSeq = B.DelvInSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>--AND LEFT(A.DelvInDate,4) = '2024'</p>
+<p>AND B.DelvInSerl IS NOT NULL</p>
+<p>EXEC _SwCOMSourceTracking @CompanySeq = 1,</p>
+<p>@TableName = '_TPUDelvInItem' ,</p>
+<p>@TempTableName = '#DelvInSource' ,</p>
+<p>@TempSeqColumnName = 'DelvInSeq' ,</p>
+<p>@TempSerlColumnName = 'DelvInSerl' ,</p>
+<p>@TempSubSerlColumnName = ''</p>
+<p>-- 원천 sp 사용할 수 있는지 간이 확인</p>
+<p>SELECT B.ProgTableKorName AS 'From'</p>
+<p>,C.ProgTableKorName AS 'To'</p>
+<p>FROM _TCOMSourceDailyTrace AS A</p>
+<p>JOIN _TCOMProgTable AS B ON B.ProgTableSeq = A.FromTableSeq</p>
+<p>JOIN _TCOMProgTable AS C ON C.ProgTableSeq = A.ToTableSeq</p>
+<p>WHERE B.ProgTableKorName LIKE '%%' -- From</p>
+<p>AND C.ProgTableKorName LIKE '%%' -- To</p>
+<p>SELECT --구매입고번호(DelvInNo), 입고일, 입고수량, 납품번호, 납품일, 납품수량, 발주번호, 발주일, 발주수량, 품의번호, 품의일, 품의수량, 요청번호, 요청일, 요청수량</p>
+<p>A.DelvInNo AS 구매입고번호,</p>
+<p>A.DelvInDate AS 입고일,</p>
+<p>A.DelvInQty AS 입고수량,</p>
+<p>C.DelvNo AS 납품번호,</p>
+<p>C.DelvDate AS 납품일,</p>
+<p>B1.Qty AS 납품수량,</p>
+<p>D.PONo AS 발주번호,</p>
+<p>D.PODate AS 발주일,</p>
+<p>B2.Qty AS 발주수량,</p>
+<p>E.ApproReqNo AS 품의번호,</p>
+<p>E.ApproReqDate AS 품의일,</p>
+<p>B3.Qty AS 품의수량,</p>
+<p>F.POReqNo AS 요청번호,</p>
+<p>F.ReqDate AS 요청일,</p>
+<p>B4.Qty AS 요청수량</p>
+<p>FROM #DelvInSource AS A</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS B1 ON B1.IDOrder = 1</p>
+<p>AND A.IDX_NO = B1.IDX_NO</p>
+<p>LEFT OUTER JOIN _TPUDelv AS C WITH(NOLOCK) ON C.CompanySeq = 1</p>
+<p>AND B1.Seq = C.DelvSeq</p>
+<p>LEFT OUTER JOIN _TPUDelvItem AS C1 WITH(NOLOCK) ON C1.CompanySeq = 1</p>
+<p>AND B1.Seq = C1.DelvSeq</p>
+<p>AND B1.Serl = C1.DelvSerl</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS B2 ON B2.IDOrder = 2</p>
+<p>AND A.IDX_NO = B2.IDX_NO</p>
+<p>LEFT OUTER JOIN _TPUORDPO AS D WITH(NOLOCK) ON D.CompanySeq = 1</p>
+<p>AND B2.Seq = D.POSeq</p>
+<p>LEFT OUTER JOIN _TPUORDPOItem AS D1 WITH(NOLOCK) ON D1.CompanySeq = 1</p>
+<p>AND B2.Seq = D1.POSeq</p>
+<p>AND B2.Serl = D1.POSerl</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS B3 ON B3.IDOrder = 3</p>
+<p>AND A.IDX_NO = B3.IDX_NO</p>
+<p>LEFT OUTER JOIN _TPUORDApprovalReq AS E WITH(NOLOCK) ON E.CompanySeq = 1</p>
+<p>AND B3.Seq = E.ApproReqSeq</p>
+<p>LEFT OUTER JOIN _TPUORDApprovalReqItem AS E1 WITH(NOLOCK) ON E1.CompanySeq = 1</p>
+<p>AND B3.Seq = E1.ApproReqSeq</p>
+<p>AND B3.Serl = E1.ApproReqSerl</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS B4 ON B4.IDOrder = 4</p>
+<p>AND A.IDX_NO = B4.IDX_NO</p>
+<p>LEFT OUTER JOIN _TPUORDPOReq AS F WITH(NOLOCK) ON F.CompanySeq = 1</p>
+<p>AND B4.Seq = F.POReqSeq</p>
+<p>DROP TABLE #TMP_SOURCETABLE</p>
+<p>DROP TABLE #TCOMSourceTracking</p>
+<p>DROP TABLE #DelvInSource</p>
+  </article>
+</div>
+</body>
+</html>

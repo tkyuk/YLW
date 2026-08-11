@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>더미풋터 페이지별로 설정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>더미풋터 페이지별로 설정</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">더미풋터 페이지별로 설정</h1>
+<p>-- 자바스크립트 더미풋터설정</p>
+<p>// 20220210 by ghpark 데이터 개수에 따라 더미풋터 개수 설정</p>
+<p>var count = This.GetComponentByName<span class="mark">("FixedTableLabel67")</span>.GetDataSetRowCount(); // DB에서 가져온 데이터 개수</p>
+<p>var firstCnt = 14;// 첫 페이지에서 최대로 표시가능한 데이터 개수 -- 합계나올것 고려</p>
+<p>var lastCnt = 14;// 마지막 페이지에서 최대로 표시가능한 데이터 개수 -- 합계나올것 고려</p>
+<p>var DummyCnt = 14;// 중간 페이지에서 최대로 표시가능한 데이터 개수 -- 합계없는 전체개수</p>
+<p>var repeatN = 0; // 더미풋터 반복 횟수</p>
+<p>if(count \&lt; firstCnt){ // 데이터가 첫 페이지에 모두 보여줄 수 있을 정도의 개수라면, 첫 페이지에 모두 보여준다.</p>
+<p>repeatN = firstCnt - count; // 데이터 개수에 따라 변함(만약 첫 페이지 최대 개수가 11개, 데이터 1개면, 더미풋터는 11-1, 즉 10번 반복해야함)</p>
+<p>} else if((count - firstCnt) % DummyCnt == 0){ // 데이터 개수가 11, 11+36, 11+36*2 즉 36n + 11개일 경우, 더미풋터 개수는 0이 된다.</p>
+<p>repeatN = 0</p>
+<p>} else {</p>
+<p>repeatN = lastCnt - (count - firstCnt) % DummyCnt; // 데이터 개수가 11을 초과할 경우의 데이터 개수와 더미풋터 반복횟수 조율</p>
+<p>}</p>
+<p>//_TraceLn("\t\t&gt;&gt;repeatN = " + repeatN);</p>
+<p>//_TraceLn("\t\t&gt;&gt;test = " + count);</p>
+<p>This.SetRepeatNumber(repeatN);</p>
+<p>오즈 라이센스 파일 및 경로 (2025)</p>
+  </article>
+</div>
+</body>
+</html>

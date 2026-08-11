@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2023-02-24-untitled-2</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2023-02-24-untitled-2</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>function fnCalcSheetWBS_djb(ObjectSS, StrColCurrSeq, ObjectExRate, StrColCustSeq, StrColDeptSeq, StrColReqDate, IntSRow, IntERow, StrColItemSeq, StrColUnitSeq, StrColSTDQty, StrColItemPrice, StrColCustPrice,</p>
+<p>StrColPrice, StrColQty, StrColVatRate, StrColInclusedVAT, StrColCurAmt, StrColCurVat, StrColCurAmtTotal, StrColDomAmt, StrColDomVat, StrColDomTotAmt, StrColOptionSeq,</p>
+<p>StrColExRate, StrExpKind, StrColDomPrice, StrColUnitName, StrColSTDUnitName, StrColSTDUnitSeq, StrColIsQtyChange, IntInOut, StrColWHName, StrColWHSeq, StrColBizUnit, StrColEmpSeq)</p>
+<p>StrCol = ObjectSS.ActiveColumnName</p>
+<p>if StrCol == '' or StrCol == nil then</p>
+<p>StrCol = '-1'</p>
+<p>end</p>
+<p>if StrCol == 'ItemName' or StrCol == 'ItemNo' or StrCol == 'Spec' or StrCol == 'UnitName' or StrCol == 'CustName' or</p>
+<p>StrCol == 'CustItemName' or StrCol == 'CustItemNo' or StrCol == 'CustItemSpec' or StrCol == StrColUnitName then</p>
+<p>fnSLGetItemInfo_djb(ObjectSS, IntSRow, IntERow, StrColCustSeq, StrColDeptSeq, StrColCurrSeq, StrColReqDate, StrColItemSeq, StrColUnitSeq, StrColSTDQty,</p>
+<p>StrColItemPrice, StrColCustPrice, StrColPrice, StrColQty, StrColVatRate, StrColInclusedVAT, StrColCurAmt, StrColCurVat, StrColCurAmtTotal,</p>
+<p>StrColDomAmt, StrColDomVat, StrColDomTotAmt, StrColOptionSeq, StrColExRate, StrExpKind, StrColDomPrice, StrColUnitName,</p>
+<p>StrColSTDUnitName, StrColSTDUnitSeq, StrColIsQtyChange, IntInOut, StrColWHName, StrColWHSeq, StrColBizUnit, StrColEmpSeq)</p>
+<p>elseif StrCol == 'Qty' or StrCol == StrColQty then</p>
+<p>fnSLGetStdQty_djb(ObjectSS, IntSRow, IntERow, StrColItemSeq, StrColUnitSeq, StrColQty, StrColSTDUnitName, StrColSTDUnitSeq, StrColSTDQty, StrColIsQtyChange, StrColUnitName)</p>
+<p>end</p>
+<p>ObjectSS.ActiveColumnName = StrCol</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

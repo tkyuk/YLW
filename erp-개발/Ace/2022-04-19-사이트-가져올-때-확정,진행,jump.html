@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사이트 가져올 때 확정,진행,jump</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사이트 가져올 때 확정,진행,jump</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="jump">사이트 가져올 때 확정,진행,jump</h1>
+<p>사이트 따올 때 필수로 해야하는 것</p>
+<p>+. dummy에 코드값을 넣을 경우 따로 dummy를 건드릴 필요가 없다</p>
+<p>UseDept 컬럼 추가 / dummy10에 UseDeptSeq 넣을 경우</p>
+<p>- 테이블 신규 생성 필요 없음</p>
+<p>- UseDept Cd에 UseDeptSeq가 아니라 dummy10을 넣으면 된다</p>
+<p>- 비즈니스에서 dummy를 건드릴 필요가 없다</p>
+<p>● 필수로 해야하는 것 (확정, 진행, 점프, 점프 추가)</p>
+<p>1. 확정관리(2014)</p>
+<p>표준화면과 똑같은 값을 넣는다</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image82.png" /></p>
+<p>2. 진행대상테이블등록 (2014)</p>
+<p>진행테이블 클릭 후 =&gt; 진행설정 툴바 클릭</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image83.png" /></p>
+<p>개발툴 – 프로그램 - (추가기능) 진행관리테이블에 저장되어 있으면</p>
+<p>자동으로 진행설정에서 나온다</p>
+<p>(진행설정에 없을 경우 개발툴에서 먼저 추가해야함)</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image84.png" /></p>
+<p>표준과 똑같이 입력</p>
+<p>+. 비즈니스를 새로 만든 경우 비즈니스는 바꿔줘야한다</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image85.png" /></p>
+<p>저장BizService 내리기 클릭</p>
+<p>표준 비즈니스 더블클릭 후 체크되어 있는 항목 똑같이 체크</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image86.png" /></p>
+<p>3. Jump진행관리 복사생성</p>
+<p>원본 Jump = 따온 표준 화면 입력</p>
+<p>jump 복사생성 = 만든 화면 입력</p>
+<p>사이트명 입력하면 자동으로 JumpIn, JumpOut항목이 나옴</p>
+<p>표준에서 가는 것들만 선택 후 복사 누름</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image87.png" /></p>
+<p>+. JumpOut에서 선택한 것들은 개발툴에서 바꿔줘야한다</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image88.png" /></p>
+<p>이벤트 유형 : J-Jump(From-To) 인지 확인</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image89.png" /></p>
+<p>Jump에 해당 JumpOut 입력</p>
+<p>FrmWUIImpBLList_mcnv</p>
+<p>FrmWUIImpBLItemList_mcnv</p>
+<p><img alt="" src="assets/사이트-가져올-때-확정,진행,jump/image90.png" /></p>
+  </article>
+</div>
+</body>
+</html>

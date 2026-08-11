@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행 끼리, 행 별로 계산 CROSS JOIN</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>행 끼리, 행 별로 계산 CROSS JOIN</h1>
+    <div class="meta">
+      <span class="note-date">2024-08-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="cross-join">행 끼리, 행 별로 계산 CROSS JOIN</h1>
+<p>SELECT '06' AS GbnCd,</p>
+<p>'합계' AS GbnNm,</p>
+<p>'매입비율' AS CustNm,</p>
+<p>COALESCE(G3.M1 / NULLIF(G4.M1, 0), 0) AS M1,</p>
+<p>COALESCE(G3.M2 / NULLIF(G4.M2, 0), 0) AS M2,</p>
+<p>COALESCE(G3.M3 / NULLIF(G4.M3, 0), 0) AS M3,</p>
+<p>COALESCE(G3.M4 / NULLIF(G4.M4, 0), 0) AS M4,</p>
+<p>COALESCE(G3.M5 / NULLIF(G4.M5, 0), 0) AS M5,</p>
+<p>COALESCE(G3.M6 / NULLIF(G4.M6, 0), 0) AS M6,</p>
+<p>COALESCE(G3.M7 / NULLIF(G4.M7, 0), 0) AS M7,</p>
+<p>COALESCE(G3.M8 / NULLIF(G4.M8, 0), 0) AS M8,</p>
+<p>COALESCE(G3.M9 / NULLIF(G4.M9, 0), 0) AS M9,</p>
+<p>COALESCE(G3.M10 / NULLIF(G4.M10, 0), 0) AS M10,</p>
+<p>COALESCE(G3.M11 / NULLIF(G4.M11, 0), 0) AS M11,</p>
+<p>COALESCE(G3.M12 / NULLIF(G4.M12, 0), 0) AS M12,</p>
+<p>COALESCE(G3.TotMM / NULLIF(G4.TotMM, 0), 0) AS TotMM</p>
+<p>FROM</p>
+<p>(SELECT M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, TotMM</p>
+<p>FROM #ylwa19005_jsb_003</p>
+<p>WHERE GbnCd = '03') AS G3</p>
+<p>CROSS JOIN</p>
+<p>(SELECT M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, TotMM</p>
+<p>FROM #ylwa19005_jsb_003</p>
+<p>WHERE GbnCd = '05') AS G4;</p>
+  </article>
+</div>
+</body>
+</html>

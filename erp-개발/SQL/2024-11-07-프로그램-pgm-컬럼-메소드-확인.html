@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프로그램 pgm 컬럼 메소드 확인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>프로그램 pgm 컬럼 메소드 확인</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="pgm">프로그램 pgm 컬럼 메소드 확인</h1>
+<p>SELECT A.Caption, B.ControlName, D.PgmMethodName</p>
+<p>FROM _TCAPgm AS A</p>
+<p>JOIN _TCAPgmControls AS B ON B.PgmSeq =A.PgmSeq AND B.ControlSeq = 66</p>
+<p>JOIN _TCAPgmControlsEvent AS C ON C.PgmSeq =B.PgmSeq AND B.ControlSeq = C.ControlSeq</p>
+<p>JOIN _TCAPgmMethod AS D ON D.PgmSeq =C.PgmSeq AND D.PgmMethodSeq= C.PgmMethodSeq</p>
+<p>WHERE A.PgmSeq = 3569</p>
+<p>SELECT LastDateTime,* FROM _TCAPgm WHERE PgmSeq = 3569</p>
+  </article>
+</div>
+</body>
+</html>

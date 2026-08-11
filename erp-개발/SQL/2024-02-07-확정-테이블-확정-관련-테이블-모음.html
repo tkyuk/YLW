@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정 테이블 / 확정 관련 테이블 모음</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정 테이블 / 확정 관련 테이블 모음</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">확정 테이블 / 확정 관련 테이블 모음</h1>
+<p>SELECT TOP 1 LASTDATETIME, * FROM _TCOMConfirm WHERE ConfirmSeq = 15000003 ORDER BY 1 DESC</p>
+<p>SELECT TOP 1 LASTDATETIME, * FROM _TCOMConfirmDef WHERE ConfirmSeq = 15000003 ORDER BY 1 DESC</p>
+<p>SELECT TOP 1 LASTDATETIME, * FROM _TCOMConfirmPGM WHERE ConfirmSeq = 15000003 ORDER BY 1 DESC</p>
+<p>SELECT TOP 1 LASTDATETIME, * FROM _TCOMConfirmPrevCheckSP WHERE ConfirmSeq = 15000003 ORDER BY 1 DESC</p>
+<p>SELECT TOP 1 LASTDATETIME, * FROM _TCOMConfirmSVC WHERE SaveBizServiceSeq = 39820009 ORDER BY 1 DESC</p>
+<p>SELECT TOP 1 LASTDATETIME, * FROM _TCOMConfirmSVCMethod WHERE SaveBizServiceSeq = 39820009 ORDER BY 1 DESC</p>
+<p>SELECT TOP 1 LASTDATETIME, * FROM _TCOMConfirmTable WHERE ConfirmTableSeq = 15000003 ORDER BY 1 DESC</p>
+  </article>
+</div>
+</body>
+</html>

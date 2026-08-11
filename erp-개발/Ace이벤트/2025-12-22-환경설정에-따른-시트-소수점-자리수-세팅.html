@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환경설정에 따른 시트 소수점 자리수 세팅</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>환경설정에 따른 시트 소수점 자리수 세팅</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">환경설정에 따른 시트 소수점 자리수 세팅</h1>
+<p>DomDec = tonumber(GetPgmEnv('COMEnv', 3549))                -- 자국통화 소수점 자리수</p>
+<p>CurDec         = tonumber(GetPgmEnv('COMEnv', 3550))                -- 외화통화 소수점 자리수</p>
+<p>if GetPgmEnv('COMEnv', 3548) == '1' then                                        -- 외화통화 사용</p>
+<blockquote>
+<p>txtCurrName.ControlKey = 'NOS;'</p>
+<p>txtCurrName.DefaultValue='ENV_BasicKorCurr' -- 202404150200</p>
+<p>SS1.ActiveColumnName = 'Amt'</p>
+</blockquote>
+<p>SS1.ColumnDeclength = CurDec        </p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'CurrName'</p>
+<p>SS1.ColumnControlKey =''</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>txtCurrName.ControlKey = 'HID;DIS;'</p>
+<p>SS1.ActiveColumnName = 'Amt'</p>
+</blockquote>
+<p>SS1.ColumnDeclength = DomDec         </p>
+<blockquote>
+<p>SS1.ActiveColumnName = 'CurrName'</p>
+</blockquote>
+<p>SS1.ColumnControlKey = 'HID;DIS;'</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

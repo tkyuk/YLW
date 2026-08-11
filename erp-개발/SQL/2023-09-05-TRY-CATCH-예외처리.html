@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRY CATCH 예외처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>TRY CATCH 예외처리</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="try-catch">TRY CATCH 예외처리</h1>
+<p>BEGIN TRANSACTION;</p>
+<p>BEGIN TRY</p>
+<p>-- 첫 번째 INSERT 구문</p>
+<p>INSERT INTO _TSIASServiceReq(CompanySeq, ReceiptSeq, ReceiptNo, ReceiptDate, EmpSeq,</p>
+<p>ItemSeq, CustSeq, UMContactKind, UMConsultKind, ServiceKind,</p>
+<p>UMPriority, SMChargeType, ServiceDeptSeq, ServiceEmpSeq, ProcExpTime,</p>
+<p>ProcExpDate, ReceiptRemark, FileSeq, LastUserSeq, LastDateTime,</p>
+<p>ReqDate, ReceiptTime, ExpProcTime, LOTNo, SerialNo,</p>
+<p>ContactSeq,        AddressSeq,                AcceptSeq,                ClientSeq,                ReqCustName</p>
+<p>)</p>
+<p>SELECT 1, 1, '12312', '' AS ReceiptDate, 0 AS EmpSeq,</p>
+<p>0 AS ItemSeq, 0 AS CustSeq, 0 AS UMContactKind, 0 AS UMConsultKind, 'ㄹㄴㅇ' AS ServiceKind,</p>
+<p>0 AS UMPriority,0 AS SMChargeType,0 AS ServiceDeptSeq,0 AS ServiceEmpSeq,'' AS ProcExpTime,</p>
+<p>'' AS ProcExpDate, '' AS ReceiptRemark, 0 AS FileSeq, 1, GETDATE(),</p>
+<p>'' AS ReqDate, '' AS ReceiptTime, '' ASExpProcTime, '' AS LOTNo, '31231',</p>
+<p>0 AS ContactSeq, 0 AS AddressSeq,                0,                                0,                                ''</p>
+<p>-- 첫 번째 INSERT 후 오류 체크</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>GOTO StockERROR_PROC</p>
+<p>END</p>
+<p>-- 모든 작업이 성공하면 커밋</p>
+<p>COMMIT TRANSACTION;</p>
+<p>RETURN;</p>
+<p>StockERROR_PROC:</p>
+<p>-- 오류 발생 시 롤백</p>
+<p>ROLLBACK TRANSACTION;</p>
+<p>-- 오류 메시지 출력</p>
+<p>PRINT '오류 발생: ' + ERROR_MESSAGE();</p>
+<p>RETURN;</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- 오류 발생 시 롤백</p>
+<p>ROLLBACK TRANSACTION;</p>
+<p>-- 오류 메시지 출력</p>
+<p>PRINT '오류 발생: ' + ERROR_MESSAGE();</p>
+<p>RETURN;</p>
+<p>END CATCH;</p>
+  </article>
+</div>
+</body>
+</html>

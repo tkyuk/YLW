@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정렬 ROW_NUMBER(), PARTITION BY</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>정렬 ROW_NUMBER(), PARTITION BY</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-26</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="row_number-partition-by">정렬 ROW_NUMBER(), PARTITION BY</h1>
+<p>-- 정렬이 필요 없는 경우</p>
+<p>-- ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS Row,</p>
+<p>-- 정렬이 필요한 경우</p>
+<p>-- ROW_NUMBER() OVER (ORDER BY COLUMN5, COLUMN2) AS Row,</p>
+<p>-- PARTITION BY 절 추가</p>
+<p>-- ROW_NUMBER() OVER (PARTITION BY COLUMN7 ORDER BY COLUMN5, COLUMN2) AS Row#,</p>
+  </article>
+</div>
+</body>
+</html>

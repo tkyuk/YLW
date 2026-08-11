@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>집계 데이터 UPDATE</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>집계 데이터 UPDATE</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="update">집계 데이터 UPDATE</h1>
+<p>UPDATE A</p>
+<p>SET A.EmpNum = B.EmpNum</p>
+<p>FROM #Temp_DdFixCol AS A</p>
+<p>JOIN (SELECT A.RecruitSeq, COUNT(B.ResumeSeq) AS EmpNum</p>
+<p>FROM #Temp_DdFixCol AS A</p>
+<p>JOIN #EduEmp_NEW AS B ON B.RecruitSeq = A.RecruitSeq</p>
+<p>GROUP BY A.RecruitSeq ) AS B ON A.RecruitSeq = B.RecruitSeq</p>
+  </article>
+</div>
+</body>
+</html>

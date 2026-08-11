@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품목이 없어도 LotNo 나오기 (이동입력)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>품목이 없어도 LotNo 나오기 (이동입력)</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="lotno">품목이 없어도 LotNo 나오기 (이동입력)</h1>
+<p>if (SS1.ActiveColumnName == 'LotNo') then</p>
+<p>SS1.ColumnCodeHelpParams = CellText(SS1, SS1.ActiveRow,'ItemSeq')..'|'..txtOutWHName.TextCd</p>
+<p>end</p>
+<p>if CellText(SS1, SS1.ActiveRow, 'ItemSeq') == '0' then</p>
+<blockquote>
+<p>SS1.IsCodeHelpCancelEvent = true</p>
+</blockquote>
+<p>end</p>
+<p>if SSMatOutItem.ActiveColumnName == 'ItemLotNo' then</p>
+<blockquote>
+<p>--SSMatOutItem.ColumnCodeHelpParams = CellText(SSMatOutItem, SSMatOutItem.ActiveRow, 'ItemSeq')..'|'..CellText(SSMatOutItem, SSMatOutItem.ActiveRow, 'OutWHSeq')..'|||'</p>
+<p>SSMatOutItem.ColumnCodeHelpParams = CellText(SSMatOutItem, SSMatOutItem.ActiveRow, 'ItemSeq')..'|'..txtOutWHName.TextCd..'|||'</p>
+</blockquote>
+<p>end</p>
+<p>=&gt;</p>
+  </article>
+</div>
+</body>
+</html>

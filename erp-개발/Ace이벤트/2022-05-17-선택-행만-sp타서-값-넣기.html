@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선택 행만 sp타서 값 넣기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>선택 행만 sp타서 값 넣기</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">선택 행만 sp타서 값 넣기</h1>
+<p><img alt="" src="assets/선택-행만-sp타서-값-넣기/image47.png" /></p>
+<p><img alt="" src="assets/선택-행만-sp타서-값-넣기/image48.png" /></p>
+<p>FrmWSLPrice_ovcos</p>
+<p>단가정보입력_ovcos</p>
+<ol>
+<li>선택된 행 없으면 에러처리</li>
+</ol>
+<p>-- 선택된 행이 없으면 메시지 처리</p>
+<p>local cnt</p>
+<p>cnt = 0</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'Sel') == '1' then</p>
+<blockquote>
+<p>cnt = tonumber(cnt) + 1</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>if tonumber(cnt) == 0 then</p>
+<p>msg = GetMessage('1001', GetDictionary(50484),'', '', '', '', '', '', '', '', '')</p>
+<blockquote>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<ol start="2">
+<li>선택된 행만 단가 구하는 메소드 반복</li>
+</ol>
+<p>local row</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'Sel') == '1' then</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>RunPgmMethod('GetPrice')</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<hr />
+<p>SS1의 Active Row 가져가기 (G)</p>
+<ol>
+<li>시트에 마스터 값 넣기</li>
+</ol>
+<p>SetDataColFill(m_SendXml, 'DataBlock1', 'RegDate', txtRegDate.Value)</p>
+<ol start="2">
+<li>
+<p>SP</p>
+</li>
+<li>
+<p>해당 열에 값 넣기</p>
+</li>
+</ol>
+<p>SetText(SS1, SS1.ActiveRow, 'FOBPrice' , GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'FOBPrice', 0))</p>
+<p>SetText(SS1, SS1.ActiveRow, 'WholesalePrice' , GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'WholesalePrice', 0))</p>
+<p>SetText(SS1, SS1.ActiveRow, 'RetailPrice' , GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'RetailPrice', 0))</p>
+  </article>
+</div>
+</body>
+</html>

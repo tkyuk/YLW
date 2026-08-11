@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사업자 영문명</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사업자 영문명</h1>
+    <div class="meta">
+      <span class="note-date">2023-03-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사업자 영문명</h1>
+<p>D2.TaxEngName AS CompanyName -- 사업자 영문명</p>
+<p>LEFT OUTER JOIN _TTAXBizTaxUnit AS D1 WITH(NOLOCK) ON D1.CompanySeq = @CompanySeq</p>
+<p>AND D1.BizUnit = A.BizUnit</p>
+<p>LEFT OUTER JOIN _TDATaxUnit AS D2 WITH(NOLOCK) ON D2.CompanySeq = D1.CompanySeq</p>
+<p>AND D2.TaxUnit = D1.TaxUnit</p>
+  </article>
+</div>
+</body>
+</html>

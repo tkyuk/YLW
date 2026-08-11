@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발령 테이블 (ex.입사인원 확인)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>발령 테이블 (ex.입사인원 확인)</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ex">발령 테이블 (ex.입사인원 확인)</h1>
+<p>SELECT B.RecruitSeq, B.ResumeSeq</p>
+<p>FROM _THRAdmOrdEmp AS A</p>
+<p>JOIN ubase_THRAdmOrdEmp AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND a.EmpSeq = b.EmpSeq</p>
+<p>AND A.IntSeq = B.IntSeq</p>
+<p>JOIN _THRAdmOrd AS C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.OrdSeq = C.OrdSeq</p>
+<p>AND C.SMOrdAppSeq = 3058002</p>
+<p>JOIN #Temp_DdFixCol AS Z ON B.CompanySeq = @CompanySeq</p>
+<p>AND Z.RecruitSeq = B.RecruitSeq</p>
+<p>유베이스 테이블 없어도 됨</p>
+<p>-- _THRAdmOrd 테이블의 SMOrdAppSeq 값</p>
+<p>(ex. 3058002 = 입사)</p>
+<p>SELECT D.MinorName,*</p>
+<p>FROM _THRAdmOrdEmp AS A</p>
+<p>JOIN _THRAdmOrd AS C ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.OrdSeq = C.OrdSeq</p>
+<p>JOIN _TDASMinor AS D ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.MinorSeq = C.SMOrdAppSeq</p>
+  </article>
+</div>
+</body>
+</html>

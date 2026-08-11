@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.05.29 단암 그룹웨어 출장 교육 외근</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.05.29 단암 그룹웨어 출장 교육 외근</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250529">25.05.29 단암 그룹웨어 출장 교육 외근</h1>
+<p>Select TOP 10 * From danam_TARBizTripReport with(nolock) Where CompanySeq = 1 AND BizTripType IN ('E') ORDER BY LASTDATETIME DESC --교육</p>
+<p>Select TOP 10 * From danam_TARBizTripReport with(nolock) Where CompanySeq = 1 AND BizTripType IN ('T') ORDER BY LASTDATETIME DESC --출장</p>
+<p>Select TOP 10 * From danam_TARBizTripReport with(nolock) Where CompanySeq = 1 AND BizTripType IN ('O') ORDER BY LASTDATETIME DESC --외근</p>
+<p>E 교육 10450</p>
+<p>T 출장 10466</p>
+<p>O 외근 10469</p>
+<p>-- 제뉴인</p>
+<p>EXEC _SCOMGroupWarePrint</p>
+<p>@CompanySeq = 1</p>
+<p>,@LanguageSeq = 1</p>
+<p>,@UserSeq = 1</p>
+<p>,@PgmSeq = 1041478 -- 프로그램코드</p>
+<p>,@WorkKind = 'BizTripReport' -- 결재문서번호</p>
+<p>,@TblKey = 10469 -- 내부코드</p>
+<p>,@SiteInit = 'danam' -- 사이트이니셜</p>
+<p>MainTitle        InOutTypeName        Title1        ItemName        Contents        Title2        BizTripSeq        BizTripType        SortNum</p>
+<p>MainTitle        InOutTypeName        Title1        ItemName        Contents        Title2        BizTripSeq        BizTripType        SortNum</p>
+<p>MainTitle        InOutTypeName        Title1        ItemName        Contents        Title2        BizTripSeq        BizTripType        SortNum</p>
+<p>TripKindName        TripTypeName        DomAmt        CalcDesc        RowMergeCnt        TotDomAmt        SortNum</p>
+<p>TripKindName        TripTypeName        DomAmt        CalcDesc        RowMergeCnt        TotDomAmt        SortNum</p>
+<p>TripKindName        TripTypeName        DomAmt        CalcDesc        RowMergeCnt        TotDomAmt        SortNum</p>
+<p>Select TOP 10 * From danam_TARBizTripCostReq with(nolock) Where CompanySeq = 1 AND BizTripType IN ('E') ORDER BY LASTDATETIME DESC --교육</p>
+<p>Select TOP 10 * From danam_TARBizTripCostReq with(nolock) Where CompanySeq = 1 AND BizTripType IN ('T') ORDER BY LASTDATETIME DESC --출장</p>
+<p>Select TOP 10 * From danam_TARBizTripCostReq with(nolock) Where CompanySeq = 1 AND BizTripType IN ('O') ORDER BY LASTDATETIME DESC --외근</p>
+<p>E 교육 6740</p>
+<p>T 출장 6798</p>
+<p>O 외근 6779</p>
+<p>-- 제뉴인</p>
+<p>EXEC _SCOMGroupWarePrint</p>
+<p>@CompanySeq = 1</p>
+<p>,@LanguageSeq = 1</p>
+<p>,@UserSeq = 1</p>
+<p>,@PgmSeq = 1041461 -- 프로그램코드</p>
+<p>,@WorkKind = 'BizTripReq' -- 결재문서번호</p>
+<p>,@TblKey = 6779 -- 내부코드</p>
+<p>,@SiteInit = 'danam' -- 사이트이니셜</p>
+<p>Title        ItemName        Contents        BizTripSeq        EduYn        SortNum</p>
+<p>Title        ItemName        Contents        BizTripSeq        EduYn        SortNum</p>
+<p>Title        ItemName        Contents        BizTripSeq        EduYn        SortNum</p>
+<p>외근신청서        외근자        김종태        6779        0        1</p>
+<p>MainTitle        InOutTypeName        Title1        ItemName        Contents        Title2        BizTripSeq        BizTripType        SortNum</p>
+<p>MainTitle        InOutTypeName        Title1        ItemName        Contents        Title2        BizTripSeq        BizTripType        SortNum</p>
+<p>MainTitle        InOutTypeName        Title1        ItemName        Contents        Title2        BizTripSeq        BizTripType        SortNum</p>
+<p>TripKindName        TripTypeName        DomAmt        CalcDesc        RowMergeCnt        TotDomAmt        SortNum</p>
+<p>TripKindName        TripTypeName        DomAmt        CalcDesc        RowMergeCnt        TotDomAmt        SortNum</p>
+<p>TripKindName        TripTypeName        DomAmt        CalcDesc        RowMergeCnt        TotDomAmt        SortNum</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\[msdb\].dbo.sp_send_dbmail 메일 연동 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\[msdb\].dbo.sp_send_dbmail 메일 연동 SP</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="msdbdbosp_send_dbmail-sp">[msdb].dbo.sp_send_dbmail 메일 연동 SP</h1>
+<p>/************************************************************</p>
+<p>설 명 - 그룹웨어전자결재완료처리 : 결재문서번호 POPMS/OSPPO</p>
+<p>작성일 -</p>
+<p>작성자 -</p>
+<p>설 명 -</p>
+<p>수 정 -</p>
+<p>************************************************************/</p>
+<p>DROP PROC dbo.apro_SWCOMGroupWarePUORDPOProc</p>
+<p>GO</p>
+<p>CREATE PROC dbo.apro_SWCOMGroupWarePUORDPOProc</p>
+<p>@pWorkingTag NCHAR(1),</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@WorkKind NVARCHAR(40) = '',</p>
+<p>@TblKey NVARCHAR(40) = '', -- 넘겨준 키를 그대로 보낸다.</p>
+<p>@TopUserName NVARCHAR(50) = '',</p>
+<p>@TopUserPosition NVARCHAR(50) = '',</p>
+<p>@RevUserName NVARCHAR(50) = '',</p>
+<p>@RevUserPosition NVARCHAR(50) = '',</p>
+<p>@DocID NVARCHAR(MAX) = '',</p>
+<p>@SiteInit NVARCHAR(40) = '' ,</p>
+<p>@MessageType INT OUTPUT,</p>
+<p>@Status INT OUTPUT,</p>
+<p>@Results NVARCHAR(250) OUTPUT,</p>
+<p>@GWDate NVARCHAR(8) = '',</p>
+<p>@EmpID NVARCHAR(40) = ''</p>
+<p>AS</p>
+<p>SET NOCOUNT ON;</p>
+<p>DECLARE @WorkingTag NVARCHAR(1)</p>
+<p>CREATE TABLE #TSCMORDPO</p>
+<p>(</p>
+<p>WorkingTag NVARCHAR(1),</p>
+<p>Status INT,</p>
+<p>MessageType INT,</p>
+<p>Result NVARCHAR(255),</p>
+<p>POType INT,</p>
+<p>POSeq INT</p>
+<p>)</p>
+<p>-- 1-5. 처리 후 상태값 UPDATE</p>
+<p>-- S : 전자결재 시작(잔자결재문서 저장되는 시점에 호출되어야 함)</p>
+<p>-- E : 전자결재를 모두 마치고, ERP에서 다음단계로 진행되어도 되는 시점에 호출</p>
+<p>-- C : 전자결재 취소(전자결재 문서가 삭제되는 시점에 호출되어야 함)</p>
+<p>-- R : 전자결재가 모두 마쳤졌다가 취소되어 Resart되는 경우(ERP다음단계 진행여부를 체크해야함)</p>
+<p>-- T : 전자결재가 모두 마치고 수신완료까지 한상태</p>
+<p>-- B : 잔자결재가 반려 처리가 되었을 때 ERP상에서 반송된 문서의 상태확인도 하고 재상신도 해야 하는경우. 2011.06.09. nhsong.</p>
+<p>-- L : 최종수신자가 취소한 경우 (환경설정 체크값 읽어와서 체크된 경우에는 R-S 호출, 체크되지 않았으면 작업 없음)</p>
+<p>-- J : 선결, 중간결재자가 결재시 데이터를 전달받기 위함, 사이트용 후처리 예정. 서연탑메탈 요청 202205100249</p>
+<p>IF @pWorkingTag IN ('E', 'C')</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TSCMORDPO</p>
+<p>(</p>
+<p>WorkingTag,</p>
+<p>Status, MessageType, Result,</p>
+<p>POType, POSeq</p>
+<p>)</p>
+<p>SELECT CASE @pWorkingTag WHEN 'E' THEN 'A'</p>
+<p>WHEN 'C' THEN 'D'</p>
+<p>END AS WorkingTag,</p>
+<p>@Status, @MessageType, @Results,</p>
+<p>1 AS POType, A.POSeq</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = CONVERT(INT, @TblKey)</p>
+<p>EXEC apro_SWSCMORDPOADDDEL</p>
+<p>@WorkingTag = @pWorkingTag,</p>
+<p>@CompanySeq = @CompanySeq,</p>
+<p>@LanguageSeq = @LanguageSeq,</p>
+<p>@UserSeq = @UserSeq,</p>
+<p>@PgmSeq = 999999</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TSCMORDPO WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>SELECT @Results = A.Result,</p>
+<p>@MessageType = A.MessageType,</p>
+<p>@Status = A.Status</p>
+<p>FROM #TSCMORDPO AS A</p>
+<p>WHERE A.Status \&lt;&gt; 0</p>
+<p>END</p>
+<p>-- 전자결재 확정 시 메일전송 2024.08.26 hwkim</p>
+<p>DECLARE @Subject1 NVARCHAR(MAX),</p>
+<p>@RecvEmail NVARCHAR(200),</p>
+<p>@SendMessage NVARCHAR(MAX)</p>
+<p>SELECT @SendMessage = '[ERP 시스템에서 처리결과를 알려드립니다] ' + '\&lt;BR&gt;' +</p>
+<p>'[(주)에이프로]' + '\&lt;BR&gt;' +</p>
+<p>' - 발신자\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp; : ' + ISNULL(H.EmpName ,'') + '\&lt;BR&gt;' +</p>
+<p>' - 거래처\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp; : ' + ISNULL(D.CustName ,'') + '\&lt;BR&gt;' +</p>
+<p>' - 발주번호\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp; : ' + ISNULL(A.PONo ,'') + '\&lt;BR&gt;' +</p>
+<p>' - 대표프로젝트명 : ' + ISNULL(E.PJTName ,'') + '\&lt;BR&gt;' +</p>
+<p>' - 대표품명\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp; : ' + ISNULL(F.ItemName ,'') + '\&lt;BR&gt;' +</p>
+<p>' - 특이사항\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp; : ' + ISNULL(A.Remark ,'') + '\&lt;BR&gt;' +</p>
+<p>' - 입고창고\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp;\&nbsp; : ' + ISNULL(G.WHName ,''),</p>
+<p>@Subject1 = '[(주)에이프로] 발주번호 : ' + ISNULL(A.PONo,'') + ' [거래처 :' + ISNULL(D.CustName ,'') + ']' + ' 메일 발송 드립니다.',</p>
+<p>@RecvEmail = J.Email</p>
+<p>FROM _TPUORDPO AS A</p>
+<p>JOIN _TPUORDPOItem AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.POSeq = A.POSeq</p>
+<p>JOIN _TDACust AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.CustSeq = A.CustSeq</p>
+<p>JOIN _TPJTProject AS E WITH(NOLOCK) ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.PJTSeq = C.PJTSeq</p>
+<p>JOIN _TDAItem AS F WITH(NOLOCK) ON F.CompanySeq = C.CompanySeq</p>
+<p>AND F.ItemSeq = C.ItemSeq</p>
+<p>JOIN _TDAWH AS G WITH(NOLOCK) ON C.CompanySeq = G.CompanySeq</p>
+<p>AND C.WhSeq = G.WHSeq</p>
+<p>JOIN _TDAEmp AS H WITH(NOLOCK) ON A.CompanySeq = H.CompanySeq</p>
+<p>AND A.EmpSeq = H.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACustEmpInfo AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.CustSeq = I.CustSeq</p>
+<p>AND I.IsSTD = '1'</p>
+<p>AND I.EmpSerl = (SELECT TOP 1 EmpSerl --거래처대표담당자</p>
+<p>FROM _TDACustEmpInfo WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND CustSeq = A.CustSeq AND IsSTD = '1')</p>
+<p>LEFT OUTER JOIN _TDAContact AS J WITH(NOLOCK) ON I.CompanySeq = J.CompanySeq</p>
+<p>AND J.ContactSeq = I.ContactSeq</p>
+<p>AND J.ContactType = 500035003</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = CONVERT(INT, @TblKey)</p>
+<p>EXEC [msdb].dbo.sp_send_dbmail</p>
+<p>@profile_name = 'sysware' -- SQL 에서 보내는 프로필</p>
+<p>, @body_format = 'HTML' -- Form 형식</p>
+<p>, @recipients = @RecvEmail -- 받는 사람 메일 주소</p>
+<p>, @subject = @Subject1 -- 제목</p>
+<p>, @body = @SendMessage</p>
+<p>--, @Query = 'select * from _TPUORDPOItem where poseq = 1307'</p>
+<p>--, @attach_query_result_as_file = 1</p>
+<p>--, @query_attachment_filename = 'DatabaseList.txt'</p>
+<p>END</p>
+<p>DROP TABLE #TSCMORDPO</p>
+<p>RETURN</p>
+<p>DROP PROCEDURE hct_SCASaveNoticeMessage</p>
+<p>GO</p>
+<p>/************************************************************************************************</p>
+<p>설 명 - 메시지(메일,메시지, sms)전송</p>
+<p>작성일 - 2014.3.24</p>
+<p>작성자 - 서희정 : Web전용 알림메시지 저장 SP(_SCASendMessageGroup -&gt; _SCASaveNoticeMessage)</p>
+<p>*************************************************************************************************/</p>
+<p>CREATE PROCEDURE hct_SCASaveNoticeMessage</p>
+<p>@WorkingTag NVARCHAR(10),                                        -- 워킹태그</p>
+<p>@CompanySeq INT,                                                        -- 법인 내부코드</p>
+<p>@LanguageSeq INT,                                                        -- 언어 내부코드</p>
+<p>@UserSeq INT,                                                        -- 작업자 내부코드</p>
+<p>@DeptSeq INT,                                                        -- 부서 내부코드</p>
+<p>@MessageTemplateSeq INT,                                                        -- 알림메시지 템플릿 코드</p>
+<p>@TblKey NVARCHAR(200)='',                                -- 프로그램의 Key값 (수주 내부 key), 프로그램 정보는 Jump 필요 시 입력</p>
+<p>@PgmSeq INT=0,                                                        -- 화면내부코드</p>
+<p>@ToPgmSeq INT=0,                                                        -- 점프Pgmseq</p>
+<p>@JumpMode INT=0,                                                        -- 점프 유형 : 150001 신규, 150002 조회, 150003 저장, 150006 추가</p>
+<p>@JumpData XML='',                                                        -- 점프 데이터</p>
+<p>@Msg1 NVARCHAR(1000) = '',                        -- 메시지 내용에 들어가는 param1</p>
+<p>@Msg2 NVARCHAR(1000) = '',                        -- 메시지 내용에 들어가는 param2</p>
+<p>@Msg3 NVARCHAR(1000) = '',                        -- 메시지 내용에 들어가는 param3</p>
+<p>@Msg4 NVARCHAR(1000) = '',                        -- 메시지 내용에 들어가는 param4</p>
+<p>@Msg5 NVARCHAR(1000) = '',                        -- 메시지 내용에 들어가는 param5</p>
+<p>@MaxTblKey NVARCHAR(MAX) = '',</p>
+<p>@MsgEmpSeq INT=0,</p>
+<p>@WorkKind NVARCHAR(100) = '',</p>
+<p>@IsCfm NCHAR(1) = ''</p>
+<p>AS</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<p>@message NVARCHAR(255),</p>
+<p>@ROWCOUNT INT,</p>
+<p>@ERROR INT,</p>
+<p>@IsMail INT,                                                -- 메일</p>
+<p>@IsMemo INT,                                                -- 메모</p>
+<p>@IsSMS INT,                                                -- SMS</p>
+<blockquote>
+<p>@IsFast                                        INT,                                                -- 중요도</p>
+<p>@IsCfmEmp                 INT,                                                -- 상위결제자</p>
+</blockquote>
+<p>@EmpSeq INT,                                                </p>
+<p>@RecvTelNo NVARCHAR(50),                                </p>
+<p>@RecvEmail NVARCHAR(100),                                </p>
+<p>@LoginUserName NVARCHAR(30),                                </p>
+<p>@LoginUserID NVARCHAR(30),                                </p>
+<p>@LoginDeptName NVARCHAR(30),                                </p>
+<p>@LoginCompanyName NVARCHAR(30),                                </p>
+<p>@LoginEmpName NVARCHAR(30),                                </p>
+<p>@LoginEmpID NVARCHAR(30),                                </p>
+<p>@MobilePgmSeq INT,                                </p>
+<p>@MessageTitle NVARCHAR(1000),                                </p>
+<p>@MessageBody NVARCHAR(MAX),                                </p>
+<p>@MessageTitleHTML NVARCHAR(MAX),                                </p>
+<p>@MessageBodyHTML NVARCHAR(MAX),                                </p>
+<p>@SendMessageID INT,                                                </p>
+<p>@ProductType INT,                                                </p>
+<blockquote>
+<p>@CfmEmpLevel                        INT                                                        </p>
+</blockquote>
+<p>CREATE TABLE #Tmp_TblKey</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>TblKey INT</p>
+<p>)</p>
+<p>CREATE TABLE #Tmp_Info(</p>
+<p>EmpSeq INT</p>
+<p>,TblKey INT</p>
+<p>,Msg1 NVARCHAR(100)</p>
+<p>,Msg2 NVARCHAR(100)</p>
+<p>,Msg3 NVARCHAR(100)</p>
+<p>,Msg4 NVARCHAR(100)</p>
+<p>,Msg5 NVARCHAR(100)</p>
+<p>)</p>
+<p>IF (ISNULL(@MaxTblKey, '') \&lt;&gt; '')</p>
+<p>BEGIN</p>
+<p>IF SUBSTRING(@MaxTblKey, LEN(@MaxTblKey)-1, LEN(@MaxTblKey)) \&lt;&gt; '_/'</p>
+<p>BEGIN</p>
+<p>SELECT @MaxTblKey = @MaxTblKey + '_/'</p>
+<p>END</p>
+<p>INSERT INTO #Tmp_TblKey</p>
+<p>SELECT A.IDX_NO, A.Code</p>
+<p>FROM _FCOMSplit(@MaxTblKey,'_/') AS A</p>
+<p>-- 휴가신청일괄확정인 경우 (hct_SXPRWkVacationAppCfm)</p>
+<p>IF @WorkKind = 'VactionApp'</p>
+<p>BEGIN</p>
+<p>INSERT INTO #Tmp_Info(EmpSeq, TblKey, Msg1 ,Msg2 ,Msg3 ,Msg4 ,Msg5)</p>
+<p>SELECT B.EmpSeq AS EmpSeq</p>
+<p>,Z.TblKey AS TblKey -- 일괄확정 아닌 경우 0</p>
+<p>,B.EmpName AS Msg1</p>
+<p>,CONVERT(DECIMAL(19,2),ISNULL(C.OccurDays,0)) AS Msg2</p>
+<p>,'' AS Msg3</p>
+<p>,CASE WHEN @IsCfm = '1' THEN '확정' ELSE '취소' END AS Msg4</p>
+<p>,'' AS Msg5</p>
+<p>FROM #Tmp_TblKey AS Z</p>
+<p>JOIN _TXPRWkVactionApp AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.VacAppSeq = Z.TblKey</p>
+<p>JOIN _TDAEmp AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.EmpSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN _TXPRWkYyOccurDays AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.EmpSeq = A.EmpSeq</p>
+<p>AND C.Yy = LEFT(A.VacFrDate,4)</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT INTO #Tmp_Info(EmpSeq, TblKey)</p>
+<p>SELECT @MsgEmpSeq, 0</p>
+<p>END</p>
+<p>END</p>
+<p>DECLARE @EmpCellphone TABLE (UserSeq INT , EmpSeq INT, Cellphone NVARCHAR(200)) -- 핸드폰 번호 암호화로 자릿수 증가</p>
+<p>--1. 제품군 가져오기</p>
+<p>IF EXISTS(SELECT * FROM SysColumns WHERE id = OBJECT_ID(N'_TCACompanyConfig') AND name = N'ProductType')</p>
+<p>BEGIN</p>
+<p>SELECT @ProductType = ISNULL(ProductType, 282001) FROM _TCACompanyConfig WITH(NOLOCK) WHERE CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @ProductType = 282001</p>
+<p>END</p>
+<p>-- 2. 권한 확인</p>
+<p>IF NOT EXISTS (SELECT 1 FROM OTCANoticeMessageSetting WITH(NOLOCK) WHERE MessageTemplateSeq = @MessageTemplateSeq AND CompanySeq = @CompanySeq)</p>
+<p>BEGIN</p>
+<p>SET @message = ISNULL((SELECT Message FROM _TCAMessage WITH(NOLOCK) WHERE MessageSeq = 1178 AND LanguageSeq = @LanguageSeq), '') + '[Check0]' -- +사용권한이 없습니다</p>
+<p>RAISERROR (@message, 16, 1, N'number', 5);</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 3. 프로그램, 메시지 그룹별 설정값 조회</p>
+<p>SELECT @IsMail = IsMail,</p>
+<p>@IsMemo = IsMemo,</p>
+<p>@IsSMS = IsSMS,</p>
+<p>@IsFast = (CASE @IsFast WHEN 1 THEN @IsFast ELSE IsFast END),</p>
+<p>@MobilePgmSeq = ISNULL(MobilePgmSeq, 0), -- SMS 문자 발송시 사용한다.</p>
+<p>@MessageTitle = ISNULL(MessageTitle, N''),</p>
+<p>@MessageBody = ISNULL(MessageBody, N''),</p>
+<p>@MessageTitleHTML = ISNULL(MessageTitleHTML, N''),</p>
+<p>@MessageBodyHTML = ISNULL(MessageBodyHTML, N''),</p>
+<blockquote>
+<p>@IsCfmEmp                         = ISNULL(IsCfmEmp         , N'0'), -- 상위결재자 메시지 전송여부</p>
+<p>@CfmEmpLevel                 = ISNULL(CfmEmpLevel , N'1') -- 상위레벨</p>
+</blockquote>
+<p>FROM OTCANoticeMessageSetting WITH(NOLOCK)</p>
+<p>WHERE MessageTemplateSeq = @MessageTemplateSeq</p>
+<p>AND CompanySeq = @CompanySeq</p>
+<p>IF @@ROWCOUNT = 0 -- 설정값이 없는경우 기본값 설정</p>
+<p>BEGIN</p>
+<p>SET @IsMemo = 1 -- 설정값이 없는경우 메모만 전송한다.</p>
+<p>END</p>
+<p>-- 4. 기본값 조회</p>
+<p>-- 제품군별 사원정보 조회 (인사모듈이 달라서 제품군별 분리)</p>
+<p>IF @ProductType = 282001 --제뉴인</p>
+<p>BEGIN</p>
+<p>IF EXISTS (SELECT 1 FROM _TCACompanyMultiUser WHERE CompanySeq = @CompanySeq AND UserSeq = @UserSeq)</p>
+<p>BEGIN</p>
+<p>SELECT @LoginUserName = ISNULL(A.UserName , N''),</p>
+<p>@LoginUserID = ISNULL(A.UserId , N''),</p>
+<p>@LoginEmpName = ISNULL(B.EmpName , N''),</p>
+<p>@LoginEmpID = ISNULL(B.Empid , N''),</p>
+<p>@LoginCompanyName = ISNULL(C.CompanyName , N''),</p>
+<p>--@SendEmail = CASE WHEN ISNULL(@SendEmail, N'') = N'' THEN ISNULL(A.PwdMailAdder , N'') ELSE @SendEmail END,</p>
+<p>@EmpSeq = ISNULL(B.EmpSeq , 0),</p>
+<p>@DeptSeq = CASE WHEN ISNULL(@DeptSeq, 0) = 0 THEN ISNULL(B.DeptSeq, 0) ELSE @DeptSeq END</p>
+<p>FROM _TCACompanyMultiUser AS M WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAUser AS A WITH(NOLOCK) ON A.CompanySeq = M.CompanySeq AND A.UserSeq = M.UserSeq</p>
+<p>LEFT OUTER JOIN _fnAdmEmpInOutord(@CompanySeq, N'') AS B ON M.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _TCACompany AS C WITH(NOLOCK) ON (M.CompanySeq = C.CompanySeq)</p>
+<p>WHERE M.UserSeq = @UserSeq</p>
+<p>AND M.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @LoginUserName = ISNULL(A.UserName , N''),</p>
+<p>@LoginUserID = ISNULL(A.UserId , N''),</p>
+<p>@LoginEmpName = ISNULL(B.EmpName , N''),</p>
+<p>@LoginEmpID = ISNULL(B.Empid , N''),</p>
+<p>@LoginCompanyName = ISNULL(C.CompanyName , N''),</p>
+<p>--@SendEmail = CASE WHEN @SendEmail = N'' THEN ISNULL(A.PwdMailAdder , N'') ELSE @SendEmail END,</p>
+<p>@EmpSeq = ISNULL(B.EmpSeq , 0),</p>
+<p>@DeptSeq = CASE WHEN ISNULL(@DeptSeq, 0) = 0 THEN ISNULL(B.DeptSeq, 0) ELSE @DeptSeq END</p>
+<p>FROM _TCAUser A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _fnAdmEmpInOutord(@CompanySeq, N'') AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _TCACompany C WITH(NOLOCK) ON (A.CompanySeq = C.CompanySeq)</p>
+<p>WHERE A.UserSeq = @UserSeq</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE -- Ever, Geni</p>
+<p>BEGIN</p>
+<p>IF EXISTS (SELECT 1 FROM _TCACompanyMultiUser WHERE CompanySeq = @CompanySeq AND UserSeq = @UserSeq)</p>
+<p>BEGIN</p>
+<p>SELECT @LoginUserName = ISNULL(A.UserName , N''),</p>
+<p>@LoginUserID = ISNULL(A.UserId , N''),</p>
+<p>@LoginEmpName = ISNULL(B.EmpName , N''),</p>
+<p>@LoginEmpID = ISNULL(B.Empid , N''),</p>
+<p>@LoginCompanyName = ISNULL(C.CompanyName , N''),</p>
+<p>--@SendEmail = CASE WHEN @SendEmail = N'' THEN ISNULL(A.PwdMailAdder , N'') ELSE @1 END,</p>
+<p>@EmpSeq = ISNULL(B.EmpSeq , 0),</p>
+<p>@DeptSeq = CASE WHEN ISNULL(@DeptSeq, 0) = 0 THEN ISNULL(B.DeptSeq, 0) ELSE @DeptSeq END</p>
+<p>FROM _TCACompanyMultiUser AS M WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAUser AS A WITH(NOLOCK) ON A.CompanySeq = M.CompanySeq AND A.UserSeq = M.UserSeq</p>
+<p>LEFT OUTER JOIN _VWHREmpInfoLast AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq AND M.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _TCACompany AS C WITH(NOLOCK) ON M.CompanySeq = C.CompanySeq</p>
+<p>WHERE M.UserSeq = @UserSeq</p>
+<p>AND M.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @LoginUserName = ISNULL(A.UserName , N''),</p>
+<p>@LoginUserID = ISNULL(A.UserId , N''),</p>
+<p>@LoginEmpName = ISNULL(B.EmpName , N''),</p>
+<p>@LoginEmpID = ISNULL(B.Empid , N''),</p>
+<p>@LoginCompanyName = ISNULL(C.CompanyName , N''),</p>
+<p>--@SendEmail = CASE WHEN @SendEmail = N'' THEN ISNULL(A.PwdMailAdder , N'') ELSE @SendEmail END,</p>
+<p>@EmpSeq = ISNULL(B.EmpSeq , 0),</p>
+<p>@DeptSeq = CASE WHEN ISNULL(@DeptSeq, 0) = 0 THEN ISNULL(B.DeptSeq, 0) ELSE @DeptSeq END</p>
+<p>FROM _TCAUser AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _VWHREmpInfoLast AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq AND A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _TCACompany AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>WHERE A.UserSeq = @UserSeq</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>END</p>
+<blockquote>
+<p>-- 부서정보</p>
+</blockquote>
+<p>SET @LoginDeptName = ISNULL((SELECT ISNULL(A.DeptName, N'')</p>
+<blockquote>
+<p>FROM _TDADept A WITH(NOLOCK)</p>
+<p>WHERE DeptSeq = @DeptSeq AND A.CompanySeq = @CompanySeq ) , N'')</p>
+</blockquote>
+<p>-- 핸드폰 입력 : 내부사원</p>
+<p>INSERT INTO @EmpCellphone (UserSeq, EmpSeq, Cellphone)</p>
+<p>SELECT A.UserSeq, A.EmpSeq, B.Cellphone</p>
+<p>FROM _TCAUser A WITH(NOLOCK)</p>
+<p>INNER JOIN _TDAEmpIn B WITH(NOLOCK) ON (A.EmpSeq = B.EmpSeq AND B.Cellphone &gt; '')</p>
+<p>-- 핸드폰 입력 : 외부사원</p>
+<p>INSERT INTO @EmpCellphone (UserSeq, EmpSeq, Cellphone)</p>
+<p>SELECT A.UserSeq, A.EmpSeq, B.Cellphone</p>
+<p>FROM _TCAUser A WITH(NOLOCK)</p>
+<p>INNER JOIN _TDAEmpOutContract B WITH(NOLOCK) ON (A.EmpSeq = B.EmpSeq AND B.Cellphone &gt; '')</p>
+<p>WHERE NOT EXISTS(SELECT 1 FROM @EmpCellphone C WHERE A.EmpSeq = C.EmpSeq)</p>
+<p>-- 5. 메시지 변환 : 제목</p>
+<p>IF (@MessageTitle \&lt;&gt; N'')</p>
+<p>BEGIN</p>
+<p>SET @MessageTitle = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageTitle,</p>
+<p>'#LOGIN_USERNAME#', @LoginUserName), '#LOGIN_USERID#', @LoginUserID),'#LOGIN_EMPNAME#', @LoginEmpName),</p>
+<p>'#LOGIN_EMPID#', @LoginEmpID),'#LOGIN_COMPANYNAME#', @LoginCompanyName),'#LOGIN_DEPTNAME#', @LoginDeptName),</p>
+<blockquote>
+<p>'#MSG1#', @MSG1), '#MSG2#', @MSG2), '#MSG3#', @MSG3), '#MSG4#', @MSG4), '#MSG5#', @MSG5)</p>
+</blockquote>
+<p>END</p>
+<p>IF (@MessageTitleHTML \&lt;&gt; N'')</p>
+<p>BEGIN</p>
+<p>SET @MessageTitleHTML = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageTitleHTML,</p>
+<p>'#LOGIN_USERNAME#', @LoginUserName), '#LOGIN_USERID#', @LoginUserID),'#LOGIN_EMPNAME#', @LoginEmpName),</p>
+<p>'#LOGIN_EMPID#', @LoginEmpID),'#LOGIN_COMPANYNAME#', @LoginCompanyName),'#LOGIN_DEPTNAME#', @LoginDeptName),</p>
+<blockquote>
+<p>'#MSG1#', @MSG1), '#MSG2#', @MSG2), '#MSG3#', @MSG3), '#MSG4#', @MSG4), '#MSG5#', @MSG5)</p>
+</blockquote>
+<p>END</p>
+<p>-- 5. 메시지 변환 : 내용</p>
+<p>IF (@MessageBody \&lt;&gt; N'')</p>
+<p>BEGIN</p>
+<p>SET @MessageBody = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBody,</p>
+<p>'#LOGIN_USERNAME#', @LoginUserName), '#LOGIN_USERID#', @LoginUserID),'#LOGIN_EMPNAME#', @LoginEmpName),</p>
+<p>'#LOGIN_EMPID#', @LoginEmpID),'#LOGIN_COMPANYNAME#', @LoginCompanyName),'#LOGIN_DEPTNAME#', @LoginDeptName),</p>
+<blockquote>
+<p>'#MSG1#', @MSG1), '#MSG2#', @MSG2), '#MSG3#', @MSG3), '#MSG4#', @MSG4), '#MSG5#', @MSG5), '#MESSAGE_TITLE#', @MessageTitle)</p>
+</blockquote>
+<p>END</p>
+<p>IF (@MessageBodyHTML \&lt;&gt; N'')</p>
+<p>BEGIN</p>
+<p>SET @MessageBodyHTML = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBodyHTML,</p>
+<p>'#LOGIN_USERNAME#', @LoginUserName), '#LOGIN_USERID#', @LoginUserID),'#LOGIN_EMPNAME#', @LoginEmpName),</p>
+<p>'#LOGIN_EMPID#', @LoginEmpID),'#LOGIN_COMPANYNAME#', @LoginCompanyName), '#LOGIN_DEPTNAME#', @LoginDeptName),</p>
+<blockquote>
+<p>'#MSG1#', @MSG1), '#MSG2#', @MSG2), '#MSG3#', @MSG3), '#MSG4#', @MSG4), '#MSG5#', @MSG5), '#MESSAGE_TITLE#', @MessageTitleHTML)</p>
+</blockquote>
+<p>END</p>
+<p>BEGIN TRAN</p>
+<blockquote>
+<p>-- 알림메시지 전송대상자 테이블</p>
+</blockquote>
+<p>DECLARE @User TABLE (UserSeq INT, AppYN NCHAR(1))</p>
+<blockquote>
+<p>INSERT INTO @User(UserSeq, AppYN)</p>
+<p>SELECT DISTINCT U.UserSeq,'0'        -- 메시지 그룹별 수신자 등록</p>
+<p>FROM OTCANoticeMessageSecuGroup A WITH(NOLOCK)</p>
+<p>JOIN OTCANoticeGroupMember AS G WITH(NOLOCK) ON A.GroupSeq = G.GroupSeq</p>
+</blockquote>
+<p>JOIN _TCAUser AS U WITH(NOLOCK) ON G.UserSeq = U.UserSeq</p>
+<p>WHERE A.MessageTemplateSeq = @MessageTemplateSeq</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<blockquote>
+<p>UNION</p>
+<p>SELECT DISTINCT A.UserSeq,'0'        -- 메시지 사용자별 수신자 등록</p>
+<p>FROM OTCANoticeMessageSecu A WITH(NOLOCK)</p>
+</blockquote>
+<p>WHERE MessageTemplateSeq = @MessageTemplateSeq</p>
+<p>AND CompanySeq = @CompanySeq</p>
+<blockquote>
+<p>UNION</p>
+<p>SELECT DISTINCT B.UserSeq,'0' -- 상위결재자</p>
+<p>FROM dbo._fnCABossList(@CompanySeq, @EmpSeq, @CfmEmpLevel) AS A</p>
+<p>INNER JOIN _TCAUser AS B WITH(NOLOCK) ON A.CfmEmpSeq = B.EmpSeq</p>
+<p>WHERE @IsCfmEmp = 1 -- 상위결재자 전송여부</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>-- 6. 알림 테이블에 데이터 저장</p>
+</blockquote>
+<p>IF @IsMemo = 1</p>
+<p>BEGIN</p>
+<blockquote>
+<p>-- 알림메시지 테이블 업데이트</p>
+</blockquote>
+<p>-- 1. 템플릿 등록된 건 =&gt; 사원 * 신청자 갯수만큼 INSERT</p>
+<p>-- 2. 신청자 건 =&gt; 신청자 갯수만큼 INSERT</p>
+<p>INSERT INTO OTCANoticeMessage(CompanySeq, MessageID,</p>
+<p>SendUserSeq, MessageType, MessageTitle, MessageBody, RecvUserSeq, IsMemo, IsFast, CrDateTime,</p>
+<p>TblKey, PgmSeq, ToPgmSeq, JumpMode, JumpData, MessageTemplateSeq, IsChecked)</p>
+<p>-- SELECT @CompanySeq, ROW_NUMBER() OVER(ORDER BY A.UserSeq) + ISNULL((SELECT MAX(MessageID) FROM OTCANoticeMessage), 0) AS MessageID,</p>
+<p>-- @UserSeq, 1 MessageType, @MessageTitle, @MessageBody, A.UserSeq AS RecvUserSeq, @IsMemo, @IsFast, GETDATE() CrDateTime,</p>
+<blockquote>
+<p>--@TblKey, @PgmSeq, @ToPgmSeq, @JumpMode, @JumpData, @MessageTemplateSeq, 0</p>
+</blockquote>
+<p>-- FROM (SELECT DISTINCT UserSeq FROM @User) AS A</p>
+<p>-- 템플릿 등록된 건 =&gt; 사원 * 신청자 갯수만큼 INSERT</p>
+<p>SELECT @CompanySeq, ROW_NUMBER() OVER(ORDER BY A.UserSeq) + ISNULL((SELECT MAX(MessageID) FROM OTCANoticeMessage), 0) AS MessageID,</p>
+<p>@UserSeq, 1 MessageType</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBody,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageTitle END</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBody,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageBody END</p>
+<p>, A.UserSeq AS RecvUserSeq, @IsMemo, @IsFast, GETDATE() CrDateTime,</p>
+<blockquote>
+<p>CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0 THEN B.TblKey ELSE @TblKey END AS TblKey</p>
+</blockquote>
+<p>, @PgmSeq, @ToPgmSeq, @JumpMode, @JumpData, @MessageTemplateSeq, 0</p>
+<p>FROM (SELECT DISTINCT UserSeq FROM @User WHERE AppYN = '0' ) AS A</p>
+<p>LEFT OUTER JOIN #Tmp_Info AS B ON 1=1</p>
+<p>INSERT INTO OTCANoticeMessage(CompanySeq, MessageID,</p>
+<p>SendUserSeq, MessageType, MessageTitle, MessageBody, RecvUserSeq, IsMemo, IsFast, CrDateTime,</p>
+<p>TblKey, PgmSeq, ToPgmSeq, JumpMode, JumpData, MessageTemplateSeq, IsChecked)</p>
+<p>-- 신청자 건 =&gt; 신청자 갯수만큼 INSERT</p>
+<p>SELECT @CompanySeq, ROW_NUMBER() OVER(ORDER BY A.UserSeq) + ISNULL((SELECT MAX(MessageID) FROM OTCANoticeMessage), 0) AS MessageID,</p>
+<p>@UserSeq, 1 MessageType</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBody,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageTitle END</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBody,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageBody END</p>
+<p>, A.UserSeq AS RecvUserSeq, @IsMemo, @IsFast, GETDATE() CrDateTime,</p>
+<blockquote>
+<p>CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0 THEN B.TblKey ELSE @TblKey END AS TblKey</p>
+</blockquote>
+<p>, @PgmSeq, @ToPgmSeq, @JumpMode, @JumpData, @MessageTemplateSeq, 0</p>
+<p>FROM #Tmp_Info AS B</p>
+<p>JOIN _TCAUser AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<blockquote>
+<p>-- OTCANoticeMessageMaster : 알림메시지 마스터성 테이블</p>
+<p>-- 기존 알림 데이터가 존재하는 사용자는 알림영역에 뱃지 표시여부 업데이트</p>
+<p>UPDATE OTCANoticeMessageMaster</p>
+<p>SET IsBadge = 1</p>
+<p>WHERE UserSeq IN (SELECT DISTINCT UserSeq FROM @User)</p>
+<p>-- 알림 데이터가 없는 사용자는 알림영역에 뱃지 표시여부 추가</p>
+<p>INSERT INTO OTCANoticeMessageMaster(CompanySeq, UserSeq, IsBadge)</p>
+<p>SELECT DISTINCT @CompanySeq, A.UserSeq, 1</p>
+<p>FROM @User AS A</p>
+<p>LEFT OUTER JOIN OTCANoticeMessageMaster AS B ON B.CompanySeq = @CompanySeq AND B.UserSeq = A.UserSeq</p>
+<p>WHERE B.UserSeq IS NULL</p>
+</blockquote>
+<p>SET @ROWCOUNT = @@ROWCOUNT</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>ROLLBACK TRAN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>CREATE TABLE #Tmp_Email(</p>
+<p>IDX_NO INT ,</p>
+<p>Subject1 NVARCHAR(MAX),</p>
+<p>SendMessage NVARCHAR(MAX),</p>
+<p>Email NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #Tmp_Email(IDX_NO,Subject1,SendMessage,Email)</p>
+<p>-- 메일 기능 추가</p>
+<p>SELECT DENSE_RANK() OVER(ORDER BY B.TblKey) AS IDX_NO</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageTitle,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageTitle END AS Subject1</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBody,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageBody END AS SendMessage</p>
+<p>,D.Email</p>
+<p>--,A.UserSeq AS RecvUserSeq</p>
+<p>--,B.TblKey</p>
+<p>FROM (SELECT DISTINCT UserSeq FROM @User WHERE AppYN = '0' ) AS A</p>
+<p>LEFT OUTER JOIN #Tmp_Info AS B ON 1=1</p>
+<p>JOIN _TCAUser AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.UserSeq = A.UserSeq</p>
+<p>JOIN _TDAEmpIn AS D ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.EmpSeq = C.EmpSeq</p>
+<p>WHERE ISNULL(D.Email,'') \&lt;&gt;''</p>
+<p>UNION</p>
+<p>-- 신청자 건 =&gt; 신청자 갯수만큼 INSERT</p>
+<p>SELECT DENSE_RANK() OVER(ORDER BY B.TblKey) AS IDX_NO</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageTitle,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageTitle END AS Subject1</p>
+<p>,CASE WHEN ISNULL(B.TblKey,0) \&lt;&gt; 0</p>
+<p>THEN REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@MessageBody,'#MSG1#',B.Msg1),'#MSG2#',B.Msg2),'#MSG3#',B.Msg3),'#MSG4#',B.Msg4),'#MSG5#',B.Msg5) ELSE @MessageBody END AS SendMessage</p>
+<p>,D.Email</p>
+<p>--,A.UserSeq AS RecvUserSeq</p>
+<p>--,B.TblKey</p>
+<p>FROM #Tmp_Info AS B</p>
+<p>JOIN _TCAUser AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>JOIN _TCAUser AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.UserSeq = A.UserSeq</p>
+<p>JOIN _TDAEmpIn AS D ON D.CompanySeq = C.CompanySeq</p>
+<p>AND D.EmpSeq = C.EmpSeq</p>
+<p>WHERE ISNULL(D.Email,'') \&lt;&gt;''</p>
+<p>SELECT IDX_NO, Subject1, SendMessage, STRING_AGG(Email, ';') AS Email</p>
+<p>INTO #Result_Email</p>
+<p>FROM #Tmp_Email</p>
+<p>GROUP BY IDX_NO,Subject1,SendMessage</p>
+<p>DECLARE @Start INT ,</p>
+<p>@End INT ,</p>
+<p>@Loop INT</p>
+<p>SELECT @Start = MIN(A.IDX_NO),</p>
+<p>@End = MAX(A.IDX_NO)</p>
+<p>FROM #Result_Email AS A</p>
+<p>WHILE (@Start \&lt;= @End)</p>
+<p>BEGIN</p>
+<p>DECLARE @Subject1 NVARCHAR(MAX),</p>
+<p>@SendMessage NVARCHAR(MAX)</p>
+<p>SELECT @SendMessage = SendMessage,</p>
+<p>@Subject1 = Subject1,</p>
+<p>@RecvEmail = Email</p>
+<p>FROM #Result_Email AS A</p>
+<p>WHERE A.IDX_NO = @Start</p>
+<p>EXEC [msdb].dbo.sp_send_dbmail @profile_name = 'sjpark' -- SQL 에서 보내는 프로필</p>
+<p>, @recipients = @RecvEmail -- 받는 사람 메일 주소</p>
+<p>, @subject = @Subject1 -- 제목</p>
+<p>, @body = @SendMessage</p>
+<p>, @body_format = 'TEXT' -- Form 형식</p>
+<p>SELECT @Start = @Start +1</p>
+<p>END</p>
+<p>COMMIT TRAN</p>
+<blockquote>
+<p>--ROLLBACK TRAN</p>
+<p>-- 7. 처리결과반영</p>
+</blockquote>
+<p>--GO</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock1') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock1') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock2') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock2</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock2') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock2</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock3') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock3</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock3') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock3</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock4') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock4</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock4') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock4</p>
+<p>--IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock4') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock4</p>
+<p>--DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>-- , @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>--SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>-- , @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>--IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>--BEGIN</p>
+<p>-- CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>-- (</p>
+<p>-- WorkingTag NCHAR(1)</p>
+<p>-- , IDX_NO INT</p>
+<p>-- , DataSeq INT</p>
+<p>-- , Selected INT</p>
+<p>-- , MessageType INT</p>
+<p>-- , Status INT</p>
+<p>-- , Result NVARCHAR(255)</p>
+<p>-- , ROW_IDX INT</p>
+<p>-- , IsChangedMst NCHAR(1)</p>
+<p>-- , TABLE_NAME NVARCHAR(255)</p>
+<p>-- , VacAppSeq INT, IsCfm NCHAR(1)</p>
+<p>-- )</p>
+<p>-- SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>--END</p>
+<p>--IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>--BEGIN</p>
+<p>-- CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>-- (</p>
+<p>-- WorkingTag NCHAR(1)</p>
+<p>-- , IDX_NO INT</p>
+<p>-- , DataSeq INT</p>
+<p>-- , Selected INT</p>
+<p>-- , MessageType INT</p>
+<p>-- , Status INT</p>
+<p>-- , Result NVARCHAR(255)</p>
+<p>-- , ROW_IDX INT</p>
+<p>-- , IsChangedMst NCHAR(1)</p>
+<p>-- , TABLE_NAME NVARCHAR(255)</p>
+<p>-- , YY NCHAR(4), WeekName NVARCHAR(100), WeekSerialNo INT, Confirm NVARCHAR(1), AllDTCnt DECIMAL(19, 5),</p>
+<p>--AllMinCnt INT, EmpSeq INT, EmpName NVARCHAR(100), EmpID NVARCHAR(20), DeptName NVARCHAR(100), UMJpName</p>
+<p>--NVARCHAR(100), VacAppSeq INT, SMVacAppTermType INT, SMVacAppTermTypeName NVARCHAR(100), WkItemName</p>
+<p>--NVARCHAR(100), WkItemSeq INT, AppDate NCHAR(8), FileSeq INT, IsCfm NCHAR(1), VacDate NCHAR(8), WkDate NCHAR(8),</p>
+<p>--VacFrDate NCHAR(8), VacToDate NCHAR(8), WkName NVARCHAR(10), BegTime NVARCHAR(10), Hours DECIMAL(19, 5), EndTime</p>
+<p>--NVARCHAR(10), PossibleDays DECIMAL(19, 5), PossibleDTCnt DECIMAL(19, 5), PossibleMinCnt INT, WkTypeSeq INT,</p>
+<p>--WkFormSeq INT, DayTypeSeq INT, WkTypeName NVARCHAR(100), WkFormName NVARCHAR(100), DayTypeName NVARCHAR(100),</p>
+<p>--WkHour DECIMAL(19, 5), AppDays DECIMAL(19, 5), DTCnt DECIMAL(19, 5), MinCnt INT, VacReason NVARCHAR(200), WkEmpName NVARCHAR(100), TelNo NVARCHAR(20), Seq INT, WkTeamName NVARCHAR(100), WkTeamSeq INT, AppDay DECIMAL(19, 5), AppFrDate NCHAR(8), AppToDate NCHAR(8), DeptSeq INT, IsCfmIn NCHAR(1), OldVacDate NCHAR(8), OldWkItemSeq INT, DtlWkItemName NVARCHAR(100), DtlWkItemSeq INT, IsNextDate NCHAR(1), WkBegDate NCHAR(8), WkEndDate NCHAR(8), LimitWkCnt DECIMAL(19, 5), IsFile NCHAR(1), Tag NVARCHAR(1), RemainWeekDTCnt DECIMAL(19, 5), RemainMonthDTCnt DECIMAL(19, 5), RemainYearDTCnt DECIMAL(19, 5), AllWeekDTCnt DECIMAL(19, 5), AllMonthDTCnt DECIMAL(19, 5), AllYearDTCnt DECIMAL(19, 5), WkFrDate NCHAR(8), WkToDate NCHAR(8), WeekBaseSeq INT, WeekSerl INT, BasicBegTm NVARCHAR(4), BasicEndTm NVARCHAR(4), IsCC NCHAR(1), SMAbsWkSortName NVARCHAR(100), SMAbsWkSort INT, IsEmp NVARCHAR(1), IsCancel NCHAR(1), CancelReason NVARCHAR(200), Remark NVARCHAR(200), IsCancelApp NCHAR(1), AppEmpSeq INT, AppEmpName NVARCHAR(100), SMDTCType INT, IsHalf NVARCHAR(1), CustName NVARCHAR(100), CustSeq INT, IsCancelSel NVARCHAR(1), IsCancelNew NCHAR(1), SMProgressType INT, Title NVARCHAR(100), AppText NVARCHAR(200), FrDate NVARCHAR(8), ToDate NVARCHAR(8), Reason NVARCHAR(200), ConfirmEmp NVARCHAR(100), ConfirmDate NCHAR(8), IsCancelCfm NCHAR(1), IsLowDept NCHAR(1), SMProgressTypeName NVARCHAR(100), IsNotUsed NVARCHAR(1), ISDisableCheck NVARCHAR(1), ESSMessage NVARCHAR(100), ESSStatus INT, IsQryCancel NCHAR(1), WkFrTime NCHAR(4), WkToTime NCHAR(4), CancleDay DECIMAL(19, 5), CancleDTCnt DECIMAL(19, 5), CancleMinCnt DECIMAL(19, 5), VacDay DECIMAL(19, 5), VacDTCnt DECIMAL(19, 5), VacMinCnt DECIMAL(19, 5), Dummy1 NVARCHAR(100), Dummy2 NVARCHAR(100), Dummy3 NVARCHAR(100), Dummy4 NVARCHAR(100), Dummy5 NVARCHAR(100), Dummy6 NVARCHAR(100), Dummy7 DECIMAL(19, 5), Dummy8 DECIMAL(19, 5), Dummy9 DECIMAL(19, 5), Dummy10 DECIMAL(19, 5)</p>
+<p>-- )</p>
+<p>-- SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>--END</p>
+<p>--DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>-- , @INPUT_ERROR_SEVERITY INT</p>
+<p>-- , @INPUT_ERROR_STATE INT</p>
+<p>-- , @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>--INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, VacAppSeq, IsCfm)</p>
+<p>--SELECT N'', 1, 1, 0, 0, NULL, NULL, NULL, N'DataBlock1', N'1409', N'0' UNION ALL</p>
+<p>--SELECT N'', 2, 2, 0, 0, NULL, NULL, NULL, N'DataBlock1', N'1411', N'0'</p>
+<p>--IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--DECLARE @HasError NCHAR(1)</p>
+<p>-- , @UseTransaction NCHAR(1)</p>
+<p>-- -- 내부 SP용 파라메터</p>
+<p>-- , @ServiceSeq INT</p>
+<p>-- , @MethodSeq INT</p>
+<p>-- , @WorkingTag NVARCHAR(10)</p>
+<p>-- , @CompanySeq INT</p>
+<p>-- , @LanguageSeq INT</p>
+<p>-- , @UserSeq INT</p>
+<p>-- , @PgmSeq INT</p>
+<p>-- , @IsTransaction BIT</p>
+<p>--SET @HasError = N'0'</p>
+<p>--SET @UseTransaction = N'0'</p>
+<p>--BEGIN TRY</p>
+<p>--SET @ServiceSeq = 2720287</p>
+<p>--SET @MethodSeq = 23</p>
+<p>--SET @WorkingTag = N''</p>
+<p>--SET @CompanySeq = 1</p>
+<p>--SET @LanguageSeq = 1</p>
+<p>--SET @UserSeq = 27292</p>
+<p>--SET @PgmSeq = 2720507</p>
+<p>--SET @IsTransaction = 1</p>
+<p>---- InputData를 OutputData에 복사</p>
+<p>--INSERT INTO #BIZ_OUT_DataBlock1(WorkingTag, IDX_NO, DataSeq, Selected, MessageType, Status, Result, ROW_IDX, IsChangedMst, VacAppSeq, IsCfm)</p>
+<p>-- SELECT WorkingTag, IDX_NO, DataSeq, Selected, MessageType, Status, Result, ROW_IDX, IsChangedMst, VacAppSeq, IsCfm</p>
+<p>-- FROM #BIZ_IN_DataBlock1</p>
+<p>-- EXEC _SWCOMBisProcCheck @ServiceSeq</p>
+<p>-- ,@MethodSeq</p>
+<p>-- ,@WorkingTag</p>
+<p>-- ,@CompanySeq</p>
+<p>-- ,@LanguageSeq</p>
+<p>-- ,@UserSeq</p>
+<p>-- ,@PgmSeq</p>
+<p>-- IF @@ERROR \&lt;&gt; 0</p>
+<p>-- BEGIN</p>
+<p>-- SET @HasError = N'1'</p>
+<p>-- GOTO GOTO_END</p>
+<p>-- END</p>
+<p>-- IF EXISTS(SELECT * FROM #BIZ_OUT_DataBlock1 WHERE STATUS != 0)</p>
+<p>-- BEGIN</p>
+<p>-- SET @HasError = N'1'</p>
+<p>-- GOTO GOTO_END</p>
+<p>-- END</p>
+<p>---- ExecuteOrder : 1 : Start</p>
+<p>--EXEC _SXPRWKVacationAppSelCfmCheck</p>
+<p>-- @ServiceSeq</p>
+<p>-- , @WorkingTag</p>
+<p>-- , @CompanySeq</p>
+<p>-- , @LanguageSeq</p>
+<p>-- , @UserSeq</p>
+<p>-- , @PgmSeq</p>
+<p>-- , @IsTransaction</p>
+<p>--IF @@ERROR \&lt;&gt; 0 OR EXISTS(SELECT * FROM #BIZ_OUT_DataBlock1 WHERE Status != 0)</p>
+<p>--BEGIN</p>
+<p>-- SET @HasError = N'1'</p>
+<p>-- GOTO GOTO_END</p>
+<p>--END</p>
+<p>---- ExecuteOrder : 1 : End</p>
+<p>---- ExecuteOrder : 2 : Start</p>
+<p>--SET @UseTransaction = N'1'</p>
+<p>--BEGIN TRAN</p>
+<p>--EXEC _SXPRWKVacationAppSelCfm</p>
+<p>-- @ServiceSeq</p>
+<p>-- , @WorkingTag</p>
+<p>-- , @CompanySeq</p>
+<p>-- , @LanguageSeq</p>
+<p>-- , @UserSeq</p>
+<p>-- , @PgmSeq</p>
+<p>-- , @IsTransaction</p>
+<p>--IF @@ERROR \&lt;&gt; 0 OR EXISTS(SELECT * FROM #BIZ_OUT_DataBlock1 WHERE Status != 0)</p>
+<p>--BEGIN</p>
+<p>-- --ROLLBACK TRAN</p>
+<p>-- SET @HasError = N'1'</p>
+<p>-- GOTO GOTO_END</p>
+<p>--END</p>
+<p>---- ExecuteOrder : 2 : End</p>
+<p>--ROLLBACK TRAN</p>
+<p>--SET @UseTransaction = N'0'</p>
+<p>--GOTO_END:</p>
+<p>--SELECT WorkingTag, IDX_NO, DataSeq, Selected, MessageType</p>
+<p>-- , CASE</p>
+<p>-- WHEN Status = 0 OR Status IS NULL THEN</p>
+<p>-- -- 정상인건 중에</p>
+<p>-- CASE</p>
+<p>-- WHEN @HasError = N'1' THEN</p>
+<p>-- -- 오류가 발생된 건이면</p>
+<p>-- CASE</p>
+<p>-- WHEN @UseTransaction = N'1' THEN</p>
+<p>-- 999999 -- 트랜잭션인 경우</p>
+<p>-- ELSE</p>
+<p>-- 999998 -- 트랜잭션이 아닌 경우</p>
+<p>-- END</p>
+<p>-- ELSE</p>
+<p>-- -- 오류가 발생되지 않은 건이면</p>
+<p>-- 0</p>
+<p>-- END</p>
+<p>-- ELSE</p>
+<p>-- Status</p>
+<p>-- END AS Status</p>
+<p>-- , Result, ROW_IDX, IsChangedMst, VacAppSeq</p>
+<p>-- FROM #BIZ_OUT_DataBlock1</p>
+<p>-- ORDER BY IDX_NO, ROW_IDX</p>
+<p>--END TRY</p>
+<p>--BEGIN CATCH</p>
+<p>---- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>-- IF @UseTransaction = N'1'</p>
+<p>-- ROLLBACK TRAN</p>
+<p>-- DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>-- , @ERROR_SEVERITY INT</p>
+<p>-- , @ERROR_STATE INT</p>
+<p>-- , @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>-- SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>-- , @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>-- , @ERROR_STATE = ERROR_STATE()</p>
+<p>-- , @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>-- RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>-- RETURN</p>
+<p>--END CATCH</p>
+<p>---- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>--IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>-- ROLLBACK TRAN</p>
+<p>--DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>--DROP TABLE #BIZ_OUT_DataBlock1</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>where</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>where</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="where">where</h1>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@QuoteDate = '' OR B.QuoteDate &gt;= @QuoteDate )</p>
+<p>AND (@QuoteDateTo = '' OR B.QuoteDate \&lt;= @QuoteDateTo )</p>
+<p>AND (@QuoteNo = '' OR B.QuoteNo LIKE @QuoteNo + '%')</p>
+<p>AND (@EmpSeq = 0 OR B.EmpSeq = @EmpSeq )</p>
+<p>AND (@DeptSeq = 0 OR B.DeptSeq = @DeptSeq )</p>
+<p>AND (@QuoteLastDate = '' OR B.QuoteLastDate &gt;= @QuoteLastDate )</p>
+<p>AND (@QuoteLastDateTo = '' OR B.QuoteLastDate \&lt;= @QuoteLastDateTo )</p>
+<p>AND (@QuoteDelvDate = '' OR A.QuoteDelvDate &gt;= @QuoteDelvDate )</p>
+<p>AND (@QuoteDelvDateTo = '' OR A.QuoteDelvDate \&lt;= @QuoteDelvDateTo )</p>
+<p>AND (@ItemSeq = 0 OR A.ItemSeq = @ItemSeq )</p>
+<p>AND (@ItemNameTxt = '' OR A.ItemName LIKE @ItemNameTxt + '%')</p>
+<p>AND (@ItemNoTxt = '' OR A.ItemNo LIKE @ItemNoTxt + '%')</p>
+<p>AND (@SpecTxt = '' OR A.Spec LIKE @SpecTxt + '%')</p>
+  </article>
+</div>
+</body>
+</html>

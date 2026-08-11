@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>명칭</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>명칭</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">명칭</h1>
+<p>납품처 / 납품거래처</p>
+<p>CodeHelp        납품거래처        DataBlock2        DVPlaceName        DVPlaceSeq        납품거래처                100</p>
+<p>FloatBox        납품거래처코드        DataBlock2        DVPlaceSeq                납품거래처코드        DIS;HID;        100</p>
+<p>거래처납품처_WBS</p>
+<p>JOIN _TSLOrderItem AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.OrderSeq = A.OrderSeq</p>
+<p>AND C.OrderSerl = A.OrderSerl</p>
+<p>AND C.OrderSubSerl = A.OrderSubSerl</p>
+<p>LEFT OUTER JOIN _TSLDeliveryCust                AS E WITH(NOLOCK) ON E.CompanySeq        = C.CompanySeq</p>
+<blockquote>
+<p>AND E.DVPlaceSeq        = C.DVPlaceSeq</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

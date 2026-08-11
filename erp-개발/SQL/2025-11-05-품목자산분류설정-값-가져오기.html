@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품목자산분류설정 값 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>품목자산분류설정 값 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2025-11-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">품목자산분류설정 값 가져오기</h1>
+<p>DECLARE @AssetProd TABLE</p>
+<p>(</p>
+<p>AssetSeq INT</p>
+<p>)</p>
+<p>-- 생산품목자산분류 담기</p>
+<p>INSERT INTO @AssetProd</p>
+<p>SELECT DISTINCT</p>
+<p>B.AssetSeq</p>
+<p>FROM _TDAItemHelpGroup AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAItemAssetCodeHelp AS B WITH(NOLOCK) ON A.ItemCodeHelpSeq = B.ItemCodeHelpSeq</p>
+<p>AND A.CompanySeq = B.CompanySeq</p>
+<p>WHERE A.NameCodeHelp = 618011 -- 생산품목</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>UPDATE #ProdReqItem</p>
+<p>SET IsProdItem = '1'</p>
+<p>FROM #ProdReqItem AS A</p>
+<p>JOIN _TDAItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>WHERE B.AssetSeq IN (SELECT AssetSeq FROM @AssetProd)</p>
+  </article>
+</div>
+</body>
+</html>

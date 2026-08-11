@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>링크드화면 보기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>링크드화면 보기</h1>
+    <div class="meta">
+      <span class="note-date">2023-07-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#제뉴인</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">링크드화면 보기</h1>
+<p>링크드화면콘트롤속성정의-개발자용</p>
+<p>SELECT Z.LinkGroupName</p>
+<p>,Z.LinkGroupID</p>
+<p>, A.LinkGroupSeq AS LinkGroupSeq -- 링크화면그룹코드</p>
+<p>, A.OrgPgmSeq AS OrgPgmSeq -- 원본화면내부코드</p>
+<p>, B.LinkCreateSeq AS LinkCreateSeq -- 링크화면생성내부코드</p>
+<p>, B.PgmSeq AS PgmSeq -- 링크화면내부코드</p>
+<p>, C.Caption AS OrgCaption -- 원본화면이름</p>
+<p>, C.PgmId AS OrgPgmId -- 원본화면ID</p>
+<p>, D.Caption AS Caption -- 링크화면이름</p>
+<p>, D.PgmId AS LinkPgmId -- 링크화면ID</p>
+<p>FROM _TCALinkPgmGroup AS Z</p>
+<p>JOIN _TCALinkOrgPgm AS A WITH(NOLOCK) ON A.LinkGroupSeq = Z.LinkGroupSeq</p>
+<p>JOIN _TCALinkCreatePgm AS B WITH(NOLOCK) ON A.LinkGroupSeq = B.LinkGroupSeq AND A.OrgPgmSeq = B.OrgPgmSeq</p>
+<p>LEFT OUTER JOIN _TCAPgm AS C WITH(NOLOCK) ON A.OrgPgmSeq = C.PgmSeq</p>
+<p>LEFT OUTER JOIN _TCAPgm AS D WITH(NOLOCK) ON B.PgmSeq = D.PgmSeq</p>
+<p>WHERE C.PgmId LIKE '%%' -- 원본프로그램</p>
+<p>AND D.PgmId LIKE 'FrmWPDQCTestReportFinQc' -- 링크드프로그램</p>
+<p><img alt="" src="assets/링크드화면-보기/image6.png" /></p>
+  </article>
+</div>
+</body>
+</html>

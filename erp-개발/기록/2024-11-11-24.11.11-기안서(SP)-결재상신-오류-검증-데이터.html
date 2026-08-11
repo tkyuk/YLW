@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.11.11 기안서(SP) 결재상신 오류 검증 데이터</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.11.11 기안서(SP) 결재상신 오류 검증 데이터</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241111-sp">24.11.11 기안서(SP) 결재상신 오류 검증 데이터</h1>
+<p>begin tran</p>
+<p>exec _SCOMGroupWareStatus @pWorkingTag=N'E',@CompanySeq=N'1',@LanguageSeq=N'1',@UserSeq=N'1',@WorkKind=N'PJTSvc',@TblKey=N'166',@TopUserName=N'장종우',@TopUserPosition=N'',@RevUserName=N'',@RevUserPosition=N'S20180103',@DocID=N'77202',@SiteInit=N'danam'</p>
+<p>rollback tran</p>
+<p>SELECT LastDateTime,* FROM _TPJTProject WHERE PJTSeq = 14033 -- SB230501BS001</p>
+<p>SELECT LastDateTime,* FROM _TPJTProject WHERE PJTno = 'SB230501BS009'</p>
+<p>SELECT * FROM _TCAPgm WHERE PgmSeq = 1029162 -- 제품프로젝트일괄등록_danam</p>
+<p>SELECT LastDateTime,* FROM danam_TPJTSVCProject WHERE SVCSeq = 166</p>
+<p>SELECT LastDateTime,* FROM danam_TPJTSVCProjectPJT WHERE PJTNo = 'SB230501BS001'</p>
+<p>SELECT LastDateTime,* FROM danam_TPJTSVCProjectPJT WHERE SVCSeq = 166 AND TabNo = 1 -- SB230501BS009</p>
+<p>SELECT LastDateTime,* FROM danam_TPJTSVCProjectPJTLog WHERE SVCSeq = 166 AND TabNo = 1</p>
+<p>SELECT B.PJTNo, B.PJTSeq,B.*</p>
+<p>FROM danam_TPJTSVCProject AS A WITH(NOLOCK)</p>
+<p>JOIN danam_TPJTSVCProjectPJT AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.SVCSeq = B.SVCSeq</p>
+<p>WHERE A.SVCSeq = 166</p>
+<p>AND TabNo = 1</p>
+<p>SELECT *</p>
+<p>FROM _TPJTProject</p>
+<p>WHERE PJTNo = 'SB230501BS009'</p>
+<p>SELECT * FROM danam_TPJTSVCProjectPJTLog WHERE SVCSeq = 166</p>
+  </article>
+</div>
+</body>
+</html>

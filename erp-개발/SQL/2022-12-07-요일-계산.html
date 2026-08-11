@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>요일 계산</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>요일 계산</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">요일 계산</h1>
+<p>SP</p>
+<p>DECLARE @TempDate NCHAR(8),</p>
+<p>@WeeKDay NCHAR(8),</p>
+<p>@WeeKDayTitle NCHAR(10)</p>
+<p>SELECT @TempDate = '20221207'</p>
+<p>SELECT @WeeKDay = DATEPART(WEEKDAY, @TempDate)</p>
+<p>SELECT @WeeKDayTitle = CASE @WeeKDay WHEN '1' THEN '(일)'</p>
+<p>WHEN '2' THEN '(월)'</p>
+<p>WHEN '3' THEN '(화)'</p>
+<p>WHEN '4' THEN '(수)'</p>
+<p>WHEN '5' THEN '(목)'</p>
+<p>WHEN '6' THEN '(금)'</p>
+<p>WHEN '7' THEN '(토)'</p>
+<p>END</p>
+<p>SELECT @WeeKDay,@WeeKDayTitle</p>
+<p>DROP PROCEDURE dbo.jis_SXPRWkCalcWeekday</p>
+<p>GO</p>
+<p>CREATE PROCEDURE dbo.jis_SXPRWkCalcWeekday</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>SELECT CASE DATEPART(WEEKDAY, A.WkDate) WHEN '1' THEN '(일)'</p>
+<p>WHEN '2' THEN '(월)'</p>
+<p>WHEN '3' THEN '(화)'</p>
+<p>WHEN '4' THEN '(수)'</p>
+<p>WHEN '5' THEN '(목)'</p>
+<p>WHEN '6' THEN '(금)'</p>
+<p>WHEN '7' THEN '(토)'</p>
+<p>END AS DateName</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>루아 날짜 계산</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>루아 날짜 계산</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">루아 날짜 계산</h1>
+<p>-- 유효일자 = 제조일자 + 시효기간(일)</p>
+<p>-- ValiDate = MakingDate + LimitTermDay</p>
+<p>local ValiDate, MakingDate, LimitTermDay</p>
+<p>MakingDateQty = CellText(SS, SS.ActiveRow, 'MakingDate')</p>
+<p>LimitTermDay = tonumber(CellText(SS, SS.ActiveRow, 'LimitTermDay'))</p>
+<p>if MakingDateQty == '' then</p>
+<blockquote>
+<p>ValiDate = ''</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>ValiDate = DateAdd('Day', LimitTermDay, MakingDateQty)</p>
+</blockquote>
+<p>end</p>
+<p>SetText(SS, SS.ActiveRow, 'ValiDate', ValiDate)        </p>
+<p>local strDate</p>
+<p>strDate = os.date('%Y%m%d')</p>
+<p>txtCostYM.Value = string.sub(DateAdd('Month', -1, strDate), 1, 4)..'01'</p>
+  </article>
+</div>
+</body>
+</html>

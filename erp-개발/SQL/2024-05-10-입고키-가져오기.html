@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>입고키 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>입고키 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">입고키 가져오기</h1>
+<p>-- 입고키값 가져오기</p>
+<p>UPDATE A</p>
+<p>SET DelvInSeq = B.ToSeq,</p>
+<p>DelvInSerl = B.ToSerl,</p>
+<p>DelvInNo = CASE WHEN A.POType = 1 THEN C.DelvInNo WHEN A.POType = 2 THEN D.OSPDelvInNo END</p>
+<p>FROM #TDelvItem AS A</p>
+<p>JOIN _TCOMSourceDailyTrace AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.FromSeq = A.DelvSeq</p>
+<p>AND B.FromSerl = A.DelvSerl</p>
+<p>AND B.FromSubSerl = 0</p>
+<p>LEFT OUTER JOIN _TPUDelvIn AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq AND C.DelvInSeq = B.ToSeq</p>
+<p>LEFT OUTER JOIN _TPDOSPDelvIn AS D WITH(NOLOCK) ON D.CompanySeq = B.CompanySeq AND D.OSPDelvInSeq = B.ToSeq</p>
+<p>WHERE A.WorkingTag IN ('U', 'D')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.IsAutoIn = '1'</p>
+<p>AND A.SMQcType = 6035001 -- 무검사</p>
+<p>AND B.FromTableSeq = CASE WHEN A.POType = 1 THEN 10 WHEN A.POType = 2 THEN 3 END -- _TCOMProgTable WHERE ProgTableName IN ('_TPUDelvItem', '_TPDOSPDelvItem' )</p>
+<p>AND B.ToTableSeq = CASE WHEN A.POType = 1 THEN 9 WHEN A.POType = 2 THEN 2 END -- _TCOMProgTable WHERE ProgTableName IN ('_TPUDelvInItem', '_TPDOSPDelvInItem')</p>
+  </article>
+</div>
+</body>
+</html>

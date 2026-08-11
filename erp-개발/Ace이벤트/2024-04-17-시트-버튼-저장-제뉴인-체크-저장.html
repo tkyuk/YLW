@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 버튼 저장 제뉴인 - 체크 / 저장</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 버튼 저장 제뉴인 - 체크 / 저장</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">시트 버튼 저장 제뉴인 - 체크 / 저장</h1>
+<p>FrmPJTProjectComplete_rot</p>
+<p>DROP PROCEDURE rot_SPJTProjectWarrantyDueDateCheck</p>
+<p>GO</p>
+<p>CREATE PROCEDURE rot_SPJTProjectWarrantyDueDateCheck</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>/**************************************************</p>
+<p>프로젝트 완료여부 체크</p>
+<p>***************************************************/</p>
+<p>--EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>-- @Status OUTPUT,</p>
+<p>-- @Results OUTPUT,</p>
+<p>-- 18 , -- @1는(은) 수정/삭제 할수 없습니다..(SELECT * FROM _TCAMessageLanguage WHERE messagedefault like '%건은%')</p>
+<p>-- @LanguageSeq ,</p>
+<p>-- 11351,'' -- SELECT * FROM _TCADictionary WHERE Word like '%완료%건%'</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = '완료된 프로젝트는 저장 할 수 없습니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 99999</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TPJTProject AS B ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag IN ('U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND B.ISComplete = '1'</p>
+<p>/**************************************************</p>
+<p>프로젝트 중단여부 체크</p>
+<p>***************************************************/</p>
+<p>--EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>-- @Status OUTPUT,</p>
+<p>-- @Results OUTPUT,</p>
+<p>-- 18 , -- @1는(은) 수정/삭제 할수 없습니다..(SELECT * FROM _TCAMessageLanguage WHERE messagedefault like '%건은%')</p>
+<p>-- @LanguageSeq ,</p>
+<p>-- 48413,'' -- SELECT * FROM _TCADictionary WHERE Word like '%중단%'</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = '중단된 프로젝트는 저장 할 수 없습니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 99999</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TPJTProject AS B ON A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag IN ('U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>AND B.ISSTOP = '1'</p>
+<p>RETURN</p>
+<p>DROP PROCEDURE rot_SPJTProjectWarrantyDueDateSave</p>
+<p>GO</p>
+<p>CREATE PROCEDURE rot_SPJTProjectWarrantyDueDateSave</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'U' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>UPDATE rot_TPJTProjectInfo</p>
+<p>SET WarrantyDueDate = A.WarrantyDueDate</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN rot_TPJTProjectInfo AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>WHERE A.WorkingTag = 'U' AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>RETURN</p>
+<p>END</p>
+<p>---- 사이트용 테이블 로직(수정 시 사이트용 테이블에 데이터 없을 경우 신규 생성합니다.)</p>
+<p>--INSERT INTO rot_TPJTProjectInfo(</p>
+<p>-- CompanySeq,</p>
+<p>-- PJTSeq,</p>
+<p>-- WarrantyDueDate</p>
+<p>-- )</p>
+<p>--SELECT @CompanySeq,</p>
+<p>-- A.PJTSeq,</p>
+<p>-- A.WarrantyDueDate</p>
+<p>-- FROM #BIZ_OUT_DataBlock1 A</p>
+<p>-- WHERE WorkingTag = 'U'</p>
+<p>-- AND Status = 0</p>
+<p>-- AND NOT EXISTS(SELECT 1</p>
+<p>-- FROM rot_TPJTProjectInfo AS B WITH(NOLOCK)</p>
+<p>-- WHERE B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.PJTSeq = B.PJTSeq)</p>
+<p>--IF @@ERROR \&lt;&gt; 0</p>
+<p>--BEGIN</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<p>END</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

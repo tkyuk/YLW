@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2025-02-05-untitled-27</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2025-02-05-untitled-27</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>25.02.05 영인랩플러스 그룹웨어 (기타입고요청, 기타출고요청, 이동요청)</p>
+<p>오후 2:22</p>
+<p><span class="mark">-- 기타입고요청</span></p>
+<p>exec ywh_SLGInOutReqPrintQuery @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;U\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;0\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;ReqSeq&gt;11184\&lt;/ReqSeq&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=87120052,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=3317</p>
+<p>EXEC _SCOMGroupWarePrint</p>
+<p>@CompanySeq = 1 -- 법인명</p>
+<p>,@LanguageSeq = 1 -- 언어</p>
+<p>,@UserSeq = 1 -- 로그인사용자</p>
+<p>,@PgmSeq = 3317 -- 기타입고요청</p>
+<p>,@WorkKind = 'EtcInReq' -- 결재문서번호 (기타입고요청)</p>
+<p>,@TblKey = 11184 -- 내부코드</p>
+<p>,@SiteInit = 'YW' -- 사이트이니셜</p>
+<p><span class="mark">-- 기타출고요청</span></p>
+<p>exec ywh_SLGInOutReqPrintQuery @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;U\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;0\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;ReqSeq&gt;11214\&lt;/ReqSeq&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=87120052,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1358</p>
+<p>EXEC _SCOMGroupWarePrint</p>
+<p>@CompanySeq = 1 -- 법인명</p>
+<p>,@LanguageSeq = 1 -- 언어</p>
+<p>,@UserSeq = 1 -- 로그인사용자</p>
+<p>,@PgmSeq = 1358 -- 기타출고요청</p>
+<p>,@WorkKind = 'EtcOutReq' -- 결재문서번호 (기타출고요청)</p>
+<p>,@TblKey = 11214 -- 내부코드</p>
+<p>,@SiteInit = 'YW' -- 사이트이니셜</p>
+<p><span class="mark">-- 이동요청</span></p>
+<p>exec ywh_SLGInOutReqPrintQuery @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;U\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;0\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;ReqSeq&gt;11239\&lt;/ReqSeq&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=87120052,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=3318</p>
+<p>-- _SLGInOutReqPrintQuery</p>
+<p>EXEC _SCOMGroupWarePrint</p>
+<p>@CompanySeq = 1 -- 법인명</p>
+<p>,@LanguageSeq = 1 -- 언어</p>
+<p>,@UserSeq = 1 -- 로그인사용자</p>
+<p>,@PgmSeq = 3318 -- 이동요청</p>
+<p>,@WorkKind = 'TransReq' -- 결재문서번호 (이동요청)</p>
+<p>,@TblKey = 11239 -- 내부코드</p>
+<p>,@SiteInit = 'YW' -- 사이트이니셜</p>
+  </article>
+</div>
+</body>
+</html>

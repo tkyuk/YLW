@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여러 테이블 공통 컬럼의 MAX 값</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>여러 테이블 공통 컬럼의 MAX 값</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="max">여러 테이블 공통 컬럼의 MAX 값</h1>
+<p>CREATE PROC emk_SWACMRProcRevQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10) = '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>SET NOCOUNT ON                        </p>
+<p>DECLARE @AccYM NCHAR(6) -- 회계연월</p>
+<p>SELECT @AccYM = ISNULL(AccYM, '')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>SELECT ISNULL(MAX(RIGHT('00' + RTRIM(A.MRRev), 2)), '00') AS MRRev</p>
+<p>FROM (SELECT MR1Rev AS MRRev FROM emk_TACMR1Mng WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR2Rev AS MRRev FROM emk_TACMR2Mng_BS WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR2Rev AS MRRev FROM emk_TACMR2Mng_CF WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR2Rev AS MRRev FROM emk_TACMR2Mng_PL WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR3Rev AS MRRev FROM emk_TACMR3Mng WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR4Rev AS MRRev FROM emk_TACMR4Mng WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR5Rev AS MRRev FROM emk_TACMR5Mng WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR6Rev AS MRRev FROM emk_TACMR6Mng WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR7Rev AS MRRev FROM emk_TACMR7Mng WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM UNION ALL</p>
+<p>SELECT MR8Rev AS MRRev FROM emk_TACMR8Mng WHERE CompanySeq = @CompanySeq AND AccYM = @AccYM) AS A</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

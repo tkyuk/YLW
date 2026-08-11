@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서비스 요청 패치</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>서비스 요청 패치</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">서비스 요청 패치</h1>
+<p>작업단위 : 서비스요청_sys</p>
+<p>프로그램        FrmSYSServiceReq_sys</p>
+<p>비즈니스서비스        Genuine.sys.Call.BisSYSServiceReq_sys</p>
+<p>스크립트(SP,TR,View)        sys_SSYSServiceReqGetSSO</p>
+<p>추가        TCTService_sys        서비스테이블        업무        IF NOT EXISTS (SELECT * FROM Sysobjects WHERE Name = 'TCTService_sys' AND xtype = 'U' )BEGIN</p>
+<p>CREATE TABLE TCTService_sys</p>
+<p>(</p>
+<p>CustSeq CHAR(12)</p>
+<p>)</p>
+<p>END</p>
+<p>추가        TCTService_sys        서비스테이블        업무        INSERT INTO TCTService_sys(CustSeq) SELECT 'S20230000025'</p>
+<p><span class="mark">TCTService_sys 테이블에 고객사에 맞는 거래처코드가 들어가야함</span></p>
+<p>SELECT CUSTCD,CustName,SiteInit FROM sys_TSYSCust</p>
+<p>WHERE (CustName LIKE '%녹수%' OR CustName LIKE '%삼신%' )</p>
+<p>AND CustName LIKE '%ACE%'</p>
+<p>ORDER BY 2</p>
+<p>UPDATE SSV.DBO.TCTService_sys</p>
+<p>SET CustSeq = 'S20230000034'</p>
+<p>UPDATE SSK.DBO.TCTService_sys</p>
+<p>SET CustSeq = 'S20230000035'</p>
+<p>UPDATE SSD.DBO.TCTService_sys</p>
+<p>SET CustSeq = 'S20230000036'</p>
+<p>UPDATE SST.DBO.TCTService_sys</p>
+<p>SET CustSeq = 'S20230000037'</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.01.15 삼신 재고이월처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.01.15 삼신 재고이월처리</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250115">25.01.15 삼신 재고이월처리</h1>
+<p>BEGIN TRAN</p>
+<p>declare @CompanySeq int = 1 , @userSeq int = 1</p>
+<p>DECLARE @TransKind INT,</p>
+<p>@FromYY NCHAR(4),</p>
+<p>@ToYY NCHAR(4),</p>
+<p>@FromYM NCHAR(6),</p>
+<p>@ToYM NCHAR(6),</p>
+<p>@NextMonth NCHAR(6),</p>
+<p>@ToMonth NCHAR(6),</p>
+<p>@EmpSeq INT,</p>
+<p>@StkYM NCHAR(6)</p>
+<p>-- 물류시작년월</p>
+<p>EXEC @StkYM = dbo._SWCOMEnvR @CompanySeq, 1006, @UserSeq, @@PROCID</p>
+<p>IF @StkYM = '' OR LEN(@StkYM) \&lt;&gt; 6</p>
+<p>BEGIN</p>
+<p>SELECT @StkYM = MAX(SystemOpenYm)</p>
+<p>FROM _TDAAccUnit WITH (NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>-- 회기시작년월 가져오기</p>
+<p>EXEC _SWACGetAccTerm @CompanySeq, @FromYY, @FromYM OUTPUT ,@ToYM OUTPUT</p>
+<p>-- 회기시작년월 가져오기</p>
+<p>EXEC _SWACGetAccTerm @CompanySeq, @ToYY, @NextMonth OUTPUT ,@ToMonth OUTPUT</p>
+<p>--SELECT @StkYM,@FromYM,@ToYM, @NextMonth, @ToMonth</p>
+<p>-- SELECT ISNULL(Y.PrevQty,0), ISNULL(Y.STDPrevQty,0)</p>
+<p>-- FROM _TLGWHStock AS X</p>
+<p>-- JOIN (SELECT @CompanySeq AS CompanySeq, @NextMonth AS StkYM,</p>
+<p>-- A.WHSeq, A.ItemSeq, A.UnitSeq,</p>
+<p>-- (SUM(ISNULL(A.PrevQty, 0)) + SUM(ISNULL(A.InQty, 0)) - SUM(ISNULL(A.OutQty, 0))) AS PrevQty,</p>
+<p>-- (SUM(ISNULL(A.STDPrevQty, 0)) + SUM(ISNULL(A.STDInQty, 0)) - SUM(ISNULL(A.STDOutQty, 0))) AS STDPrevQty</p>
+<p>-- FROM _TLGWHStock AS A WITH(NOLOCK)</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.StkYm BETWEEN @FromYM AND @ToYM</p>
+<p>-- GROUP BY A.WHSeq, A.ItemSeq, A.UnitSeq) AS Y ON X.CompanySeq = Y.CompanySeq</p>
+<p>-- AND X.StkYM = Y.StkYM</p>
+<p>-- AND X.WHSeq = Y.WHSeq</p>
+<p>-- AND X.ItemSeq = Y.ItemSeq</p>
+<p>-- AND X.UnitSeq = Y.UnitSeq</p>
+<p>--ORDER BY 1</p>
+<p>UPDATE _TLGWHStock</p>
+<p>SET PrevQty = ISNULL(Y.PrevQty,0),</p>
+<p>STDPrevQty = ISNULL(Y.STDPrevQty,0)</p>
+<p>FROM _TLGWHStock AS X</p>
+<p>JOIN (SELECT @CompanySeq AS CompanySeq, @NextMonth AS StkYM,</p>
+<p>A.WHSeq, A.ItemSeq, A.UnitSeq,</p>
+<p>(SUM(ISNULL(A.PrevQty, 0)) + SUM(ISNULL(A.InQty, 0)) - SUM(ISNULL(A.OutQty, 0))) AS PrevQty,</p>
+<p>(SUM(ISNULL(A.STDPrevQty, 0)) + SUM(ISNULL(A.STDInQty, 0)) - SUM(ISNULL(A.STDOutQty, 0))) AS STDPrevQty</p>
+<p>FROM _TLGWHStock AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.StkYm BETWEEN @FromYM AND @ToYM</p>
+<p>GROUP BY A.WHSeq, A.ItemSeq, A.UnitSeq) AS Y ON X.CompanySeq = Y.CompanySeq</p>
+<p>AND X.StkYM = Y.StkYM</p>
+<p>AND X.WHSeq = Y.WHSeq</p>
+<p>AND X.ItemSeq = Y.ItemSeq</p>
+<p>AND X.UnitSeq = Y.UnitSeq</p>
+<p>--SELECT ISNULL(Y.PrevQty,0), ISNULL(Y.STDPrevQty,0)</p>
+<p>-- FROM _TLGLotStock AS X</p>
+<p>-- JOIN (SELECT @CompanySeq AS CompanySeq, @NextMonth AS StkYM,</p>
+<p>-- A.WHSeq, A.LotNo, A.ItemSeq, A.UnitSeq,</p>
+<p>-- (SUM(ISNULL(A.PrevQty, 0)) + SUM(ISNULL(A.InQty, 0)) - SUM(ISNULL(A.OutQty, 0))) AS PrevQty,</p>
+<p>-- (SUM(ISNULL(A.STDPrevQty, 0)) + SUM(ISNULL(A.STDInQty, 0)) - SUM(ISNULL(A.STDOutQty, 0))) AS STDPrevQty</p>
+<p>-- FROM _TLGLotStock AS A WITH(NOLOCK)</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.StkYm BETWEEN @FromYM AND @ToYM</p>
+<p>-- GROUP BY A.WHSeq, A.LotNo, A.ItemSeq, A.UnitSeq) AS Y ON X.CompanySeq = Y.CompanySeq</p>
+<p>-- AND X.StkYM = Y.StkYM</p>
+<p>-- AND X.WHSeq = Y.WHSeq</p>
+<p>-- AND X.LotNo = Y.LotNo</p>
+<p>-- AND X.ItemSeq = Y.ItemSeq</p>
+<p>-- AND X.UnitSeq = Y.UnitSeq</p>
+<p>SELECT *</p>
+<p>FROM _TLGWHStock</p>
+<p>WHERE PrevQty \&lt;&gt; 0</p>
+<p>AND LEFT(StkYM,4) = '2025'</p>
+<p>ORDER BY StkYM DESC</p>
+<p>--14,475</p>
+<p>--325,904</p>
+<p>--146,233</p>
+<p>--324,785</p>
+<p>--324,781</p>
+<p>--325,897</p>
+<p>--325,905</p>
+<p>--326,262</p>
+<p>--326,263</p>
+<p>ROLLBACK TRAN</p>
+<p><span class="mark">-- _TLGWHStock 에만 데이터 존재하는 건으로 인해</span></p>
+<p><span class="mark">24년 12월 재고 수량 25년 1월 이월처리 수량이 안맞음</span></p>
+<p><span class="mark">해당 건 삭제 필요</span></p>
+<p>SELECT SUM(A.PrevQty + A.InQty - A.OutQty)</p>
+<p>,SUM(A.PrevQty)</p>
+<p>,SUM(A.InQty)</p>
+<p>,SUM(A.OutQty)</p>
+<p>FROM _TLGWHStock AS A WITH (NOLOCK)</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.WHSeq = 10</p>
+<p>AND A.ItemSeq = 305422</p>
+<p>AND A.StkYM BETWEEN '202401' AND '202411'</p>
+<p>SELECT * FROM _TLGWHStock AS A WHERE A.ItemSeq = 305422 AND WHSeq = 10</p>
+<p>SELECT * FROM _TLGInOutStock AS A WHERE A.ItemSeq = 305422 AND WHSeq = 10 AND InOutYM = '202412'</p>
+<p>SELECT * FROM _TESMGInOutStock AS A WHERE A.ItemSeq = 305422 AND LEFT(InOutDate,6) = '202412'</p>
+<p>SELECT * FROM _TLGWHStock AS A WHERE A.ItemSeq = 13264 AND WHSeq = 10</p>
+<p>SELECT * FROM _TLGInOutStock AS A WHERE A.ItemSeq = 13264 AND WHSeq = 10 AND InOutYM = '202412'</p>
+<p>SELECT * FROM _TESMGInOutStock AS A WHERE A.ItemSeq = 13264 AND LEFT(InOutDate,6) = '202412'</p>
+<p>--====================================================</p>
+<p>-- 삭제 대상 건</p>
+<p>--====================================================</p>
+<p>SELECT *</p>
+<p>FROM _TLGWHStock AS A</p>
+<p>LEFT OUTER JOIN _TLGInOutStock AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.WHSeq = A.WHSeq</p>
+<p>AND B.InOutYM = A.StkYM</p>
+<p>WHERE A.StkYM = '202412'</p>
+<p>AND B.CompanySeq IS NULL</p>
+<p>AND A.OutQty \&lt;&gt; 0</p>
+<p>ORDER BY A.ItemSeq</p>
+<p>--====================================================</p>
+<p>--====================================================</p>
+  </article>
+</div>
+</body>
+</html>

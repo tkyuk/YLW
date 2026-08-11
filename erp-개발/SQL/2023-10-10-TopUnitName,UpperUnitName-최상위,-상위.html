@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TopUnitName,UpperUnitName 최상위, 상위</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>TopUnitName,UpperUnitName 최상위, 상위</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="topunitnameupperunitname">TopUnitName,UpperUnitName 최상위, 상위</h1>
+<p>,M4.ItemName AS TopUnitName</p>
+<p>,M4.ItemNo AS TopUnitNo</p>
+<p>,M2.ItemNo AS UpperUnitNo</p>
+<p>,M2.ItemName AS UpperUnitName</p>
+<p>-- 최상위</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M0 WITH(NOLOCK) ON A.CompanySeq = M.CompanySEq</p>
+<p>AND A.PJTSeq = M0.PJTSeq</p>
+<p>AND A.WBSSeq = M0.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M1 WITH(NOLOCK) ON A.CompanySeq = M1.CompanySeq</p>
+<p>AND A.PJTSeq = M1.PJTSeq</p>
+<p>AND M1.BOMSerl \&lt;&gt; -1</p>
+<p>AND M0.UpperBOMSerl = M1.BOMSerl</p>
+<p>AND ISNULL(M1.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TDAItem AS M2 WITH(NOLOCK) ON A.CompanySEq = M2.CompanySeq</p>
+<p>AND M1.ItemSeq = M2.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M3 WITH(NOLOCK) ON A.CompanySeq = M3.CompanySeq</p>
+<p>AND A.PJTSeq = M3.PJTSeq</p>
+<p>AND M3.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(M3.BeforeBOMSerl,0) = 0</p>
+<p>AND SUBSTRING(M1.TreeCode,1,6) = M3.TreeCode -- 최상위</p>
+<blockquote>
+<p>AND ISNUMERIC(REPLACE(M3.BOMLevel,'.','/')) = 1</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItem AS M4 WITH(NOLOCK) ON A.CompanySeq = M4.CompanySeq</p>
+<p>AND M3.ItemSeq = M4.ItemSeq</p>
+<p>참고 SP - ets_SPDMMOutProcItemQuery</p>
+<p>DROP PROC ets_SPDMMOutProcItemQuery</p>
+<p>GO</p>
+<p>CREATE PROC ets_SPDMMOutProcItemQuery</p>
+<p>@xmlDocument NVARCHAR(MAX),</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>SET NOCOUNT ON</p>
+<p>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</p>
+<p>DECLARE @docHandle INT,</p>
+<p>@MatOutSeq INT,</p>
+<p>@BizUnit INT,</p>
+<p>@UseType INT</p>
+<p>EXEC sp_xml_preparedocument @docHandle OUTPUT, @xmlDocument</p>
+<p>EXEC sp_xml_removedocument @docHandle</p>
+<p>-- 원천테이블</p>
+<p>CREATE TABLE #TMP_SOURCETABLE (IDOrder INT, TABLENAME NVARCHAR(100))</p>
+<p>-- 원천 데이터 테이블</p>
+<p>CREATE TABLE #TCOMSourceTracking (IDX_NO INT, IDOrder INT, Seq INT, Serl INT, SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5), STDQty DECIMAL(19, 5), Amt DECIMAL(19, 5), VAT DECIMAL(19, 5))</p>
+<p>-- 수탁자재 창고담기</p>
+<p>CREATE TABLE #SuTak (IDX_NO INT, CustSeq INT, CustOutWhSeq INT, OutWhName NVARCHAR(100), CustInWhSeq INT, InWhName NVARCHAR(100))</p>
+<p>--select @WorkingTag -- S</p>
+<p>IF @WorkingTag IN ('','Q')</p>
+<p>GOTO QryProc</p>
+<p>ELSE IF @WorkingTag IN ('S','L', 'T') -- 출고요청현황에서 점프해 왔을 경우</p>
+<p>GOTO FrReqList</p>
+<p>ELSE IF @WorkingTag = 'P' -- 외주자재출고요청현황에서 점프해 왔을 경우</p>
+<p>GOTO OSPOMat</p>
+<p>RETURN</p>
+<p>QryProc:</p>
+<p>CREATE TABLE #OutItem (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock3', '#OutItem'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>SELECT</p>
+<p>IDENTITY(INT,0,1) AS IDX_NO</p>
+<p>,A.MatOutSeq</p>
+<p>,A.OutItemSerl</p>
+<p>,A.ItemSeq</p>
+<p>,A.OutWHSeq</p>
+<p>,A.InWHSeq</p>
+<p>,A.UnitSeq</p>
+<p>,A.Qty</p>
+<p>,A.StdUnitQty</p>
+<p>,A.Price</p>
+<p>,A.Amt</p>
+<p>,A.ItemLotNo</p>
+<p>,A.SerialNoFrom</p>
+<p>,A.WorkOrderSeq</p>
+<p>,A.WorkOrderSerl</p>
+<p>,A.ConsgnmtCustSeq</p>
+<p>,CASE WHEN ISNULL(A.ConsgnmtCustSeq,0) = 0 THEN ''</p>
+<p>ELSE (SELECT CustName FROM _TDACust WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND CustSeq = A.ConsgnmtCustSeq) END AS ConsgnmtCustName -- 수탁거래처 컬럼 추가 2019.12.16 by 최보라</p>
+<p>,A.Remark</p>
+<p>,A.OutReqSeq</p>
+<p>,A.OutReqItemSerl</p>
+<p>,A.PJTSeq</p>
+<p>,A.WBSSeq</p>
+<p>,W.WorkOrderNo AS WorkOrderNo</p>
+<p>,I.ItemName AS ItemName</p>
+<p>,I.ItemNo AS ItemNo</p>
+<p>,I.Spec AS Spec</p>
+<p>,R.Qty AS ReqQty</p>
+<p>,U.UnitName AS UnitName</p>
+<p>,Q.PJTName AS PJTName -- 프로젝트명</p>
+<p>,Q.PJTNo AS PJTNo -- 프로젝트번호</p>
+<p>,S.WBSName AS WBSName -- WBS명</p>
+<p>,(CASE WHEN A.OutWHSeq &gt; 0 THEN (SELECT WHName FROM _TDAWH WHERE CompanySeq = A.CompanySeq AND WHSeq = A.OutWHSeq) ELSE '' END) AS OutWHName</p>
+<p>,(CASE WHEN A.InWHSeq &gt; 0 THEN (SELECT WHName FROM _TDAWH WHERE CompanySeq = A.CompanySeq AND WHSeq = A.InWHSeq) ELSE '' END) AS InWHName</p>
+<p>,M.UseType</p>
+<p>,ISNULL(A.AlterRate,0) AS AlterRate</p>
+<p>,ISNULL(A.Memo1,'') AS Memo1</p>
+<p>,ISNULL(A.Memo2,'') AS Memo2</p>
+<p>,ISNULL(A.Memo3,'') AS Memo3</p>
+<p>,ISNULL(A.Memo4,0) AS Memo4</p>
+<p>,ISNULL(A.Memo5,0) AS Memo5</p>
+<p>,ISNULL(A.Memo6,0) AS Memo6 -- 메모1~6컬럼추가 성지원 2016-11-14</p>
+<p>,A.MatOutType AS MatOutType -- 반품유형컬럼추가 김지훈 2010-07-14</p>
+<p>,A.CustSeq AS CustSeq -- 반품거래처컬럼추가 김지훈 2010-07-14</p>
+<p>,CASE WHEN ISNULL(A.CustSeq,0) = 0 THEN ''</p>
+<p>ELSE (SELECT CustName FROM _TDACust WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND CustSeq = A.CustSeq) END AS CustName</p>
+<p>,CASE WHEN ISNULL(A.MatOutType,0) = 0 THEN ''</p>
+<p>ELSE (SELECT MinorName FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND MinorSeq = A.MatOutType) END AS MatOutTypeName</p>
+<p>,P.ProcName</p>
+<p>,U2.UnitName AS StdUnitName -- 기준단위 추가 12.12.14 BY 김세호</p>
+<p>,U2.UnitSeq AS StdUnitSeq -- 기준단위 추가 12.12.14 BY 김세호</p>
+<p>,A.ItemLotNo AS LotNo -- 현재고 조회 LotNo컬럼 추가 20140918 :: 조성환(2014)</p>
+<p>,Z.IsLotMng AS IsLotMng -- Lot 관린여부 추가 ::2016.03.24 박수영</p>
+<p>,O.OutReqNo AS OutReqNo -- 출고요청번호 추가 16.05.31 임희진</p>
+<p>,W.AssyItemSeq</p>
+<p>,N.ItemName AS AssyItemName -- 2015.03.12 김용현 추가</p>
+<p>,N.ItemNo AS AssyItemNo -- 2015.03.12 김용현 추가</p>
+<p>,N.Spec AS AssySpec -- 2015.03.12 김용현 추가</p>
+<p>--,L.DWGNo AS DWGNo , -- 도면번호</p>
+<p>-- P1.MinorName AS UMMatQualityName , -- 재질</p>
+<p>-- L.UMMatQuality AS UMMatQuality , -- 재질코드</p>
+<p>-- H.MngValText AS AfterTx , -- 후처리</p>
+<p>-- J.MngValText AS HeatTx , -- 열처리</p>
+<p>-- X.ItemName AS UpperUnitName , -- Assy명</p>
+<p>-- IT.ItemName AS TopUnitName , -- 최상위Unit명</p>
+<p>-- CS.CustName AS MakerName -- Maker</p>
+<p>-- 자재-추가정보정의로 추가컬럼 조회 23.09.12 SJPARK</p>
+<p>,V2.AfterTx AS AfterTx -- 후처리</p>
+<p>,V2.HeatTx AS HeatTx -- 열처리</p>
+<p>,V2.DWGNo AS DWGNo -- 도면번호</p>
+<p>,V2.UMMatQualityName AS UMMatQualityName -- 재질</p>
+<p>,V2.UMMatQuality AS UMMatQuality -- 재질코드</p>
+<p>,V2.MakerName AS MakerName -- 제조사</p>
+<p>,V2.MakerSeq AS MakerSeq -- 제조사코드</p>
+<p>,V2.UMSupplyTypeName AS UMSupplyTypeName -- 조달구분</p>
+<p>,V2.UMSupplyType AS UMSupplyType -- 조달구분코드</p>
+<p>,M4.ItemName AS TopUnitName</p>
+<p>,M4.ItemNo AS TopUnitNo</p>
+<p>,M2.ItemNo AS UpperUnitNo</p>
+<p>,M2.ItemName AS UpperUnitName</p>
+<p>INTO #OutItemList</p>
+<p>FROM _TPDMMOutItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutM AS M WITH(NOLOCK) ON A.CompanySeq = M.CompanySeq</p>
+<p>AND A.MatOutSeq = M.MatOutSeq</p>
+<p>JOIN #OutItem AS T ON A.MatOutSeq = T.MatOutSeq</p>
+<p>LEFT OUTER JOIN _TPDMMOutReqItem AS R WITH(NOLOCK) ON A.CompanySeq = R.CompanySeq</p>
+<p>AND A.OutReqSeq = R.OutReqSeq</p>
+<p>AND A.OutReqItemSerl = R.OutReqItemSerl</p>
+<p>LEFT OUTER JOIN _TPDMMOutReqM AS O WITH(NOLOCK) ON R.CompanySeq = O.CompanySeq</p>
+<p>AND R.OutReqSeq = O.OutReqSeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON A.CompanySeq = W.CompanySeq</p>
+<p>AND A.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND A.WorkOrderSerl= W.WorkOrderSerl</p>
+<p>LEFT OUTER JOIN _TDAItem AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.ItemSeq = I.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON A.CompanySeq = U.CompanySeq</p>
+<p>AND A.UnitSeq = U.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U2 WITH(NOLOCK) ON I.CompanySeq = U2.CompanySeq</p>
+<p>AND I.UnitSeq = U2.UnitSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS Q WITH(NOLOCK) ON A.CompanySeq = Q.CompanySeq</p>
+<p>AND A.PJTSeq = Q.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTWBS AS S WITH(NOLOCK) ON A.CompanySeq = S.CompanySeq</p>
+<p>AND A.PJTSeq = S.PJTSeq</p>
+<p>AND A.WBSSeq = S.WBSSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON A.CompanySeq = P.CompanySeq</p>
+<p>AND W.ProcSeq = P.ProcSeq</p>
+<p>LEFT OUTER JOIN _TDAItemStock AS Z WITH(NOLOCK) ON A.ItemSeq = Z.ItemSeq</p>
+<p>AND Z.CompanySeq = @CompanySeq</p>
+<p>--2018.01.02 박수영 ::작업지시의 공정품으로 가져온다.(작업지시 1건을 분할하여 처리할 경우 중복 조회됨)</p>
+<p>--LEFT OUTER JOIN _TPDMMOutGood AS K WITH(NOLOCK) ON A.WorkOrderSeq = K.WorkOrderSeq</p>
+<p>-- AND A.WorkOrderSerl = K.WorkOrderSerl</p>
+<p>-- AND A.MatOutSeq = K.MatOutSeq</p>
+<p>-- AND A.CompanySeq = K.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS N WITH(NOLOCK) ON W.AssyItemSeq = N.ItemSeq</p>
+<p>AND W.CompanySeq = N.CompanySeq -- 2015.03.12 김용현 추가</p>
+<p>-- 자재 추가정보 뷰테이블로 변경 23.09.12 SJPARK</p>
+<p>LEFT OUTER JOIN ets_VDAItemPjtInfo AS V2 WITH(NOLOCK) ON V2.CompanySeq = A.CompanySeq</p>
+<p>AND V2.ItemSeq = A.ItemSeq</p>
+<p>-- 최상위</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M0 WITH(NOLOCK) ON A.CompanySeq = M.CompanySEq</p>
+<p>AND A.PJTSeq = M0.PJTSeq</p>
+<p>AND A.WBSSeq = M0.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M1 WITH(NOLOCK) ON A.CompanySeq = M1.CompanySeq</p>
+<p>AND A.PJTSeq = M1.PJTSeq</p>
+<p>AND M1.BOMSerl \&lt;&gt; -1</p>
+<p>AND M0.UpperBOMSerl = M1.BOMSerl</p>
+<p>AND ISNULL(M1.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TDAItem AS M2 WITH(NOLOCK) ON A.CompanySEq = M2.CompanySeq</p>
+<p>AND M1.ItemSeq = M2.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M3 WITH(NOLOCK) ON A.CompanySeq = M3.CompanySeq</p>
+<p>AND A.PJTSeq = M3.PJTSeq</p>
+<p>AND M3.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(M3.BeforeBOMSerl,0) = 0</p>
+<p>AND SUBSTRING(M1.TreeCode,1,6) = M3.TreeCode -- 최상위</p>
+<blockquote>
+<p>AND ISNUMERIC(REPLACE(M3.BOMLevel,'.','/')) = 1</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItem AS M4 WITH(NOLOCK) ON A.CompanySeq = M4.CompanySeq</p>
+<p>AND M3.ItemSeq = M4.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- 외주는 요청수량을 외주발주에서 가져와야하므로 수정.</p>
+<p>-- 우선은 코딩의 편리성을 위해서 (아직 추가, 수정할 것이 많기 때문에) 이렇게 하지만 추후 조회성능을 위해서 출고유형별로 분기할 필요 있음. (정동혁)</p>
+<p>UPDATE A</p>
+<p>SET ReqQty = M.Qty</p>
+<p>FROM #OutItemList AS A</p>
+<p>JOIN _TPDOSPPOItemMat AS M WITH(NOLOCK) ON A.OutReqSeq = M.OSPPOSeq</p>
+<p>AND A.OutReqItemSerl = M.OSPMatSerl</p>
+<p>AND M.CompanySeq = @CompanySeq</p>
+<p>WHERE A.UseType IN (6044003,6044004)</p>
+<p>-- 최상위Unit품목,상위Unit품목 가져오기 위해 구매요청 SourceTracking로직 추가 19.06.24 By 이혜민</p>
+<p>-- [프로젝트자재출고등록] 최상위Unit품명, 최상위Unit품번, 상위Unit품명, 상위Unit품번 추가</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TPUORDPOReqItem'</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPDMMOutItem', '#OutItemList', 'MatOutSeq', 'OutItemSerl', ''</p>
+<p>SELECT A.*,</p>
+<p>F.ItemName AS TopUnitName,</p>
+<p>F.ItemNo AS TopUnitNo,</p>
+<p>G.ItemName AS UpperUnitName,</p>
+<p>G.ItemNo AS UpperUnitNo</p>
+<p>FROM #OutItemList AS A</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS S WITH(NOLOCK) ON A.IDX_NO = S.IDX_NO LEFT OUTER JOIN _TPUORDPOReqItem AS P WITH(NOLOCK) ON P.CompanySeq = @CompanySeq</p>
+<p>AND S.Seq = P.POReqSeq</p>
+<p>AND S.Serl = P.POReqSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS C WITH(NOLOCK) ON P.CompanySeq = C.CompanySeq</p>
+<p>AND P.PJTSeq = C.PJTSeq</p>
+<p>AND P.BOMSerl = C.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.PJTSeq = D.PJTSeq</p>
+<p>AND D.BOMSerl \&lt;&gt; -1</p>
+<p>AND C.UpperBOMSerl = D.BOMSerl</p>
+<p>AND ISNULL(D.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.PJTSeq = E.PJTSeq</p>
+<p>AND E.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(E.BeforeBOMSerl,0) = 0</p>
+<p>AND SUBSTRING(D.TreeCode,1,6) = E.TreeCode -- 최상위 BOM</p>
+<p>AND ISNULL(CHARINDEX('.',E.BOMlevel),0) \&lt; 1</p>
+<p>AND ISNUMERIC(REPLACE(E.BOMLevel,'.','/')) = 1</p>
+<p>LEFT OUTER JOIN _TDAItem AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq</p>
+<p>AND E.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON D.CompanySeq = G.CompanySeq</p>
+<p>AND D.ItemSeq = G.ItemSeq</p>
+<p>ORDER BY MatOutSeq, OutItemSerl --17.02.08 이혜민 추가</p>
+<p>RETURN</p>
+<p>FrReqList:</p>
+<p>-- 조회조건을 임시테이블로 생성</p>
+<p>CREATE TABLE #ReqList (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock3', '#ReqList'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>IF EXISTS (SELECT 1 FROM #ReqList WHERE FromTableSeq = 50 )</p>
+<p>GOTO OSPOMat</p>
+<p>SELECT A.IDX_NO AS IDX_NO</p>
+<p>--IDENTITY(INT,1,1) AS IDX_NO</p>
+<p>,W.WorkOrderNo AS WorkOrderNo</p>
+<p>,I.ItemName AS ItemName</p>
+<p>,I.ItemNo AS ItemNo</p>
+<p>,I.Spec AS Spec</p>
+<p>,U.UnitName AS UnitName</p>
+<p>,R.Qty AS ReqQty</p>
+<p>,R.Qty</p>
+<p>,R.Remark AS Remark</p>
+<p>,R.ItemSeq AS ItemSeq</p>
+<p>,R.UnitSeq AS UnitSeq</p>
+<p>,R.OutReqSeq AS OutReqSeq</p>
+<p>,R.OutReqItemSerl AS OutReqItemSerl</p>
+<p>,R.WorkOrderSeq AS WorkOrderSeq</p>
+<p>,R.WorkOrderSerl AS WorkOrderSerl</p>
+<p>,R.PJTSeq</p>
+<p>,R.WBSSeq</p>
+<p>,M.IsReturn</p>
+<p>,Q.PJTName AS PJTName -- 프로젝트명</p>
+<p>,Q.PJTNo AS PJTNo -- 프로젝트번호</p>
+<p>,S.WBSName AS WBSName -- WBS명</p>
+<p>,ISNULL(C.FieldWhSeq,0) AS InWHSeq</p>
+<p>,ISNULL(C.MatOutWhSeq,0) AS OutWHSeq -- 창고별품목이 아니면 워크센터의 출고창고.</p>
+<p>,M.FactUnit AS FactUnit</p>
+<p>,0 AS SMDelvType</p>
+<p>,W.GoodItemSeq AS GoodItemSeq</p>
+<p>,R.MatOutType AS MatOutType -- 반품유형컬럼추가 김지훈 2010-07-14</p>
+<p>,R.CustSeq AS CustSeq -- 반품거래처컬럼추가 김지훈 2010-07-14</p>
+<p>,CASE WHEN ISNULL(R.CustSeq,0) = 0 THEN ''</p>
+<p>ELSE (SELECT CustName FROM _TDACust WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND CustSeq = R.CustSeq</p>
+<p>)</p>
+<p>END AS CustName</p>
+<p>,CASE WHEN ISNULL(R.MatOutType,0) = 0 THEN ''</p>
+<p>ELSE (SELECT MinorName FROM _TDAUMinor WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND MinorSeq = R.MatOutType</p>
+<p>)</p>
+<p>END AS MatOutTypeName</p>
+<p>,W.ItemBomRev</p>
+<p>,W.ProcRev</p>
+<p>,W.ProcSeq</p>
+<p>,FU.FactUnitName AS FactUnitName -- 생산사업장명 추가 엄효진 2010-11-26</p>
+<p>,M.IsOutSide AS IsOutSide -- 외주여부 추가 엄효진 2010-11-26</p>
+<p>,M.SupplyContCustSeq AS SupplyContCustSeq -- 외주처 추가 엄효진 2010-11-26</p>
+<p>,MC.CustName AS SupplyContCustName -- 외주처명 추가 엄효진 2010-11-26</p>
+<p>,U2.UnitName AS StdUnitName -- 기준단위 추가 12.12.14 BY 김세호</p>
+<p>,U2.UnitSeq AS StdUnitSeq -- 기준단위 추가 12.12.14 BY 김세호</p>
+<p>,R.WorkCenterSeq AS WorkCenterSeq, --외주거래처 정보를 가져오기 위해서 WorkCenter값으로 찾아오기위해 추가(외주추가경우) --2013.02.13 by 허승남</p>
+<p>Z.IsLotMng</p>
+<p>,K.AssyItemSeq</p>
+<p>,N.ItemName AS AssyItemName -- 2015.03.12 김용현 추가</p>
+<p>,N.ItemNo AS AssyItemNo -- 2015.03.12 김용현 추가</p>
+<p>,N.Spec AS AssySpec -- 2015.03.12 김용현 추가</p>
+<p>,M.OutReqNo AS OutReqNo -- 2016.05.31 임희진 추가</p>
+<p>,ISNULL(R.Memo1,'') AS Memo1</p>
+<p>,ISNULL(R.Memo2,'') AS Memo2</p>
+<p>,ISNULL(R.Memo3,'') AS Memo3</p>
+<p>,ISNULL(R.Memo4,0) AS Memo4</p>
+<p>,ISNULL(R.Memo5,0) AS Memo5</p>
+<p>,ISNULL(R.Memo6,0) AS Memo6 -- 2016.11.14 성지원 추가</p>
+<p>,M.UseType AS UseType</p>
+<p>,R.RealLotNo AS ItemLotNo -- 2017.12.14 이형민 추가 :: 프로젝트자재반품등록 화면에서 조회</p>
+<p>-- 자재-추가정보정의로 추가컬럼 조회 23.09.12 SJPARK</p>
+<p>,V2.AfterTx AS AfterTx -- 후처리</p>
+<p>,V2.HeatTx AS HeatTx -- 열처리</p>
+<p>,V2.DWGNo AS DWGNo -- 도면번호</p>
+<p>,V2.UMMatQualityName AS UMMatQualityName -- 재질</p>
+<p>,V2.UMMatQuality AS UMMatQuality -- 재질코드</p>
+<p>,V2.MakerName AS MakerName -- 제조사</p>
+<p>,V2.MakerSeq AS MakerSeq -- 제조사코드</p>
+<p>,V2.UMSupplyTypeName AS UMSupplyTypeName -- 조달구분</p>
+<p>,V2.UMSupplyType AS UMSupplyType -- 조달구분코드</p>
+<p>,M4.ItemName AS TopUnitName</p>
+<p>,M4.ItemNo AS TopUnitNo</p>
+<p>,M2.ItemNo AS UpperUnitNo</p>
+<p>,M2.ItemName AS UpperUnitName</p>
+<p>INTO #TPDMMOutReqItem</p>
+<p>FROM _TPDMMOutReqItem AS R WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutReqM AS M WITH(NOLOCK) ON ( M.CompanySeq = @CompanySeq AND R.OutReqSeq = M.OutReqSeq )</p>
+<p>JOIN #ReqList AS A ON R.OutReqSeq = A.OutReqSeq AND (R.OutReqItemSerl = A.OutReqItemSerl OR A.OutReqItemSerl = 0 )</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.CompanySeq = W.CompanySeq</p>
+<p>AND R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl= W.WorkOrderSerl</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON R.CompanySeq = U.CompanySeq</p>
+<p>AND R.UnitSeq = U.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS I WITH(NOLOCK) ON ( I.CompanySeq = @CompanySeq AND I.ItemSeq = R.ItemSeq ) --2015.07.15 임희진 (LEFT OUTER JOIN 으로 수정)</p>
+<p>LEFT OUTER JOIN _TDAItemStock AS Z WITH(NOLOCK) ON ( Z.CompanySeq = @CompanySeq AND Z.ItemSeq = R.ItemSeq ) --2015.07.15 임희진 (LEFT OUTER JOIN 으로 수정)</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U2 WITH(NOLOCK) ON I.CompanySeq = U2.CompanySeq</p>
+<p>AND I.UnitSeq = U2.UnitSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS Q WITH(NOLOCK) ON R.CompanySeq = Q.CompanySeq</p>
+<p>AND R.PJTSeq = Q.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTWBS AS S WITH(NOLOCK) ON R.CompanySeq = S.CompanySeq</p>
+<p>AND R.PJTSeq = S.PJTSeq</p>
+<p>AND R.WBSSeq = S.WBSSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON R.CompanySeq = C.CompanySeq</p>
+<p>AND R.WorkCenterSeq= C.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN _TDAFactUnit AS FU WITH(NOLOCK) ON M.CompanySeq = FU.CompanySeq -- 생산사업장명 추가 엄효진 2010-11-26</p>
+<p>AND M.FactUnit = FU.FactUnit</p>
+<p>LEFT OUTER JOIN _TDACust AS MC WITH(NOLOCK) ON M.CompanySeq = MC.CompanySeq</p>
+<p>AND M.SupplyContCustSeq = MC.CustSeq</p>
+<p>LEFT OUTER JOIN _TPDMMOutReqGood AS K WITH(NOLOCK) ON R.WorkOrderSeq = K.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = K.WorkOrderSerl</p>
+<p>AND R.OutReqSeq = K.OutReqSeq</p>
+<p>AND R.CompanySeq = K.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS N WITH(NOLOCK) ON K.AssyItemSeq = N.ItemSeq</p>
+<p>AND K.CompanySeq = N.CompanySeq -- 2015.03.12 김용현 추가</p>
+<p>-- 자재 추가정보 뷰테이블로 변경 23.09.12 SJPARK</p>
+<p>LEFT OUTER JOIN ets_VDAItemPjtInfo AS V2 WITH(NOLOCK) ON V2.CompanySeq = R.CompanySeq</p>
+<p>AND V2.ItemSeq = R.ItemSeq</p>
+<p>-- 최상위</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M0 WITH(NOLOCK) ON R.CompanySeq = M.CompanySEq</p>
+<p>AND R.PJTSeq = M0.PJTSeq</p>
+<p>AND R.WBSSeq = M0.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M1 WITH(NOLOCK) ON R.CompanySeq = M1.CompanySeq</p>
+<p>AND R.PJTSeq = M1.PJTSeq</p>
+<p>AND M1.BOMSerl \&lt;&gt; -1</p>
+<p>AND M0.UpperBOMSerl = M1.BOMSerl</p>
+<p>AND ISNULL(M1.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TDAItem AS M2 WITH(NOLOCK) ON R.CompanySEq = M2.CompanySeq</p>
+<p>AND M1.ItemSeq = M2.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M3 WITH(NOLOCK) ON R.CompanySeq = M3.CompanySeq</p>
+<p>AND R.PJTSeq = M3.PJTSeq</p>
+<p>AND M3.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(M3.BeforeBOMSerl,0) = 0</p>
+<p>AND SUBSTRING(M1.TreeCode,1,6) = M3.TreeCode -- 최상위</p>
+<blockquote>
+<p>AND ISNUMERIC(REPLACE(M3.BOMLevel,'.','/')) = 1</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItem AS M4 WITH(NOLOCK) ON R.CompanySeq = M4.CompanySeq</p>
+<p>AND M3.ItemSeq = M4.ItemSeq</p>
+<p>WHERE R.CompanySeq = @CompanySeq</p>
+<p>AND R.Qty \&lt;&gt; 0</p>
+<p>AND ISNULL(Q.ISComplete,'') \&lt;&gt; '1' -- 완료프로젝트는 뺌</p>
+<p>AND ISNULL(R.IsStop, '') \&lt;&gt; '1' -- 중단처리된 데이터는 제외</p>
+<p>AND ISNULL(M.IsStop, '') \&lt;&gt; '1' -- 현황에서 중단처리될 경우, 마스터의 IsStop 만 처리되기 때문에 추가 2016.05.26 박수영</p>
+<p>AND ISNULL(Q.IsStop,'') \&lt;&gt; '1' -- 중단처리된 프로젝트 제외 :: 2020.10.22 나태형</p>
+<p>--출고요청(외주추가)인 경우, 입고창고를 워크센터의 현장창고가 아닌 창고등록에 있는 사업부문, 생산사업장, 위탁거래처의 창고로 가져오도록 변경(2013.01.07 by snheo)</p>
+<p>IF @WorkingTag = 'T' OR EXISTS (SELECT 1 FROM #TPDMMOutReqItem WHERE UseType = 6044004)</p>
+<p>BEGIN</p>
+<p>--거래처가 저장이 되어있지 않을 경우, 워크센터 값을 이용해서 외주거래처 찾아옴.</p>
+<p>UPDATE #TPDMMOutReqItem SET CustSeq = B.CustSeq</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>JOIN _TPDBaseWorkCenter AS B ON A.WorkCenterSeq = B.WorkCenterSeq</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>-- 생산사업장과 엮여있는 사업부문 코드 가져오기</p>
+<p>SELECT @BizUnit = A.BizUnit</p>
+<p>FROM _TDAFactUnit AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.FactUnit IN (SELECT TOP 1 M.FactUnit</p>
+<p>FROM _TPDMMOutReqItem AS R WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutReqM AS M ON R.CompanySeq = M.CompanySeq</p>
+<p>AND R.OutReqSeq = M.OutReqSeq</p>
+<p>JOIN #ReqList AS A ON R.OutReqSeq = A.OutReqSeq</p>
+<p>AND (R.OutReqItemSerl = A.OutReqItemSerl OR A.OutReqItemSerl = 0 )</p>
+<p>WHERE R.CompanySeq = @CompanySeq</p>
+<p>)</p>
+<p>UPDATE #TPDMMOutReqItem</p>
+<p>SET InWHSeq = ISNULL(CASE ISNULL(E.WHSeq, 0) WHEN 0</p>
+<p>THEN (SELECT TOP 1 WHSeq FROM _TDAWH WHERE CompanySeq = @CompanySeq AND A.CustSeq = CommissionCustSeq AND IsNotUse \&lt;&gt; '1' AND SMWHKind = 8002024 AND BizUnit = @BizUnit)</p>
+<p>ELSE E.WHSeq END,0)</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>LEFT OUTER JOIN _TDAWH AS E WITH(NOLOCK) ON E.CompanySeq = @CompanySeq</p>
+<p>AND A.FactUnit = E.FactUnit</p>
+<p>AND A.CustSeq = E.CommissionCustSeq</p>
+<p>AND E.SMWHKind = 8002024</p>
+<p>AND @BizUnit = E.BizUnit</p>
+<p>AND E.IsNotUse \&lt;&gt; '1'</p>
+<p>END</p>
+<p>--==============================================--</p>
+<p>-- 1순위 품목별 기본창고에서 출고창고가져오기 -- 2014.11.04 김용현 수정</p>
+<p>--==============================================--</p>
+<p>UPDATE #TPDMMOutReqItem</p>
+<p>SET OutWHSeq = ISNULL(B.OutWHSeq,0)</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>JOIN _TDAItemStdWh AS B WITH(NOLOCK) ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.FactUnit = B.FactUnit</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>--===========================================================--</p>
+<p>-- 2순위 1순위가 없다면, 워크센터의 불출창고로 가져오도록 함 -- 2014.11.04 김용현 추가</p>
+<p>--===========================================================--</p>
+<p>UPDATE #TPDMMOutReqItem</p>
+<p>SET OutWHSeq = ISNULL(B.MatOutWhSeq,0)</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>JOIN _TPDBaseWorkCenter AS B WITH(NOLOCK) ON A.WorkCenterSeq = B.WorkCenterSeq</p>
+<p>AND A.FactUnit = B.FactUnit</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>WHERE ISNULL(A.OutWHSeq,0) = 0</p>
+<p>-- 조달구분.</p>
+<p>-- 같은 제품에 같은 자재가 달리는 경우 2줄로 조회되어서 따로 뺌. 2010.07.20 정동혁</p>
+<p>UPDATE W</p>
+<p>SET SMDelvType = D.SMDelvType</p>
+<p>FROM #TPDMMOutReqItem AS W</p>
+<p>JOIN _TPDROUItemProcMat AS D ON D.CompanySeq = @CompanySeq</p>
+<p>AND W.GoodItemSeq = D.ItemSeq</p>
+<p>AND W.ItemBOMRev = D.BOMRev</p>
+<p>AND W.ProcRev = D.ProcRev</p>
+<p>AND W.ProcSeq = D.ProcSeq</p>
+<p>AND W.ItemSeq = D.MatItemSeq</p>
+<p>--===================================================================================================</p>
+<p>-- 수탁자재가 존재할 경우</p>
+<p>--1. [거래처별OEM품목등록] 에서 해당 품목에 연결된 거래처</p>
+<p>--2. 원천 생산의뢰의 거래처</p>
+<p>--3. 반제품생산계획의 원천 생산의뢰가 존재하지 않을 경우, 모제품의 원천 생산의뢰 거래처 :: 19.05.28 #임희진 추가</p>
+<p>--===================================================================================================</p>
+<p>IF (SELECT Count(*) FROM #TPDMMOutReqItem WHERE SMDelvType = 6032004) &gt; 0</p>
+<p>BEGIN</p>
+<p>INSERT INTO #SuTak(IDX_NO, CustSeq , CustOutWhSeq, OutWhName, CustInWhSeq, InWhName)</p>
+<p>SELECT A.IDX_NO, B.CustSeq, 0, '', 0,''</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>JOIN _TPDBaseCustOEMItem AS B ON A.GoodItemSeq = B.ItemSeq AND CompanySeq = @CompanySeq</p>
+<p>WHERE A.SMDelvType = 6032004</p>
+<p>/***********[수탁자재 창고 담기] 송기연 추가 **************/</p>
+<p>DELETE FROM #TCOMSourceTracking</p>
+<p>DELETE FROM #TMP_SOURCETABLE</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TPDMPSProdReqItem' -- 생산의뢰</p>
+<p>-- 원천 생산의뢰를 찾기위해 대상 담기</p>
+<p>SELECT A.IDX_NO, A.WorkOrderSeq, A.WorkOrderSerl</p>
+<p>INTO #ConsignTemp</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>LEFT OUTER JOIN #SuTak AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE SMDelvType = 6032004 -- 조달구분(수탁)</p>
+<p>AND ISNULL(WorkOrderSeq,0) \&lt;&gt; 0 -- 작업지시 존재하는 건</p>
+<p>AND B.IDX_NO IS NULL</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPDSFCWorkOrder', '#ConsignTemp','WorkOrderSeq', 'WorkOrderSerl',''</p>
+<p>--수탁품에 대해서만 적용될 수 있도록 변경 -- 2014.12.08 노영진</p>
+<p>--원천 생산의뢰가 존재할 경우 담기</p>
+<p>INSERT INTO #SuTak(IDX_NO, CustSeq , CustOutWhSeq, OutWhName, CustInWhSeq, InWhName)</p>
+<p>SELECT DISTINCT</p>
+<p>A.IDX_NO ,</p>
+<p>ISNULL(T.CustSeq, 0) AS CustSeq ,</p>
+<p>0, '', 0, ''</p>
+<p>FROM #TCOMSourceTracking AS A</p>
+<p>JOIN _TPDMPSProdReqItem AS T WITH(NOLOCK) ON A.Seq = T.ProdReqSeq AND A.Serl = T.Serl</p>
+<p>JOIn #ConsignTemp AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE T.CompanySeq = @CompanySeq</p>
+<p>-- 원천 생산의뢰가 존재하지 않거나, 거래처가 입력되지 않은 경우 반제품생산계획 건인지 확인.</p>
+<p>-- 반제품생산계획이라면 모제품 생산계획코드를 담는다. (반제품생산계획의 원천 생산의뢰 존재하지 않을 경우, 모제품의 원천 생산의뢰 거래처를 가져오기 위함)</p>
+<p>SELECT A.IDX_NO, D.ProdPlanSeq</p>
+<p>INTO #ProdPlanSource</p>
+<p>FROM #ConsignTemp AS A</p>
+<p>LEFT OUTER JOIN #SuTak AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>JOIN _TPDSFCWorkOrder AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.WorkOrderSeq = C.WorkOrderSeq</p>
+<p>AND A.WorkOrderSerl= C.WorkOrderSerl</p>
+<p>JOIN _TPDDailyProdPlanSemiPlan AS D WITH(NOLOCK) ON C.ProdPlanSeq = D.SemiProdPlanSeq -- 반제품생산계획</p>
+<p>AND C.CompanySeq = D.CompanySeq</p>
+<p>WHERE B.IDX_NO IS NULL -- 원천 생산의뢰가 없는 건만</p>
+<p>-- 모제품생산계획코드로 생산의뢰 찾기</p>
+<p>DELETE FROM #TCOMSourceTracking</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPDMPSDailyProdPlan', '#ProdPlanSource','ProdPlanSeq', '',''</p>
+<p>-- 모제품생산계획의 원천 생산의뢰가 존재할 경우 담기</p>
+<p>INSERT INTO #SuTak(IDX_NO , CustSeq , CustOutWhSeq, OutWhName, CustInWhSeq, InWhName )</p>
+<p>SELECT DISTINCT</p>
+<p>A.IDX_NO ,</p>
+<p>ISNULL(T.CustSeq, 0) AS CustSeq,</p>
+<p>0, '', 0, ''</p>
+<p>FROM #TCOMSourceTracking AS A</p>
+<p>JOIN _TPDMPSProdReqItem AS T WITH(NOLOCK) ON A.Seq = T.ProdReqSeq AND A.Serl = T.Serl</p>
+<p>JOIN #ConsignTemp AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>LEFT OUTER JOIN #SuTak AS C ON A.IDX_NO = C.IDX_NO</p>
+<p>WHERE T.CompanySeq = @CompanySeq</p>
+<p>AND C.IDX_NO IS NULL -- 원천 생산의뢰가 없는 건만</p>
+<p>UPDATE #SuTak</p>
+<p>SET CustOutWhSeq = B.WHSeq,OutWHName = B.WHName</p>
+<p>FROM #SuTak AS A JOIN _TDAWHSub AS B ON A.CustSeq = B.TrustCustSeq AND B.SMWHKind = 8002004 AND B.CompanySeq = @CompanySeq -- 2014.05.27</p>
+<p>-- 법인코드추가 김용현</p>
+<p>UPDATE #SuTak</p>
+<p>SET CustInWhSeq = C.WHSeq,InWHName = C.WHName</p>
+<p>FROM #SuTak AS A JOIN #TPDMMOutReqItem AS B ON A.IDX_No = B.IDX_No</p>
+<p>JOIN _TDAWHSub AS C ON B.InWhSeq = C.UPWhSeq AND C.SMWHKind = 8002004 and C.CompanySeq = @CompanySeq</p>
+<p>/************************************************************************************************/</p>
+<p>END</p>
+<p>-- 출고수량에서 기출고수량빼기</p>
+<p>SELECT</p>
+<p>R.OutReqSeq</p>
+<p>,R.OutReqItemSerl</p>
+<p>,SUM(R.Qty) AS Qty</p>
+<p>INTO #PrevQty</p>
+<p>FROM _TPDMMOutItem AS R WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutM AS M WITH(NOLOCK) ON R.CompanySeq = M.CompanySeq</p>
+<p>AND R.MatOutSeq = M.MatOutSeq</p>
+<p>WHERE R.CompanySeq = @CompanySeq</p>
+<p>AND M.UseType IN (6044001,6044002,6044004, 6044005)</p>
+<p>AND EXISTS (SELECT 1 FROM #ReqList WHERE OutReqSeq = R.OutReqSeq AND (OutReqItemSerl = R.OutReqItemSerl OR OutReqItemSerl = 0 ))</p>
+<p>GROUP BY</p>
+<p>R.OutReqSeq</p>
+<p>,R.OutReqItemSerl</p>
+<p>UPDATE #TPDMMOutReqItem</p>
+<p>SET InWHSeq = ISNULL(A.OutWHSeq,0) ,</p>
+<p>OutWHSeq = ISNULL(A.InWHSeq,0)</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>WHERE IsReturn = '1'</p>
+<p>UPDATE A</p>
+<p>SET Qty = A.Qty - P.Qty</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>JOIN #PrevQty AS P ON A.OutReqSeq = P.OutReqSeq</p>
+<p>AND A.OutReqItemSerl = P.OutReqItemSerl</p>
+<p>-- 최상위Unit품목,상위Unit품목 가져오기 위해 구매요청 SourceTracking로직 추가 19.06.24 By 이혜민</p>
+<p>-- [프로젝트자재출고요청] -&gt; [프로젝트자재출고등록] Jump 시 최상위Unit품명, 최상위Unit품번, 상위Unit품명, 상위Unit품번 가져가도록 추가</p>
+<p>DELETE FROM #TCOMSourceTracking</p>
+<p>DELETE FROM #TMP_SOURCETABLE</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1, '_TPUORDPOReqItem' -- 구매요청</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPDMMOutReqItem', '#TPDMMOutReqItem', 'OutReqSeq', 'OutReqItemSerl', ''</p>
+<p>SELECT A.*</p>
+<p>,(CASE WHEN A.OutWHSeq &gt; 0 THEN (SELECT WHName FROM _TDAWH WHERE CompanySeq = @CompanySeq AND WHSeq = A.OutWHSeq) ELSE '' END ) AS OutWHName</p>
+<p>,(CASE WHEN A.InWHSeq &gt; 0 THEN (SELECT WHName FROM _TDAWH WHERE CompanySeq = @CompanySeq AND WHSeq = A.InWHSeq) ELSE '' END ) AS InWHName -- 반품인 경우</p>
+<p>, B.CustSeq AS ConsgnmtCustSeq</p>
+<p>, X.CustName AS ConsgnmtCustName</p>
+<p>, F.ItemName AS TopUnitName</p>
+<p>, F.ItemNo AS TopUnitNo</p>
+<p>, G.ItemName AS UpperUnitName</p>
+<p>, G.ItemNo AS UpperUnitNo</p>
+<p>FROM #TPDMMOutReqItem AS A</p>
+<p>LEFT OUTER JOIN #SuTak AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS S WITH(NOLOCK) ON A.IDX_NO = S.IDX_NO</p>
+<p>LEFT OUTER JOIN _TPUORDPOReqItem AS P WITH(NOLOCK) ON P.CompanySeq = @CompanySeq</p>
+<p>AND S.Seq = P.POReqSeq</p>
+<p>AND S.Serl = P.POReqSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS C WITH(NOLOCK) ON P.CompanySeq = C.CompanySeq</p>
+<p>AND P.PJTSeq = C.PJTSeq</p>
+<p>AND P.BOMSerl = C.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.PJTSeq = D.PJTSeq</p>
+<p>AND D.BOMSerl \&lt;&gt; -1</p>
+<p>AND C.UpperBOMSerl = D.BOMSerl</p>
+<p>AND ISNULL(D.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.PJTSeq = E.PJTSeq</p>
+<p>AND E.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(E.BeforeBOMSerl,0) = 0</p>
+<p>AND SUBSTRING(D.TreeCode,1,6) = E.TreeCode -- 최상위 BOM</p>
+<p>AND ISNULL(CHARINDEX('.',E.BOMlevel),0) \&lt; 1</p>
+<p>AND ISNUMERIC(REPLACE(E.BOMLevel,'.','/')) = 1</p>
+<p>LEFT OUTER JOIN _TDAItem AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq</p>
+<p>AND E.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON D.CompanySeq = G.CompanySeq</p>
+<p>AND D.ItemSeq = G.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS X WITH(NOLOCK) ON P.CompanySeq = X.CompanySeq</p>
+<p>AND P.CustSeq = X.CustSeq</p>
+<p>WHERE (A.Qty &gt; 0 OR @WorkingTag \&lt;&gt; 'L')</p>
+<p>AND A.Qty \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>OSPOMat:</p>
+<p>-- 조회조건을 임시테이블로 생성</p>
+<p>CREATE TABLE #ReqPOList (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock3', '#ReqPOList'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>UPDATE #ReqPOList</p>
+<p>SET OSPPOSeq = A.OutReqSeq ,</p>
+<p>OSPMatSerl = A.OutReqItemSerl</p>
+<p>FROM #ReqPOList AS A</p>
+<p>-- 생산사업장과 엮여있는 사업부문 코드 가져오기</p>
+<p>SELECT @BizUnit = A.BizUnit</p>
+<p>FROM _TDAFactUnit AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.FactUnit IN (SELECT TOP 1 M.FactUnit</p>
+<p>FROM _TPDOSPPOItemMat AS R WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPPO AS M ON R.CompanySeq = M.CompanySeq</p>
+<p>AND R.OSPPOSeq = M.OSPPOSeq</p>
+<p>JOIN #ReqPOList AS A ON R.OSPPOSeq = A.OSPPOSeq</p>
+<p>AND R.OSPMatSerl = A.OSPMatSerl</p>
+<p>WHERE R.CompanySeq = @CompanySeq</p>
+<p>)</p>
+<p>SELECT</p>
+<p>A.IDX_NO AS IDX_NO</p>
+<p>,W.WorkOrderNo AS WorkOrderNo</p>
+<p>,I.ItemName AS ItemName</p>
+<p>,I.ItemNo AS ItemNo</p>
+<p>,I.Spec AS Spec</p>
+<p>,U.UnitName AS UnitName</p>
+<p>,R.Qty AS ReqQty</p>
+<p>,R.Qty AS Qty</p>
+<p>,R.Remark AS Remark</p>
+<p>,R.ItemSeq AS ItemSeq</p>
+<p>,R.UnitSeq AS UnitSeq</p>
+<p>,R.OSPPOSeq AS OutReqSeq</p>
+<p>,R.OSPMatSerl AS OutReqItemSerl</p>
+<p>,R.WorkOrderSeq AS WorkOrderSeq</p>
+<p>,R.WorkOrderSerl AS WorkOrderSerl</p>
+<p>,W.PJTSeq</p>
+<p>,W.WBSSeq</p>
+<p>,Q.PJTName AS PJTName -- 프로젝트명</p>
+<p>,Q.PJTNo AS PJTNo -- 프로젝트번호</p>
+<p>,S.WBSName AS WBSName -- WBS명</p>
+<p>-- 사업부문, 생산사업장, 위탁처의 생산외주창고를 가져오되 없으면, 생산사업장 조건 제외 BY 11.11.22 김세호 수정</p>
+<p>,CASE ISNULL(E.WHSeq, 0) WHEN 0</p>
+<p>THEN (SELECT TOP 1 WHSeq FROM _TDAWH WHERE M.CompanySeq= CompanySeq AND M.CustSeq = CommissionCustSeq AND IsNotUse \&lt;&gt; '1' AND SMWHKind = 8002024 AND BizUnit = @BizUnit)</p>
+<p>ELSE E.WHSeq END AS InWHSeq</p>
+<p>,C.MatOutWhSeq AS OutWHSeq -- 창고별품목이 아니면 워크센터의 출고창고.</p>
+<p>,M.FactUnit AS FactUnit</p>
+<p>,U2.UnitName AS StdUnitName -- 기준단위 추가 12.12.14 BY 김세호</p>
+<p>,U2.UnitSeq AS StdUnitSeq -- 기준단위 추가 12.12.14 BY 김세호</p>
+<p>,K.OSPAssySeq AS AssyItemSeq</p>
+<p>,N.ItemName AS AssyItemName -- 2015.03.16 김용현 추가</p>
+<p>,N.ItemNo AS AssyItemNo -- 2015.03.16 김용현 추가</p>
+<p>,N.Spec AS AssySpec -- 2015.03.16 김용현 추가</p>
+<p>,Z.IsLotMng -- 2016.03.24 박수영 추가</p>
+<p>,M.OSPPONo AS OutReqNo -- 2016.05.31 임희진 추가</p>
+<p>,ISNULL(R.Memo1,'') AS Memo1</p>
+<p>,ISNULL(R.Memo2,'') AS Memo2</p>
+<p>,ISNULL(R.Memo3,'') AS Memo3</p>
+<p>,ISNULL(R.Memo4,0) AS Memo4</p>
+<p>,ISNULL(R.Memo5,0) AS Memo5</p>
+<p>,ISNULL(R.Memo6,0) AS Memo6 -- 2020.12.02 최보라 추가</p>
+<p>INTO #TPDMMOutReqPOItem</p>
+<p>FROM _TPDOSPPOItemMat AS R WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPPO AS M ON R.CompanySeq = M.CompanySeq</p>
+<p>AND R.OSPPOSeq = M.OSPPOSeq</p>
+<p>JOIN #ReqPOList AS A ON R.OSPPOSeq = A.OSPPOSeq</p>
+<p>AND R.OSPMatSerl = A.OSPMatSerl</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.CompanySeq = W.CompanySeq</p>
+<p>AND R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl= W.WorkOrderSerl</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON R.CompanySeq = U.CompanySeq</p>
+<p>AND R.UnitSeq = U.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS I WITH(NOLOCK) ON R.CompanySeq = I.CompanySeq</p>
+<p>AND R.ItemSeq = I.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U2 WITH(NOLOCK) ON I.CompanySeq = U2.CompanySeq</p>
+<p>AND I.UnitSeq = U2.UnitSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS Q WITH(NOLOCK) ON W.CompanySeq = Q.CompanySeq</p>
+<p>AND W.PJTSeq = Q.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTWBS AS S WITH(NOLOCK) ON W.CompanySeq = S.CompanySeq</p>
+<p>AND W.PJTSeq = S.PJTSeq</p>
+<p>AND W.WBSSeq = S.WBSSeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON R.CompanySeq = C.CompanySeq</p>
+<p>AND W.WorkCenterSeq= C.WorkCenterSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS E WITH(NOLOCK) ON M.CompanySeq = E.CompanySeq</p>
+<p>AND M.FactUnit = E.FactUnit</p>
+<p>AND M.CustSeq = E.CommissionCustSeq</p>
+<p>AND E.SMWHKind = 8002024</p>
+<p>AND @BizUnit = E.BizUnit</p>
+<p>AND E.IsNotUse \&lt;&gt; '1'</p>
+<p>LEFT OUTER JOIN _TPDOSPPOItem AS K WITH(NOLOCK) ON R.OSPPOSeq = K.OSPPOSeq</p>
+<p>AND R.OSPPOSerl = K.OSPPOSerl</p>
+<p>AND R.companySeq = K.companySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS N WITH(NOLOCK) ON K.OSPAssySeq = N.ItemSeq</p>
+<p>AND K.companySeq = N.CompanySeq -- 2015.03.16 김용현 추가</p>
+<p>LEFT OUTER JOIN _TDAItemStock AS Z WITH(NOLOCK) ON R.ItemSeq = Z.ItemSeq</p>
+<p>AND Z.CompanySeq = @CompanySeq</p>
+<p>WHERE R.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(R.IsSale,'') \&lt;&gt; '1'</p>
+<p>-- 품목별 기본창고에서 출고창고가져오기</p>
+<p>UPDATE #TPDMMOutReqPOItem</p>
+<p>SET OutWHSeq = B.OutWHSeq</p>
+<p>FROM #TPDMMOutReqPOItem AS A</p>
+<p>JOIN _TDAItemStdWh AS B WITH(NOLOCK) ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.FactUnit = B.FactUnit</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>-- 출고수량에서 기출고수량빼기</p>
+<p>SELECT</p>
+<p>R.OutReqSeq</p>
+<p>,R.OutReqItemSerl</p>
+<p>,SUM(R.Qty ) AS Qty</p>
+<p>INTO #PrevPOQty</p>
+<p>FROM _TPDMMOutItem AS R WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutM AS M WITH(NOLOCK) ON R.CompanySeq = M.CompanySeq</p>
+<p>AND R.MatOutSeq = M.MatOutSeq</p>
+<p>WHERE R.CompanySeq = @CompanySeq</p>
+<p>AND M.UseType IN (6044003,6044004)</p>
+<p>AND EXISTS (SELECT 1 FROM #ReqPOList WHERE OutReqSeq = R.OutReqSeq AND OutReqItemSerl = R.OutReqItemSerl)</p>
+<p>AND R.ProgFromTableSeq = 50 -- 2011. 2. 7 hkim 외주건만 수량을 가져와야 하는데 생산의 자재요청에서 넘어온 건도 OutReqSeq가 같으면 빠지게 되어 수정</p>
+<p>GROUP BY</p>
+<p>R.OutReqSeq</p>
+<p>,R.OutReqItemSerl</p>
+<p>UPDATE A</p>
+<p>SET Qty = A.Qty - P.Qty</p>
+<p>FROM #TPDMMOutReqPOItem AS A</p>
+<p>JOIN #PrevPOQty AS P ON A.OutReqSeq = P.OutReqSeq</p>
+<p>AND A.OutReqItemSerl = P.OutReqItemSerl</p>
+<p>SELECT A.*</p>
+<p>,(CASE WHEN A.OutWHSeq &gt; 0 THEN (SELECT WHName FROM _TDAWH WHERE CompanySeq = @CompanySeq AND WHSeq = A.OutWHSeq) ELSE '' END ) AS OutWHName</p>
+<p>,(CASE WHEN A.InWHSeq &gt; 0 THEN (SELECT WHName FROM _TDAWH WHERE CompanySeq = @CompanySeq AND WHSeq = A.InWHSeq) ELSE '' END ) AS InWHName</p>
+<p>FROM #TPDMMOutReqPOItem AS A</p>
+<p>WHERE Qty \&lt;&gt; 0</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3/30 구매견적입력 (그린코스)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>3/30 구매견적입력 (그린코스)</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-31</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="330">3/30 구매견적입력 (그린코스)</h1>
+<ol start="17">
+<li>구매단위 코드도움</li>
+</ol>
+<p>좌우 시트2개 =&gt; 디자인 모드</p>
+<p>나뉘어져 있는 시트 컬럼 볼 때</p>
+<p>컨트롤 모드 설정하기 =&gt; 시트 확인 가능</p>
+<p>구매단위 코드도움 =&gt; 단위_WBS</p>
+<ul>
+<li>시스템정의코드</li>
+</ul>
+<p>select * from _TDASMajor where MajorSeq = 8019</p>
+<p>select * from _TDASMinor where MajorSeq = 8019</p>
+<ul>
+<li>품목소분류</li>
+</ul>
+<blockquote>
+<p>-- 제상품 -- 자재</p>
+</blockquote>
+<p>SELECT * FROM _TDAItemClass WHERE UMajorItemClass IN (2001,2004)</p>
+<p>select * from _TDAUMinor where MajorSeq IN (2001,2004)</p>
+  </article>
+</div>
+</body>
+</html>

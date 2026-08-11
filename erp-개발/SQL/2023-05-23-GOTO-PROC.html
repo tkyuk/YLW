@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOTO / PROC</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GOTO / PROC</h1>
+    <div class="meta">
+      <span class="note-date">2023-05-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="goto-proc">GOTO / PROC</h1>
+<p>DROP PROC emk_SWACForeSCReportResultDiv</p>
+<p>GO</p>
+<p>CREATE PROC emk_SWACForeSCReportResultDiv</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @ForeVersion NCHAR(6),</p>
+<p>@YYMM NCHAR(6)</p>
+<p>SELECT @ForeVersion = ISNULL(A.ForeVersion,''),</p>
+<p>@YYMM = ISNULL(A.YYMM ,'')</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>CREATE TABLE #TempSlipCost</p>
+<p>( YYMM NCHAR(6) ,</p>
+<p>DeptCd NCHAR(5) ,</p>
+<p>AccCd NCHAR(7) ,</p>
+<p>SumAmt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #TempToDivCost</p>
+<p>( YYMM NCHAR(6) ,</p>
+<p>DeptCd NCHAR(5) ,</p>
+<p>AccCd NCHAR(7) ,</p>
+<p>DivStdCd NCHAR(8) ,</p>
+<p>Amt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #TempToDivResultCost</p>
+<p>( YYMM NCHAR(6) ,</p>
+<p>DivDeptCd NCHAR(8) ,</p>
+<p>DeptCd NCHAR(5) ,</p>
+<p>AccCd NCHAR(7) ,</p>
+<p>DivStdCd NCHAR(8) ,</p>
+<p>DirectAmt DECIMAL(19, 5) ,</p>
+<p>DivAmt DECIMAL(19, 5) ,</p>
+<p>DivRate DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #TempDiff</p>
+<p>( YYMM NCHAR(6) ,</p>
+<p>DivDeptCd NCHAR(8) ,</p>
+<p>DeptCd NCHAR(5) ,</p>
+<p>AccCd NCHAR(7) ,</p>
+<p>DivStdCd NCHAR(8) ,</p>
+<p>DivAmt DECIMAL(19, 5)</p>
+<p>)</p>
+<p>DECLARE @cSysDate NCHAR(12)</p>
+<p>SELECT @cSysDate = FORMAT(CAST(GETDATE() AS DATETIME), 'yyyyMMddHHmm')</p>
+<p>IF @WorkingTag = 'D1'</p>
+<p>GOTO Div1_Proc</p>
+<p>ELSE IF @WorkingTag = 'D2'</p>
+<p>GOTO Div2_Proc</p>
+<p>ELSE IF @WorkingTag ='C'</p>
+<p>GOTO Cancel_Proc</p>
+<p>RETURN</p>
+<p>--=============================================================================================================</p>
+<p>Div1_Proc:</p>
+<p>DELETE emk_TACForeSCReportResult</p>
+<p>WHERE YYMM = @YYMM</p>
+<p>AND ForeVersion = @ForeVersion</p>
+<p>Insert Into #TempSlipCost</p>
+<p>SELECT s.YYMM , s.DeptCd, s.AccCd, Sum(s.ConfirmAmt)</p>
+<p>FROM emk_TACForecastingAmt s Join TAForeSCAccReg_ESK c</p>
+<p>on s.AccCd = c.AccCd</p>
+<p>AND s.YYMM = c.YYMM</p>
+<p>AND (c.DeptCd = '' or s.DeptCd = c.DeptCd )</p>
+<p>AND s.YYVersion = c.ForeVersion</p>
+<p>WHERE 1=1</p>
+<p>AND s.YYMM= @YYMM</p>
+<p>AND s.YYVersion = @ForeVersion</p>
+<p>Group By s.YYMM , s.DeptCd, s.AccCd</p>
+<p>/*</p>
+<p>Insert Into #TempSlipCost</p>
+<p>SELECT s.YYMM , s.DeptCd, s.AccCd, Sum(s.ConfirmAmt)</p>
+<p>FROM emk_TACForecastingAmt s Join TAForeSCAccReg_ESK c</p>
+<p>on s.AccCd = c.AccCd</p>
+<p>AND s.YYMM = c.YYMM</p>
+<p>AND (c.DeptCd = '' or s.DeptCd = c.DeptCd )</p>
+<p>AND s.YYVersion = c.ForeVersion</p>
+<p>WHERE 1=1</p>
+<p>AND s.YYMM= '200601'</p>
+<p>AND s.YYVersion = '200501'</p>
+<p>Group By s.YYMM , s.DeptCd, s.AccCd</p>
+<p>SELECT * FROM #TempSlipCost WHERE deptcd ='00014' AND acccd ='4110102'</p>
+<p>SELECT i.YYMM, d.DivDeptCd, i.DeptCd, i.AccCd, '', i.SumAmt ,0 , 100</p>
+<p>FROM #TempSlipCost i Join TAForeSCDirDept_ESK d</p>
+<p>on i.YYMM = d.YYMM</p>
+<p>AND i.DeptCd = d.DeptCd</p>
+<p>SELECT * FROM TAForeSCDirDept_ESK WHERE yymm ='200601'</p>
+<p>SELECT * FROM #TempSlipCost WHERE deptcd ='00014' AND acccd ='4110102'</p>
+<p>*/</p>
+<p>Insert into #TempToDivResultCost(YYMM, DivDeptCd, DeptCd, AccCd , DivStdCd, DirectAmt, DivAmt , DivRate )</p>
+<p>SELECT i.YYMM, d.DivDeptCd, i.DeptCd, i.AccCd, '', i.SumAmt ,0 , 100</p>
+<p>FROM #TempSlipCost i Join emk_TACDirDept d</p>
+<p>on i.YYMM = d.YYMM</p>
+<p>AND i.DeptCd = d.DeptCd</p>
+<p>---간접부서의 것을 배부하는 루틴.</p>
+<p>Insert into #TempToDivCost(YYMM, DeptCd, AccCd, DivStdCd, Amt)</p>
+<p>SELECT i.YYMM, i.DeptCd, i.AccCd, r.DivStdCd, i.SumAmt</p>
+<p>FROM #TempSlipCost i Left Outer Join emk_TACDirDept d</p>
+<p>on i.YYMM = d.YYMM</p>
+<p>AND i.DeptCd = d.DeptCd</p>
+<p>Join TAForeSCAccDeptDivReg_ESK r</p>
+<p>on i.YYMM = r.YYMM</p>
+<p>AND i.AccCd = r.AccCd</p>
+<p>AND i.DeptCd = r.InDirDeptCd</p>
+<p>AND r.ForeVersion = @ForeVersion</p>
+<p>WHERE 1=1</p>
+<p>AND ISNULL(d.YYMM , '') = ''</p>
+<p>Insert into #TempToDivResultCost(YYMM, DivDeptCd, DeptCd, AccCd , DivStdCd, DivAmt , DirectAmt , DivRate )</p>
+<p>SELECT c.YYMM, v.DivDeptCd, c.DeptCd, c.AccCd, c.DivStdCd, Round(c.Amt*v.DivRate/100 , 0) , 0 , v.DivRate</p>
+<p>FROM #TempToDivCost c Join emk_TACForeSCDivValueReg v</p>
+<p>on c.YYMM = v.YYMM</p>
+<p>AND c.DivStdCd = v.DivStdCd</p>
+<p>AND v.ForeVersion = @ForeVersion</p>
+<p>WHERE Div2StdYn \&lt;&gt; '1'</p>
+<p>Insert into #TempToDivResultCost(YYMM, DivDeptCd, DeptCd, AccCd , DivStdCd, DivAmt , DirectAmt , DivRate )</p>
+<p>SELECT k.YYMM, Max(k.DivDeptCd) , k.DeptCd, k.AccCd , k.DivStdCd, d.DiffAmt , 0 , 0</p>
+<p>FROM #TempToDivResultCost k Join ( SELECT YYMM, DeptCd, AccCd , DivStdCd, Max(DivAmt) As MaxAmt FROM #TempToDivResultCost</p>
+<p>Group By YYMM, DeptCd, AccCd , DivStdCd ) c</p>
+<p>on k.YYMM = c.YYMM</p>
+<p>AND k.DeptCd = c.DeptCd</p>
+<p>AND k.AccCd = c.AccCd</p>
+<p>AND k.DivStdCd = c.DivStdCd</p>
+<p>AND k.DivAmt = c.MaxAmt</p>
+<p>join ( SELECT k.YYMM, k.DeptCd, k.AccCd, k.DivStdCd, c.Amt - k.DivAmt as DiffAmt</p>
+<p>FROM ( SELECT YYMM as YYMM , DeptCd as DeptCd, AccCd as AccCd, DivStdCd as DivStdCd, Sum(DivAmt) as DivAmt</p>
+<p>FROM #TempToDivResultCost Group by YYMM , DeptCd , AccCd , DivStdCd ) k</p>
+<p>Join #TempToDivCost c</p>
+<p>on k.YYMM = c.YYMM</p>
+<p>AND k.DeptCd = c.DeptCd</p>
+<p>AND k.AccCd = c.AccCd</p>
+<p>AND k.DivStdCd = c.DivStdCd ) d</p>
+<p>on k.YYMM = d.YYMM</p>
+<p>AND k.DeptCd = d.DeptCd</p>
+<p>AND k.AccCd = d.AccCd</p>
+<p>AND k.DivStdCd = d.DivStdCd</p>
+<p>Group by k.YYMM , k.DeptCd , k.AccCd , k.DivStdCd, d.DiffAmt</p>
+<p>-- exec SASForeSCReportResultDiv_ESK N'D1', N'200601', N'19890021', N'200501'</p>
+<p>Insert into emk_TACForeSCReportResult(YYMM, DivDeptCd, AccCd, DeptCd, DivStdCD, DivideAmt, RegEmpid , RegDate, Version , DirectAmt , DivRate , ForeVersion )</p>
+<p>SELECT YYMM, DivDeptCd, AccCd , DeptCd, DivStdCd, Sum(DivAmt) , @pEmpId, @cSysDate, '1' , Sum( DirectAmt) , Sum(DivRate ) , @ForeVersion</p>
+<p>FROM #TempToDivResultCost</p>
+<p>Group by YYMM , DivDeptCd, DeptCd , AccCd , DivStdCd</p>
+<p>--SELECT 'OK', '1st Allocation Work is Completed'</p>
+<p>RETURN</p>
+<p>--=============================================================================================================</p>
+<p>Div2_Proc:</p>
+<p>DECLARE @cStdDivDept NCHAR(8) , @nDivAmt DECIMAL(19, 5) , @cDivStdCd NCHAR(8) , @cRate DECIMAL(19, 5)</p>
+<p>SELECT @cStdDivDept = DivDeptCd , @cDivStdCd= DivStdCd , @cRate = DivRate * (-1)</p>
+<p>FROM emk_TACForeSCDivValueReg</p>
+<p>WHERE Div2StdYn ='1'</p>
+<p>AND YYMM = @YYMM</p>
+<p>AND ForeVersion = @ForeVersion</p>
+<p>DELETE emk_TACForeSCReportResult</p>
+<p>WHERE 1=1</p>
+<p>AND YYMM = @YYMM</p>
+<p>AND Version ='2'</p>
+<p>AND ForeVersion = @ForeVersion</p>
+<p>Insert into #TempToDivCost(YYMM, AccCd, DivStdCd, Amt )</p>
+<p>SELECT i.YYMM, '9000501', @cDivStdCd , Round(Sum(i.DivideAmt + i.DirectAmt) * @cRate/100, 0)</p>
+<p>FROM emk_TACForeSCReportResult i Join emk_TACForeSC2thAccReg e</p>
+<p>on i.YYMM = e.YYMM</p>
+<p>AND i.AccCd = e.AccCd</p>
+<p>AND i.ForeVersion = e.ForeVersion</p>
+<p>WHERE 1=1</p>
+<p>AND i.YYMM = @YYMM</p>
+<p>AND i.DivDeptCd = @cStdDivDept</p>
+<p>AND i.ForeVersion = @ForeVersion</p>
+<p>Group By i.YYMM</p>
+<p>Insert into #TempToDivResultCost(YYMM, DivDeptCd, AccCd , DivStdCd, DivAmt , DivRate )</p>
+<p>SELECT c.YYMM, v.DivDeptCd, c.AccCd, c.DivStdCd, Round(c.Amt*v.DivRate/100 , 0 ), v.DivRate</p>
+<p>FROM #TempToDivCost c Join emk_TACForeSCDivValueReg v</p>
+<p>on c.YYMM = v.YYMM</p>
+<p>AND c.DivStdCd = v.DivStdCd</p>
+<p>AND v.ForeVersion = @ForeVersion</p>
+<p>WHERE 1= 1</p>
+<p>AND v.DivDeptCd \&lt;&gt; @cStdDivDept</p>
+<p>DECLARE @cDivSum DECIMAL(19, 5) , @cIniSum DECIMAL(19, 5)</p>
+<p>SELECT @cDivSum = Sum(DivAmt) FROM #TempToDivResultCost</p>
+<p>SELECT @cIniSum = Sum(Amt) FROM #TempToDivCost</p>
+<p>IF @cDivSum \&lt;&gt; @cIniSum</p>
+<p>BEGIN</p>
+<p>Insert into #TempToDivResultCost(YYMM, DivDeptCd, AccCd , DivStdCd, DivAmt , DivRate)</p>
+<p>SELECT top 1 YYMM, DivDeptCd, AccCd, DivStdCd, @cIniSum- @cDivSum , 0</p>
+<p>FROM #TempToDivResultCost</p>
+<p>WHERE DivAmt = (SELECT Max(DivAmt) FROM #TempToDivResultCost )</p>
+<p>END</p>
+<p>Insert into #TempToDivResultCost(YYMM, DivDeptCd, AccCd , DivStdCd, DivAmt , DivRate )</p>
+<p>SELECT c.YYMM, @cStdDivDept, c.AccCd, c.DivStdCd, c.Amt* (-1) , @cRate * (-1)</p>
+<p>FROM #TempToDivCost c</p>
+<p>Insert into emk_TACForeSCReportResult(YYMM, DivDeptCd, AccCd, DeptCd, DivStdCD, DivideAmt, RegEmpid , RegDate, Version , DirectAmt , DivRate, ForeVersion )</p>
+<p>SELECT YYMM, DivDeptCd, AccCd, @cStdDivDept, DivStdCd, Sum(DivAmt) , @pEmpId, @cSysDate, '2' , 0 , Sum(DivRate ) , @ForeVersion</p>
+<p>FROM #TempToDivResultCost</p>
+<p>Group by YYMM , DivDeptCd, AccCd , DivStdCd</p>
+<p>--SELECT 'OK', '2nd Allocation Work is Completed'</p>
+<p>RETURN</p>
+<p>--==================================================================================================</p>
+<p>Cancel_Proc:</p>
+<p>DELETE emk_TACForeSCReportResult</p>
+<p>WHERE 1=1</p>
+<p>AND YYMM = @YYMM</p>
+<p>AND ForeVersion = @ForeVersion</p>
+<p>--SELECT 'OK', 'Allocation is Conceled'</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

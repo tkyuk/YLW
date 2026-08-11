@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL 부가세 포함 계산식</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SQL 부가세 포함 계산식</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sql">SQL 부가세 포함 계산식</h1>
+<p>djb_SWSLOrderCfmReqJumpQuery</p>
+<p>ISNULL(A.IsInclusedVAT,'0') AS IsInclusedVAT, -- 부가세포함</p>
+<p>CASE WHEN ISNULL(A.IsInclusedVAT,'0') = '1' THEN ROUND( (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (100 / (100 + A.VatRate)), 0 )</p>
+<p>ELSE (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0))</p>
+<p>END AS CurAmt , -- 판매금액</p>
+<p>CASE WHEN ISNULL(A.IsInclusedVAT,'0') = '1' THEN (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) - (ROUND( (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (100 / (100 + A.VatRate)), 0 ))</p>
+<p>ELSE (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (A.VatRate / 100)</p>
+<p>END AS CurVAT, -- 부가세</p>
+<p>CASE WHEN ISNULL(A.IsInclusedVAT,'0') = '1' THEN (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0))</p>
+<p>ELSE (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) + (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (A.VatRate / 100)</p>
+<p>END AS CurAmtTotal, -- 판매금액계</p>
+<p>CASE WHEN ISNULL(A.IsInclusedVAT,'0') = '1' THEN ROUND( (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (100 / (100 + A.VatRate)), 0 )</p>
+<p>ELSE (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0))</p>
+<p>END AS DomAmt , -- 원화판매금액</p>
+<p>CASE WHEN ISNULL(A.IsInclusedVAT,'0') = '1' THEN (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) - (ROUND( (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (100 / (100 + A.VatRate)), 0 ))</p>
+<p>ELSE (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (A.VatRate / 100)</p>
+<p>END AS DomVAT , -- 원화부가세</p>
+<p>CASE WHEN ISNULL(A.IsInclusedVAT,'0') = '1' THEN (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0))</p>
+<p>ELSE (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) + (ISNULL(X.ToQty, 0) * ISNULL(A.CurPrice, 0)) * (A.VatRate / 100)</p>
+<p>END AS DomAmtTotal, -- 원화판매금액계</p>
+  </article>
+</div>
+</body>
+</html>

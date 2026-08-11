@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 이메일 / SMTP 서버 관리자 ID</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>관리자 이메일 / SMTP 서버 관리자 ID</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="smtp-id">관리자 이메일 / SMTP 서버 관리자 ID</h1>
+<blockquote>
+<p>-- 공통버전 받아오기</p>
+<p>DECLARE @IsAppVersion                INT</p>
+</blockquote>
+<p>,@AdminMailUserId NVARCHAR(1000)</p>
+<blockquote>
+<p>SELECT @IsAppVersion = CASE WHEN CONVERT(INT, REPLACE (A.AppVersion, '.', '') + REPLICATE('0', 9 - LEN(REPLACE(A.AppVersion, '.', '')))) &gt;= 617100800 THEN 1</p>
+<p>ELSE 0 END</p>
+<p>FROM (SELECT CASE WHEN AppVersion = N'MASTER' THEN N'999900000'</p>
+<p>WHEN ISNULL(AppVersion, '') = '' THEN N'000000000'</p>
+<p>ELSE AppVersion END AS AppVersion</p>
+<p>FROM OTCAServerConfig) AS A</p>
+<p>IF @IsAppVersion = 0</p>
+<p>BEGIN</p>
+<p>SELECT @AdminMailUserId = A.AdminMailUserId</p>
+<p>FROM _TCACompanyConfig AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>SELECT dbo._FWCOMDecrypt(A.AdminMailUserId, N'_TCACompanyConfig', 'AdminMailUserId', @CompanySeq) AS AdminMailUserId</p>
+<p>FROM _TCACompanyConfig AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>END</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

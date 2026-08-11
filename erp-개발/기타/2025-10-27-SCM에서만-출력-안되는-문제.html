@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCM에서만 출력 안되는 문제</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SCM에서만 출력 안되는 문제</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="scm">SCM에서만 출력 안되는 문제</h1>
+<p>&amp; 가 포함된 데이터를 SCM 에서 넘기는 경우 html 충돌이 발생하여 결과가 이상해짐</p>
+<p>=&gt; REPLACE(LTRIM(RTRIM(ISNULL(CustName,''))),'&amp;','＆')</p>
+  </article>
+</div>
+</body>
+</html>

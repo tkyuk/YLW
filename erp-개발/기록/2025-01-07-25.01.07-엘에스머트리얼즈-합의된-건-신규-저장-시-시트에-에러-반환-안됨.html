@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.01.07 엘에스머트리얼즈 합의된 건 신규 저장 시 시트에 에러 반환 안됨</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.01.07 엘에스머트리얼즈 합의된 건 신규 저장 시 시트에 에러 반환 안됨</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250107">25.01.07 엘에스머트리얼즈 합의된 건 신규 저장 시 시트에 에러 반환 안됨</h1>
+<p>DROP PROC sys_SWPDBOMReqMngSave</p>
+<p>GO</p>
+<p>CREATE PROC sys_SWPDBOMReqMngSave</p>
+<p>@xmlDocument NVARCHAR(MAX) ,</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<p>@EmpSeq INT</p>
+<p>-- 서비스 마스타 등록 생성</p>
+<p>CREATE TABLE #TPDBOMManagement (WorkingTag NCHAR(1) NULL)</p>
+<p>EXEC dbo._SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock4', '#TPDBOMManagement'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- BINHVD 20230426</p>
+<p>SELECT @EmpSeq = EmpSeq FROM _TCAUser WHERE UserSeq = @UserSeq</p>
+<p>SELECT *</p>
+<p>INTO #_TDAUMinorValue</p>
+<p>FROM _TDAUMinorValue</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND MajorSeq = 1027281</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Result = '승인완료된 건은 수정, 삭제 불가능 합니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 9999</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReqManagement AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.ItemBOMRevRemark = A.ItemBOMRevRemark</p>
+<p>AND B.BOMReqSeq = A.BOMReqSeq</p>
+<p>JOIN sys_TPDBOMReqManagement_Confirm AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.CfmSeq = A.BOMReqSeq</p>
+<p>WHERE C.CfmCode = '1'</p>
+<p>--SELECT *</p>
+<p>--FROM _TDAUMinorValue</p>
+<p>--WHERE MajorSeq = 1027281</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'' -- SELECT * FROM _TCADictionary WHERE Word like '%거래처%'</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Result = CASE WHEN ISNULL(A.Agree1,'0') \&lt;&gt; '0' THEN N'합의1 컨트롤에 체크할 권한이 없습니다.'</p>
+<p>WHEN ISNULL(A.Agree2,'0') \&lt;&gt; '0' THEN N'합의2 컨트롤에 체크할 권한이 없습니다.'</p>
+<p>WHEN ISNULL(A.Agree3,'0') \&lt;&gt; '0' THEN N'합의3 컨트롤에 체크할 권한이 없습니다.'</p>
+<p>--WHEN ISNULL(A.CheckDelvTeamManager,'0') \&lt;&gt; '0' THEN N'개발팀장 컨트롤에 체크할 권한이 없으십니다.'</p>
+<p>ELSE N'컨트롤에 체크할 권한이 없습니다.' END,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>AND ISNULL(BOMReqSeq,0) = 0</p>
+<p>AND ((ISNULL(Agree1,'0') \&lt;&gt; '0' AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000001))</p>
+<p>OR (ISNULL(Agree2,'0') \&lt;&gt; '0' AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000002))</p>
+<p>OR (ISNULL(Agree3,'0') \&lt;&gt; '0' AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000003)) )</p>
+<p>--OR (ISNULL(CheckDelvTeamManager,'0') \&lt;&gt; '0' AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000004)))</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'' -- SELECT * FROM _TCADictionary WHERE Word like '%거래처%'</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Result = CASE WHEN ISNULL(A.Col,0) = 1 THEN N'합의1 컨트롤에 체크할 권한이 없습니다.'</p>
+<p>WHEN ISNULL(A.Col,0) = 2 THEN N'합의2 컨트롤에 체크할 권한이 없습니다.'</p>
+<p>WHEN ISNULL(A.Col,0) = 3 THEN N'합의3 컨트롤에 체크할 권한이 없습니다.'</p>
+<p>--WHEN ISNULL(A.Col,0) = 4 THEN N'개발팀장 컨트롤에 체크할 권한이 없습니다.'</p>
+<p>ELSE N'컨트롤에 체크할 권한이 없습니다.' END,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReqManagement AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.ItemBOMRevRemark = A.ItemBOMRevRemark</p>
+<p>AND B.BOMReqSeq = A.BOMReqSeq</p>
+<p>WHERE WorkingTag \&lt;&gt; 'D'</p>
+<p>AND Status = 0</p>
+<p>AND ((ISNULL(A.Col,0) = 1 AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000001))</p>
+<p>OR (ISNULL(A.Col,0) = 2 AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000002))</p>
+<p>OR (ISNULL(A.Col,0) = 3 AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000003))</p>
+<p>--OR (ISNULL(A.Col,0) = 4 AND @EmpSeq NOT IN (SELECT ValueSeq FROM #_TDAUMinorValue WHERE Serl = 1000004))</p>
+<p>)</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>0,''</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Result = N'중복된 BOM차수명이 입력되었습니다.' ,</p>
+<p>MessageType = @MessageType ,</p>
+<p>Status = @Status</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReqManagement AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.ItemBOMRevRemark = A.ItemBOMRevRemark</p>
+<p>AND B.BOMReqSeq \&lt;&gt; A.BOMReqSeq</p>
+<p>WHERE Status = 0</p>
+<p>AND A.WorkingTag IN ('A','U')</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>9 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 9)</p>
+<p>@LanguageSeq ,</p>
+<p>0,''</p>
+<p>--UPDATE #TPDBOMManagement</p>
+<p>-- SET Result = N'작성미완료만 수정/삭제 가능합니다.' ,</p>
+<p>-- MessageType = @MessageType ,</p>
+<p>-- Status = @Status</p>
+<p>--FROM #TPDBOMManagement AS A</p>
+<p>-- JOIN sys_TPDBOMReqManagement AS B ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.ItemSeq = A.ItemSeq</p>
+<p>-- AND A.RegCompleteYn = B.RegCompleteYn</p>
+<p>-- WHERE Status = 0</p>
+<p>-- AND A.RegCompleteYn = '1'</p>
+<p>-- 작성이 아닌, 합의 1,2,3에 대해서 체크 23.12.29 SJPARK</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Result = N'합의되지 않은 건만 수정/삭제 가능합니다.' ,</p>
+<p>MessageType = @MessageType ,</p>
+<p>Status = @Status</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReqManagement AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND A.ItemBomRev = B.ItemBOMRevRemark</p>
+<p>WHERE Status = 0</p>
+<p>AND (A.Agree1 = B.Agree1) -- 합의가 바뀌는 경우 제외</p>
+<p>AND (A.Agree2 = B.Agree2) -- 합의가 바뀌는 경우 제외</p>
+<p>AND (A.Agree3 = B.Agree3) -- 합의가 바뀌는 경우 제외</p>
+<p>AND (ISNULL(B.Agree1,0) = 1 OR ISNULL(B.Agree2,0) = 1 OR ISNULL(B.Agree3,0) = 1)</p>
+<p>--AND A.WorkingTag IN ('A','U')</p>
+<p>IF EXISTS ( SELECT 1 FROM #TPDBOMManagement WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>-- 합의1,2,3에 대해 미 반영 시 체크 해제 될 수 있도록 UPDATE문 추가 23.12.28 SJPARK</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET Agree1 = CASE WHEN A.Col = '1' THEN B.Agree1 ELSE A.Agree1 END,</p>
+<p>Agree2 = CASE WHEN A.Col = '2' THEN B.Agree2 ELSE A.Agree2 END,</p>
+<p>Agree3 = CASE WHEN A.Col = '3' THEN B.Agree3 ELSE A.Agree3 END,</p>
+<p>RegCompleteYn = CASE WHEN A.Col = '4' THEN B.RegCompleteYn ELSE A.RegCompleteYn END</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>LEFT OUTER JOIN sys_TPDBOMReqManagement AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.BOMReqSeq = A.BOMReqSeq</p>
+<p>SELECT * FROM #TPDBOMManagement</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 20240712.합의1,2,3 중에 하나라도 되어있을 경우 작성취소하면 에러</p>
+<p>UPDATE A</p>
+<p>SET Result = '합의가 되어있어 작성취소할 수 없습니다.',</p>
+<p>MessageType = 12007,</p>
+<p>Status = 9999</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>JOIN sys_TPDBOMReqManagement AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.BOMReqSeq = A.BOMReqSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND (A.RegCompleteYn = '0' AND B.RegCompleteYn = '1')</p>
+<p>AND (B.Agree1 = '1' OR B.Agree2 = '1' OR B.Agree3 = '1')</p>
+<p>-- BOM등록화면에서 최초 저장시 WorkingTag 무조건 'A'인데, 기등록된 데이터있으면 'U'로 변경해준다</p>
+<p>-- (최초및 최종작성자 때문에 로그를남겨야 하므로) :: 11.10.27 BY 김세호</p>
+<p>UPDATE A</p>
+<p>SET WorkingTag = 'U'</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>AND EXISTS (SELECT 1 FROM sys_TPDBOMReqManagement WHERE CompanySeq = @CompanySeq AND ItemSeq = A.ItemSeq AND BOMReqSeq = A.BOMReqSeq)</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'sys_TPDBOMReqManagement', -- 원테이블명</p>
+<p>'#TPDBOMManagement', -- 템프테이블명</p>
+<p>'BOMReqSeq' , -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq, ItemSeq, BOMReqSeq, BOMReqNo ,RegDate, LastUptDate, FrTermValidity, ToTermValidity, BatchSize, Remark, LastUserSeq, LastDateTime, FileSeq</p>
+<p>, ItemBOMRevRemark, RegDateTime, RegCompleteYn', '',@PgmSeq</p>
+<p>--Complete</p>
+<p>IF EXISTS (SELECT 1 FROM sys_TPDBOMReqManagement AS A</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.BOMReqSeq = B.BOMReqSeq</p>
+<p>WHERE B.WorkingTag IN ('A','U')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.RegCompleteYn \&lt;&gt; B.RegCompleteYn)</p>
+<p>BEGIN</p>
+<p>-- UPDATE</p>
+<p>UPDATE sys_TPDBOMReqManagement</p>
+<p>SET RegCompleteYn = B.RegCompleteYn ,</p>
+<p>LastUserSeq = @UserSeq ,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>,Agree1 = B.Agree1</p>
+<p>,Agree2 = B.Agree2</p>
+<p>,Agree3 = B.Agree3</p>
+<p>,CheckDelvTeamManager = B.CheckDelvTeamManager</p>
+<p>,Agree1Remark = B.Agree1Remark</p>
+<p>,Agree2Remark = B.Agree2Remark</p>
+<p>,Agree3Remark = B.Agree3Remark</p>
+<p>,DelvTeamManagerRemark = B.DelvTeamManagerRemark</p>
+<p>FROM sys_TPDBOMReqManagement AS A</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.BOMReqSeq = B.BOMReqSeq</p>
+<p>WHERE B.WorkingTag IN ('A','U')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.RegCompleteYn \&lt;&gt; B.RegCompleteYn</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>SELECT * FROM #TPDBOMManagement</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 작업순서 맞추기: DELETE -&gt; UPDATE -&gt; INSERT</p>
+<p>-- DELETE</p>
+<p>IF EXISTS (SELECT TOP 1 1 FROM #TPDBOMManagement WHERE WorkingTag = 'D' AND Status = 0)</p>
+<p>BEGIN</p>
+<p>DELETE sys_TPDBOMReqManagement</p>
+<p>FROM sys_TPDBOMReqManagement AS A</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.BOMReqSeq = B.BOMReqSeq</p>
+<p>WHERE B.WorkingTag = 'D'</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- 내부코드 채번</p>
+<p>DECLARE @Count INT,</p>
+<p>@BOMReqSeq INT ,</p>
+<p>@Date NCHAR(8),</p>
+<p>@MaxNo NVARCHAR(50)</p>
+<p>SELECT @Count = COUNT(1) FROM #TPDBOMManagement WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>SELECT @Date = CONVERT(VARCHAR,GETDATE(),112)</p>
+<p>IF @Count &gt; 0</p>
+<p>BEGIN</p>
+<p>EXEC @BOMReqSeq = _SCOMCreateSeq @CompanySeq, 'sys_TPDBOMReqManagement', 'BOMReqSeq', @Count</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET BOMReqSeq = @BOMReqSeq + DataSeq</p>
+<p>FROM #TPDBOMManagement</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>SELECT @MaxNo = MAX(BOMReqNo) FROM sys_TPDBOMReqManagement WHERE LEFT(BOMReqNo,8) = @Date AND ISNUMERIC(RIGHT(BOMReqNo,4)) = 1</p>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #TPDBOMManagement</p>
+<p>SET BOMReqNo = @Date + CONVERT(VARCHAR,RIGHT(('0000' + RIGHT((CONVERT(NUMERIC(19,0),ISNULL(@MaxNo,0))+ DataSeq),4)),4))</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>UPDATE #TPDBOMManagement SET RegDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>END</p>
+<p>-- UPDATE</p>
+<p>UPDATE sys_TPDBOMReqManagement</p>
+<p>SET LastUptDate = CONVERT(NCHAR(8), GETDATE(), 112) ,</p>
+<p>FrTermValidity = B.FrTermValidity ,</p>
+<p>ToTermValidity = B.ToTermValidity ,</p>
+<p>BatchSize = B.BatchSize ,</p>
+<p>Remark = B.Remark ,</p>
+<p>LastUserSeq = @UserSeq ,</p>
+<p>LastDateTime = GETDATE() ,</p>
+<p>FileSeq = B.FileSeq ,</p>
+<p>ItemBOMRevRemark = B.ItemBOMRevRemark</p>
+<p>,Agree1 = B.Agree1</p>
+<p>,Agree2 = B.Agree2</p>
+<p>,Agree3 = B.Agree3</p>
+<p>,CheckDelvTeamManager = B.CheckDelvTeamManager</p>
+<p>,Agree1Remark = B.Agree1Remark</p>
+<p>,Agree2Remark = B.Agree2Remark</p>
+<p>,Agree3Remark = B.Agree3Remark</p>
+<p>,DelvTeamManagerRemark = B.DelvTeamManagerRemark</p>
+<p>FROM sys_TPDBOMReqManagement AS A</p>
+<p>JOIN #TPDBOMManagement AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.BOMReqSeq = B.BOMReqSeq</p>
+<p>WHERE B.WorkingTag IN ('A','U')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- INSERT</p>
+<p>INSERT INTO sys_TPDBOMReqManagement</p>
+<p>(CompanySeq , ItemSeq , RegDate , LastUptDate ,</p>
+<p>FrTermValidity , ToTermValidity , BatchSize , Remark , LastUserSeq ,</p>
+<p>LastDateTime , FileSeq , ItemBOMRevRemark , RegDateTime</p>
+<p>, BOMReqSeq , BOMReqNo , RegCompleteYn</p>
+<p>,Agree1</p>
+<p>,Agree2</p>
+<p>,Agree3</p>
+<p>,CheckDelvTeamManager</p>
+<p>,Agree1Remark</p>
+<p>,Agree2Remark</p>
+<p>,Agree3Remark</p>
+<p>,DelvTeamManagerRemark )</p>
+<p>SELECT @CompanySeq ,A.ItemSeq , CONVERT(NCHAR(8),GETDATE(),112),CONVERT(NCHAR(8),GETDATE(),112) ,</p>
+<p>A.FrTermValidity ,A.ToTermValidity ,A.BatchSize , A.Remark ,@UserSeq ,</p>
+<p>GETDATE() ,A.FileSeq ,A.ItemBOMRevRemark, GETDATE()</p>
+<p>,A.BOMReqSeq , A.BOMReqNo , A.RegCompleteYn</p>
+<p>,A.Agree1</p>
+<p>,A.Agree2</p>
+<p>,A.Agree3</p>
+<p>,A.CheckDelvTeamManager</p>
+<p>,A.Agree1Remark</p>
+<p>,A.Agree2Remark</p>
+<p>,A.Agree3Remark</p>
+<p>,A.DelvTeamManagerRemark</p>
+<p>FROM #TPDBOMManagement AS A</p>
+<p>WHERE A.WorkingTag IN ('A','U')</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM sys_TPDBOMReqManagement WHERE CompanySeq = @CompanySeq AND ItemSeq = A.ItemSeq AND BOMReqSeq = A.BOMReqSeq)</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>SELECT * FROM #TPDBOMManagement</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>BEGIN TRAN</p>
+<p>exec sys_SWPDBOMReqMngSave @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock4&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock4\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;0\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;RegDate&gt;20241216\&lt;/RegDate&gt;</p>
+<p>\&lt;LastUptDate&gt;20250107\&lt;/LastUptDate&gt;</p>
+<p>\&lt;BatchSize&gt;0\&lt;/BatchSize&gt;</p>
+<p>\&lt;BOMReqNo&gt;202412160002\&lt;/BOMReqNo&gt;</p>
+<p>\&lt;TableName&gt;sys_TPDBOMReqManagement\&lt;/TableName&gt;</p>
+<p>\&lt;Agree1&gt;1\&lt;/Agree1&gt;</p>
+<p>\&lt;Agree2&gt;0\&lt;/Agree2&gt;</p>
+<p>\&lt;Agree3&gt;0\&lt;/Agree3&gt;</p>
+<p>\&lt;CheckDelvTeamManager&gt;0\&lt;/CheckDelvTeamManager&gt;</p>
+<p>\&lt;Agree1Remark&gt;김철희\&lt;/Agree1Remark&gt;</p>
+<p>\&lt;Agree2Remark /&gt;</p>
+<p>\&lt;Agree3Remark&gt;손준호\&lt;/Agree3Remark&gt;</p>
+<p>\&lt;DelvTeamManagerRemark /&gt;</p>
+<p>\&lt;RegCompleteYn&gt;1\&lt;/RegCompleteYn&gt;</p>
+<p>\&lt;ItemBomRev&gt;01\&lt;/ItemBomRev&gt;</p>
+<p>\&lt;FrTermValidity /&gt;</p>
+<p>\&lt;ToTermValidity /&gt;</p>
+<p>\&lt;Remark /&gt;</p>
+<p>\&lt;ItemBOMRevRemark&gt;01\&lt;/ItemBOMRevRemark&gt;</p>
+<p>\&lt;BOMReqSeq&gt;220\&lt;/BOMReqSeq&gt;</p>
+<p>\&lt;Col&gt;1\&lt;/Col&gt;</p>
+<p>\&lt;FileSeq&gt;0\&lt;/FileSeq&gt;</p>
+<p>\&lt;ItemSeq&gt;169801\&lt;/ItemSeq&gt;</p>
+<p>\&lt;/DataBlock4&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=54620075,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=54620071</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

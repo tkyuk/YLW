@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACE 진행연결</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>ACE 진행연결</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ace">ACE 진행연결</h1>
+<p>BEGIN TRAN</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1</p>
+<p>FROM _TCOMSourceDaily</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND ToTableSeq = 20</p>
+<p>AND ToSeq         = 14329</p>
+<p>AND FromTableSeq        = 18</p>
+<p>AND FromSeq         = 15336</p>
+<p>)</p>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>,@UserSeq INT = 1</p>
+<p>CREATE TABLE #SComSourceDailyBatch</p>
+<p>(</p>
+<p>ToTableName NVARCHAR(100),</p>
+<p>ToSeq INT,</p>
+<p>ToSerl INT,</p>
+<p>ToSubSerl INT,</p>
+<p>FromTableName NVARCHAR(100),</p>
+<p>FromSeq INT,</p>
+<p>FromSerl INT,</p>
+<p>FromSubSerl INT,</p>
+<p>ToQty DECIMAL(19,5),</p>
+<p>ToStdQty DECIMAL(19,5),</p>
+<p>ToAmt DECIMAL(19,5),</p>
+<p>ToVAT DECIMAL(19,5),</p>
+<p>ToDOMAmt DECIMAL(19,5),</p>
+<p>ToDOMVAT DECIMAL(19,5),</p>
+<p>FromQty DECIMAL(19,5),</p>
+<p>FromSTDQty DECIMAL(19,5),</p>
+<p>FromAmt DECIMAL(19,5),</p>
+<p>FromVAT DECIMAL(19,5),</p>
+<p>FromDOMAmt DECIMAL(19,5),</p>
+<p>FromDOMVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>TRUNCATE TABLE #SComSourceDailyBatch</p>
+<p>INSERT INTO #SComSourceDailyBatch</p>
+<p>SELECT '_TSLSalesItem', A.SalesSeq, A.SalesSerl, 0,</p>
+<p>'_TSLInvoiceItem', B.InvoiceSeq, B.InvoiceSerl, 0,</p>
+<p>A.Qty, A.STDQty, A.CurAmt, A.CurVAT, A.DOMAmt, A.DOMVAT,</p>
+<p>B.Qty, B.STDQty, B.CurAmt, B.CurVAT, B.DOMAmt, B.DOMVAT</p>
+<p>FROM _TSLSalesItem AS A</p>
+<p>JOIN _TSLInvoiceItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND A.SalesSeq = 14329</p>
+<p>AND B.InvoiceSeq = 15336</p>
+<p>--SELECT * FROM #SComSourceDailyBatch</p>
+<p>-- 진행연결</p>
+<p>EXEC _SWComSourceDailyBatch 'A', @CompanySeq, @UserSeq</p>
+<p>--SELECT *</p>
+<p>-- FROM _TCOMSourceDaily AS A</p>
+<p>-- JOIN #SComSourceDailyBatch AS B ON B.FromSeq = A.FromSeq</p>
+<p>-- AND B.FromSerl = A.FromSerl</p>
+<p>-- AND B.ToSeq = A.ToSeq</p>
+<p>-- AND B.ToSerl = A.ToSerl</p>
+<p>SELECT *</p>
+<p>FROM _TCOMSourceDaily</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND ToTableSeq = 20</p>
+<p>AND ToSeq         = 14329</p>
+<p>AND FromTableSeq        = 18</p>
+<p>AND FromSeq         = 15336</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

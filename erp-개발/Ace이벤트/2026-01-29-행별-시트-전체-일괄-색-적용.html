@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행별 시트 전체 일괄 색 적용</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>행별 시트 전체 일괄 색 적용</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">행별 시트 전체 일괄 색 적용</h1>
+<p>local EndRow, Row</p>
+<p>if SS2.CodeHelpSelectedRows &gt; 0 then</p>
+<p>EndRow = SS2.ActiveRow + SS2.CodeHelpSelectedRows - 1</p>
+<p>for Row = SS2.ActiveRow, EndRow do RunPgmMethod('SS2_IsStop2') end</p>
+<p>else</p>
+<p>RunPgmMethod('SS2_IsStop2')</p>
+<p>end</p>
+<p>SS2.CodeHelpSelectedRows = 0</p>
+<p>-- SS2_IsStop2</p>
+<p>local COLOR_DIS = -1118482 -- 비활성(gray)</p>
+<p>local COLOR_WHITE = -1 -- 기본(white))</p>
+<p>local COLOR_CODEHELP = '#eef8ff' -- 코드도움(skyblue) 구ace:-2100741</p>
+<p>local COLOR_NOS = '#fff5f5' -- NOS 필수값(pink) 구ace:-2100741</p>
+<p>-- IsStop 값 가져오기</p>
+<p>local isStop = CellText(SS2, SS2.ActiveRow, 'IsStop')</p>
+<p>if isStop == nil or isStop == '' then isStop = '0' end</p>
+<p>-- 제외할 컬럼 Map</p>
+<p>local expColMap = {</p>
+<p>['IsStop'] = true,</p>
+<p>['ProductPlanSeq'] = true,</p>
+<p>['Serl'] = true,</p>
+<p>['IsPO'] = true,</p>
+<p>['ItemSeq'] = true,</p>
+<p>['InputUnitSeq'] = true,</p>
+<p>['SMInOutType'] = true,</p>
+<p>['PurCustSeq'] = true,</p>
+<p>['CurrSeq'] = true,</p>
+<p>['PurUnitSeq'] = true,</p>
+<p>['VATRate'] = true,</p>
+<p>['TotPurAmt'] = true,</p>
+<p>['TotPurDomAmt'] = true,</p>
+<p>['WHSeq'] = true,</p>
+<p>['MakerSeq'] = true,</p>
+<p>['MakerName'] = true,</p>
+<p>['StdUnitName'] = true,</p>
+<p>['StdUnitSeq'] = true,</p>
+<p>['StdUnitQty'] = true,</p>
+<p>['StdConvQty'] = true,</p>
+<p>['InputUnitTotQty'] = true,</p>
+<p>['StdUnitTotQty'] = true,</p>
+<p>['PurPriceOld'] = true,</p>
+<p>['CurAmt'] = true,</p>
+<p>['CurVAT'] = true,</p>
+<p>['DomAmt'] = true,</p>
+<p>['DomVAT'] = true,</p>
+<p>['IsConsumableMat'] = true</p>
+<p>}</p>
+<p>-- IsStop일 경우 선택 해제</p>
+<p>if isStop == '1' then SetText(SS2, SS2.ActiveRow, 'Sel', '0') end</p>
+<p>-- ActiveRow 열 순회</p>
+<p>local maxCol = SS2.MaxCols - 1</p>
+<p>local colName</p>
+<p>local targetColor</p>
+<p>for col = 0, maxCol do</p>
+<p>SS2.ActiveCol = col</p>
+<p>colName = SS2.ActiveColumnName</p>
+<p>-- 제외 목록에 없는 컬럼만 로직 수행</p>
+<p>if expColMap[colName] == nil then</p>
+<p>if isStop == '1' then</p>
+<p>-- 중단 상태인 경우 무조건 DIS 색상</p>
+<p>targetColor = COLOR_DIS</p>
+<p>elseif SS2.ColumnCellType == 'enCodeHelp' then</p>
+<p>-- 중단이 아니면서 코드도움인 경우</p>
+<p>targetColor = COLOR_CODEHELP</p>
+<p>else</p>
+<p>if string.find(SS2.ColumnControlKey, 'NOS') then</p>
+<p>targetColor = COLOR_NOS</p>
+<p>else</p>
+<p>targetColor = COLOR_WHITE</p>
+<p>end</p>
+<p>end</p>
+<p>-- col 색상 적용</p>
+<p>SS2.ActiveCellBackColor = targetColor</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

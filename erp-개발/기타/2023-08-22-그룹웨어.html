@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹웨어</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹웨어</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">그룹웨어</h1>
+<p>파라미터 예시</p>
+<p>-- 에이스</p>
+<p>EXEC _SWCOMGroupWarePrint</p>
+<p>@CompanySeq = 1 --</p>
+<p>,@LanguageSeq = 1 --</p>
+<p>,@UserSeq = 1 --</p>
+<p>,@PgmSeq = 501568 -- 프로그램코드</p>
+<p>,@WorkKind = 'ApprovalReq' -- 결재문서번호 (구매품의)</p>
+<p>,@TblKey = 286 -- 내부코드</p>
+<p>,@SiteInit = 'das' -- 사이트이니셜</p>
+<p>-- 제뉴인</p>
+<p>EXEC _SCOMGroupWarePrint</p>
+<p>@CompanySeq = 1 -- 법인명</p>
+<p>,@LanguageSeq = 1 -- 언어</p>
+<p>,@UserSeq = 1 -- 로그인사용자</p>
+<p>,@PgmSeq = 12820214 -- 프로그램코드</p>
+<p>,@WorkKind = 'rot_TACCarDriving' -- 결재문서번호 (구매품의)</p>
+<p>,@TblKey = 6 -- 내부코드</p>
+<p>,@SiteInit = 'rot' -- 사이트이니셜</p>
+<p>Ace : _SWCOMGroupWarePrint 1 , 1 , 1 , 63730042 , 'WkWorkBatch_sdng' , 6 , 'sdng'</p>
+<p>제뉴인 : _SCOMGroupWarePrint 1 , 1 , 1 , 6820004 , 'POReq' , 373, 'dat'</p>
+<p>GNI : exec SDAGroupWarePrint</p>
+<p>@pWorkKind='frmTMEtcOutReq', -- 기타출고요청</p>
+<p>@pTblKey='01202304120002',</p>
+<p>@pLanguageID='0'</p>
+<p>단암 :</p>
+<p>begin tran</p>
+<p>DECLARE @Status INT = 0,</p>
+<p>@Results NVARCHAR(250) = ''</p>
+<p>SELECT @Status = 0, @Results = ''</p>
+<p>EXEC danam_SPRWkEmpOTHoliAppAfterCrt 1, 'E', 1, 1, '2313', @Status OUTPUT, @Results OUTPUT</p>
+<p>select * from _TPRWkEmpDd where EMpSeq = 151 and Wkdate like '20240201%'</p>
+<p>select * from _TPRWkEtcMng where EMpSeq = 151</p>
+<p>rollback tran</p>
+<p>환경설정(관리자용) - 그룹웨어 - 전자결재문서설정</p>
+<p>키 값이 중요 - 결재문서번호 / (하단시트 - Seq컨트롤명)</p>
+<p>대부분 출력 SP에 사이트 sp 넣어서 해줌</p>
+<p>신규로 작성할 때 SP 마지막에 GWQuery 넣기 ( ex. ets_SPJTBOMApprovalReqGWQuery )</p>
+<p>_SCOMGroupWarePrint =&gt; 제일 처음 수정하는 sp (사이트 내용 반영)</p>
+<p>_SCOMGroupWareStatus =&gt; 후처리 sp 타게 할 수 있음</p>
+<p>_SCOMGroupWareStart =&gt; 사이트 sp 타게 할 수 있음 (분기 나눠져있기 때문에 @WorkKind, @TblKey, @WorkingTag 잘봐야함</p>
+<p><img alt="" src="assets/그룹웨어/image42.png" /></p>
+<p>환경설정코드 : 9006 =&gt; 그룹웨어상태버튼</p>
+<p><img alt="" src="assets/그룹웨어/image43.png" /></p>
+  </article>
+</div>
+</body>
+</html>

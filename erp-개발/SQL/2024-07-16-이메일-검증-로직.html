@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이메일 검증 로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>이메일 검증 로직</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">이메일 검증 로직</h1>
+<p>-- 이메일 검증 추가</p>
+<p>DECLARE @EMail NVARCHAR(255)</p>
+<p>,@IsCheck NCHAR(1) = '0'</p>
+<p>SELECT @EMail = A.EMail</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>IF @EMail IS NOT NULL</p>
+<p>BEGIN</p>
+<p>SELECT @EMail = LOWER(@EMail)</p>
+<p>IF @EMail like '[a-z,0-9,_,-]%@[a-z,0-9,_,-]%.[a-z][a-z]%'</p>
+<p>AND @EMail NOT like '%@%@%'</p>
+<p>AND CHARINDEX('.@',@EMail) = 0</p>
+<p>AND CHARINDEX('..',@EMail) = 0</p>
+<p>AND CHARINDEX(',',@EMail) = 0</p>
+<p>AND RIGHT(@EMail,1) between 'a' AND 'z'</p>
+<p>BEGIN</p>
+<p>SELECT @IsCheck = '1'</p>
+<p>END</p>
+<p>END</p>
+<p>IF @IsCheck \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = '올바르지 않은 이메일 형식입니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 9999</p>
+<p>FROM #BIZ_OUT_DataBlock1</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

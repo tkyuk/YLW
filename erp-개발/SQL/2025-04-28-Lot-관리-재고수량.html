@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lot 관리 재고수량</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>Lot 관리 재고수량</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="lot">Lot 관리 재고수량</h1>
+<p>DROP PROC SMC_SMESLGGetInOutLotStock</p>
+<p>GO</p>
+<p>CREATE PROC SMC_SMESLGGetInOutLotStock</p>
+<p>AS</p>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>,@BizUnit INT = 1</p>
+<p>CREATE TABLE #GetInOutItemLot</p>
+<p>(</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT,</p>
+<p>ValiDate NCHAR(8),</p>
+<p>CreateDate NCHAR(8)</p>
+<p>)</p>
+<p>CREATE TABLE #GetInOutLotStock</p>
+<p>(</p>
+<p>BizUnit INT,</p>
+<p>WHSeq INT,</p>
+<p>MainWHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>PrevQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5),</p>
+<p>StockQty DECIMAL(19,5),</p>
+<p>STDPrevQty DECIMAL(19,5),</p>
+<p>STDInQty DECIMAL(19,5),</p>
+<p>STDOutQty DECIMAL(19,5),</p>
+<p>STDStockQty DECIMAL(19,5),</p>
+<p>StockAmt DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #GetInOutItemLot (LotNo, ItemSeq, ValiDate, CreateDate)</p>
+<p>SELECT DISTINCT L.LotNo, L.ItemSeq, L.ValiDate, L.CreateDate</p>
+<p>FROM _TDAItem AS A</p>
+<p>JOIN _TLGLotMaster AS L WITH(NOLOCK) ON L.CompanySeq = A.CompanySeq</p>
+<p>AND L.ItemSeq = A.ItemSeq</p>
+<p>JOIN _TDAItemAsset AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.AssetSeq = A.AssetSeq</p>
+<p>JOIN _TDAItemStock AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.ItemSeq = A.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND C.IsQty \&lt;&gt; '1'</p>
+<p>AND F.IsLotMng = '1'</p>
+<p>-- 현재일 기준</p>
+<p>DECLARE @CurrDate NCHAR(8)</p>
+<p>SELECT @CurrDate = CONVERT(NCHAR(8), GETDATE(),112)</p>
+<p>EXEC _SWLGGetInOutLotStock @CompanySeq = @CompanySeq, -- 법인코드</p>
+<p>@BizUnit = @BizUnit, -- 사업부문</p>
+<p>@DateFr = @CurrDate, -- 조회기간Fr</p>
+<p>@DateTo = @CurrDate, -- 조회기간To</p>
+<p>@WHSeq = 0, -- 창고지정</p>
+<p>@SMWHKind = 0, -- 창고구분별 조회</p>
+<p>@IsSubDisplay = '1', -- 기능창고포함('1' : 기능창고별 조회, '0' : 사업단위창고에 포함)</p>
+<p>@IsOnlyStock = '1', -- 재고만 표시('1' : 재고, '0' : 이월,입고,출고,재고)</p>
+<p>@IsStockAmt = '0', -- 재고금액 계산</p>
+<p>@StockAmtType = 0, -- 전월재고단가, 표준재고단가</p>
+<p>@UnitType = 1, -- 1: 기준단위, 2: 수불단위, 3: 환산단위(단위별 조회)</p>
+<p>@ConvUnitSeq = 0, -- 환산단위코드</p>
+<p>@QryType = 'S', -- 'S': 1007 실재고, 'B':1008 자산포함, 'A':1011 가용재고</p>
+<p>@IsTrustCust = '' -- 수탁여부</p>
+<p>-- Lot 관리 품목 시 프로젝트별 합산</p>
+<p>SELECT A.ItemSeq, A.LotNo, SUM(A.StockQty) AS StockQty</p>
+<p>FROM #GetInOutLotStock AS A</p>
+<p>WHERE StockQty \&lt;&gt; 0</p>
+<p>GROUP BY A.ItemSeq, A.LotNo</p>
+<p>ORDER BY A.ItemSeq</p>
+<p>GO</p>
+<p>EXEC SMC_SMESLGGetInOutLotStock</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>금액 계산 (부가세포함 / 수량 \* 단가)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>금액 계산 (부가세포함 / 수량 \* 단가)</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">금액 계산 (부가세포함 / 수량 * 단가)</h1>
+<p>-- 금액 계산</p>
+<p>UPDATE A</p>
+<p>SET CurAmt = CASE WHEN ISNULL(A.IsVat, '') \&lt;&gt; '1' THEN (A.Qty * A.Price)</p>
+<p>ELSE (A.Qty * A.Price) - ((A.Qty * A.Price) * (ISNULL(A.VatRate, 10) / (100 + ISNULL(A.VatRate, 10))))</p>
+<p>END,</p>
+<p>CurVAT = CASE WHEN ISNULL(A.IsVat, '') \&lt;&gt; '1' THEN (A.Qty * A.Price) * (ISNULL(A.VatRate, 10) / 100)</p>
+<p>ELSE ((A.Qty * A.Price) * (ISNULL(A.VatRate, 10) / (100 + ISNULL(A.VatRate, 10))))</p>
+<p>END,</p>
+<p>DomAmt = CASE WHEN ISNULL(A.IsVat, '') \&lt;&gt; '1' THEN (A.Qty * A.DomPrice)</p>
+<p>ELSE (A.Qty * A.DomPrice) - ((A.Qty * A.DomPrice) * (ISNULL(A.VatRate, 10) / (100 + ISNULL(A.VatRate, 10))))</p>
+<p>END,</p>
+<p>DomVAT = CASE WHEN ISNULL(A.IsVat, '') \&lt;&gt; '1' THEN (A.Qty * A.DomPrice) * (ISNULL(A.VatRate, 10) / 100)</p>
+<p>ELSE ((A.Qty * A.DomPrice) * (ISNULL(A.VatRate, 10) / (100 + ISNULL(A.VatRate, 10))))</p>
+<p>END</p>
+<p>FROM #TDelvItem AS A</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+  </article>
+</div>
+</body>
+</html>

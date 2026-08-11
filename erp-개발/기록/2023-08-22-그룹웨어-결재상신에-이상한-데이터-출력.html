@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹웨어 결재상신에 이상한 데이터 출력</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹웨어 결재상신에 이상한 데이터 출력</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">그룹웨어 결재상신에 이상한 데이터 출력</h1>
+<p><img alt="" src="assets/그룹웨어-결재상신에-이상한-데이터-출력/image74.png" /></p>
+<p>_TCOMEnvGroupWare 테이블의 body에 저 값이 들어가 있었음</p>
+<p>환경설정 - 그룹웨어 에서도 값 확인이 가능함</p>
+<p>UPDATE _TCOMEnvGroupWare</p>
+<p>SET Body = REPLACE(Body,'YLW22#','')</p>
+<p>FROM _TCOMEnvGroupWare</p>
+<p><img alt="" src="assets/그룹웨어-결재상신에-이상한-데이터-출력/image75.png" /></p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부서</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>부서</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">부서</h1>
+<p>CREATE OR ALTER VIEW mcm_VMESDADept</p>
+<p>AS</p>
+<p>SELECT ISNULL(A.CompanySeq , 0) AS CompanySeq , -- 법인코드</p>
+<p>ISNULL(B.CompanyName ,'') AS CompanyName , -- 법인명</p>
+<p>ISNULL(A.DeptSeq , 0) AS DeptSeq , -- 부서내부코드</p>
+<p>ISNULL(A.DeptName ,'') AS DeptName , -- 부서명</p>
+<p>ISNULL(A.AbrDeptName ,'') AS AbrDeptName , -- 부서약명R</p>
+<p>ISNULL(A.EngDeptName ,'') AS EngDeptName , -- 영문명</p>
+<p>ISNULL(A.AbrEngDeptName,'') AS AbrEngDeptName, -- 영문약명</p>
+<p>ISNULL(A.BegDate ,'') AS BegDate , -- 부서시작일</p>
+<p>ISNULL(A.EndDate ,'') AS EndDate , -- 부서종료일</p>
+<p>ISNULL(A.BizUnit , 0) AS BizUnit , -- 사업단위 - View_사업단위</p>
+<p>ISNULL(C.BizUnitName ,'') AS BizUnitName , -- 사업단위명</p>
+<p>ISNULL(A.LastUserSeq , 0) AS LastUserSeq , -- 최종등록자</p>
+<p>ISNULL(A.LastDateTime ,'') AS LastDateTime -- 최종등록일자</p>
+<p>FROM _TDADept AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCACompany AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.BizUnit = C.BizUnit</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>보정 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>보정 처리</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">보정 처리</h1>
+<blockquote>
+<p>--2022.08.29 비율 합계가 100으로 반영될 수 있도록 보정 by.sykim2018</p>
+<p>INSERT INTO #TempDiffRate(ItemSeq,DiffRate)</p>
+<p>SELECT ItemSeq, 100.00-SUM(ProdRate)</p>
+<p>FROM #Result</p>
+<p>GROUP BY ItemSeq</p>
+</blockquote>
+<p>UPDATE A</p>
+<blockquote>
+<p>SET ProdRate = ProdRate + DiffRate</p>
+<p>FROM #Result AS A</p>
+<p>JOIN #TempDiffRate AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE A.IDX = 1</p>
+</blockquote>
+<p>DROP PROC dbo._SWESMZItemListQuery_TTEST</p>
+<p>GO</p>
+<p>CREATE PROC dbo._SWESMZItemListQuery_TTEST</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @CostUnit INT,</p>
+<p>@SMCostDiv INT,</p>
+<p>@RptUnit INT,</p>
+<p>@SMCostMng INT,</p>
+<p>@CostMngAmdSeq INT,</p>
+<p>@PlanYear NCHAR(4),</p>
+<p>@ItemName NVARCHAR(200),</p>
+<p>@ItemNo NVARCHAR(100),</p>
+<p>@ItemSeq INT ,</p>
+<p>@CostKeySeq INT,</p>
+<p>@CostYMFr NCHAR(6),</p>
+<p>@CostYMTo NCHAR(6),</p>
+<p>@AssetSeq INT,</p>
+<p>@CostAccSeq INT,</p>
+<p>@TempCount INT,</p>
+<p>@WorkOrderNo NVARCHAR(30),</p>
+<p>@IsLotCost NCHAR(1),</p>
+<p>@IsUseProc NCHAR(1),</p>
+<p>@ItemClassSeq INT ,</p>
+<p>@ItemClassSeqKind INT ,</p>
+<p>@UseCost INT ,</p>
+<p>@FSDomainSeq INT ,</p>
+<p>@DicMat NVARCHAR(200),</p>
+<p>@DicLabor NVARCHAR(200),</p>
+<p>@DicExp NVARCHAR(200),</p>
+<p>@DicOut NVARCHAR(200),</p>
+<p>@StartCostKey INT ,</p>
+<p>@EndCostKey INT</p>
+<p>SELECT @CostUnit = ISNULL(A.CostUnit , 0 ),</p>
+<p>@RptUnit = ISNULL(A.RptUnit , 0 ),</p>
+<p>@SMCostMng = ISNULL(A.SMCostMng , 0 ),</p>
+<p>@CostMngAmdSeq = ISNULL(A.CostMngAmdSeq, 0 ),</p>
+<p>@PlanYear = ISNULL(A.PlanYear , N''),</p>
+<p>@ItemName = ISNULL(A.ItemName , N''),</p>
+<p>@ItemNo = ISNULL(A.ItemNo , N''),</p>
+<p>@ItemSeq = ISNULL(A.ItemSeq , 0 ), --제품별제조원가상세조회 하단시트에서 품목별조회 2020.02.27 hylim</p>
+<p>@AssetSeq = ISNULL(A.AssetSeq , 0 ),</p>
+<p>@CostYMFr = ISNULL(A.CostYMFr , N''),</p>
+<p>@CostYMTo = ISNULL(A.CostYMTo , N''),</p>
+<p>@CostAccSeq = ISNULL(A.CostAccSeq , 0 ),</p>
+<p>@WorkOrderNo = ISNULL(A.WorkOrderNo , N''),</p>
+<p>@ItemClassSeq = ISNULL(A.ItemClassSeq , 0 ),</p>
+<p>@ItemClassSeqKind = ISNULL(A.ItemClassKind, 0 )</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>SELECT @ItemName = CASE @ItemName WHEN N'' THEN @ItemName ELSE @ItemName + N'%' END,</p>
+<p>@ItemNo = CASE @ItemNo WHEN N'' THEN @ItemNo ELSE @ItemNo + N'%' END,</p>
+<p>@WorkOrderNo = CASE @WorkOrderNo WHEN N'' THEN @WorkOrderNo ELSE @WorkOrderNo + N'%' END,</p>
+<p>@IsLotCost = N'0',</p>
+<p>@IsUseProc = N'0',</p>
+<p>@FSDomainSeq = 11,</p>
+<p>@DicMat = ISNULL((SELECT ISNULL(WordSite, Word) FROM _TCADictionary WITH(NOLOCK) WHERE WordSeq = 8342 AND LanguageSeq = @LanguageSeq), N'재료비'),</p>
+<p>@DicLabor = ISNULL((SELECT ISNULL(WordSite, Word) FROM _TCADictionary WITH(NOLOCK) WHERE WordSeq = 4716 AND LanguageSeq = @LanguageSeq), N'노무비'),</p>
+<p>@DicExp = ISNULL((SELECT ISNULL(WordSite, Word) FROM _TCADictionary WITH(NOLOCK) WHERE WordSeq = 3750 AND LanguageSeq = @LanguageSeq), N'경비'),</p>
+<p>@DicOut = ISNULL((SELECT ISNULL(WordSite, Word) FROM _TCADictionary WITH(NOLOCK) WHERE WordSeq = 7463 AND LanguageSeq = @LanguageSeq), N'외주비')</p>
+<p>--개별원가사용여부</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 5508, 0/*@UserSeq*/, @@PROCID, @IsLotCost OUTPUT</p>
+<p>IF @IsLotCost IS NULL OR @IsLotCost = N''</p>
+<p>SELECT @IsLotCost = N'0'</p>
+<p>--사용원가선택</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 5531, 0/*@UserSeq*/, @@PROCID, @UseCost OUTPUT</p>
+<p>IF @UseCost = 5518002 -- 2017.06.23 sjjin 활동기준원가를 사용할 경우 공정별원가를 사용하는 것임</p>
+<p>BEGIN</p>
+<p>SELECT @IsUseProc = '1'</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @IsUseProc = '0'</p>
+<p>END</p>
+<p>-- 임시테이블 선언</p>
+<p>CREATE TABLE #TESMDCostKey</p>
+<p>(</p>
+<p>CostKeySeq INT,</p>
+<p>CostYM NCHAR(6)</p>
+<p>)</p>
+<p>CREATE TABLE #WorkOrderNo</p>
+<p>(</p>
+<p>WorkOrderSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #InQty</p>
+<p>(</p>
+<p>WorkOrderSeq INT ,</p>
+<p>ItemSeq INT ,</p>
+<p>ProdQty DECIMAL(19, 5) ,</p>
+<p>InQty DECIMAL(19, 5) ,</p>
+<blockquote>
+<p>InAmt                        DECIMAL(19, 5) ,</p>
+</blockquote>
+<p>IsSum NCHAR(1)</p>
+<p>)</p>
+<p>CREATE TABLE #TempDiffRate</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>DiffRate         DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #TempItem</p>
+<p>(</p>
+<p>ItemSeq INT,</p>
+<p>UMItemClassSSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #ItemClass</p>
+<p>(</p>
+<p>ItemClassSSeq INT,</p>
+<p>ItemClassMSeq INT,</p>
+<p>ItemClassLSeq INT,</p>
+<p>ItemClasSName NVARCHAR(200), --2018.11.22 hylim NVARCHAR(100)-&gt;NVARCHAR(200) 변경</p>
+<p>ItemClasMName NVARCHAR(200), --2018.11.22 hylim NVARCHAR(100)-&gt;NVARCHAR(200) 변경</p>
+<p>ItemClasLName NVARCHAR(200) --2018.11.22 hylim NVARCHAR(100)-&gt;NVARCHAR(200) 변경</p>
+<p>)</p>
+<p>INSERT INTO #ItemClass(</p>
+<p>ItemClassSSeq , ItemClassMSeq , ItemClassLSeq ,</p>
+<p>ItemClasSName , ItemClasMName , ItemClasLName )</p>
+<p>SELECT SM.MinorSeq , ISNULL(MM.MinorSeq , N''), ISNULL(LM.MinorSeq , N''),</p>
+<p>SM.MinorName , ISNULL(MM.MinorName, N''), ISNULL(LM.MinorName, N'')</p>
+<p>FROM _TDAUMinor AS SM WITH(NOLOCK)</p>
+<p>JOIN _TDAUMinorValue AS MS WITH(NOLOCK) ON SM.MinorSeq = MS.MinorSeq</p>
+<p>AND MS.Serl = 1001</p>
+<p>AND SM.CompanySeq = MS.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS MM WITH(NOLOCK) ON MS.ValueSeq = MM.MinorSeq</p>
+<p>AND MM.MajorSeq = 2002</p>
+<p>AND SM.CompanySeq = MM.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS LS WITH(NOLOCK) ON MS.ValueSeq = LS.MinorSeq</p>
+<p>AND LS.Serl = 2001</p>
+<p>AND SM.CompanySeq = LS.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS LM WITH(NOLOCK) ON LS.ValueSeq = LM.MinorSeq</p>
+<p>AND LM.MajorSeq = 2003</p>
+<p>AND SM.CompanySeq = LM.CompanySeq</p>
+<p>WHERE SM.MajorSeq = 2001</p>
+<p>AND SM.CompanySeq = @CompanySeq</p>
+<p>INSERT INTO #TempItem</p>
+<p>SELECT C.ItemSeq ,</p>
+<p>ISNULL(I.ItemClassSSeq,0) AS UMItemClassSSeq</p>
+<p>FROM _TDAItem AS C WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS D WITH(NOLOCK) ON C.AssetSeq = D.AssetSeq</p>
+<p>AND C.CompanySeq = D.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAITemClass AS IC WITH(NOLOCK) ON C.ItemSeq = IC.ItemSeq --2021.10.29 hylim 품목소분류가 아닌 자재소분류로 잘못연결되더라도 조회는 가능하도록수정</p>
+<p>AND C.CompanySeq = IC.CompanySeq</p>
+<p>AND IC.UMajorItemClass = 2001</p>
+<p>LEFT OUTER JOIN #ItemClass AS I WITH(NOLOCK) ON IC.UMItemClass = I.ItemClassSSeq</p>
+<p>WHERE (@ItemNo = N'' OR C.ItemNo LIKE @ItemNo )</p>
+<p>AND (@ItemName = N'' OR C.ItemName LIKE @ItemName )</p>
+<p>AND (@AssetSeq = 0 OR D.SMAssetGrp = @AssetSeq ) --2019.04.03 hylim 재고자산종류는 제품/반제품 대분류로 수정 --C.AssetSeq = @AssetSeq</p>
+<p>AND ( @ItemClassSeqKind = 0 OR @ItemClassSeq = 0 OR</p>
+<p>( @ItemClassSeqKind = 2001 AND I.ItemClassSSeq = @ItemClassSeq)</p>
+<p>OR (@ItemClassSeqKind = 2002 AND I.ItemClassMSeq = @ItemClassSeq)</p>
+<p>OR (@ItemClassSeqKind = 2003 AND I.ItemClassLSeq = @ItemClassSeq)</p>
+<p>)</p>
+<p>AND D.SMAssetGrp IN (6008002, 6008004)</p>
+<p>AND (@ItemSeq = 0 OR C.ItemSeq = @ItemSeq) --2020.02.27 hylim [제품별제조원가상세조회] 하단시트조회추가</p>
+<p>AND C.Companyseq = @CompanySeq</p>
+<p>CREATE INDEX IdX1_Itemseq on #TempItem(ItemSeq)</p>
+<p>INSERT INTO #TESMDCostKey(CostKeySeq, CostYM)</p>
+<p>SELECT CostKeySeq, CostYM</p>
+<p>FROM _TESMDCostKey WITH(NOLOCK)</p>
+<p>WHERE CostYM BETWEEN @CostYMFr AND @CostYMTo</p>
+<p>AND SMCostMng = @SMCostMng</p>
+<p>AND RptUnit = @RptUnit</p>
+<p>AND CostMngAmdSeq = @CostMngAmdSeq</p>
+<p>AND PlanYear = @PlanYear</p>
+<p>AND CompanySeq = @CompanySeq</p>
+<p>--SELECT @TempCount = @@ROWCOUNT</p>
+<p>--===================================================================</p>
+<p>-- 관리회계계정담기</p>
+<p>--===================================================================</p>
+<p>CREATE TABLE #ESMAccount</p>
+<p>(</p>
+<p>SMCostKind INT ,</p>
+<p>SMCostDiv INT ,</p>
+<p>CostAccSeq INT ,</p>
+<p>AccSeq INT ,</p>
+<p>BgtSeq INT ,</p>
+<p>UMCostType INT</p>
+<p>)</p>
+<p>EXEC _SWESMBAccountScopeQuery 1 , 11 , 5507001 , 0</p>
+<p>DECLARE @ESMBAcc TABLE</p>
+<p>(</p>
+<p>SMCostKind INT ,</p>
+<p>SMCostDiv INT ,</p>
+<p>CostAccSeq INT</p>
+<p>)</p>
+<p>INSERT INTO @ESMBAcc(SMCostKind, SMCostDiv, CostAccSeq)</p>
+<p>SELECT SMCostKind, SMCostDiv, CostAccSeq</p>
+<p>FROM #ESMAccount</p>
+<p>IF @ItemNo = 'TOTAL'</p>
+<p>SELECT @ItemNo = N''</p>
+<p>IF @IsLotCost = N'1' AND @WorkOrderNo \&lt;&gt; N''</p>
+<p>BEGIN</p>
+<p>INSERT INTO #WorkOrderNo(WorkOrderSeq)</p>
+<p>SELECT A.WorkOrderSeq</p>
+<p>FROM _TESMGWorkOrderNo AS A WITH(NOLOCK)</p>
+<p>WHERE WorkOrderNo LIKE @WorkOrderNo</p>
+<p>AND (@CostUnit = 0 OR CostUnit = @CostUnit)</p>
+<p>AND CompanySeq = @CompanySeq</p>
+<p>END</p>
+<p>--입고수량 담기</p>
+<p>INSERT INTO #InQty (WorkOrderSeq, ItemSeq , ProdQty , InQty ,InAmt)</p>
+<p>SELECT A.WorkOrderSeq, A.ItemSeq , 0, SUM(A.Qty), SUM(A.Amt)</p>
+<p>FROM (</p>
+<p>SELECT A.CostKeySeq, A.WorkOrderSeq, A.ItemSeq, A.Qty,</p>
+<p>ISNULL(SUM(A.Amt + A.RevAmt),0) AS Amt --사내+외주입고인 경우 입고수량 잘못조회되고있어수정 :: 2023.03.23 hylim</p>
+<p>--2022.08.29 원가구성비율계산을 위하여 입고금액 추가 by.sykim2018 --ISNULL(A.Amt + A.RevAmt,0)</p>
+<p>FROM _TESMCProdFGoodInAmt AS A WITH(NOLOCK) --개별원가를 사용할 경우에만 WorkOrderSeq들어감 안쓰면 0</p>
+<p>JOIN #TESMDCostKey AS B ON A.CostKeySeq = B.CostKeySeq</p>
+<p>JOIN #TempItem AS C ON A.ItemSeq = C.ItemSeq</p>
+<p>WHERE (@CostUnit = 0 OR CostUnit = @CostUnit)</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND (@IsLotCost \&lt;&gt; N'1' -- 개별원가를 사용하지 않거나</p>
+<p>OR @IsLotCost = N'1' AND (@WorkOrderNo = N'' -- 개별원가를 사용할 경우 작업지시번호 조회조건이 입력되지 않은 경우</p>
+<p>OR @WorkOrderNo \&lt;&gt; N'' AND EXISTS (SELECT TOP 1 1 FROM #WorkOrderNo WHERE WorkOrderSeq = A.WorkOrderSeq)) --작업지시번호 조회조건을 입력한 경우</p>
+<p>)</p>
+<p>GROUP BY A.CostKeySeq, A.WorkOrderSeq, A.ItemSeq, A.Qty /*,ISNULL(A.Amt + A.RevAmt,0)*/ --2020.12.14 hylim CostKeySeq 추가</p>
+<p>) AS A</p>
+<p>GROUP BY A.WorkOrderSeq, A.ItemSeq</p>
+<p>--생산수량 담기</p>
+<p>INSERT INTO #InQty (WorkOrderSeq, ItemSeq , ProdQty , InQty )</p>
+<p>SELECT A.WorkOrderSeq, A.ItemSeq , SUM(A.ProdQty), 0 --2020.12.14 hylim 생산수량가져오기 수정</p>
+<p>FROM (</p>
+<p>SELECT s.CostKeySeq, s.WorkOrderSeq, s.ItemSeq , s.ProdQty</p>
+<p>FROM _TESMCProdFGoodCostResult AS s WITH(NOLOCK) --개별원가를 사용할 경우에만 WorkOrderSeq들어감 안쓰면 0</p>
+<p>--JOIN (</p>
+<p>-- SELECT A.WorkOrderSeq, A.ItemSeq , A.ProcSeq</p>
+<p>-- FROM _TESMGWorkReport AS A WITH(NOLOCK)</p>
+<p>-- JOIN #TESMDCostKey AS B ON A.CostKeySeq = B.CostKeySeq</p>
+<p>-- WHERE A.CostUnit = @CostUnit</p>
+<p>-- AND A.IsLastProc = N'1'</p>
+<p>-- AND A.CompanySeq = @CompanySeq</p>
+<p>-- )AS B ON s.ItemSeq = B.ItemSeq</p>
+<p>-- AND s.ProcSeq = B.ProcSeq</p>
+<p>JOIN #TESMDCostKey AS D ON s.CostKeySeq = D.CostKeySeq</p>
+<p>JOIN #TempItem AS I ON s.ItemSeq = I.ItemSeq</p>
+<p>WHERE (@IsUseProc \&lt;&gt; N'1'</p>
+<p>OR @IsUseProc = N'1' AND (s.ItemSeq = s.AssyItemSeq OR s.AssyItemSeq = 0)) --최종공정 2020.08.28 hylim 활동기준원가도 최종제조원가데이터에 AssyItemSeq안들어가고있으므로수정</p>
+<p>AND (@CostUnit = 0 OR s.CostUnit = @CostUnit)</p>
+<p>AND s.CompanySeq = @CompanySeq</p>
+<p>AND (@IsLotCost \&lt;&gt; N'1' -- 개별원가를 사용하지 않거나</p>
+<p>OR @IsLotCost = N'1' AND (@WorkOrderNo = N'' -- 개별원가를 사용할 경우 작업지시번호 조회조건이 입력되지 않은 경우</p>
+<p>OR @WorkOrderNo \&lt;&gt; N'' AND EXISTS (SELECT TOP 1 1 FROM #WorkOrderNo WHERE WorkOrderSeq = s.WorkOrderSeq)) --작업지시번호 조회조건을 입력한 경우</p>
+<p>)</p>
+<p>GROUP BY s.CostKeySeq, s.WorkOrderSeq, s.ItemSeq , s.ProdQty</p>
+<p>) AS A</p>
+<p>GROUP BY A.WorkOrderSeq, A.ItemSeq</p>
+<p>INSERT INTO #InQty</p>
+<p>SELECT WorkOrderSeq, ItemSeq , SUM(ProdQty ) , SUM(InQty), Sum(InAmt),N'1'</p>
+<p>FROM #InQty</p>
+<p>GROUP BY WorkOrderSeq, ItemSeq</p>
+<p>DELETE #InQty WHERE ISNULL(IsSum, '0') = '0'</p>
+<blockquote>
+<p>--2021.11.01 전월재공금액(원가연월Fr), 기말재공금액(원가연월To)이 전체합이 아닌 전월/기말월에 맞춰 조회될 수 있도록 수정 by.sykim2018</p>
+</blockquote>
+<p>--costKey는 순서대로 만들어졌다는 가정으로 시작하자.</p>
+<p>SELECT @EndCostKey = MAX(CostKeySeq) ,</p>
+<p>@StartCostKey = MIN(CostKeySeq)</p>
+<p>FROM #TESMDCostKey</p>
+<p>--최종조회</p>
+<p>SELECT IDENTITY(int,1,1)                                                         AS IDX,</p>
+<blockquote>
+<p>Z.AssetName AS AssetName , --품목자산분류</p>
+</blockquote>
+<p>K.ItemClasLName AS UMItemClassLName, --품목대분류</p>
+<p>K.ItemClasMName AS UMItemClassMName, --품목중분류</p>
+<p>K.ItemClasSName AS UMItemClassSName, --품목소분류</p>
+<p>B.ItemName AS ItemName , --제품번호</p>
+<p>B.ItemNo AS ItemNo , --제품명</p>
+<p>ISNULL(G.SMCostKindName, '') AS CostTypeName , --원가구분명(재노경) --2020.03.02 hylim 추가</p>
+<p>C.CostAccName AS CostAccName , --관리회계계정과목</p>
+<p>SUM(CASE WHEN @StartCostKey = A.CostKeySeq THEN ISNULL(A.PreCost,0)+ISNULL(A.RevPreCost,0) ELSE 0 END) AS PreProcAmt , --전월재공금액 --2019.01.16 hylim 수정 SUM(A.PreCost) / @TempCount</p>
+<blockquote>
+<p>--2021.05.12 sykim2018 전월재공금액(순투입+반제품투입)으로 조회될 수 있도록 수정</p>
+</blockquote>
+<p>SUM(ISNULL(A.InPutCost,0)) AS Amt , --당월발생액 --2019.01.16 hylim 수정 SUM(A.InPutCost) / @TempCount</p>
+<p>SUM(CASE WHEN @EndCostKey = A.CostKeySeq THEN ISNULL(A.ProcCost,0) + ISNULL(RevProcCost,0) ELSE 0 END) AS ProcAmt , --기말재공금액 2019.01.16 hylim 수정 SUM(A.ProcCost + RevProcCost) / @TempCount</p>
+<p>SUM(ISNULL(A.ProdCost,0) + ISNULL(A.RevProdCost,0)) AS ProdCost , --당월제조원가 2020.11.13 hylim 당월반제품금액 합산되도록 수정 --SUM(ISNULL(A.ProdCost,0) + ISNULL(A.RevProdCost,0) - ISNULL(RevProcCost,0))</p>
+<p>SUM(ISNULL(A.RevCost,0)) AS SubFCost , --당월반제품투입금액 --2019.01.16 hylim 수정 SUM(A.RevCost) / @TempCount</p>
+<p>ISNULL(D.ProdQty , 0) AS ProdQty , --생산량</p>
+<p>ISNULL(D.InQty , 0) AS InQty , --입고량</p>
+<p>ISNULL(J.WorkOrderNo,'') AS WorkOrderNo , --작업지시번호</p>
+<p>A.WorkOrderSeq ,</p>
+<p>B.AssetSeq ,</p>
+<p>K.ItemClassLSeq ,</p>
+<p>K.ItemClassMSeq ,</p>
+<p>K.ItemClassSSeq ,</p>
+<p>A.ItemSeq ,</p>
+<p>E.SMCostKind ,</p>
+<p>A.CostAccSeq ,</p>
+<blockquote>
+<p>--2022.08.29 원가구성비율 추가 by.sykim2018</p>
+<p>CASE WHEN ISNULL(D.InAmt,0) = 0 THEN 0 ELSE Round(SUM(ISNULL(A.ProdCost,0) + ISNULL(A.RevProdCost,0))/ISNULL(D.InAmt,0)*100,2) END AS ProdRate --2022.10.21 0나누기 오류 발생으로 인하여 CASE처리 by.sykim2018</p>
+<p>INTO #Result</p>
+</blockquote>
+<p>FROM _TESMCProdFGoodCostResult AS A WITH(NOLOCK)</p>
+<p>JOIN #TempItem AS I ON A.ItemSeq = I.ItemSeq</p>
+<p>JOIN #TESMDCostKey AS F ON A.CostKeySeq = F.CostKeySeq</p>
+<p>LEFT OUTER JOIN #ItemClass AS K ON I.UMItemClassSSeq = K.ItemClassSSeq</p>
+<p>LEFT OUTER JOIN #InQty AS D ON A.ItemSeq = D.ItemSeq</p>
+<blockquote>
+<p>AND A.WorkOrderSeq = D.WorkOrderSeq --2022.11.09 개별원가 사용시에 품목으로만 연결되어 N배로 집계되고 있어 추가 by.sykim2018</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItem AS B WITH(NOLOCK) ON A.ItemSeq = B.ItemSeq</p>
+<p>AND A.CompanySeq = B.CompanySeq</p>
+<p>LEFT OUTER JOIN _TESMBAccount AS C WITH(NOLOCK) ON A.CostAccSeq = C.CostAccSeq</p>
+<p>AND A.CompanySeq = C.CompanySeq</p>
+<p>LEFT OUTER JOIN @ESMBAcc AS E ON A.CostAccSeq = E.CostAccSeq</p>
+<p>LEFT OUTER JOIN (SELECT 5519001 AS SMCostKind,</p>
+<p>@DicMat AS SMCostKindName ,</p>
+<p>1 AS Sort UNION</p>
+<p>SELECT 5519002, @DicLabor , 2 UNION</p>
+<p>SELECT 5519003, @DicExp , 3 ) AS G ON E.SMCostKind = G.SMCostKind</p>
+<p>LEFT OUTER JOIN _TESMGWorkOrderNo AS J WITH(NOLOCK) ON @IsLotCost = N'1' --개별원가를 사용할 경우에만 join되도록</p>
+<p>AND J.WorkOrderSeq = A.WorkOrderSeq</p>
+<p>AND J.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS Z WITH(NOLOCK) ON B.AssetSeq = Z.AssetSeq</p>
+<p>AND B.CompanySeq = Z.CompanySeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>GROUP BY B.ItemName ,</p>
+<p>B.ItemNo ,</p>
+<p>A.ItemSeq ,</p>
+<p>K.ItemClasLName,</p>
+<p>K.ItemClasMName,</p>
+<p>K.ItemClasSName,</p>
+<p>K.ItemClassLSeq,</p>
+<p>K.ItemClassMSeq,</p>
+<p>K.ItemClassSSeq,</p>
+<p>A.CostAccSeq ,</p>
+<p>C.CostAccName ,</p>
+<p>D.ProdQty ,</p>
+<p>D.InQty ,</p>
+<blockquote>
+<p>D.InAmt                ,</p>
+</blockquote>
+<p>B.AssetSeq ,</p>
+<p>Z.AssetName ,</p>
+<p>A.WorkOrderSeq ,</p>
+<p>J.WorkOrderNo ,</p>
+<p>E.SMCostKind ,</p>
+<p>G.SMCostKindName</p>
+<p>HAVING SUM(A.PreCost) \&lt;&gt; 0 OR SUM(A.InPutCost) \&lt;&gt; 0</p>
+<p>OR SUM(ISNULL(A.ProcCost,0) + ISNULL(RevProcCost,0)) \&lt;&gt; 0</p>
+<p>OR SUM(ISNULL(A.ProdCost,0) + ISNULL(A.RevProdCost,0) - ISNULL(RevProcCost,0)) \&lt;&gt; 0</p>
+<p>OR SUM(A.RevCost) \&lt;&gt; 0</p>
+<p>ORDER BY ProdRate DESC</p>
+<blockquote>
+<p>--2022.08.29 비율 합계가 100으로 반영될 수 있도록 보정 by.sykim2018</p>
+<p>INSERT INTO #TempDiffRate(ItemSeq,DiffRate)</p>
+<p>SELECT ItemSeq, 100.00-SUM(ProdRate)</p>
+<p>FROM #Result</p>
+<p>GROUP BY ItemSeq</p>
+</blockquote>
+<p>UPDATE A</p>
+<blockquote>
+<p>SET ProdRate = ProdRate + DiffRate</p>
+<p>FROM #Result AS A</p>
+<p>JOIN #TempDiffRate AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE A.IDX = 1</p>
+<p>SELECT * FROM #Result</p>
+</blockquote>
+<p>ORDER BY SMCostKind, CostAccName --재노경 순으로 조회 2020.03.02 hylim</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>BEGIN TRAN</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, CostUnit INT, CostYMFr NCHAR(6), CostYMTo NCHAR(6), RptUnit INT, SMCostMng INT, CostMngAmdSeq INT, PlanYear NCHAR(4), ItemName NVARCHAR(200), ItemNo NVARCHAR(100), ItemSeq INT, CostAccSeq INT, AssetSeq INT, AssetName NVARCHAR(100), WorkOrderNo NVARCHAR(30), ItemClassSeq INT, ItemClassKind INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, CostUnit INT, CostYMFr NCHAR(6), CostYMTo NCHAR(6), RptUnit INT, SMCostMng INT, CostMngAmdSeq INT, PlanYear NCHAR(4), ItemName NVARCHAR(200), ItemNo NVARCHAR(100), ItemSeq INT, ProdQty DECIMAL(19, 5), InQty DECIMAL(19, 5), CostAccName NVARCHAR(100), CostAccSeq INT, PreProcAmt DECIMAL(19, 5), Amt DECIMAL(19, 5), ProcAmt DECIMAL(19, 5), ProdCost DECIMAL(19, 5), AssetSeq INT, AssetName NVARCHAR(100), SubFCost DECIMAL(19, 5), WorkOrderNo NVARCHAR(30), WorkOrderSeq INT, UMItemClassLName NVARCHAR(100), UMItemClassLSeq INT, UMItemClassMName NVARCHAR(100), UMItemClassMSeq INT, UMItemClassSName NVARCHAR(100), UMItemClassSSeq INT, ItemClassSeq INT, ItemClassKind INT, CostTypeName NVARCHAR(100), CostTypee INT, ProdRate DECIMAL(19, 5)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, CostUnit, CostYMFr, CostYMTo, RptUnit, SMCostMng, CostMngAmdSeq, PlanYear, ItemName, ItemNo, ItemSeq, CostAccSeq, AssetSeq, AssetName, WorkOrderNo, ItemClassSeq, ItemClassKind)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'0', N'', N'', N'202403', N'202403', N'', N'5512001', N'', N'', N'', N'', NULL, N'', N'', N'', N'', N'', N''</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 501355</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 27292</p>
+<p>SET @PgmSeq = 500781</p>
+<p>SET @IsTransaction = 1</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC _SWESMZItemListQuery_TTEST</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

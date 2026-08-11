@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>싸이맥스 구매의뢰 - 구매요청 MES</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>싸이맥스 구매의뢰 - 구매요청 MES</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-mes">싸이맥스 구매의뢰 - 구매요청 MES</h1>
+<p>EXEC MESGUNLIVE.GwMES_CYMECHS.dbo.USP_IF_ERP_GET_PUR_REQUEST @FromDate = '20240801', -- 출하일자(From) -- 20240617.출하일자 -&gt; 확정일자로 변경</p>
+<p>@ToDate = '20240924', -- 출하일자(To) -- 20240617.출하일자 -&gt; 확정일자로 변경</p>
+<p>@ReceiptDiv = 10, -- 접수구분</p>
+<p>@Div = '', -- 구분</p>
+<p>@SoNo = 'F2408B0377_EM', -- S/O</p>
+<p>@CustName = '', -- 고객사명</p>
+<p>@ReceiptManager = '', -- 접수자</p>
+<p>@Status = '', -- 의뢰구분</p>
+<p>@cdPurReg = '' -- 접수번호</p>
+<p>EXEC MESGUNLIVE.GwMES_CYMECHS.dbo.USP_IF_ERP_GET_PUR_REQUEST @FromDate = '20240801', -- 출하일자(From) -- 20240617.출하일자 -&gt; 확정일자로 변경</p>
+<p>@ToDate = '20240924', -- 출하일자(To) -- 20240617.출하일자 -&gt; 확정일자로 변경</p>
+<p>@ReceiptDiv = 10, -- 접수구분</p>
+<p>@Div = '', -- 구분</p>
+<p>@SoNo = 'F2408B0377_EM', -- S/O</p>
+<p>@CustName = '', -- 고객사명</p>
+<p>@ReceiptManager = NULL, -- 접수자</p>
+<p>@Status = '', -- 의뢰구분</p>
+<p>@cdPurReg = '' -- 접수번호</p>
+<p>SELECT * FROM MESGUNLIVE.GwMES_CYMECHS.dbo.TN_PUR021T WHERE CD_PURREG = 'PRG240903-000009'</p>
+<p>SELECT MEMO3,* FROM _TPUORDPOReqItem WHERE MEMO3 LIKE 'PRG240903-000009%'</p>
+<p>SELECT * FROM MESGUNLIVE.GwMES_CYMECHS.dbo.TN_PUR021T WHERE CD_PURREG = 'PRG240910-000010'</p>
+<p>SELECT MEMO3,* FROM _TPUORDPOReqItem WHERE MEMO3 LIKE 'PRG240910-000010%'</p>
+<p>SELECT * FROM cymc_TPUORDPOReqItem WHERE MESKey = 'PRG240910-000010'</p>
+<p>SELECT TOP 100 MEMO3,* FROM _TPUORDPOReqItem WHERE MEMO3 \&lt;&gt; '' ORDER BY POReqSeq DESC</p>
+<p>CD_PODTL</p>
+<p>SELECT * FROM cymc_TPUORDPOReqItem ORDER BY POReqSeq DESC</p>
+<p>--SELECT * FROM MESGUNLIVE.GwMES_CYMECHS.dbo.VI_PUR021T WHERE CD_PURREG = 'PRG240910-000010'</p>
+<p>SELECT * FROM MESGUNLIVE.GwMES_CYMECHS.dbo.TN_PUR021T ORDER BY INS_DATE DESC</p>
+<p>SELECT * FROM MESGUNLIVE.GwMES_CYMECHS.dbo.VI_PUR021T WHERE CD_PURREG = 'PRG240910-000010'</p>
+<p>SELECT POReqSeq,COUNT(*) FROM _TPUORDPOReqItem GROUP BY POReqSeq HAVING COUNT(*) = 361</p>
+<p>SELECT DISTINCT POReqSeq,PJTSeq,LastDateTime FROM _TPUORDPOReqItem WHERE POReqSeq IN (</p>
+<p>165264</p>
+<p>,166187</p>
+<p>,166188</p>
+<p>,166189</p>
+<p>,166190</p>
+<p>)</p>
+<p>SELECT * fROM _TPJTProject WHERE PJTNo ='F2408B0377_EM'</p>
+<p>SELECT * FROM _TPUORDPOReqItem WHERE PJTSeq = 206167</p>
+  </article>
+</div>
+</body>
+</html>

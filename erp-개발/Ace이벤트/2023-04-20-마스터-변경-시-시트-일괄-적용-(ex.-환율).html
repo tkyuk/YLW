@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마스터 변경 시 시트 일괄 적용 (ex. 환율)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>마스터 변경 시 시트 일괄 적용 (ex. 환율)</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="ex">마스터 변경 시 시트 일괄 적용 (ex. 환율)</h1>
+<p>local ExRate, TransportPrice, TreatmentPrice, Price, KorPrice</p>
+<p>ExRate = fltExRate.Value</p>
+<p>if ExRate == 0 then</p>
+<blockquote>
+<p>ExRate = 1</p>
+</blockquote>
+<p>end        </p>
+<blockquote>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row        </p>
+<p>if SS1.ActiveColumnName == 'TransportPrice' or SS1.ActiveColumnName == 'TreatmentPrice' then</p>
+</blockquote>
+<p>TransportPrice = tonumber(CellText(SS1, row, 'TransportPrice'))</p>
+<p>TreatmentPrice = tonumber(CellText(SS1, row, 'TreatmentPrice'))</p>
+<p>Price = TransportPrice + TreatmentPrice</p>
+<p>KorPrice = (TransportPrice + TreatmentPrice) * ExRate</p>
+<p>SetText(SS1, row, 'Price', Price)</p>
+<p>SetText(SS1, row, 'KorPrice', KorPrice)</p>
+<blockquote>
+<p>end        </p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

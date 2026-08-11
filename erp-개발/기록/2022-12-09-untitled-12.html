@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022-12-09-untitled-12</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2022-12-09-untitled-12</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>생산입고조회 화면을 수정하여 개발</p>
+<p>0. 화면디자인 아래 이미지 참조</p>
+<p><img alt="" src="assets/untitled-12/image62.png" /></p>
+<p>1. 선택된 작업실적건 거래명세서로 점프</p>
+<p>1) 점프시 <span class="mark">품목, LotNo, 수량, 창고</span> 등 데이터를 그대로 가져간다.</p>
+<p>2) 디폴트 거래처를 설정하여 <span class="mark">판매 거래처</span>를 입력한다.</p>
+<p>3) 품목단가, 거래처단가 등의 단가로직을 그대로 사용하여 점프 시 단가를 입력한다.</p>
+<p>2. 공정품 매출건 디폴트 설정z`</p>
+<p>1) 사용자정의코드 evc_공정품매출처리디폴트설정(1000535)값 사용</p>
+<p>2) 사용자정의코드에 디폴트 공정, 품목소분류, 입고창고, 부서, 거래처를 설정</p>
+<p>3) 화면오픈 ,신규 시 공정, 품목소분류, 입고창고 디폴트 세팅</p>
+<p>4) 거래명세서 점프 시 부서, 거래처를 거래명세서에 입력</p>
+<p>3. 공정, 품목소분류 조회조건 추가</p>
+<p>4. 출하진행여부(공란/미진행/진행) 조회조건 추가. 디폴트는 미진행</p>
+<p>5. 출하진행 컬럼 시트에 추가 (체크박스로 추가)</p>
+<p>출처: \&lt;<a href="http://61.250.183.6:8100/Page/Open/27970/100101/0/18820244">http://61.250.183.6:8100/Page/Open/27970/100101/0/18820244</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

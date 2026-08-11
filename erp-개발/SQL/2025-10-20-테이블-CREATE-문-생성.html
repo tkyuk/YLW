@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테이블 CREATE 문 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>테이블 CREATE 문 생성</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="create">테이블 CREATE 문 생성</h1>
+<p><span class="mark">-- 1건 생성</span></p>
+<p>SET NOCOUNT ON</p>
+<p>DECLARE @TableName NVARCHAR(128)</p>
+<p>DECLARE @SQL NVARCHAR(MAX)</p>
+<p>DECLARE @CRLF CHAR(2) = NCHAR(13) + NCHAR(10) -- 줄바꿈 문자 (\r\n)</p>
+<p>-- 1. 조회하려는 테이블 이름을 여기에 설정하세요.</p>
+<p>SET @TableName = 'PE_DelvPJTSalesAmt' -- 예시 테이블명</p>
+<hr />
+<p>-- 2. 컬럼 정보를 임시 테이블에 저장 (저희 팀이 선호하는 임시테이블 방식)</p>
+<hr />
+<p>IF OBJECT_ID('tempdb..#Columns') IS NOT NULL DROP TABLE #Columns</p>
+<p>SELECT</p>
+<p>C.name AS ColumnName</p>
+<p>, T.name AS DataType</p>
+<p>, C.max_length AS MaxLength</p>
+<p>, C.precision AS Precision</p>
+<p>, C.scale AS Scale</p>
+<p>, C.is_nullable AS IsNullable</p>
+<p>, C.is_identity AS IsIdentity</p>
+<p>, C.column_id</p>
+<p>INTO #Columns</p>
+<p>FROM</p>
+<p>sys.columns AS C WITH(NOLOCK)</p>
+<p>JOIN</p>
+<p>sys.tables AS TBL WITH(NOLOCK) ON TBL.object_id = C.object_id</p>
+<p>JOIN</p>
+<p>sys.types AS T WITH(NOLOCK) ON T.user_type_id = C.user_type_id</p>
+<p>WHERE</p>
+<p>TBL.name = @TableName</p>
+<p>ORDER BY</p>
+<p>C.column_id</p>
+<hr />
+<p>-- 3. CREATE TABLE 구문 문자열 동적 구성</p>
+<hr />
+<p>SET @SQL = 'CREATE TABLE [dbo].[' + @TableName + '](' + @CRLF</p>
+<p>-- 모든 컬럼 정보를 순회하며 구문 생성</p>
+<p>SELECT @SQL = @SQL + '        [' + ColumnName + '] [' + DataType + ']'</p>
+<p>-- 데이터 타입에 따라 길이/정밀도 추가</p>
+<p>+ CASE</p>
+<p>-- NCHAR(6) 등 고정 길이 문자열 (NCHAR, CHAR)</p>
+<p>WHEN DataType IN ('nchar', 'char') THEN '(' + CAST(MaxLength / CASE WHEN DataType = 'nchar' THEN 2 ELSE 1 END AS NVARCHAR) + ')'</p>
+<p>-- VARCHAR, NVARCHAR, VARBINARY 등 가변 길이 문자열</p>
+<p>WHEN DataType IN ('varchar', 'nvarchar', 'varbinary') THEN '(' + CASE WHEN MaxLength = -1 THEN 'MAX' ELSE CAST(MaxLength / CASE WHEN DataType = 'nvarchar' THEN 2 ELSE 1 END AS NVARCHAR) END + ')'</p>
+<p>-- DECIMAL, NUMERIC 등 정밀도/스케일이 필요한 형식</p>
+<p>WHEN DataType IN ('decimal', 'numeric') THEN '(' + CAST(Precision AS NVARCHAR) + ', ' + CAST(Scale AS NVARCHAR) + ')'</p>
+<p>ELSE ''</p>
+<p>END + ' '</p>
+<p>-- Null 허용 여부 추가 (NULL 또는 NOT NULL)</p>
+<p>+ CASE WHEN IsNullable = 1 THEN 'NULL' ELSE 'NOT NULL' END</p>
+<p>-- 마지막 컬럼이 아니면 쉼표(,) 추가</p>
+<p>+ CASE WHEN column_id = (SELECT MAX(column_id) FROM #Columns WITH(NOLOCK)) THEN '' ELSE ',' END</p>
+<p>+ @CRLF</p>
+<p>FROM</p>
+<p>#Columns WITH(NOLOCK)</p>
+<p>ORDER BY</p>
+<p>column_id</p>
+<p>-- 괄호 닫고 ON [PRIMARY] 추가 (기본 설정으로 마무리)</p>
+<p>SET @SQL = @SQL + ') ON [PRIMARY]'</p>
+<hr />
+<p>-- 4. 최종 결과 출력</p>
+<hr />
+<p>PRINT @SQL</p>
+<p>-- 5. 임시 테이블 정리</p>
+<p>IF OBJECT_ID('tempdb..#Columns') IS NOT NULL DROP TABLE #Columns</p>
+<p><span class="mark">-- 여러 건 생성</span></p>
+<p>-- 테이블명 목록 정의 (요청하신 테이블 리스트)</p>
+<p>DECLARE @TableList NVARCHAR(MAX) = 'danam_PBMProject,danam_PBMProduct,danam_PBMProductDetail,PE_TDAEmp,PE_DelvSalesAmt,PE_DelvPJTSalesAmt,PE_PlanSalesAmt,PE_SalesDirCost,PE_DevelopDirCost,PE_YearSalesProfit,PE_Pay,PE_RetEst,PE_DepreAmt,PE_ETCCost,PE_EmpYearAmt,OPBIC_SalesPlanAmt,OPBIC_PayBasicAmt,OPBIC_YearAmt,OPBIC_VacAmt,OPBIC_OTAmt,OPBIC_CarAmt,OPBIC_PayAmt,OPBIC_RetEst,OPBIC_DepreAmt,OPBIC_EmpCostMM'</p>
+<p>DECLARE @TableName NVARCHAR(128)</p>
+<p>DECLARE @SQL NVARCHAR(MAX)</p>
+<p>DECLARE @CRLF CHAR(2) = NCHAR(13) + NCHAR(10) -- 줄바꿈 문자</p>
+<p>DECLARE @CurrentID INT</p>
+<p>DECLARE @MaxID INT</p>
+<p>SET NOCOUNT ON</p>
+<hr />
+<p>-- 1. 테이블 목록 파싱 및 임시 테이블에 저장</p>
+<hr />
+<p>IF OBJECT_ID('tempdb..#TableNameList') IS NOT NULL DROP TABLE #TableNameList</p>
+<p>CREATE TABLE #TableNameList (</p>
+<p>ID INT IDENTITY(1,1) PRIMARY KEY,</p>
+<p>TableName NVARCHAR(128)</p>
+<p>)</p>
+<p>-- 문자열 분할 (일반적으로 저희 팀이 사용하는 문자열 분할 로직이 있다면 그것을 사용하시되, 여기서는 T-SQL의 기본 XML 파싱 또는 CTE/임시 테이블 활용 로직을 사용합니다.)</p>
+<p>-- 간단하게 STRING_SPLIT (SQL Server 2016 이상) 대신, 이전 버전 호환을 위해 WHLLE 루프 기반의 커스텀 파싱 로직을 사용합니다.</p>
+<p>-- **주의: 아래 파싱 로직은 저희 팀의 표준 파싱 함수가 있다면 그걸로 대체하는 것이 좋습니다.**</p>
+<p>SET @TableList = REPLACE(@TableList, ' ', '') + ',' -- 공백 제거 및 마지막 쉼표 보장</p>
+<p>WHILE LEN(@TableList) &gt; 0</p>
+<p>BEGIN</p>
+<p>SET @TableName = LEFT(@TableList, CHARINDEX(',', @TableList) - 1)</p>
+<p>IF @TableName \&lt;&gt; ''</p>
+<p>INSERT INTO #TableNameList (TableName) VALUES (@TableName)</p>
+<p>SET @TableList = STUFF(@TableList, 1, CHARINDEX(',', @TableList), '')</p>
+<p>END</p>
+<p>-- ID 초기화</p>
+<p>SELECT @CurrentID = MIN(ID), @MaxID = MAX(ID) FROM #TableNameList WITH(NOLOCK)</p>
+<hr />
+<p>-- 2. 테이블 목록을 순회하며 CREATE TABLE 구문 생성 및 출력</p>
+<hr />
+<p>WHILE @CurrentID IS NOT NULL AND @CurrentID \&lt;= @MaxID</p>
+<p>BEGIN</p>
+<p>-- 현재 테이블 이름 가져오기</p>
+<p>SELECT @TableName = TableName FROM #TableNameList WITH(NOLOCK) WHERE ID = @CurrentID</p>
+<p>-- 해당 테이블이 데이터베이스에 존재하는지 확인 (NOLOCK 사용)</p>
+<p>IF OBJECT_ID('dbo.' + @TableName) IS NOT NULL</p>
+<p>BEGIN</p>
+<p>-- 임시 테이블 정리</p>
+<p>IF OBJECT_ID('tempdb..#Columns') IS NOT NULL DROP TABLE #Columns</p>
+<p>-- 컬럼 정보 추출 및 임시 테이블에 저장</p>
+<p>SELECT</p>
+<p>C.name AS ColumnName</p>
+<p>, T.name AS DataType</p>
+<p>, C.max_length AS MaxLength</p>
+<p>, C.precision AS Precision</p>
+<p>, C.scale AS Scale</p>
+<p>, C.is_nullable AS IsNullable</p>
+<p>, C.is_identity AS IsIdentity</p>
+<p>, C.column_id</p>
+<p>INTO #Columns</p>
+<p>FROM</p>
+<p>sys.columns AS C WITH(NOLOCK)</p>
+<p>JOIN</p>
+<p>sys.tables AS TBL WITH(NOLOCK) ON TBL.object_id = C.object_id</p>
+<p>JOIN</p>
+<p>sys.types AS T WITH(NOLOCK) ON T.user_type_id = C.user_type_id</p>
+<p>WHERE</p>
+<p>TBL.name = @TableName</p>
+<p>ORDER BY</p>
+<p>C.column_id</p>
+<p>-- CREATE TABLE 구문 초기화</p>
+<p>SET @SQL = 'CREATE TABLE [dbo].[' + @TableName + '](' + @CRLF</p>
+<p>-- 컬럼 순회하며 구문 생성</p>
+<p>SELECT @SQL = @SQL + '        [' + ColumnName + '] [' + DataType + ']'</p>
+<p>-- 데이터 타입에 따라 길이/정밀도 추가</p>
+<p>+ CASE</p>
+<p>WHEN DataType IN ('nchar', 'char') THEN '(' + CAST(MaxLength / CASE WHEN DataType = 'nchar' THEN 2 ELSE 1 END AS NVARCHAR) + ')'</p>
+<p>WHEN DataType IN ('varchar', 'nvarchar', 'varbinary') THEN '(' + CASE WHEN MaxLength = -1 THEN 'MAX' ELSE CAST(MaxLength / CASE WHEN DataType = 'nvarchar' THEN 2 ELSE 1 END AS NVARCHAR) END + ')'</p>
+<p>WHEN DataType IN ('decimal', 'numeric') THEN '(' + CAST(Precision AS NVARCHAR) + ', ' + CAST(Scale AS NVARCHAR) + ')'</p>
+<p>ELSE ''</p>
+<p>END + ' '</p>
+<p>-- IDENTITY 속성 추가</p>
+<p>+ CASE WHEN IsIdentity = 1 THEN 'IDENTITY(1,1) ' ELSE '' END</p>
+<p>-- Null 허용 여부 추가</p>
+<p>+ CASE WHEN IsNullable = 1 THEN 'NULL' ELSE 'NOT NULL' END</p>
+<p>-- 마지막 컬럼이 아니면 쉼표(,) 추가</p>
+<p>+ CASE WHEN column_id = (SELECT MAX(column_id) FROM #Columns WITH(NOLOCK)) THEN '' ELSE ',' END</p>
+<p>+ @CRLF</p>
+<p>FROM</p>
+<p>#Columns WITH(NOLOCK)</p>
+<p>ORDER BY</p>
+<p>column_id</p>
+<p>-- 괄호 닫고 ON [PRIMARY] 추가</p>
+<p>SET @SQL = @SQL + ') ON [PRIMARY]' + @CRLF</p>
+<p>-- 최종 CREATE TABLE 구문 출력 및 구분선 추가</p>
+<p>PRINT @SQL</p>
+<p>PRINT '------------------------------------------------------------------------------------------------'</p>
+<p>-- 임시 테이블 정리</p>
+<p>IF OBJECT_ID('tempdb..#Columns') IS NOT NULL DROP TABLE #Columns</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 테이블이 존재하지 않는 경우 알림</p>
+<p>PRINT 'WARNING: Table [dbo].[' + @TableName + '] does not exist in the database.'</p>
+<p>PRINT '------------------------------------------------------------------------------------------------'</p>
+<p>END</p>
+<p>-- 다음 테이블로 이동</p>
+<p>SET @CurrentID = @CurrentID + 1</p>
+<p>END</p>
+<p>-- 최종 임시 테이블 정리</p>
+<p>IF OBJECT_ID('tempdb..#TableNameList') IS NOT NULL DROP TABLE #TableNameList</p>
+  </article>
+</div>
+</body>
+</html>

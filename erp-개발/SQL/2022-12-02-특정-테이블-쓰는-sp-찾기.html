@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>특정 테이블 쓰는 sp 찾기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>특정 테이블 쓰는 sp 찾기</h1>
+    <div class="meta">
+      <span class="note-date">2022-12-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">특정 테이블 쓰는 sp 찾기</h1>
+<p>-- 특정 테이블 쓰는 sp 찾기</p>
+<p>SELECT</p>
+<p>DISTINCT O.NAME</p>
+<p>FROM</p>
+<p>SYSDEPENDS AS D</p>
+<p>INNER JOIN</p>
+<p>SYSOBJECTS AS O</p>
+<p>ON</p>
+<p>D.ID = O.ID</p>
+<p>WHERE</p>
+<p>O.XTYPE = 'P'</p>
+<p>AND D.DEPID =</p>
+<p>(</p>
+<p>SELECT</p>
+<p>ID</p>
+<p>FROM</p>
+<p>SYSOBJECTS</p>
+<p>WHERE</p>
+<p>NAME = '_TXPRWkItemBasicInfo'</p>
+<p>)</p>
+  </article>
+</div>
+</body>
+</html>

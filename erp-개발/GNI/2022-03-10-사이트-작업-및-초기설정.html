@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사이트 작업 및 초기설정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사이트 작업 및 초기설정</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사이트 작업 및 초기설정</h1>
+<ul>
+<li>23.11.08</li>
+</ul>
+<ol>
+<li>
+<p>경로 폴더를 만듬</p>
+</li>
+<li>
+<p>aspx, cs , csproj, webinfo 4개 파일 읽기 전용 해제 후 노트패드로 모두 열기</p>
+</li>
+<li>
+<p>cs 파일 수정</p>
+</li>
+</ol>
+<blockquote></blockquote>
+<ul>
+<li>사이트 작업 - 기존에 있던 사이트를 이용해서 만들기</li>
+</ul>
+<ol>
+<li>경로, 폴더 만들기</li>
+</ol>
+<ul>
+<li>
+<p>D:\Ksystem.Net\sjpark \Sales\KCCARecv_sjpark</p>
+</li>
+<li>
+<p>\ 닷넷 \사이트이니셜\모듈\명칭</p>
+</li>
+</ul>
+<ol start="2">
+<li>파일 옮기기 / bin폴더는 삭제 / 읽기전용 체크 해제</li>
+</ol>
+<blockquote>
+<p>+. 특성 체크 (RA =&gt; 읽기전용 / A =&gt; 읽기전용 x</p>
+<p>==&gt; 체크아웃 / 체크인 알 수 있다</p>
+<p><img alt="" src="assets/사이트-작업-및-초기설정/image50.png" /></p>
+</blockquote>
+<ol start="3">
+<li>파일명 바꾸기 / 파일 수정</li>
+</ol>
+<blockquote>
+<p>aspx, cs, csproj, webinfo 총 4개 수정</p>
+<p>+. resx는 다른곳에 있는거 써도 되지만 명칭은 맞춰줘야함</p>
+<p>먼저 webinfo 수정 (경로 변경)</p>
+<p>++. 경로 수정할 때 주소 복사하면 \이기 때문에 복사 x (webinfo 파일은 / 로 구분되어있음)</p>
+<p><img alt="" src="assets/사이트-작업-및-초기설정/image51.png" /></p>
+</blockquote>
+<ul>
+<li>csproj 수정</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>
+<p>aspx, cs, webinfo 등 실행할 파일들의 경로가 담겨져있다</p>
+</li>
+<li>
+<p>assemblyname / rootnamespace 변경</p>
+</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>aspx 수정</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>맨 위에 경로명 수정</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/사이트-작업-및-초기설정/image52.png" /></p>
+<p><img alt="" src="assets/사이트-작업-및-초기설정/image53.png" /></p>
+</blockquote>
+<ul>
+<li>출력물 SP명도 있다</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>cs 수정</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>
+<p>경로명</p>
+</li>
+<li>
+<p>SP명 변경</p>
+</li>
+<li>
+<p>SP도 수정</p>
+</li>
+</ul>
+<blockquote></blockquote>
+<ol start="4">
+<li>실행해보기</li>
+</ol>
+<ul>
+<li>
+<p>csproj 실행 =&gt; 프로그램 잘열리는지 확인</p>
+</li>
+<li>
+<p>빌드 (Ctrl + Shift + B =&gt; dll 파일 (csproj- assemblyname을 따라서 만들어짐)</p>
+</li>
+<li>
+<p>dll 파일 1번서버에 옮김, aspx도 옮김 (dll - 서버에서 작동하는 파일)</p>
+</li>
+</ul>
+<blockquote>
+<p>원격없이 옮기기</p>
+<p>주소창에 입력 : <a href="file://61.250.183.1/d">\61.250.183.1\d</a></p>
+</blockquote>
+<p>====================================================================================================================================================================================================</p>
+<ol>
+<li>폼등록</li>
+</ol>
+<p>마스타 - 운영관리- 프로그램 - 폼등록</p>
+<p><strong>폼ID / 폼명 / 폼 파일명 / URL 수정</strong> (나머지는 복사 붙여넣기 해도된다)</p>
+<p>엔터키가 들어가 있을수 있으므로 작성하기전에 다 지워야함</p>
+<p>../../../ = ksystem.net</p>
+<ol start="2">
+<li>권한</li>
+</ol>
+<p>마스타 - 운영관리 - 사용자 - 프로그램별 사용자 등록</p>
+<p>사용자 - super</p>
+<p>사업장권한 - all 이 좋음</p>
+<ol start="3">
+<li>메뉴 등록</li>
+</ol>
+<p>마스타 - 운영관리 - 모듈 - 메뉴등록</p>
+<p>==================================== 까지가 첫 단계 (화면 띄우기 용)</p>
+<p>컨트롤, 시트 컬럼 추가하기 (비고1, 비고2)</p>
+<ol>
+<li>
+<p>csproj 실행</p>
+</li>
+<li>
+<p>aspx - 디자인</p>
+</li>
+</ol>
+<ul>
+<li>
+<p>컨트롤 추가</p>
+</li>
+<li>
+<p>속성 변경 (ID, Caption)</p>
+</li>
+</ul>
+<ol start="3">
+<li>aspx - HTML</li>
+</ol>
+<ul>
+<li>
+<p>추가한 컨트롤 자동으로 들어있는지 확인</p>
+</li>
+<li>
+<p>Private 부분에서 시트 추가할 부분 추가</p>
+</li>
+<li>
+<p>Page_Load 전체 갯수 추가 (시트 추가한 만큼)</p>
+</li>
+</ul>
+<p><strong>*** 순서가 중요 / 시트 전체 갯수 만큼 숫자 입력</strong></p>
+<ul>
+<li>변경 전</li>
+</ul>
+<p><img alt="" src="assets/사이트-작업-및-초기설정/image54.png" /></p>
+<blockquote></blockquote>
+<ul>
+<li>변경 후</li>
+</ul>
+<p><img alt="" src="assets/사이트-작업-및-초기설정/image55.png" /></p>
+<ol start="4">
+<li>cs 수정</li>
+</ol>
+<ul>
+<li>Body 부분 수정 (순서가 중요)</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/사이트-작업-및-초기설정/image56.png" /></p>
+</blockquote>
+<p>밑에 _page.Additem 부분에서</p>
+<p>[msRemark1]이 들어가는게 아니라 순서인 6이 들어간다</p>
+<p>(알아보기 편하게 msRemark1 이라고 작성한 것)</p>
+<ol start="5">
+<li>컴파일 후 aspx, dll 파일 1번서버로 옮기기</li>
+</ol>
+<!-- -->
+
+<ol start="6">
+<li>SP도 수정</li>
+</ol>
+  </article>
+</div>
+</body>
+</html>

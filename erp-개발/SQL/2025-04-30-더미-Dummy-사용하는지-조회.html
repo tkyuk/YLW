@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>더미 Dummy 사용하는지 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>더미 Dummy 사용하는지 조회</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-30</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="dummy">더미 Dummy 사용하는지 조회</h1>
+<p>SELECT Memo1,* FROM _TPDMMOutReqItem WHERE ISNULL(Memo1,'') \&lt;&gt; ''</p>
+<p>SELECT Memo2,* FROM _TPDMMOutReqItem WHERE ISNULL(Memo2,'') \&lt;&gt; ''</p>
+<p>SELECT Memo3,* FROM _TPDMMOutReqItem WHERE ISNULL(Memo3,'') \&lt;&gt; ''</p>
+<p>SELECT Memo4,* FROM _TPDMMOutReqItem WHERE ISNULL(Memo4, 0) \&lt;&gt; 0</p>
+<p>SELECT Memo5,* FROM _TPDMMOutReqItem WHERE ISNULL(Memo5, 0) \&lt;&gt; 0</p>
+<p>SELECT Memo6,* FROM _TPDMMOutReqItem WHERE ISNULL(Memo6, 0) \&lt;&gt; 0</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy2        ,* FROM _TLGInOutDailyItem WHERE ISNULL(Dummy2        ,'') \&lt;&gt; '' AND ISNULL(Dummy2        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy4        ,* FROM _TLGInOutDailyItem WHERE ISNULL(Dummy4        ,'') \&lt;&gt; '' AND ISNULL(Dummy4        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy5        ,* FROM _TLGInOutDailyItem WHERE ISNULL(Dummy5        ,'') \&lt;&gt; '' AND ISNULL(Dummy5        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy9        ,* FROM _TLGInOutDailyItem WHERE ISNULL(Dummy9        , 0) \&lt;&gt; 0 ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy10        ,* FROM _TLGInOutDailyItem WHERE ISNULL(Dummy10        , 0) \&lt;&gt; 0 ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy1        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy1        ,'') \&lt;&gt; '' AND ISNULL(Dummy1        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy2        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy2        ,'') \&lt;&gt; '' AND ISNULL(Dummy2        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy3        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy3        ,'') \&lt;&gt; '' AND ISNULL(Dummy3        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy4        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy4        ,'') \&lt;&gt; '' AND ISNULL(Dummy4        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy5        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy5        ,'') \&lt;&gt; '' AND ISNULL(Dummy5        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy6        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy6        ,'') \&lt;&gt; '' AND ISNULL(Dummy6        ,'') \&lt;&gt;'0.00000' ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy7        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy7        , 0) \&lt;&gt; 0 ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy8        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy8        , 0) \&lt;&gt; 0 ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy9        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy9        , 0) \&lt;&gt; 0 ORDER BY 1 DESC</p>
+<p>SELECT TOP 100 LASTDATETIME,Dummy10        ,* FROM _TPDQCTestReport WHERE ISNULL(Dummy10        , 0) \&lt;&gt; 0 ORDER BY 1 DESC</p>
+  </article>
+</div>
+</body>
+</html>

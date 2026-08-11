@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 숨김</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 숨김</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트 숨김</h1>
+<p>-- 행기준</p>
+<p>SetGridRowDefinition('GridItem',2,0,false)</p>
+<p>-- 시트3 조회</p>
+<p>SetGridRowDefinition('GridItem',2,0,true)</p>
+<p>-- 열 기준</p>
+<p>-- 25.06.18 sjpark</p>
+<p>-- 외주검사인 경우에만 문서 시트 조회</p>
+<p>if _base.PgmSeq == 128410196 then</p>
+<blockquote>
+<p>SetGridColumnDefinition('GridItem', 0, 832, false)</p>
+<p>SetGridColumnDefinition('GridItem', 1, 100, true)</p>
+<p>SetGridColumnDefinition('GridItem', 2, 40, false)</p>
+<p>SetGridColumnDefinition('GridItem', 3, 250, false)</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SetGridColumnDefinition('GridItem', 0, 832, false)</p>
+<p>SetGridColumnDefinition('GridItem', 1, 100, true)</p>
+<p>SetGridColumnDefinition('GridItem', 2, 40, false)</p>
+<p>SetGridColumnDefinition('GridItem', 3, 0, false)</p>
+</blockquote>
+<p>end        </p>
+<p><img alt="" src="assets/시트-숨김/image43.png" /></p>
+  </article>
+</div>
+</body>
+</html>

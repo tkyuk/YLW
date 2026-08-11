@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.17 협진커넥터 발령등록 로그테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.17 협진커넥터 발령등록 로그테이블</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241217">24.12.17 협진커넥터 발령등록 로그테이블</h1>
+<p>SELECT * FROM _TDAEmp WHERE EmpName IN ('이향미', '조동남')</p>
+<p>-- 787, 788</p>
+<p>SELECT * FROM _THRAdmOrdEmp</p>
+<p>SELECT * FROM _TCOMTableLog WHERE TableName = '_THRAdmOrdEmp'</p>
+<p>-- 테이블 키값으로만 가능(빠름) : 테이블, CompanySeq, 테이블 키, 테이블 키 값</p>
+<p>EXEC _SWCOMGetTableLog '_THRAdmOrdEmp', 1, 'EmpSeq', 787</p>
+<p>GO</p>
+<p>SELECT * FROM _THRAdmOrdEmp WHERE EmpSeq = 787</p>
+<p>--급여형태 PtSeq 0 / 3 급여형태_VEN</p>
+<p>--발령일 : OrdDate 20241111 / 20241101</p>
+<p>--급여처리그룹 PuSeq 0 / 1 급여작업군_VEN</p>
+<p>GO</p>
+<p>EXEC _SWCOMGetTableLog '_THRAdmOrdEmp', 1, 'EmpSeq', 788</p>
+<p>go</p>
+<p>SELECT * FROM _THRAdmOrdEmp WHERE EmpSeq = 788</p>
+<p>--발령일 : OrdDate 20241111 / 20241101</p>
+<p>--급여처리그룹 PuSeq 0 / 1</p>
+<p>select * From _TCAUser where UserSeq = 32</p>
+<p>select * From _TCAPgm where PgmSeq = 2720097</p>
+<p>--급여형태 0 / 3</p>
+<p>PtSeq        PtName</p>
+<p>1        임원</p>
+<p>2        연봉직</p>
+<p>3        시급직</p>
+<p>7        일용직</p>
+<p>PuSeq        PuName</p>
+<p>1        협진커넥터</p>
+<p>2        급상여처리안함</p>
+  </article>
+</div>
+</body>
+</html>

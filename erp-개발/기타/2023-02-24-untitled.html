@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2023-02-24-untitled</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2023-02-24-untitled</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>function fnSLGetItemInfo_djb(ObjectSS, IntSRow, IntERow, StrColCustSeq, StrColDeptSeq, StrColCurrSeq, DatSalesDate, StrColItemSeq, StrColUnitSeq, StrColSTDQty,</p>
+<p>StrColItemStdPrice, StrColCustStdPrice, StrColPrice, StrColQty, StrColVatRate, StrColInclusedVAT, StrColCurAmt, StrColCurVat, StrColCurAmtTotal,</p>
+<p>StrColDomAmt, StrColDomVat, StrColDomTotAmt, StrColOptionSeq, StrColExRate, StrExpKind, StrColDomPrice, StrColUnitName,</p>
+<p>StrColSTDUnitName, StrColSTDUnitSeq, StrColIsQtyChange, IntInOut, StrColWHName, StrColWHSeq, StrColBizUnit, StrColEmpSeq)</p>
+<p>local ds, Qty, STDQty</p>
+<p>local columnSchema</p>
+<p>local addData</p>
+<p>StrCol = ObjectSS.ActiveColumnName</p>
+<p>if IntInOut == '' or IntInOut == nil then</p>
+<p>IntInOut = 1</p>
+<p>end</p>
+<p>columnSchema = '{WorkingTag, string}{IDX_NO, int}{Status, int}{DataSeq, int}{Selected, int}{TABLE_NAME, string}'</p>
+<p>..'{DeptSeq, int}{WHSeq, int}{BizUnit, int}{ItemSeq, int}{InOrOut, int}{SalesDate, string}{CurrSeq, int}{CustSeq, int}'</p>
+<p>..'{UnitSeq, int}{UnitName, string}{OptionSeq, int}{Qty, double}{IsPurchase, string}{SMExpKind, int}{ItemStdPrice, double}{CustStdPrice, double}'</p>
+<p>..'{ItemMinPrice, double}{ItemCustPrice, double}{PriceStep, int}{PriceStepName, string}{IsAppQty, int}{CurrName, string}{CustName, string}{OptionName, string}'</p>
+<p>..'{ItemClassName, string}{UMItemClass, int}{IsInclusedVAT, string}{VATRate, double}{SMBillType, int}{StdUnitSeq, int}{StdUnitName, string}'</p>
+<p>..'{StdQty, double}{IsQtyChange, string}{WHName, string}{ColName, string}{EmpSeq, int}'</p>
+<p>ds = CreateDataSet(ds,'DataBlock1', columnSchema)</p>
+<p>for iRow = IntSRow, IntERow, 1 do</p>
+<p>if StrColQty == '' then</p>
+<p>Qty = 0</p>
+<p>else</p>
+<p>Qty = CellText(ObjectSS, iRow, StrColQty)</p>
+<p>end</p>
+<p>if StrColSTDQty == '' then</p>
+<p>STDQty = 0</p>
+<p>else</p>
+<p>STDQty = CellText(ObjectSS, iRow, StrColSTDQty)</p>
+<p>end</p>
+<p>if StrColWHSeq == '' then</p>
+<p>WHSeq = 0</p>
+<p>else</p>
+<p>WHSeq = CellText(ObjectSS, iRow, StrColWHSeq)</p>
+<p>end</p>
+<p>if StrColOptionSeq == '' then</p>
+<p>OptionSeq = 0</p>
+<p>else</p>
+<p>OptionSeq = CellText(ObjectSS, iRow, StrColOptionSeq)</p>
+<p>end</p>
+<p>addData = 'A'..CNST_SP..tostring(iRow)..CNST_SP..'0'..CNST_SP..tostring(iRow)..CNST_SP..'1'..CNST_SP..'DataBlock1'..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColDeptSeq)..CNST_SP</p>
+<p>..tostring(WHSeq)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColBizUnit)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColItemSeq)..CNST_SP</p>
+<p>..tostring(IntInOut)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, DatSalesDate)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColCurrSeq)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColCustSeq)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColUnitSeq)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColUnitName)..CNST_SP</p>
+<p>..tostring(OptionSeq)..CNST_SP</p>
+<p>..tostring(Qty)..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrExpKind)..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..'0'..CNST_SP</p>
+<p>..''..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColWHName)..CNST_SP</p>
+<p>..tostring(StrCol)..CNST_SP</p>
+<p>..CellText(ObjectSS, iRow, StrColEmpSeq)</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>end</p>
+<p>rtnDs = ExecuteService(501144, 1, ds, rtnDs, 'SQLWF')</p>
+<p>if (rtnDs == nil) then</p>
+<p>else</p>
+<p>for row=0, GetDataBlock(rtnDs, 'DataBlock1').Rows.Count-1, 1 do</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColItemStdPrice, GetDataSetValue(rtnDs, 'DataBlock1', 'ItemStdPrice', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColCustStdPrice, GetDataSetValue(rtnDs, 'DataBlock1', 'CustStdPrice', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColPrice, GetDataSetValue(rtnDs, 'DataBlock1', 'CustStdPrice', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColSTDUnitName, GetDataSetValue(rtnDs, 'DataBlock1', 'StdUnitName', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColSTDUnitSeq, GetDataSetValue(rtnDs, 'DataBlock1', 'StdUnitSeq', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColSTDQty, GetDataSetValue(rtnDs, 'DataBlock1', 'StdQty', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColWHName, GetDataSetValue(rtnDs, 'DataBlock1', 'WHName', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColWHSeq, GetDataSetValue(rtnDs, 'DataBlock1', 'WHSeq', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColInclusedVAT, GetDataSetValue(rtnDs, 'DataBlock1', 'IsInclusedVAT', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColVatRate, GetDataSetValue(rtnDs, 'DataBlock1', 'VATRate', row))</p>
+<p>if StrColIsQtyChange ~= '' then</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColIsQtyChange, GetDataSetValue(rtnDs, 'DataBlock1', 'IsQtyChange', row))</p>
+<p>end</p>
+<p>if CellText(ObjectSS, IntSRow + row, StrColUnitSeq) == '' or CellText(ObjectSS, IntSRow + row, StrColUnitSeq) == '0' then</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColUnitSeq, GetDataSetValue(rtnDs, 'DataBlock1', 'UnitSeq', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, StrColUnitName, GetDataSetValue(rtnDs, 'DataBlock1', 'UnitName', row))</p>
+<p>end</p>
+<p>CustItemName = GetDataSetValue(rtnDs, 'DataBlock1', 'CustItemName', row)</p>
+<p>--if CustItemName == nil or CustItemName == '' then</p>
+<p>-- test</p>
+<p>--else</p>
+<p>SetText(ObjectSS, IntSRow + row, 'CustItemName', GetDataSetValue(rtnDs, 'DataBlock1', 'CustItemName', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, 'CustItemNo', GetDataSetValue(rtnDs, 'DataBlock1', 'CustItemNo', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, 'CustItemSpec', GetDataSetValue(rtnDs, 'DataBlock1', 'CustItemSpec', row))</p>
+<p>SetText(ObjectSS, IntSRow + row, 'CustItemUnit', GetDataSetValue(rtnDs, 'DataBlock1', 'CustItemUnit', row))</p>
+<p>--end</p>
+<p>end</p>
+<p>nVatDec = GetDataSetValue(rtnDs, 'DataBlock1', 'VATDecEnv', 0)</p>
+<p>nAmtDec = GetDataSetValue(rtnDs, 'DataBlock1', 'AmtDecEnv', 0)</p>
+<p>nCurr = GetDataSetValue(rtnDs, 'DataBlock1', 'CurrEnv', 0)</p>
+<p>nCurrName = GetDataSetValue(rtnDs, 'DataBlock1', 'CurrEnvName', 0)</p>
+<p>nCurAmt = GetDataSetValue(rtnDs, 'DataBlock1', 'CurAmtEnv', 0)</p>
+<p>nKorAmt = GetDataSetValue(rtnDs, 'DataBlock1', 'DomAmtEnv', 0)</p>
+<p>BasicAmt = GetDataSetValue(rtnDs, 'DataBlock1', 'BasicAmt', 0)</p>
+<p>end</p>
+<p>ObjectSS.ActiveColumnName = StrCol</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

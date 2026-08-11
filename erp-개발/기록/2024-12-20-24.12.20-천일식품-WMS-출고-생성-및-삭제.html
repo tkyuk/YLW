@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.20 천일식품 WMS 출고 생성 및 삭제</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.20 천일식품 WMS 출고 생성 및 삭제</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241220-wms">24.12.20 천일식품 WMS 출고 생성 및 삭제</h1>
+<p>/*</p>
+<p>--=======================================================================</p>
+<p>--=======================================================================</p>
+<p>--=======================================================================</p>
+<p>출고생성 안됨</p>
+<p>cif_TSLFreeOutReqItemSub 테이블 확정 아닌건 만 담는데 확정이기 때문에 데이터 미생성</p>
+<p>=&gt; 출고 생성 시 확정 -&gt; 삭제 시 0으로 업데이트 없음 ===&gt; 추가</p>
+<p>UPDATE C1</p>
+<p>SET IsCfm = '0'</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock2 AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>JOIN cif_TSLFreeOutReqItemSub AS C1 ON C1.CompanySeq = @CompanySeq</p>
+<p>AND B.ReqSeq = C1.ReqSeq AND B.ReqSerl = C1.Serl AND B.ReqSubSerl = C1.SubSerl</p>
+<p>WHERE B.Status = 0</p>
+<p>AND B.GubnSeq = 2000093001</p>
+<p>UPDATE C2</p>
+<p>SET IsCfm = '0'</p>
+<p>FROM #TLGInOutDailyItem AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock2 AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>JOIN cif_TLGCommissionOutReqItemSub AS C2 ON C2.CompanySeq = @CompanySeq AND B.GubnSeq = 2000093002</p>
+<p>AND B.ReqSeq = C2.ReqSeq AND B.ReqSerl = C2.Serl AND B.ReqSubSerl = C2.SubSerl</p>
+<p>WHERE B.Status = 0</p>
+<p>AND B.GubnSeq = 2000093002</p>
+<p>--=======================================================================</p>
+<p>--=======================================================================</p>
+<p>--=======================================================================</p>
+<p>*/</p>
+<p>-- 조회</p>
+<p>SELECT 2000093001, C.ReqSeq, C.Serl, MIN(C.SubSerl), SUM(C.Qty)</p>
+<p>FROM cif_TSLFreeOutReq AS A</p>
+<p>JOIN cif_TSLFreeOutReqItem AS B ON A.CompanySeq = B.CompanySeq AND A.ReqSeq = B.ReqSeq</p>
+<p>JOIN cif_TSLFreeOutReqItemSub AS C ON B.CompanySeq = C.CompanySeq AND B.ReqSeq = C.ReqSeq AND B.Serl = C.Serl</p>
+<p>LEFT OUTER JOIN _TDAItem AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq AND B.ItemSeq = D.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND @GubnSeq IN (0, 2000093001)</p>
+<p>SELECT * FROM cif_TSLFreeOutReq WHERE ReqSeq = 14885</p>
+<p>SELECT DVReqSeq,OutSeq,OutSerl,* FROM CIF_WMS_TSLINVOICE WHERE DVReqSeq = 14885</p>
+<p>SELECT DVReqSeq, * FROM CIF_WMS_TSLINVOICE WHERE OutSeq = 0 and OutType = 2 order by Seq desc</p>
+<p>SELECT * FROM _TDAItem</p>
+<p>SELECT * FROM _TDACust WHERE CustSeq = 23</p>
+<p>SELECT * FROM _TSLInvoice WHERE InvoiceSeq = 168227</p>
+<p>SELECT C.ReqNo,B.*</p>
+<p>FROM cif_TSLFreeOutReqItem AS A</p>
+<p>JOIN CIF_WMS_TSLINVOICE AS B ON B.DVReqSeq = A.ReqSeq</p>
+<p>AND B.DVReqSerl = A.Serl</p>
+<p>JOIN cif_TSLFreeOutReq AS C ON A.CompanySeq = C.CompanySeq AND A.ReqSeq = C.ReqSeq</p>
+<p>JOIN cif_TSLFreeOutReqItemSub AS D ON D.CompanySeq = A.CompanySeq AND D.ReqSeq = A.ReqSeq AND D.Serl = A.Serl</p>
+<p>WHERE OutSeq = 0 and OutType = 2 order by Seq desc</p>
+<p>[WMS출고생성_cif]</p>
+<p>삭제 : cif_SSLWMSInvoiceOutReqDelete</p>
+<p>구분</p>
+<blockquote>
+<p>1.무상출고</p>
+<p>cif_TSLFreeOutReqItemSub -&gt; _TLGInOutDailyItem</p>
+<p>2.위탁출고</p>
+<p>cif_TLGCommissionOutReqItemSub -&gt; _TLGInOutDailyItem</p>
+<p>3.수주입력</p>
+<p>수주 -&gt; 거래명세서</p>
+</blockquote>
+<p>출고 삭제 시</p>
+<ol>
+<li>
+<p>구분 1,2 -&gt; 입출고에 대한 진행 연결 삭제 추가</p>
+</li>
+<li>
+<p>삭제 시 cif_TSLFreeOutReqItemSub,cif_TLGCommissionOutReqItemSub 테이블의 IsCfm = '0' 어업데이트 로직 추가</p>
+</li>
+</ol>
+  </article>
+</div>
+</body>
+</html>

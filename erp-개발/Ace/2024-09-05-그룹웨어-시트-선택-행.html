@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹웨어 시트 선택 행</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹웨어 시트 선택 행</h1>
+    <div class="meta">
+      <span class="note-date">2024-09-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">그룹웨어 시트 선택 행</h1>
+<table>
+<thead>
+<tr>
+<th>참고 : CustBank_emk</th>
+<th>거래처별지불계좌_emk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>
+<p>시트그룹컬럼명 : GroupKey 추가 (개발툴 시트, 비즈니스, sp 모두 추가해야함</p>
+<ol>
+<li>sp 예시</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>,K.GroupKey</p>
+<p>LEFT OUTER JOIN _TCOMGroupWare AS K WITH(NOLOCK) ON K.CompanySeq = @CompanySeq</p>
+<p>AND K.WorkKind = 'CustBank_emk'</p>
+<p>AND K.TblKey = CONVERT(NVARCHAR, A.CustSeq)</p>
+</blockquote>
+<p>그룹웨어 sp 하단 참고 (emk_SWDACustBankAccPrintEAQuery)</p>
+<p><img alt="" src="assets/그룹웨어-시트-선택-행/image157.png" /></p>
+<p>DROP PROCEDURE emk_SWDACustBankAccPrintEAQuery</p>
+<p>GO</p>
+<p>CREATE PROCEDURE emk_SWDACustBankAccPrintEAQuery</p>
+<p>@xmlDocument NVARCHAR(MAX),</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,-- 서비스등록한것 Seq가 넘어온다.</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<blockquote>
+<p>DECLARE @TmpSeq NVARCHAR(100),</p>
+</blockquote>
+<p>@CustSeq INT,</p>
+<p>@CustBankAccSerl INT,</p>
+<p>@DocHandle INT</p>
+<p>EXEC sp_xml_preparedocument @DocHandle OUTPUT, @XmlDocument;</p>
+<p>--SELECT @TmpSeq = CustSeq</p>
+<p>-- FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags)</p>
+<p>-- WITH (CustSeq NVARCHAR(100));</p>
+<p>SELECT ISNULL(CustSeq, 0) AS CustSeq</p>
+<p>INTO #Tmp_TDACustBankAcc</p>
+<p>FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags)</p>
+<p>WITH (CustSeq INT)</p>
+<p>--IF (ISNULL(@TmpSeq, '') \&lt;&gt; '')</p>
+<p>--BEGIN</p>
+<p>-- IF SUBSTRING(@TmpSeq, LEN(@TmpSeq)-1, LEN(@TmpSeq)) \&lt;&gt; '_/'</p>
+<p>-- BEGIN</p>
+<p>-- SELECT @TmpSeq = @TmpSeq + '_/'</p>
+<p>-- END</p>
+<p>-- SELECT @CustSeq = A.Code</p>
+<p>-- FROM _FCOMSplit(@TmpSeq,'_/') AS A</p>
+<p>-- WHERE A.IDX_No = 1</p>
+<p>-- SELECT @CustBankAccSerl = A.Code</p>
+<p>-- FROM _FCOMSplit(@TmpSeq,'_/') AS A</p>
+<p>-- WHERE A.IDX_No = 2</p>
+<p>--END</p>
+<p>DECLARE @AppEmpName NVARCHAR(100)</p>
+<p>SELECT @AppEmpName = A.UserName</p>
+<p>FROM _TCAUser AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.UserSeq = @UserSeq</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>DECLARE @EnvValue NVARCHAR(1000), -- 환경설정(사업자번호형식)</p>
+<p>@EnvValue2 NVARCHAR(1000) -- 환경설정(주민등록번호형식)</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq,17,@UserSeq,@@PROCID,@EnvValue OUTPUT -- 환경설정(사업자번호형식)</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq,16,@UserSeq,@@PROCID,@EnvValue2 OUTPUT -- 환경설정(주민등록번호형식)</p>
+<p>SELECT @EnvValue = ISNULL(@EnvValue , N'')</p>
+<p>SELECT @EnvValue2 = ISNULL(@EnvValue2, N'')</p>
+<p>IF ISNULL(@EnvValue, N'') = N''</p>
+<p>BEGIN</p>
+<p>SELECT @EnvValue = N'999-99-99999'</p>
+<p>END</p>
+<p>-- (INPUT) 사용자정의코드 대분류</p>
+<p>CREATE TABLE #TDAUMajorLanuage(</p>
+<p>MajorSeq INT</p>
+<p>)</p>
+<p>-- (OUTPUT) 사용자정의코드 소분류_사전</p>
+<p>CREATE TABLE #TDAUMinorLanguage(</p>
+<p>CompanySeq INT ,</p>
+<p>MajorSeq INT ,</p>
+<p>MinorSeq INT ,</p>
+<p>MinorName NVARCHAR(200)</p>
+<p>)</p>
+<p>INSERT INTO #TDAUMajorLanuage(MajorSeq)</p>
+<p>SELECT 4003 -- 금융기관</p>
+<p>EXEC dbo._SWUTGetUMinorLanguage @CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>--======================</p>
+<p>-- 조회조건 선처리</p>
+<p>--======================</p>
+<p>CREATE TABLE #TDACustBankAcc(</p>
+<p>CompanySeq INT</p>
+<p>, CustBankAccSerl INT</p>
+<p>, CustSeq INT</p>
+<p>, BankAccNo NVARCHAR(400)</p>
+<p>)</p>
+<p>INSERT INTO #TDACustBankAcc(CompanySeq, CustBankAccSerl, CustSeq, BankAccNo)</p>
+<p>SELECT DISTINCT A.CompanySeq, A.CustBankAccSerl, A.CustSeq, dbo._FWCOMDecrypt(A.BankAccNo, N'_TDACustBankAcc', N'BankAccNo', @CompanySeq)</p>
+<p>FROM _TDACustBankAcc AS A WITH(NOLOCK)</p>
+<p>JOIN #Tmp_TDACustBankAcc AS B WITH(NOLOCK) ON B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACustKind AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.CustSeq = A.CustSeq -- 거래처종류</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>--AND A.CustSeq = @CustSeq</p>
+<p>--AND A.CustBankAccSerl = @CustBankAccSerl</p>
+<p>-- 최종 SELECT</p>
+<p>SELECT CONVERT(NCHAR(8),GETDATE(),112) AS AppDate -- 신청일</p>
+<p>,@AppEmpName AS AppEmpName -- 신청자</p>
+<p>,C.FullName AS FullName -- 상호 (거래처등록 상호명)</p>
+<p>,C.CustName AS CustName -- 거래처명</p>
+<p>,CASE WHEN ISNULL(C.BizNo,'') = '' THEN '0' ELSE '1' END AS IsBizNo -- 사업자여부 (사업자번호 없는 경우 X)</p>
+<p>,ISNULL(B.MinorName, '') AS SMBizPersName -- 사업자종류 (법인/개인 )</p>
+<p>,CASE WHEN LEFT( dbo._FDAGetCustKindNames(A.CompanySeq,A.CustSeq),1) = N''</p>
+<p>THEN SUBSTRING(dbo._FDAGetCustKindNames(A.CompanySeq,A.CustSeq),2,Len(dbo._FDAGetCustKindNames(A.CompanySeq,A.CustSeq)))</p>
+<p>ELSE dbo._FDAGetCustKindNames(A.CompanySeq,A.CustSeq) END AS UMCustKindName -- 거래처종류</p>
+<p>,ISNULL(C.Owner, '') AS CustOwner -- 대표자명</p>
+<p>,CASE WHEN ISNULL(C.BizNo, N'') = N'' AND ISNULL(C.PersonId, N'') \&lt;&gt; N''</p>
+<p>THEN ISNULL(dbo._fnResidMask(dbo._FCOMMaskConv(@EnvValue2, dbo._FWCOMDecrypt(C.PersonId, N'_TDACust', N'PersonId', @CompanySeq))), N'')</p>
+<p>ELSE ISNULL(dbo._FCOMMaskConv(@EnvValue, REPLACE(C.BizNo, '-', '')), '') END AS BizNo -- 사업자번호</p>
+<p>,dbo._FWCOMDecrypt(C.PersonId, '_TDACust', 'PersonId', @CompanySeq) AS PersonId -- 주민번호</p>
+<p>,ISNULL(C.BizType , '') AS BizType -- 업태</p>
+<p>,ISNULL(C.BizKind , '') AS BizKind -- 업종</p>
+<p>,ISNULL(L.Addr , '') AS BizAddr -- 주소</p>
+<p>,ISNULL(G.EmpName , '') AS EmpName -- 영업담당자</p>
+<p>,ISNULL(I.MinorName , '') AS UMReceiptCond -- 회수조건 (거래처 추가정보 - 회수조건)</p>
+<p>,ISNULL(B.MinorName , '') AS UMBankHQName -- 금융기관</p>
+<p>,ISNULL(A.Owner , '') AS Owner -- 예금주</p>
+<p>,ISNULL(X.BankAccNo , '') AS BankAccNo -- 계좌번호</p>
+<p>,ISNULL(A.IsDefault ,'0') AS IsDefault -- 주계좌여부(기본계좌여부)</p>
+<p>,ISNULL(D.SubAccNoPurPose, '') AS SubAccNoPurPose -- 보조계좌등록목적 24.05.20 SJPARK</p>
+<p>,ISNULL(A.Remark , '') AS Remark -- 비고</p>
+<p>--,A.CustSeq, -- 거래처내부코드</p>
+<p>-- C.CustNo, -- 거래처번호 컬럼 추가 by.sykim.</p>
+<p>-- A.CustBankAccSerl AS CustBankAccSerl, -- 계좌순번</p>
+<p>-- ISNULL(dbo._FCOMMaskConv(@EnvValue, REPLACE(C.BizNo, '-', '')), '') AS TaxNo, -- 사업자번호 -- 추후 삭제예정</p>
+<p>-- A.UMBankHQ, -- 금융기관내부코드</p>
+<p>-- A.IsCfm, -- 확정여부</p>
+<p>-- A.IsNotUse, -- 미사용여부</p>
+<p>-- CONVERT(NCHAR(8), A.LastDateTime, 112) AS LastDate, -- 수정일</p>
+<p>-- A.CustSeq AS CustSeqOld, -- 거래처내부코드Old</p>
+<p>-- A.CustBankAccSerl AS CustBankAccSerlOld, -- 계좌순번Old</p>
+<p>-- X.BankAccNo AS BankAccNoOld,</p>
+<p>-- ISNULL(A.CMSCode , N'') AS CMSCode , -- CMS코드</p>
+<p>-- ISNULL(A.LastUserSeq, 0) AS LastUserSeq,</p>
+<p>-- ISNULL(R.UserName , N'') AS LastUserName,</p>
+<p>-- A.LastDateTime AS LastDateTime</p>
+<p>FROM #TDACustBankAcc AS X</p>
+<p>JOIN _TDACustBankAcc AS A WITH(NOLOCK) ON A.CompanySeq = X.CompanySeq AND A.CustBankAccSerl = X.CustBankAccSerl</p>
+<p>JOIN _TDACust AS C WITH(NOLOCK) ON C.CompanySeq = X.CompanySeq AND C.CustSeq = X.CustSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS R WITH(NOLOCK) ON R.UserSeq = A.LastUserSeq</p>
+<p>LEFT OUTER JOIN #TDAUMinorLanguage AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MinorSeq = A.UMBankHQ</p>
+<p>AND B.MajorSeq = 4003 -- 금융기관</p>
+<p>LEFT OUTER JOIN emk_TDACustBankAcc AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq AND D.CustBankAccSerl = A.CustBankAccSerl</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.MinorSeq = C.SMBizPers</p>
+<p>LEFT OUTER JOIN _VWCOMAddress AS L ON C.CompanySeq = L.CompanySeq</p>
+<p>AND C.BizAddrSeq = L.AddressSeq</p>
+<p>AND L.IsMin = '1'</p>
+<p>LEFT OUTER JOIN _TSLCustSalesEmp AS F WITH(NOLOCK) ON A.CompanySeq = F.CompanySeq</p>
+<p>AND A.CustSeq = F.CustSeq</p>
+<p>AND CONVERT(NCHAR(8), A.LastDateTime, 112) BETWEEN F.SDate AND F.EDate</p>
+<p>LEFT OUTER JOIN _TDAEmp AS G WITH(NOLOCK) ON G.CompanySeq = F.CompanySeq</p>
+<p>AND G.EmpSeq = F.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACustUserDefine AS H WITH(NOLOCK) ON H.CompanySeq = C.CompanySeq</p>
+<p>AND H.CustSeq = C.CustSeq</p>
+<p>AND H.MngSerl = 1000030</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS I WITH(NOLOCK) ON I.CompanySeq = H.CompanySeq</p>
+<p>AND I.MinorSeq = H.MngValSeq</p>
+<p>ORDER BY C.CustName, A.IsDefault DESC, A.IsNotUse</p>
+<p>RETURN</p>
+<p>--GO</p>
+<p>--_SWCOMGroupWarePrint 1 , 1 , 27292 , 101820396 , 'CustBank_emk' , '1_/16' , 'emk'</p>
+  </article>
+</div>
+</body>
+</html>

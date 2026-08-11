@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 파일 업로드 / 파일실행 / 파일명 / 업로드일자</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 파일 업로드 / 파일실행 / 파일명 / 업로드일자</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트 파일 업로드 / 파일실행 / 파일명 / 업로드일자</h1>
+<p>FrmWSLLandfillRemainQty_emk</p>
+<blockquote>
+<p>FrmXPRDocuReview_ubase</p>
+</blockquote>
+<p>-- 조회 시 파일에 대한 업데이트문 필요</p>
+<p>DECLARE @SiteInit NVARCHAR(100),</p>
+<p>@SQL NVARCHAR(MAX)</p>
+<p>SELECT @SiteInit = LTRIM(RTRIM(SiteInit))</p>
+<p>FROM _TCACompanyConfig WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>SELECT @SQL = ''</p>
+<p>SELECT @SQL = @SQL + 'UPDATE A '</p>
+<p>SELECT @SQL = @SQL + ' SET FileName = ISNULL(B.FileName , '''') , FileDate = ISNULL(B.AttachDateTime , '''') '</p>
+<p>SELECT @SQL = @SQL + ' FROM #Result AS A '</p>
+<p>SELECT @SQL = @SQL + ' OUTER APPLY(SELECT MAX(Z.FileName) AS FileName , MAX(Z.AttachDateTime) AS AttachDateTime '</p>
+<p>SELECT @SQL = @SQL + ' FROM ' + @SiteInit + 'common.dbo._TCAAttachFileData AS Z WITH(NOLOCK) '</p>
+<p>SELECT @SQL = @SQL + ' WHERE Z.AttachFileSeq = A.FileSeq'</p>
+<p>SELECT @SQL = @SQL + ' ) AS B'</p>
+<p>EXEC(@SQL)</p>
+<p>SELECT A.YM AS YM</p>
+<p>,A.PUQty AS PUQty</p>
+<p>,A.RemainQty AS RemainQty</p>
+<p>,A.SalesQty AS SalesQty</p>
+<p>,A.Gravity AS Gravity</p>
+<p>,A.FileSeq AS FileSeq</p>
+<p>,A.FileName AS FileName</p>
+<p>,CASE WHEN ISNULL(A.FileName, '') = '' THEN '0' ELSE '1' END AS IsFile</p>
+<p>,CASE WHEN ISNULL(A.FileName, '') = '' THEN NULL ELSE FileDate END AS FileDate -- 1900-01-01로 조회되서 NULL로 수정 JHMOON</p>
+<p>,ISNULL(A.Seq , 0) AS Seq</p>
+<p>FROM #Result AS A</p>
+<p>ORDER BY A.YM</p>
+  </article>
+</div>
+</body>
+</html>

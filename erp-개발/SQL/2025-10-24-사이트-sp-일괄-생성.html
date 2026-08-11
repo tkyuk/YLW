@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사이트 sp 일괄 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사이트 sp 일괄 생성</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">사이트 sp 일괄 생성</h1>
+<p>-- =============================================</p>
+<p>-- 설명: 기존 SP를 새 SP로 일괄 생성하고,</p>
+<p>-- 생성된 SP의 전체 스크립트를 SELECT로 조회하는 스크립트</p>
+<p>-- 작성자: 우희철</p>
+<p>-- 마음대로 사용하셔도 되지만 사용에 대한 책임은 지지 않습니다</p>
+<p>-- =============================================</p>
+<p>SET NOCOUNT ON;</p>
+<p>-- 변수 선언</p>
+<p>DECLARE @SourceSP NVARCHAR(255), @CreateSP NVARCHAR(255);</p>
+<p>DECLARE @SQL NVARCHAR(MAX);</p>
+<p>DECLARE @SiteInit NVARCHAR(100)</p>
+<p>-- 1. SP 목록을 담을 임시 테이블 생성 및 데이터 삽입</p>
+<p>-- 이곳에 변환할 SP 목록을 추가하거나 수정하시면 됩니다.</p>
+<p>IF OBJECT_ID('tempdb..#SPList_First') IS NOT NULL DROP TABLE #SPList_First;</p>
+<p>CREATE TABLE #SPList_First (</p>
+<p>SourceSql NVARCHAR(255),</p>
+<p>)</p>
+<p>IF OBJECT_ID('tempdb..#SPList') IS NOT NULL DROP TABLE #SPList;</p>
+<p>CREATE TABLE #SPList (</p>
+<p>SourceSql NVARCHAR(255),</p>
+<p>CreateSql NVARCHAR(255)</p>
+<p>);</p>
+<p>SELECT @SiteInit = 'svs'</p>
+<p>INSERT INTO #SPList_First</p>
+<p>SELECT RIGHT(SqlScriptID,LEN(SqlScriptID)-LEN(@SiteInit))</p>
+<p>FROM SYSDEVWKCommon.DBO._TCASQLScripts</p>
+<p>WHERE SqlScriptSeq &gt;= 149710308 -- 스크립트 시작 Seq</p>
+<p>AND SqlScriptSeq \&lt;= 149710310 -- 스크립트 종료 Seq</p>
+<p>AND LastUserSeq = 51399</p>
+<p>INSERT INTO #SPList (SourceSql, CreateSql)</p>
+<p>SELECT SourceSql, @SiteInit+SourceSql</p>
+<p>FROM #SPList_First</p>
+<p>--SELECT RIGHT(SqlScriptID,LEN(SqlScriptID)-3) AS SourceSql ,SqlScriptID AS CreateSql</p>
+<p>-- FROM sysdevwkcommon.._TCASqlScripts</p>
+<p>-- WHERE SqlScriptSeq BETWEEN A AND B</p>
+<p>SELECT * FROM #SPList</p>
+<p>-- 2. 커서(Cursor)를 사용하여 테이블을 순회</p>
+<p>DECLARE sp_cursor CURSOR FOR</p>
+<p>SELECT SourceSql, CreateSql FROM #SPList;</p>
+<p>OPEN sp_cursor;</p>
+<p>FETCH NEXT FROM sp_cursor INTO @SourceSP, @CreateSP;</p>
+<p>WHILE @@FETCH_STATUS = 0</p>
+<p>BEGIN</p>
+<p>-- 3. sp_helptext를 사용하여 기존 SP의 정의를 임시 테이블에 저장</p>
+<p>IF OBJECT_ID('tempdb..#SPText') IS NOT NULL DROP TABLE #SPText;</p>
+<p>CREATE TABLE #SPText (Text NVARCHAR(MAX));</p>
+<p>BEGIN TRY</p>
+<p>INSERT INTO #SPText</p>
+<p>EXEC sp_helptext @SourceSP;</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>PRINT @SourceSP + N' 프로시저를 찾을 수 없습니다. 건너뜁니다.';</p>
+<p>FETCH NEXT FROM sp_cursor INTO @SourceSP, @CreateSP;</p>
+<p>CONTINUE;</p>
+<p>END CATCH</p>
+<p>-- 4. SP 정의를 하나의 문자열로 합치고, CREATE PROCEDURE 구문 변경</p>
+<p>SET @SQL = (SELECT Text FROM #SPText FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)');</p>
+<p>SET @SQL = STUFF(@SQL,</p>
+<p>CHARINDEX(@SourceSP, @SQL, CHARINDEX('PROCEDURE', @SQL)),</p>
+<p>LEN(@SourceSP),</p>
+<p>@CreateSP);</p>
+<p>-- 5. 기존에 동일한 이름의 SP가 있다면 삭제</p>
+<p>IF OBJECT_ID(@CreateSP, 'P') IS NOT NULL</p>
+<p>BEGIN</p>
+<p>EXEC('DROP PROCEDURE ' + @CreateSP);</p>
+<p>END</p>
+<p>-- 6. 변경된 SQL을 실행하여 새로운 SP 생성</p>
+<p>BEGIN TRY</p>
+<p>EXEC sp_executesql @SQL;</p>
+<p>PRINT @CreateSP + N' 프로시저가 성공적으로 생성되었습니다.';</p>
+<p>-- 7. 생성된 SP의 스크립트를 SELECT 문으로 결과 창에 출력</p>
+<p>IF OBJECT_ID('tempdb..#SPResultText') IS NOT NULL DROP TABLE #SPResultText;</p>
+<p>CREATE TABLE #SPResultText (Text NVARCHAR(MAX));</p>
+<p>INSERT INTO #SPResultText</p>
+<p>EXEC sp_helptext @CreateSP;</p>
+<p>-- 결과 그리드에 출력 (이 내용을 복사해서 사용하시면 됩니다)</p>
+<p>SELECT @CreateSP AS SPName,'DROP PROC ' + @CreateSP AS SP</p>
+<p>UNION ALL</p>
+<p>SELECT @CreateSP AS SPName, 'GO' AS SP</p>
+<p>UNION ALL</p>
+<p>SELECT @CreateSP AS SPName,(SELECT Text FROM #SPResultText FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)') AS SP</p>
+<p>DROP TABLE #SPResultText;</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>PRINT @CreateSP + N' 프로시저 생성 중 오류가 발생했습니다. 원본 SP: ' + @SourceSP;</p>
+<p>PRINT ERROR_MESSAGE();</p>
+<p>END CATCH</p>
+<p>FETCH NEXT FROM sp_cursor INTO @SourceSP, @CreateSP;</p>
+<p>END</p>
+<p>-- 커서 및 임시 테이블 정리</p>
+<p>CLOSE sp_cursor;</p>
+<p>DEALLOCATE sp_cursor;</p>
+<p>SELECT</p>
+<p>A.SourceSql,</p>
+<p>A.CreateSql,</p>
+<p>LEN(S.definition) AS SourceSqlLength,</p>
+<p>LEN(C.definition) AS CreateSqlLength,</p>
+<p>-- 두 프로시저의 길이 차이</p>
+<p>ISNULL(LEN(S.definition), 0) - ISNULL(LEN(C.definition), 0) AS LengthDifference</p>
+<p>FROM</p>
+<p>#SPList AS A</p>
+<p>LEFT OUTER JOIN</p>
+<p>sys.sql_modules AS S WITH(NOLOCK) ON S.object_id = OBJECT_ID(A.SourceSql)</p>
+<p>LEFT OUTER JOIN</p>
+<p>sys.sql_modules AS C WITH(NOLOCK) ON C.object_id = OBJECT_ID(A.CreateSql);</p>
+<p>DROP TABLE #SPList;</p>
+<p>IF OBJECT_ID('tempdb..#SPText') IS NOT NULL DROP TABLE #SPText;</p>
+<p>SET NOCOUNT OFF;</p>
+  </article>
+</div>
+</body>
+</html>

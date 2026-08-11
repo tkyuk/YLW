@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.12.24 수출 변경 내역 (컬럼추가)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.12.24 수출 변경 내역 (컬럼추가)</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="251224">25.12.24 수출 변경 내역 (컬럼추가)</h1>
+<p>Ship to</p>
+<p>ADDITIONAL COMMENTS</p>
+<p>Bank Information</p>
+<p>ShipTo</p>
+<p>AddComm</p>
+<p>BankInfo</p>
+<p>컬럼 3개 추가 / ShipTo, AddComm, BankInfo</p>
+<p>-- 조회</p>
+<p>--=============================================</p>
+<p>HSCode</p>
+<p>CO</p>
+<p>CT</p>
+<p>Dimension</p>
+<p>NWKG</p>
+<p>GWKG</p>
+<p>HSCode</p>
+<p>C/O</p>
+<p>컬럼 2개 추가 / HSCode, C/O</p>
+<p>_tdaunit</p>
+<p>,ISNULL(S1.HSCode,'') AS HSCode</p>
+<p>LEFT OUTER JOIN _TDAItemSales AS S1 WITH(NOLOCK) ON S1.CompanySeq = A.CompanySeq</p>
+<p>AND S1.ItemSeq = A.ItemSeq</p>
+<p>HSCode = ISNULL(A.HSCode ,''),</p>
+<p>CO = ISNULL(A.CO ,''),</p>
+<p>C/T NO.</p>
+<p>Dimension</p>
+<p>N/W(KG)</p>
+<p>G/W(KG)</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제품별공정별소요자재</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제품별공정별소요자재</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">제품별공정별소요자재</h1>
+<p>CREATE OR ALTER VIEW mcm_VMESPDROUItemProc</p>
+<p>AS</p>
+<p>SELECT A.CompanySeq AS CompanySeq , -- 법인내부코드</p>
+<p>B.CompanyName AS CompanyName , -- 법인이름</p>
+<p>A.ItemSeq AS ItemSeq , -- 제품코드</p>
+<p>A.ProcRev AS ProcRev , -- 공정차수</p>
+<p>A.BizUnit AS BizUnit , -- 사업단위내부코드</p>
+<p>A.ProcSeq AS ProcSeq , -- 공정내부코드</p>
+<p>P.ProcName AS ProcName , -- 공정</p>
+<p>I.UnitSeq AS UnitSeq , -- 제품단위내부코드</p>
+<p>A.AssyItemSeq AS AssyItemSeq , -- 공정품내부코드</p>
+<p>M.MatItemSeq AS MatItemSeq , -- 자재내부코드</p>
+<p>A.AssyQty AS AssyQty , -- 공정품소요량</p>
+<p>A.LastUserSeq AS LastUserSeq , -- 최종등록자</p>
+<p>A.LastDateTime AS LastDateTime -- 최종등록일자</p>
+<p>FROM _TPDROUItemProc AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCACompany AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDROUItemProcMat AS M WITH(NOLOCK) ON A.ItemSeq = M.ItemSeq</p>
+<p>AND A.ProcRev = M.ProcRev</p>
+<p>AND A.BizUnit = M.BizUnit</p>
+<p>AND A.Serl = M.Serl</p>
+<p>AND A.CompanySeq = M.CompanySeq</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON A.ItemSeq = I.ItemSeq</p>
+<p>AND A.CompanySeq = I.CompanySeq</p>
+<p>JOIN _TDAUnit AS U WITH(NOLOCK) ON I.UnitSeq = U.UnitSeq</p>
+<p>AND I.CompanySeq = U.CompanySeq</p>
+<p>JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON A.ProcSeq = P.ProcSeq</p>
+<p>AND A.CompanySeq = P.CompanySeq</p>
+  </article>
+</div>
+</body>
+</html>

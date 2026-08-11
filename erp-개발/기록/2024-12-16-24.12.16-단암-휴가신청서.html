@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.16 단암 휴가신청서</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.16 단암 휴가신청서</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241216">24.12.16 단암 휴가신청서</h1>
+<p>DROP PROC dbo.danam_SPRWkEmpVacGetUseDays_TTEST</p>
+<p>GO</p>
+<p>CREATE PROC dbo.danam_SPRWkEmpVacGetUseDays_TTEST</p>
+<p>@xmlDocument NVARCHAR(MAX) , -- 화면의 정보를 XML로 전달</p>
+<p>@xmlFlags INT = 0 , -- 해당 XML의 TYPE</p>
+<p>@ServiceSeq INT = 0 , -- 서비스 번호</p>
+<p>@WorkingTag NVARCHAR(10)= '', -- 워킹 태그</p>
+<p>@CompanySeq INT = 1 , -- 회사 번호</p>
+<p>@LanguageSeq INT = 1 , -- 언어 번호</p>
+<p>@UserSeq INT = 0 , -- 사용자 번호</p>
+<p>@PgmSeq INT = 0 -- 프로그램 번호</p>
+<p>AS</p>
+<p>-- 사용할 변수를 선언한다.</p>
+<p>DECLARE @docHandle INT -- XML문서를 핸들할 변수</p>
+<p>,@WkItemSeq INT</p>
+<p>,@EmpSeq INT</p>
+<p>,@AppDate NCHAR(8)</p>
+<p>,@OccurDays DECIMAL(19,5)</p>
+<p>,@UseDays DECIMAL(19,5)</p>
+<p>,@WkFrDate NCHAR(8)</p>
+<p>,@WkTODate NCHAR(8)</p>
+<p>,@WkTeamSeq INT</p>
+<p>,@ShiftTeamSeq INT</p>
+<p>,@WkUnitSeq INT</p>
+<p>,@DayTypeSeq INT</p>
+<p>,@IsHoli NCHAR(1)</p>
+<p>,@BasicBegTm NCHAR(14)</p>
+<p>,@BasicEndTm NCHAR(14)</p>
+<p>,@PrevBegTm NCHAR(14)</p>
+<p>,@PrevEndTm NCHAR(14)</p>
+<p>,@AfterBegTm NCHAR(14)</p>
+<p>,@AfterEndTm NCHAR(14)</p>
+<p>,@PrevWkItemSeq INT</p>
+<p>,@AfterWkItemSeq INT</p>
+<p>,@TimeTerm NVARCHAR(30)</p>
+<p>,@IsCC NCHAR(1)</p>
+<p>,@CCSeq INT</p>
+<p>,@YY NCHAR(4)</p>
+<p>,@EmpYyAmtPbSeq INT</p>
+<p>-- XML문서</p>
+<p>EXEC sp_xml_preparedocument @docHandle OUTPUT, @xmlDocument -- 생성된 XML문서를 @docHandle로 핸들한다.</p>
+<p>-- XML의 DataBlock1으로부터 값을 가져와 변수에 저장한다.</p>
+<p>SELECT @WkItemSeq = ISNULL(WkItemSeq , 0),</p>
+<p>@EmpSeq = ISNULL(EmpSeq , 0),</p>
+<p>@AppDate = ISNULL(AppDate ,''),</p>
+<p>@CCSeq = ISNULL(CCSeq , 0),</p>
+<p>@WkFrDate = ISNULL(WkFrDate , ''),</p>
+<p>@WkToDate = ISNULL(WkToDate , '')</p>
+<p>FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags) -- XML의 DataBlock1으로부터</p>
+<p>WITH (</p>
+<p>WkItemSeq INT,</p>
+<p>EmpSeq INT,</p>
+<p>AppDate NCHAR(8),</p>
+<p>CCSeq INT,</p>
+<p>WkFrDate NCHAR(8),</p>
+<p>WkToDate NCHAR(8)</p>
+<p>)</p>
+<p>IF EXISTS (SELECT * FROM _TPRWkItem WHERE CompanySeq = @CompanySeq AND WkItemSeq = @WkItemSeq AND SMAbsWkSort = 3069002 )</p>
+<p>BEGIN</p>
+<p>--===========================</p>
+<p>-- 년차발생및 사용일수</p>
+<p>--===========================</p>
+<p>CREATE TABLE #YYMM</p>
+<p>( YY NCHAR(4) NOT NULL, -- 년도</p>
+<p>EmpSeq INT NOT NULL, -- 사원</p>
+<p>OccurFrDate NCHAR(8) NULL, -- 발생시작일</p>
+<p>OccurToDate NCHAR(8) NULL, -- 발생종료일</p>
+<p>OccurDays NUMERIC(19, 5) NULL, -- 발생일수</p>
+<p>UseDays DECIMAL(19, 5) NULL, -- 사용일수</p>
+<p>UseFrDate NCHAR(8) NULL, -- 사용시작일</p>
+<p>UseToDate NCHAR(8) NULL, -- 사용종료일</p>
+<p>PayYM NCHAR(6) NULL, -- 지급월</p>
+<p>PbSeq INT NULL, -- 급상여종류</p>
+<p>PileDays NUMERIC(19, 5) NULL, -- 이월적치일수</p>
+<p>SumPileDays NUMERIC(19, 5) NULL, -- 적치일수</p>
+<p>GnerAmtYyMm NCHAR(6) NULL, -- 통상임금기준월</p>
+<p>AddDays INT NULL, -- 추가발생일</p>
+<p>OccurTime NUMERIC(19, 5) NULL, -- 발생시간</p>
+<p>UseTime NUMERIC(19, 5) NULL, -- 사용시간</p>
+<p>PileTime NUMERIC(19, 5) NULL, -- 이월적치시간</p>
+<p>SumPileTime NUMERIC(19, 5) NULL, -- 적치시간</p>
+<p>RevisionSeq INT NULL -- 개정여부 #bhlee_20180815</p>
+<p>)</p>
+<p>CREATE CLUSTERED INDEX YYMM_index ON #YYMM(EmpSeq) -- #bhlee_20180815 (JOIN 조건에 필수로 사용되는 EmpSeq 는 CLUSTERED INDEX 생성)</p>
+<p>CREATE TABLE #Use</p>
+<p>( YY NCHAR(4) NOT NULL, -- 년도</p>
+<p>EmpSeq INT NOT NULL, -- 사원</p>
+<p>UseDays NUMERIC(19, 5) NULL, -- 사용일수</p>
+<p>UseTime NUMERIC(19, 5) NULL -- 사용시간</p>
+<p>)</p>
+<p>/*===========================================================================================================================</p>
+<p>- [2018.08.15 이범확] #bhlee_20180815</p>
+<p>RevisionSeq, IsNotContinueSum 컬럼 추가</p>
+<p>RevisionSeq -&gt; 개정적용연차 : 1, ELSE : 0</p>
+<p>IsNotContinueSum -&gt; WHILE문에서 사용일 수가 발생일 수까지 카운트되면 중단 : 1, ELSE : 0</p>
+<p>===========================================================================================================================*/</p>
+<p>CREATE TABLE #temp</p>
+<p>(</p>
+<p>YY NCHAR(4)</p>
+<p>,OccurDays DECIMAL(19, 5)</p>
+<p>,EmpSeq INT</p>
+<p>,Seq INT IDENTITY(1, 1)</p>
+<p>,RevisionSeq INT</p>
+<p>,IsNotContinueSum NCHAR(1) DEFAULT 1</p>
+<p>)</p>
+<p>CREATE CLUSTERED INDEX temp_index ON #temp(EmpSeq) -- #bhlee_20180815 (JOIN 조건에 필수로 사용되는 EmpSeq 는 CLUSTERED INDEX 생성)</p>
+<p>/*===========================================================================================================================</p>
+<p>- [2018.08.15 이범확] #bhlee_20180815</p>
+<p>2017년 5월 30일 이후 입사자들의 모든 결근내역을 담기위한 템프테이블</p>
+<p>===========================================================================================================================*/</p>
+<p>CREATE TABLE #EmpUseDays</p>
+<p>(</p>
+<p>YY NCHAR(4)</p>
+<p>,EmpSeq INT</p>
+<p>,UseDays DECIMAL(19, 5)</p>
+<p>,AbsDate NCHAR(8)</p>
+<p>,Seq INT</p>
+<p>)</p>
+<p>/*===========================================================================================================================</p>
+<p>- [2018.08.15 이범확] #bhlee_20180815</p>
+<p>#EmpUseDays 테이블의 데이터를 GROUP BY, ORDER BY 하여 #EmpUseDays2 테이블에 INSERT</p>
+<p>===========================================================================================================================*/</p>
+<p>CREATE TABLE #EmpUseDays2</p>
+<p>(</p>
+<p>YY NCHAR(4)</p>
+<p>,EmpSeq INT</p>
+<p>,UseDays DECIMAL(19, 5)</p>
+<p>,AbsDate NCHAR(8)</p>
+<p>,Seq INT</p>
+<p>)</p>
+<p>CREATE CLUSTERED INDEX EmpUseDays2_index ON #EmpUseDays2(EmpSeq) -- #bhlee_20180815 (JOIN 조건에 필수로 사용되는 EmpSeq 는 CLUSTERED INDEX 생성)</p>
+<p>/*====================================================================================</p>
+<p>- [2018.08.15 이범확] #bhlee_20180815</p>
+<p>매월발생연차에 사용된 일자를 담는 템프테이블</p>
+<p>=====================================================================================*/</p>
+<p>CREATE TABLE #InEmpUseDays</p>
+<p>(</p>
+<p>YY NCHAR(4)</p>
+<p>,EmpSeq INT</p>
+<p>,UseDate NCHAR(8)</p>
+<p>,UseDays DECIMAL(19, 5)</p>
+<p>,Seq INT</p>
+<p>)</p>
+<p>CREATE CLUSTERED INDEX InEmpUseDays_index ON #InEmpUseDays(EmpSeq) -- #bhlee_20180815 (JOIN 조건에 필수로 사용되는 EmpSeq 는 CLUSTERED INDEX 생성)</p>
+<p>IF @PgmSeq = 8287 -- 근태휴가신청(개인별) 화면인 경우2018.07.04 UPDATED BY 정영훈</p>
+<p>BEGIN</p>
+<p>DECLARE @UserEmpSeq INT</p>
+<p>EXEC _SCOMGetEssUserEmp @CompanySeq,@userSeq,@UserEmpSeq OUTPUT</p>
+<p>SELECT @EmpSeq = ISNULL(@UserEmpSeq, 0)</p>
+<p>END</p>
+<p>IF @AppDate = ''</p>
+<p>SELECT @AppDate = CONVERT(NCHAR(8),GETDATE(),112)</p>
+<p>/*================================================================================================================================</p>
+<p>- 년차발생내역</p>
+<p>- [2018.08.15 이범확] #bhlee_20180815</p>
+<p>2017년 5월 30일 이후 입사자들의 연차기산연도 데이터는 제외하여 담도록 수정</p>
+<p>================================================================================================================================*/</p>
+<p>INSERT INTO #YYMM(YY, EmpSeq, OccurFrDate, OccurToDate, OccurDays, UseDays, UseFrDate, UseToDate, PayYM, PbSeq, PileDays, SumPileDays, GnerAmtYyMm, AddDays, OccurTime, UseTime, PileTime, SumPileTime, RevisionSeq)</p>
+<p>SELECT A.YY,</p>
+<p>A.EmpSeq,</p>
+<p>A.OccurFrDate,</p>
+<p>A.OccurToDate,</p>
+<p>A.OccurDays + ISNULL(A.PileDays, 0) + ISNULL(A.AddDays, 0) + ISNULL(A.ExProbOccurDays, 0) - (A.AddPileDays + A.BasePileDays),</p>
+<p>0,</p>
+<p>A.UseFrDate,</p>
+<p>A.UseToDate,</p>
+<p>A.PayYM,</p>
+<p>A.PbSeq,</p>
+<p>A.PileDays,</p>
+<p>ISNULL(A.AddPileDays, 0) + ISNULL(A.BasePileDays, 0), -- 기본적치일수 + 추가적치일수</p>
+<p>A.GnerAmtYyMm,</p>
+<p>A.AddDays AS AddDays,</p>
+<p>ISNULL(A.OccurTime, 0) + ISNULL(A.AddDays * 8, 0), -- OccurTime</p>
+<p>0, -- UseTime</p>
+<p>ISNULL(A.PileTime, 0), -- PileTime</p>
+<p>ISNULL(A.BasePileDays * 8, 0) + ISNULL(A.AddPileDays * 8, 0) -- SumPileTime</p>
+<p>,0</p>
+<p>FROM _TPRWkYyEmpDays AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _fnAdmEmpOrd(@CompanySeq, '') AS B ON A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDAEmpDate AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.EmpSeq = A.EmpSeq</p>
+<p>AND C.SMDateType = 3054007</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (A.EmpSeq = @EmpSeq)</p>
+<p>AND A.YY NOT IN(SELECT YY</p>
+<p>FROM _TDAEmpDate</p>
+<p>WHERE SMDateType = 3054007</p>
+<p>AND CompanySeq = A.CompanySeq</p>
+<p>AND EmpSeq = A.EmpSeq</p>
+<p>AND EmpDate &gt;= '20170530'</p>
+<p>AND LEFT(EmpDate, 4) = A.YY) -- 2017년 5월 30일 입사자 중 기산연도로 생성된 데이터는 제외 (아래에서 담음) #bhlee_20180815</p>
+<p>/*================================================================================================================================</p>
+<p>- 년차발생내역</p>
+<p>- [2018.08.15 이범확] #bhlee_20180815</p>
+<p>2017년 5월 30일 이후 입사자들의 연차기산연도 데이터만 담도록 함.</p>
+<p>================================================================================================================================*/</p>
+<p>-- 2017년 5월 30일(포함) 이후 입사자들의 매월발생연차를 담는다. #bhlee_20180815</p>
+<p>INSERT INTO #YYMM</p>
+<p>(YY, EmpSeq, OccurFrDate, OccurToDate, OccurDays, UseDays, UseFrDate, UseToDate, PayYM</p>
+<p>,PbSeq, PileDays, SumPileDays, GnerAmtYyMm, AddDays, OccurTime, UseTime, PileTime, SumPileTime, RevisionSeq)</p>
+<p>SELECT LEFT(A.YM, 4), A.EmpSeq, MIN(A.OccurFrDate), MAX(A.OccurToDate), SUM(A.OccurDays), 0, MIN(A.UseFrDate), MAX(A.UseToDate), MAX(A.PayYm)</p>
+<p>,0, 0, 0, MAX(A.PayYm), 0, SUM(A.OccurDays)*8, SUM(A.OccurDays)*8, 0, 0, 1</p>
+<p>FROM _TPRWkYyEmpDaysExProb AS A</p>
+<p>JOIN _TDAEmpDate AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.EmpSeq = A.EmpSeq</p>
+<p>AND B.SMDateType = 3054007</p>
+<p>AND B.EmpDate &gt;= '20170530'</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (A.EmpSeq = @EmpSeq OR @EmpSeq = 0)</p>
+<p>GROUP BY LEFT(A.YM, 4), A.EmpSeq</p>
+<p>/*================================================================================================================================</p>
+<p>- [2018.08.23 이범확] #bhlee_20180823</p>
+<p>[입사자연차발생처리] 화면을 사용하는 경우에도 대상자를 담을 수 있도록 수정</p>
+<p>================================================================================================================================*/</p>
+<p>INSERT INTO #YYMM</p>
+<p>SELECT Z.YY,</p>
+<p>Z.EmpSeq,</p>
+<p>Z.OccurFrDate,</p>
+<p>Z.OccurToDate,</p>
+<p>ISNULL(Z.OccurDays, 0)+ISNULL(Z.AddDays, 0),</p>
+<p>0,</p>
+<p>Z.UseFrDate,</p>
+<p>Z.UseToDate,</p>
+<p>Z.PayYM,</p>
+<p>Z.PbSeq,</p>
+<p>Z.PileDays,</p>
+<p>ISNULL(Z.BasePileDays, 0) + ISNULL(Z.AddPileDays, 0), -- 기본적치일수 + 추가적치일수</p>
+<p>Z.GnerAmtYyMm,</p>
+<p>Z.AddDays AS AddDays,</p>
+<p>ISNULL(Z.OccurTime, 0) + ISNULL(Z.AddDays * 8, 0), -- OccurTime</p>
+<p>0, -- UseTime</p>
+<p>ISNULL(Z.PileTime, 0), -- PileTime</p>
+<p>ISNULL(z.BasePileDays * 8, 0) + ISNULL(Z.AddPileDays * 8, 0) -- SumPileTime</p>
+<p>,1</p>
+<p>FROM _TPRWkYyEmpDays AS Z</p>
+<p>WHERE EmpSeq IN (SELECT A.EmpSeq</p>
+<p>FROM _TPRWkYyEmpDays AS A</p>
+<p>JOIN _TDAEmpDate AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.EmpSeq = A.EmpSeq</p>
+<p>AND B.SMDateType = 3054007</p>
+<p>AND B.EmpDate &gt;= '20170530'</p>
+<p>WHERE A.YY + A.ProcMM = LEFT(B.EmpDate, 6)</p>
+<p>AND NOT EXISTS(SELECT * FROM _TPRWkYyEmpDaysExProb WHERE CompanySeq = A.CompanySeq AND EmpSeq = A.EmpSeq)</p>
+<p>)</p>
+<p>AND NOT EXISTS(SELECT * FROM #YYMM WHERE Z.YY = YY AND Z.EmpSeq = EmpSeq)</p>
+<p>AND (@EmpSeq = 0 OR @EmpSeq = Z.EmpSeq)</p>
+<p>AND Z.CompanySeq = @CompanySeq</p>
+<p>/*====================================================================================</p>
+<p>- [2018.08.15 이범확] #bhlee_2018015</p>
+<p>2017년 5월 30일 이후 입사자이나 기산연도와 일치하는 발생연도 연차가 존재하지 않는 경우 대상자에서 제외</p>
+<p>=====================================================================================*/</p>
+<p>INSERT INTO #temp(YY, OccurDays, EmpSeq, RevisionSeq)</p>
+<p>SELECT A.YY, A.OccurDays, A.EmpSeq, A.RevisionSeq</p>
+<p>FROM #YYMM AS A</p>
+<p>JOIN _TDAEmpDate AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.EmpSeq = A.EmpSeq</p>
+<p>AND B.SMDateType = 3054007</p>
+<p>AND B.EmpDate &gt;= '20170530'</p>
+<p>ORDER BY A.EmpSeq, A.YY, A.RevisionSeq DESC</p>
+<p>-- #bhlee_20180815</p>
+<p>DECLARE @Count1 INT -- 변동 카운트 값</p>
+<p>,@Max1 INT -- 최대 카운트 값</p>
+<p>,@PresentYear NCHAR(4) -- 현재 카운트 연도</p>
+<p>,@NextYear NCHAR(4) -- 다음 카운트 연도</p>
+<p>,@PresentEmpSeq INT -- 현재 카운트 사원코드</p>
+<p>,@NextEmpSeq INT -- 다음 카운트 사원코드</p>
+<p>SELECT @Count1 = 1</p>
+<p>,@Max1 = (SELECT COUNT(*) FROM #temp)</p>
+<p>WHILE(@Count1 \&lt;= @Max1)</p>
+<p>BEGIN</p>
+<p>SELECT @PresentYear = (SELECT TOP 1 YY FROM #temp WHERE Seq = @Count1)</p>
+<p>,@NextYear = (SELECT TOP 1 YY FROM #temp WHERE Seq = @Count1 + 1)</p>
+<p>,@PresentEmpSeq = (SELECT TOP 1 EmpSeq FROM #temp WHERE Seq = @Count1)</p>
+<p>,@NextEmpSeq = (SELECT TOP 1 EmpSeq FROM #temp WHERE Seq = @Count1 + 1)</p>
+<p>IF (SELECT RevisionSeq FROM #temp WHERE Seq = @Count1) = 1 AND -- 현재 카운트가 개정적용연차이고</p>
+<p>(SELECT RevisionSeq FROM #temp WHERE Seq = @Count1 + 1) = 0 AND -- 다음 카운트는 개정적용연차가 아니면서</p>
+<p>(SELECT YY FROM #temp WHERE Seq = @Count1) \&lt;&gt; @NextYear AND -- 현재 카운트 연도가 다음 카운트 연도와 다를 때</p>
+<p>@PresentEmpSeq = @NextEmpSeq -- 현재 카운트 사원코드와 다음 카운트 사원코드가 같으면 #bhlee_20180910</p>
+<p>BEGIN</p>
+<p>UPDATE #temp</p>
+<p>SET IsNotContinueSum = '0'</p>
+<p>FROM #temp</p>
+<p>WHERE Seq = @Count1</p>
+<p>END</p>
+<p>IF @PresentYear \&lt;&gt; ISNULL(@NextYear, '') AND @PresentEmpSeq \&lt;&gt; ISNULL(@NextEmpSeq, 0)</p>
+<p>BEGIN</p>
+<p>UPDATE #temp</p>
+<p>SET IsNotContinueSum = '0'</p>
+<p>FROM #temp</p>
+<p>WHERE Seq = @Count1</p>
+<p>END</p>
+<p>SELECT @Count1 = @Count1 + 1</p>
+<p>END</p>
+<p>-- #bhlee_20180815</p>
+<p>INSERT INTO #EmpUseDays(YY, EmpSeq, UseDays, AbsDate)</p>
+<p>SELECT A.YY</p>
+<p>,A.EmpSeq</p>
+<p>,CASE WHEN ISNULL(B.IsHalf, '0') = '1' THEN 0.5</p>
+<p>WHEN ISNULL(B.IsHalf, '0') = '2' THEN 0.25 ELSE 1.0 END -- 반반차 추가 24.05.23 SJPARK</p>
+<p>,B.AbsDate</p>
+<p>FROM #YYMM AS A</p>
+<p>JOIN #temp AS A1 ON A1.EmpSeq = A.EmpSeq</p>
+<p>JOIN _TPRWkAbsEmp AS B WITH(NOLOCK) ON A.EmpSeq = B.EmpSeq</p>
+<p>AND B.AbsDate &gt;= A.UseFrDate</p>
+<p>AND B.AbsDate \&lt;= A.UseToDate</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>JOIN _TPRWkItem AS C WITH(NOLOCK) ON B.WkItemSeq = C.WkItemSeq</p>
+<p>AND B.CompanySeq = C.CompanySeq</p>
+<p>AND C.SMAbsWkSort = 3069002 -- 년차</p>
+<p>INSERT INTO #EmpUseDays2(EmpSeq, UseDays, AbsDate, Seq)</p>
+<p>SELECT EmpSeq, UseDays, AbsDate, ROW_NUMBER()OVER(ORDER BY EmpSeq, AbsDate)</p>
+<p>FROM #EmpUseDays</p>
+<p>GROUP BY EmpSeq, AbsDate, UseDays</p>
+<p>ORDER BY EmpSeq, ROW_NUMBER()OVER(ORDER BY EmpSeq, AbsDate)</p>
+<p>-- #bhlee_20180815</p>
+<p>DECLARE @Count2 INT -- 변동 카운트 값</p>
+<p>,@Max2 INT -- 최대 카운트 값</p>
+<p>,@VarYear NCHAR(4) -- 변동 연도 값</p>
+<p>,@MaxYear NCHAR(4) -- 최대 연도 값</p>
+<p>SELECT @Count2 = 1</p>
+<p>,@Max2 = (SELECT COUNT(*) FROM #EmpUseDays2)</p>
+<p>,@VarYear = (SELECT MIN(YY) FROM #YYMM WHERE RevisionSeq = 1)</p>
+<p>,@MaxYear = (SELECT MAX(YY) FROM #YYMM WHERE RevisionSeq = 1)</p>
+<p>SELECT @UseDays = 0</p>
+<p>WHILE(@VarYear \&lt;= @MaxYear)</p>
+<p>BEGIN</p>
+<p>WHILE(@Count2 \&lt;= @Max2)</p>
+<p>BEGIN</p>
+<p>SELECT @PresentEmpSeq = (SELECT EmpSeq FROM #EmpUseDays2 WHERE Seq = @Count2)</p>
+<p>,@NextEmpSeq = (SELECT EmpSeq FROM #EmpUseDays2 WHERE Seq = @Count2 + 1)</p>
+<p>SELECT @UseDays = CASE WHEN (SELECT OccurDays FROM #temp WHERE EmpSeq = A.EmpSeq AND YY = @VarYear AND RevisionSeq = 1) = @UseDays AND</p>
+<p>(SELECT IsNotContinueSum FROM #temp WHERE EmpSeq = A.EmpSeq AND YY = @VarYear AND RevisionSeq = 1) = '1' THEN -1</p>
+<p>WHEN @UseDays = -1 THEN -1</p>
+<p>WHEN @UseDays \&lt;&gt; - 1 THEN (CASE WHEN @UseDays + 0.5 = (SELECT OccurDays FROM #temp WHERE EmpSeq = A.EmpSeq AND YY = @VarYear AND RevisionSeq = 1) AND</p>
+<p>@UseDays + A.UseDays \&lt;&gt; (SELECT OccurDays FROM #temp WHERE EmpSeq = A.EmpSeq AND YY = @VarYear AND RevisionSeq = 1) THEN (CASE WHEN EXISTS(SELECT * FROM #YYMM WHERE EmpSeq = A.EmpSeq AND CONVERT(NCHAR(4), DATEADD(YEAR, 1, @VarYear), 112) = YY AND A.AbsDate BETWEEN UseFrDate AND UseToDate AND RevisionSeq = 0) THEN -1 -- #bhlee_20180908</p>
+<p>WHEN EXISTS(SELECT * FROM #YYMM WHERE EmpSeq = A.EmpSeq AND @VarYear = YY AND A.AbsDate BETWEEN UseFrDate AND UseToDate AND RevisionSeq = 0) THEN -1 -- #bhlee_20180908</p>
+<p>ELSE @UseDays + A.UseDays</p>
+<p>END)</p>
+<p>WHEN @UseDays + A.UseDays \&lt;&gt; (SELECT OccurDays FROM #temp WHERE EmpSeq = A.EmpSeq AND YY = @VarYear AND RevisionSeq = 1) AND</p>
+<p>(SELECT IsNotContinueSum FROM #temp WHERE EmpSeq = A.EmpSeq AND YY = @VarYear AND RevisionSeq = 1) = '0' THEN @UseDays + A.UseDays</p>
+<p>ELSE @UseDays + A.UseDays</p>
+<p>END)</p>
+<p>ELSE @UseDays + A.UseDays</p>
+<p>END</p>
+<p>FROM #EmpUseDays2 AS A</p>
+<p>WHERE Seq = @Count2</p>
+<p>IF @UseDays \&lt;&gt; -1 -- 매월발생연차에 사용된 일자를 담는다.</p>
+<p>BEGIN</p>
+<p>INSERT INTO #InEmpUseDays</p>
+<p>SELECT @VarYear, A.EmpSeq, A.AbsDate, A.UseDays, A.Seq</p>
+<p>FROM #EmpUseDays2 AS A</p>
+<p>WHERE A.Seq = @Count2</p>
+<p>AND NOT EXISTS(SELECT *</p>
+<p>FROM #InEmpUseDays</p>
+<p>WHERE UseDate = A.AbsDate</p>
+<p>AND EmpSeq = A.EmpSeq)</p>
+<p>AND EXISTS (SELECT *</p>
+<p>FROM #YYMM</p>
+<p>WHERE @VarYear = YY</p>
+<p>AND EmpSeq = A.EmpSeq -- #bhlee_20180908</p>
+<p>AND RevisionSeq = 1 -- #bhlee_20180908</p>
+<p>AND A.AbsDate BETWEEN UseFrDate AND UseToDate)</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>SELECT @UseDays = 0</p>
+<p>END</p>
+<p>END</p>
+<p>-- 현재 카운트 사원코드와 다음 카운트 사원코드가 일치하지 않는 경우 사용일 수를 0으로 초기화</p>
+<p>IF @PresentEmpSeq \&lt;&gt; @NextEmpSeq</p>
+<p>BEGIN</p>
+<p>SELECT @UseDays = 0</p>
+<p>END</p>
+<p>SELECT @Count2 = @Count2 + 1</p>
+<p>END</p>
+<p>SELECT @UseDays = 0</p>
+<p>,@Count2 = 0</p>
+<p>SELECT @VarYear = CONVERT(NCHAR(4), DATEADD(YEAR, 1, @VarYear), 112)</p>
+<p>END</p>
+<p>--================================================================================================================================</p>
+<p>-- 년차사용</p>
+<p>--================================================================================================================================</p>
+<p>INSERT INTO #Use</p>
+<p>(YY, EmpSeq, UseDays, UseTime)</p>
+<p>-- 2017년 05월 30일 이후 입사자</p>
+<p>SELECT A.YY,</p>
+<p>A.EmpSeq,</p>
+<p>SUM(CASE WHEN ISNULL(B.IsHalf, '0') = '1' THEN 0.5</p>
+<p>WHEN ISNULL(B.IsHalf, '0') = '2' THEN 0.25 ELSE 1.0 END) ,</p>
+<p>SUM(CASE WHEN ISNULL(B.IsHalf, '0') = '1' THEN 4.0</p>
+<p>WHEN ISNULL(B.IsHalf, '0') = '2' THEN 2.0 ELSE 8.0 END)</p>
+<p>FROM #YYMM AS A</p>
+<p>INNER JOIN _TPRWkAbsEmp AS B WITH(NOLOCK) ON A.EmpSeq = B.EmpSeq</p>
+<p>AND B.AbsDate &gt;= A.UseFrDate</p>
+<p>AND B.AbsDate \&lt;= A.UseToDate</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>INNER JOIN _TPRWkItem AS C WITH(NOLOCK) ON B.WkItemSeq = C.WkItemSeq</p>
+<p>AND B.CompanySeq = C.CompanySeq</p>
+<p>AND C.SMAbsWkSort = 3069002 -- 년차</p>
+<p>INNER JOIN _TDAEmpDate AS D WITH(NOLOCK)ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.EmpSeq = A.EmpSeq</p>
+<p>AND D.SMDateType = 3054007</p>
+<p>WHERE B.AbsDate NOT IN(SELECT AbsDate FROM #InEmpUseDays WHERE EmpSeq = A.EmpSeq AND UseDate = B.AbsDate) -- 매월발생연차에 사용된 일자는 제외 #bhlee_20180815</p>
+<p>AND D.EmpDate &gt;= '20170530'</p>
+<p>AND A.RevisionSeq = 0</p>
+<p>GROUP BY A.YY, A.EmpSeq</p>
+<p>UNION ALL</p>
+<p>-- 2017년 05월 30일 이전 입사자</p>
+<p>SELECT A.YY,</p>
+<p>A.EmpSeq,</p>
+<p>SUM(CASE WHEN ISNULL(B.IsHalf, '0') = '1' THEN 0.5</p>
+<p>WHEN ISNULL(B.IsHalf, '0') = '2' THEN 0.25 ELSE 1.0 END) ,</p>
+<p>SUM(CASE WHEN ISNULL(B.IsHalf, '0') = '1' THEN 4.0</p>
+<p>WHEN ISNULL(B.IsHalf, '0') = '2' THEN 2.0 ELSE 8.0 END)</p>
+<p>FROM #YYMM AS A</p>
+<p>INNER JOIN _TPRWkAbsEmp AS B WITH(NOLOCK) ON A.EmpSeq = B.EmpSeq</p>
+<p>AND B.AbsDate &gt;= A.UseFrDate</p>
+<p>AND B.AbsDate \&lt;= A.UseToDate</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>INNER JOIN _TPRWkItem AS C WITH(NOLOCK) ON B.WkItemSeq = C.WkItemSeq</p>
+<p>AND B.CompanySeq = C.CompanySeq</p>
+<p>AND C.SMAbsWkSort = 3069002 -- 년차</p>
+<p>INNER JOIN _TDAEmpDate AS D WITH(NOLOCK)ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.EmpSeq = A.EmpSeq</p>
+<p>AND D.SMDateType = 3054007</p>
+<p>WHERE D.EmpDate \&lt; '20170530'</p>
+<p>GROUP BY A.YY, A.EmpSeq</p>
+<p>--================================================================================================================================</p>
+<p>-- 사용일수 update</p>
+<p>--================================================================================================================================</p>
+<p>-- 회계기준 연차 사용일 수 업데이트</p>
+<p>UPDATE #YYMM</p>
+<p>SET UseDays = ISNULL(B.UseDays, 0),</p>
+<p>UseTime = ISNULL(B.UseTime, 0)</p>
+<p>FROM #YYMM AS A</p>
+<p>INNER JOIN #Use AS B ON A.YY = B.YY</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>WHERE A.RevisionSeq = 0</p>
+<p>-- 매월발생연차 사용일 수 업데이트 #bhlee_20180815</p>
+<p>UPDATE #YYMM</p>
+<p>SET UseDays = ISNULL(B.UseDays, 0)</p>
+<p>FROM #YYMM AS A</p>
+<p>JOIN (SELECT SUM(S2.UseDays) AS UseDays</p>
+<p>,S1.EmpSeq</p>
+<p>,S1.YY</p>
+<p>FROM #YYMM AS S1</p>
+<p>JOIN #InEmpUseDays AS S2 ON S2.YY = S1.YY</p>
+<p>AND S2.EmpSeq = S1.EmpSeq</p>
+<p>WHERE S1.RevisionSeq = 1</p>
+<p>GROUP BY S1.YY, S1.EmpSeq) AS B ON B.YY = A.YY</p>
+<p>AND B.EmpSeq = A.EmpSeq</p>
+<p>WHERE A.RevisionSeq = 1</p>
+<p>/*================================================================================</p>
+<p>- [2018.07.11 이범확] #bhlee_20180711</p>
+<p>휴가신청기간 안에 사용가능한 연차를 모두 집계할 수 있도록 수정</p>
+<p>================================================================================*/</p>
+<p>-- 발생일 수</p>
+<p>SELECT @OccurDays = A.OccurDays + A.PileDays + A.AddDays + A.ExProbOccurDays - (A.AddPileDays + A.BasePileDays) -- #bhlee_20180711</p>
+<p>FROM (SELECT ISNULL(SUM(OccurDays), 0) AS OccurDays</p>
+<p>,ISNULL(SUM(PileDays), 0) AS PileDays</p>
+<p>,ISNULL(SUM(AddDays), 0) AS AddDays</p>
+<p>,ISNULL(SUM(ExProbOccurDays), 0) AS ExProbOccurDays</p>
+<p>,ISNULL(SUM(AddPileDays), 0) AS AddPileDays</p>
+<p>,ISNULL(SUM(BasePileDays), 0) AS BasePileDays</p>
+<p>FROM _TPRWkYyEmpDays</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND UseFrDate \&lt;= @WkFrDate</p>
+<p>AND UseToDate &gt;= @WkToDate</p>
+<p>AND EmpSeq = @EmpSeq</p>
+<p>AND EmpSeq IN (SELECT EmpSeq</p>
+<p>FROM _TDAEmpDate AS B</p>
+<p>WHERE B.EmpSeq = EmpSeq</p>
+<p>AND B.SMDateType = 3054007</p>
+<p>AND B.CompanySeq = CompanySeq</p>
+<p>AND B.EmpDate \&lt; '20170530')) AS A</p>
+<p>/*============================================</p>
+<p>- [2018.07.11 이범확] #bhlee_20180711</p>
+<p>2017년 5월 30일 이전 입사자들의 연차 사용일 수</p>
+<p>==============================================*/</p>
+<p>IF EXISTS(SELECT * FROM _TDAEmpDate WHERE CompanySeq = @CompanySeq AND EmpSeq = @EmpSeq AND SMDateType = 3054007 AND EmpDate \&lt; '20170530')</p>
+<p>BEGIN</p>
+<p>SELECT @YY = ISNULL(YY, '')</p>
+<p>FROM _TPRWkYyEmpDays</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND UseFrDate \&lt;= @WkFrDate</p>
+<p>AND UseToDate &gt;= @WkToDate</p>
+<p>AND EmpSeq = @EmpSeq</p>
+<p>-- 사용일수</p>
+<p>SELECT @UseDays = ISNULL(SUM(CASE WHEN A.IsHalf = '1' THEN 0.5</p>
+<p>WHEN A.IsHalf = '2' THEN 0.25 ELSE 1.0 END), 0) -- 반반차 추가 24.05.23 SJPARK</p>
+<p>FROM _TPRWkAbsEmp AS A</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND EXISTS (SELECT *</p>
+<p>FROM _TPRWkItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND WkItemSeq = A.WkItemSeq</p>
+<p>AND SMAbsWkSort = 3069002</p>
+<p>) -- 년차항목사용</p>
+<p>AND EXISTS (SELECT *</p>
+<p>FROM _TPRWkYyEmpDays</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = A.EmpSeq</p>
+<p>AND YY = @YY</p>
+<p>AND A.AbsDate &gt;= UseFrDate</p>
+<p>AND A.AbsDate \&lt;= UseToDate</p>
+<p>)</p>
+<p>AND A.EmpSeq IN (SELECT EmpSeq</p>
+<p>FROM _TDAEmpDate</p>
+<p>WHERE EmpSeq = A.EmpSeq</p>
+<p>AND SMDateType = 3054007</p>
+<p>AND EmpDate \&lt; '20170530')</p>
+<p>END</p>
+<p>/*============================================</p>
+<p>- [2018.07.11 이범확] #bhlee_20180711</p>
+<p>2017년 5월 30일 이후 입사자들의 연차 사용일 수</p>
+<p>- [2018.08.15 이범확] #bhlee_20180815</p>
+<p>==============================================*/</p>
+<p>IF EXISTS(SELECT * FROM _TDAEmpDate WHERE CompanySeq = @CompanySeq AND EmpSeq = @EmpSeq AND SMDateType = 3054007 AND EmpDate &gt;= '20170530')</p>
+<p>BEGIN</p>
+<p>SELECT @OccurDays = SUM(OccurDays)</p>
+<p>,@UseDays = SUM(UseDays)</p>
+<p>FROM #YYMM</p>
+<p>WHERE UseFrDate \&lt;= @WkFrDate</p>
+<p>AND UseToDate &gt;= @WkTODate</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE IF EXISTS (SELECT * FROM _TPRWkAppItem WHERE CompanySeq = @CompanySeq AND SMWkAppSeq = 3122005 AND WkItemSeq = @WkItemSeq) --기타휴가</p>
+<p>BEGIN</p>
+<p>-- 영림원 최신패치 버전 로직 추가 24.10.28 SJPARK</p>
+<p>CREATE TABLE #Temp_EtcWkItem(WkItemSeq INT)</p>
+<p>-- 대표근태항목이 등록된 경우 대표근태항목으로 발생일수를 가져온다</p>
+<p>-- 설정 안되어 있으면 화면에서 입력된 근태항목 기준</p>
+<p>INSERT INTO #Temp_EtcWkItem SELECT @WkItemSeq</p>
+<p>INSERT INTO #Temp_EtcWkItem</p>
+<p>SELECT WkItemSeq</p>
+<p>FROM _TPRWkEtcUseItem WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND DtlWkItemSeq = @WkItemSeq</p>
+<p>AND WkItemSeq \&lt;&gt; @WkItemSeq</p>
+<p>-- 사용가능일수(발생-적치일수+이월일수)</p>
+<p>--SELECT @OccurDays = SUM(A.OccurDays)-- - SUM(A.AddPileDays) - SUM(A.BasePileDays) + SUM(A.PileDays)</p>
+<p>-- FROM _TPRWkEtcEmpDays A</p>
+<p>-- WHERE (1=1)</p>
+<p>-- AND CompanySeq = @CompanySeq</p>
+<p>-- AND WkItemSeq = @WkItemSeq</p>
+<p>-- AND EmpSeq = @EmpSeq</p>
+<p>-- AND UseFrDate \&lt;= @WkFrDate</p>
+<p>-- AND UseToDate &gt;= @WkToDate</p>
+<p>-- T2의 기타휴가발생등록로 수정</p>
+<p>SELECT @OccurDays = SUM(A.OccurDays)-- - SUM(A.AddPileDays) - SUM(A.BasePileDays) + SUM(A.PileDays)</p>
+<p>FROM _TPRWkEtcMng A</p>
+<p>WHERE (1=1)</p>
+<p>AND CompanySeq = @CompanySeq</p>
+<p>--AND WkItemSeq = @WkItemSeq</p>
+<p>AND WkItemSeq IN (SELECT WkItemSeq FROM #Temp_EtcWkItem) -- 영림원 최신패치 버전 로직 추가 24.10.28 SJPARK</p>
+<p>AND EmpSeq = @EmpSeq</p>
+<p>AND UseFrDate \&lt;= @WkFrDate</p>
+<p>AND UseToDate &gt;= @WkToDate</p>
+<p>/*</p>
+<p>-- 사용일수</p>
+<p>SELECT @UseDays = isnull(sum(case when A.IsHalf = '1' then 0.5</p>
+<p>when A.IsHalf = '2' then 0.25 else 1.0 end),0)</p>
+<p>FROM _TPRWkAbsEmp A</p>
+<p>WHERE (1=1)</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.WkItemSeq = @WkItemSeq</p>
+<p>-- AND EXISTS (SELECT * FROM _TPRWkEtcEmpDays</p>
+<p>-- WHERE (1=1)</p>
+<p>-- AND CompanySeq = @CompanySeq</p>
+<p>-- AND EmpSeq = A.EmpSeq</p>
+<p>-- AND UseFrDate \&lt;= @AppDate -- 신청기간을 포함하는</p>
+<p>-- AND UseToDate &gt;= @AppDate</p>
+<p>---- AND LEFT(Ym,4) = LEFT(@AppDate,4)</p>
+<p>-- AND WkItemSeq = @WkItemSeq</p>
+<p>-- AND A.AbsDate &gt;= UseFrDate</p>
+<p>-- AND A.AbsDate \&lt;= UseToDate )</p>
+<p>AND EXISTS (SELECT * FROM _TPRWkEtcMng</p>
+<p>WHERE (1=1)</p>
+<p>AND CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = A.EmpSeq</p>
+<p>AND UseFrDate \&lt;= @AppDate -- 신청기간을 포함하는</p>
+<p>AND UseToDate &gt;= @AppDate</p>
+<p>-- AND LEFT(Ym,4) = LEFT(@AppDate,4)</p>
+<p>AND WkItemSeq = @WkItemSeq</p>
+<p>AND A.AbsDate &gt;= UseFrDate</p>
+<p>AND A.AbsDate \&lt;= UseToDate )</p>
+<p>*/</p>
+<p>SELECT @UseDays = SUM(A.IsHalf)</p>
+<blockquote>
+<p>FROM (SELECT CASE WHEN ISNULL(E.IsHalf, '0') = '1' THEN 0.5</p>
+</blockquote>
+<p>WHEN ISNULL(E.IsHalf, '0') = '2' THEN 0.25</p>
+<p>ELSE 1.0 END AS IsHalf</p>
+<blockquote>
+<p>FROM _TPRWkAbsEmp AS E JOIN (SELECT DISTINCT A.EmpSeq, A.WkItemSeq, B.DtlWkItemSeq, A.UseFrDate, A.UseToDate</p>
+<p>FROM _TPRWkEtcMng                        AS A</p>
+<p>JOIN _TPRWkEtcUseItem AS B ON A.CompanySeq = B.CompanySeq</p>
+</blockquote>
+<p>AND A.WkItemSeq = B.WkItemSeq</p>
+<blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND A.WkItemSeq IN (SELECT WkItemSeq FROM #Temp_EtcWkItem)</p>
+<p>AND A.UseFrDate \&lt;= @WkFrDate</p>
+<p>AND A.UseToDate &gt;= @WkToDate) AS S ON E.CompanySeq = @CompanySeq</p>
+<p>AND E.WkItemSeq = S.DtlWkItemSeq</p>
+</blockquote>
+<p>WHERE (1=1)</p>
+<p>AND E.CompanySeq = @CompanySeq</p>
+<p>AND E.EmpSeq = @EmpSeq</p>
+<p>AND E.EmpSeq = S.EmpSeq</p>
+<p>AND E.AbsDate &gt;= S.UseFrDate</p>
+<p>AND E.AbsDate \&lt;= S.UseToDate</p>
+<blockquote>
+<p>AND E.WkItemSeq NOT IN (SELECT WkItemSeq</p>
+<p>FROM _THRWelCon</p>
+<p>WHERE CompanySeq = E.CompanySeq</p>
+<p>AND WkItemSeq = E.WkItemSeq</p>
+<p>AND IsMatPerCtr = '1')</p>
+<p>GROUP BY E.EmpSeq, E.WkItemSeq, E.AbsDate, E.IsHalf) AS A</p>
+</blockquote>
+<p>END</p>
+<p>SELECT @IsCC = '0'</p>
+<p>IF EXISTS(SELECT * FROM _TPRWkAppItem WHERE CompanySeq = @CompanySeq AND SMWkAppSeq = 3122003 AND WkItemSeq = @WkItemSeq )</p>
+<p>SELECT @IsCC = '1'</p>
+<p>IF @CCSeq \&lt;&gt; 0 AND @IsCC = '1'</p>
+<p>BEGIN</p>
+<p>SELECT @OccurDays = HoliDays</p>
+<p>FROM _THRWelCon</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND ConSeq = @CCSeq</p>
+<p>END</p>
+<p>EXEC _SPRWkGetEmpWkInfo</p>
+<p>@CompanySeq , -- 법인코드</p>
+<p>@LanguageSeq , -- 사용자</p>
+<p>@EmpSeq , -- 사원</p>
+<p>@AppDate , -- 신청일자</p>
+<p>@WkUnitSeq OUTPUT,</p>
+<p>@ShiftTeamSeq OUTPUT,</p>
+<p>@WkTeamSeq OUTPUT,</p>
+<p>@DayTypeSeq OUTPUT,</p>
+<p>@IsHoli OUTPUT,</p>
+<p>@BasicBegTm OUTPUT,</p>
+<p>@BasicEndTm OUTPUT,</p>
+<p>@PrevBegTm OUTPUT,</p>
+<p>@PrevEndTm OUTPUT,</p>
+<p>@AfterBegTm OUTPUT,</p>
+<p>@AfterEndTm OUTPUT,</p>
+<p>@PrevWkItemSeq OUTPUT, -- 오전반차근태</p>
+<p>@AfterWkItemSeq OUTPUT -- 오후반차근태</p>
+<p>IF @WkItemSeq = @PrevWkItemSeq -- 오전반차이면</p>
+<p>SELECT @TimeTerm = RIGHT(@PrevBegTm,5) +' - ' + RIGHT(@PrevEndTm,5)</p>
+<p>ELSE IF @WkItemSeq = @AfterWkItemSeq -- 오후반차이면</p>
+<p>SELECT @TimeTerm = RIGHT(@AfterBegTm,5) +' - ' + RIGHT(@AfterEndTm,5)</p>
+<p>SELECT @AppDate AS AppDate,</p>
+<p>ISNULL(@OccurDays,0) AS OccurDays,</p>
+<p>ISNULL(@UseDays,0) AS UseDays,</p>
+<p>(ISNULL(@OccurDays,0) - ISNULL(@UseDays,0)) AS PossibleDays,</p>
+<p>ISNULL(@TimeTerm,'') AS TimeTerm,</p>
+<p>ISNULL(@IsCC,0) AS IsCC</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>exec danam_SPRWkEmpVacGetUseDays_TTEST @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;1\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;EmpSeq&gt;533\&lt;/EmpSeq&gt;</p>
+<p>\&lt;WkItemSeq&gt;64\&lt;/WkItemSeq&gt;</p>
+<p>\&lt;CCSeq /&gt;</p>
+<p>\&lt;AppDate&gt;20241216\&lt;/AppDate&gt;</p>
+<p>\&lt;WkFrDate&gt;20241216\&lt;/WkFrDate&gt;</p>
+<p>\&lt;WkToDate&gt;20241216\&lt;/WkToDate&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=1521489,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1041590</p>
+<p>_SPRWkEmpLeaveGetUseDays sp 참고</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>첫 페이지만 안나오게</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>첫 페이지만 안나오게</h1>
+    <div class="meta">
+      <span class="note-date">2023-01-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">첫 페이지만 안나오게</h1>
+<ol>
+<li>오즈스크립트</li>
+</ol>
+<p>// 오즈 스크립트 편집 에 해야함</p>
+<p>if(#OZSystem.Page_Number# == "1") {</p>
+<p>setcompattr("FixedTableLabel3","visible","true");</p>
+<p>setcompattr("FixedTableLabel4","visible","true");</p>
+<p>setcompattr("FixedTableLabel5","visible","true");</p>
+<p>setcompattr("FixedTableLabel6","visible","true");</p>
+<p>setcompattr("FixedTableLabel7","visible","true");</p>
+<p>setcompattr("FixedTableLabel8","visible","true");</p>
+<p>setcompattr("FixedTableLabel9","visible","true");</p>
+<p>setcompattr("FixedTableLabel10","visible","true");</p>
+<p>setcompattr("FixedTableLabel11","visible","true");</p>
+<p>}</p>
+<p>else</p>
+<p>{</p>
+<p>setcompattr("FixedTableLabel3","visible","false");</p>
+<p>setcompattr("FixedTableLabel4","visible","false");</p>
+<p>setcompattr("FixedTableLabel5","visible","false");</p>
+<p>setcompattr("FixedTableLabel6","visible","false");</p>
+<p>setcompattr("FixedTableLabel7","visible","false");</p>
+<p>setcompattr("FixedTableLabel8","visible","false");</p>
+<p>setcompattr("FixedTableLabel9","visible","false");</p>
+<p>setcompattr("FixedTableLabel10","visible","false");</p>
+<p>setcompattr("FixedTableLabel11","visible","false");</p>
+<p>}</p>
+<p><img alt="" src="assets/첫-페이지만-안나오게/image63.png" /></p>
+<p>// 제뉴인 참고 (해보진 않음)</p>
+<p>var objPage = ReportTemplate.GetCurrentPage();</p>
+<p>var PageInfo = objPage.GetPageIndex() + 1 ; // 현재페이지</p>
+<p>if (PageInfo != 1 ) // 첫페이지 외에는 숨기기</p>
+<p>{</p>
+<blockquote>
+<p>This.SetVisible(false);</p>
+<p>This.SetPrintable(false);</p>
+</blockquote>
+<p>}</p>
+<ol start="2">
+<li>자바스크립트</li>
+</ol>
+<p>// 페이지헤더에 사용하니 안 먹는 현상 =&gt; 오즈 스크립트로 해결</p>
+<p>var page=This.GetDataSetValue("OZSystem.Page_Number"); // 페이지번호 가져오기</p>
+<p>if (page &gt; 1 ) // 페이지가 1보다 클때</p>
+<p>{</p>
+<p>This.SetEnable(false); // 숨기기 false</p>
+<p>}</p>
+  </article>
+</div>
+</body>
+</html>

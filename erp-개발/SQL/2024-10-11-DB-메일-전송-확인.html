@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB 메일 전송 확인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>DB 메일 전송 확인</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="db">DB 메일 전송 확인</h1>
+<p>--EXEC [msdb].dbo.sp_send_dbmail @profile_name = 'sjpark' -- SQL 에서 보내는 프로필</p>
+<p>-- , @recipients = 'sjpark@sysware.co.kr' -- 받는 사람 메일 주소</p>
+<p>-- , @subject = '제목test' -- 제목</p>
+<p>-- , @body = '내용test'</p>
+<p>-- , @body_format = 'HTML' -- Form 형식</p>
+<p>--SELECT Sent_status,* FROM msdb.dbo.sysmail_mailitems order by mailitem_id desc</p>
+<p>SELECT A.Sent_status,B.event_type,B.log_date,A.recipients,B.description,A.subject,A.body,*</p>
+<p>FROM msdb.dbo.sysmail_allitems AS A</p>
+<p>LEFT OUTER JOIN msdb.dbo.sysmail_event_log AS B ON B.mailitem_id = A.mailitem_id</p>
+<p>ORDER BY A.mailitem_id desc</p>
+<p>SELECT * FROM msdb.dbo.sysmail_event_log order by log_id desc</p>
+  </article>
+</div>
+</body>
+</html>

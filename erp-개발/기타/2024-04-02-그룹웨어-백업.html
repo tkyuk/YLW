@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹웨어 백업</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹웨어 백업</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">그룹웨어 백업</h1>
+<p>--*************************************</p>
+<p>-- 그룹웨어 백업</p>
+<p>--*************************************</p>
+<p>121.156.75.175</p>
+<p>* 그룹웨어 백업</p>
+<p>나스 백업과 다름 / 그룹웨어는 리눅스를 사용</p>
+<p>서버 자체에서 곧바로 외장하드로 백업</p>
+<p>애초에 윈도우가 취약하기 때문에 나스를 사용하는 것</p>
+<p>백업하는 그룹웨어 서버</p>
+<p>1. 세스텍</p>
+<p>2. 로봇앤드디자인</p>
+<p>ssh 라는 프로토콜 사용 (원격 접속하는 하나의 방법)</p>
+<p>ssh 계정명@IP</p>
+<p>ssh : 원격 접속 프로토콜</p>
+<p>*세스텍</p>
+<p><span class="mark">ssh root@121.156.75.221</span></p>
+<p><span class="mark">stc_sys_ubtGW</span></p>
+<p>계정명 : 서버 접속하는 ID ( root )</p>
+<p>IP : 서버 IP 주소 ( 121.156.75.221 )</p>
+<p>비밀번호 (stc_sys_ubtGW)</p>
+<p>*로봇앤드디자인</p>
+<p>계정명 : 서버 접속하는 ID ( )</p>
+<p>IP : 서버 IP 주소 ( )</p>
+<p><img alt="" src="assets/그룹웨어-백업/image10.png" /></p>
+<p>접속하는 곳 : 세스텍 이라는 곳의 그룹웨어 서버</p>
+<p>서버IP : 221 검색하면 =&gt; 관리명: 세스텍 나옴 여기에 아이디 비번있음</p>
+<p>* 마운트 =&gt; 연결</p>
+<p>물리적으로는 하드가 연결되어있지만, 우리가 볼 수 있도록 소프트웨어 적으로 연결하는 작업이 마운트</p>
+<p>=&gt; 꽂은 외장하드에 대한 경로지정</p>
+<p>로그인 후</p>
+<p>fdisk : 마운트 된 디스크 리스트</p>
+<p>명령어 : <span class="mark">fdisk -l</span> (명령어 쓸 때는 - 써야함)</p>
+<p><img alt="" src="assets/그룹웨어-백업/image11.png" /></p>
+<p>dev/sdb</p>
+<p>dev/sda</p>
+<p>dev/sdc 총 3가지가 인식 됌</p>
+<p>여기서 8테라 짜리 (7.3) 용량을 보고 뭔지 알 수 있다.</p>
+<p>+ Disk 로 되어있는거 확인 (Device 아님)</p>
+<p>ex. <span class="mark">Disk /dev/sdc : 7.3 TiB -&gt; 이름은 계속 바뀔 수 있기 때문에 용량으로 확인</span></p>
+<p><span class="mark">df -l</span> 연결된거 보기 =&gt; sdc가 없음</p>
+<p>Filesystemn / Mounted on</p>
+<p>파일디스크 실제 위치</p>
+<hr />
+<p>마운트 경로 : /tmp/BKHD 에 마운트를 해야함</p>
+<p>한번 씩이 경로가 사라짐 =&gt; 있는지 먼저 확인해야함</p>
+<p>=&gt; 확인 명령어 : <span class="mark">ls -al /tmp</span></p>
+<p>(ls =&gt; 폴더에 뭐있는지 보는 명령어)</p>
+<p>(al =&gt; a = all (전체) l(자세히))</p>
+<p>(tmp =&gt; 폴더경로 이름)</p>
+<p>=&gt; BKHD 확인 (마운트 경로 이름)</p>
+<p><img alt="" src="assets/그룹웨어-백업/image12.png" /></p>
+<p>* BKHD가 없는 경우 생성해야함</p>
+<p><span class="mark">mkdir 경로</span></p>
+<p><span class="mark">mkdir /tmp/BKHD</span></p>
+<p><span class="mark">삭제 : rmdir /tmp/BKHD2</span></p>
+<hr />
+<p>마운트 명령어 : mount 출발지(디스크) 경로(어디로할지)</p>
+<p><span class="mark">mount /dev/sdc /tmp/BKHD</span></p>
+<p>mount (dev/sdc) \&lt;-&gt; (tmp/BKHD) 이 두개의 폴더를 미러링하겠다</p>
+<p>다시 <span class="mark">df -l</span> 눌렀을 때 BKHD를 볼 수 있다.</p>
+<p><img alt="" src="assets/그룹웨어-백업/image13.png" /></p>
+<p>cd /tmp</p>
+<p>ls =&gt; 리스트 보기</p>
+<p>cd BKHD</p>
+<p>ls =&gt;</p>
+<p>EMK RND STC =&gt; 파란색 = 폴더이름</p>
+<p>cd STC/</p>
+<p>ls</p>
+<p>파란색 =&gt; 폴더</p>
+<p>빨간색 =&gt; 압축파일 (tar.gz로 백업된 압축파일)</p>
+<p>기존 파일 삭제 명령어 (파일 하나만 있어도 되기 때문에 기존에 있던 것들은 다 삭제 해도 된다)</p>
+<p><span class="mark">rm -rvf *202402*</span></p>
+<hr />
+<p>sh(쉘)파일 =&gt; 외장하드로 넣기위한 파일을 만들도록 해주는 파일</p>
+<p>백업 스케줄러 명령어</p>
+<p><span class="mark">sh /home/sysware/ALL_Backup.sh</span></p>
+<p>탭 : 자동완성 ( / , 파일이름 일부만 쳐도 완성</p>
+<p><img alt="" src="assets/그룹웨어-백업/image14.png" /></p>
+<p>해당 폴더 용량 확인 (0 이면 안된거니까)</p>
+<p>du -sh /tmp/BKHDls -al폴더경로(STC)/*</p>
+<p><img alt="" src="assets/그룹웨어-백업/image15.png" /></p>
+<p>df -l</p>
+<p>ls -al /tml/BKHD/STC/</p>
+<p>du -sh / tmp/BKHD/STC/*</p>
+<p>umount -lf /dev/sdc</p>
+<p>*/</p>
+<p>마운트 해제</p>
+<p>umount - lf /dev/sdb</p>
+<p>1. 관리자권한으로 cmd창 실행</p>
+<p>2. 로그인 &gt; 세스텍기준ID : ssh root@121.156.75.221 / PW : stc_sys_ubtGW</p>
+<p>로봇앤드기준ID : ssh root@121.156.75.169 / PW : )(dnjf23dlf(09월23일)</p>
+<p>3. fdisk -l &gt; 드라이브 연결확인 &gt; 연결된 드라이브가 어디인지 확인함(8테라 내외) (연결 안되어있으면 안보임)</p>
+<p>4. cd /tmp &gt; ls 로 폴더 안 확인 &gt; BKHD가 없으면 mkdir BKHD</p>
+<p>5. mount /dev/sdc /*드라이브경로*/ /tmp/BKHD /*백업경로*/</p>
+<p>6. cd BKHD &gt; df -l 마운트 연결 확인ls</p>
+<p>7. cd STC &gt; du -sh &gt;&gt; 용량보기</p>
+<p>8. cat /home/sysware/ALL_backup.sh -- 컨트롤 C하고 탭 , 수시로 엔터눌러 꺼지지 않게함</p>
+<p>9. cd /tmp/BKHD/STC/ &gt; ls -al -ls -a- 백업잘됐는지 확인</p>
+<p>10. rm -rvf *삭제할텍스트* --이전 백업데이터 삭제 * *안의 텍스트가 포함된 이름 전체</p>
+<p>11. 백업보고서 작성용 실행문 &gt; df -h -- 마운트확인</p>
+<p>&gt; ls -al /tmp/BKHD/stc/ -- 폴더안 확인</p>
+<p>&gt; du - sh /tmp/BKHD/STC/* */</p>
+<p>&gt; umount -lf /dev/sdc -- 마운트 종료</p>
+  </article>
+</div>
+</body>
+</html>

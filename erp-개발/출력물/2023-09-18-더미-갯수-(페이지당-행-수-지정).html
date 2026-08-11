@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>더미 갯수 (페이지당 행 수 지정)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>더미 갯수 (페이지당 행 수 지정)</h1>
+    <div class="meta">
+      <span class="note-date">2023-09-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">더미 갯수 (페이지당 행 수 지정)</h1>
+<p><img alt="" src="assets/더미-갯수-(페이지당-행-수-지정)/image30.png" />\&lt;\&lt;RptPDMMOutExtraReq_noe.ozr&gt;&gt;</p>
+<p>SetGlobal("DefaultRow", 32);        // 페이지당 행 수</p>
+<p>SetGlobal("BlankRow", GetGlobal("DefaultRow")); // 빈칸 개수</p>
+<p>SetGlobal("RowCnt",0);        // No</p>
+<p>SetGlobal("BlankRow", GetGlobal("BlankRow") - 1);</p>
+<p>var nIdx = This.GetDataSetRowIndex();</p>
+<p>var lastpage = This.GetDataSetRowCount();</p>
+<p>if(GetGlobal("BlankRow") == 0)        // 한페이지당 최대행수 이고</p>
+<p>{</p>
+<blockquote>
+<p>if(nIdx != lastpage)</p>
+<p>{</p>
+<p>This.SetForceNewPage(true);</p>
+<p>SetGlobal("BlankRow", GetGlobal("DefaultRow"));</p>
+<p>}</p>
+</blockquote>
+<p>}</p>
+<p><img alt="" src="assets/더미-갯수-(페이지당-행-수-지정)/image31.png" /></p>
+<p>더미풋터</p>
+<p>This.SetRepeatNumber(GetGlobal("BlankRow"));</p>
+<p>그룹풋터</p>
+<blockquote>
+<p>SetGlobal("BlankRow", GetGlobal("DefaultRow"));</p>
+<p>SetGlobal("RowCnt",0);        // No</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

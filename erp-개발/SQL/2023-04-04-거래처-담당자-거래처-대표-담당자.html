@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래처 담당자 / 거래처 대표 담당자</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래처 담당자 / 거래처 대표 담당자</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래처 담당자 / 거래처 대표 담당자</h1>
+<p>DROP PROCEDURE dbo.djb_SWPUORDPOPrintQuery</p>
+<p>GO</p>
+<p>CREATE PROCEDURE dbo.djb_SWPUORDPOPrintQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>DECLARE @POSeq INT</p>
+<p>-- SELECT @POSeq = POSeq</p>
+<p>-- FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags)</p>
+<p>-- WITH ( POSeq INT )</p>
+<p>---- 서비스 마스타 등록 생성</p>
+<p>--CREATE TABLE #TPUORDPOItem (WorkingTag NCHAR(1) NULL)</p>
+<p>--EXEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock1', '#TPUORDPOItem'</p>
+<p>-- 납품으로 점프시 창고 가져가기(1.창고별품목등록의 창고 2.구매단가등록의 창고 3.이전 품목별 납품창고)</p>
+<p>--CREATE TABLE #DelvWH</p>
+<p>--(</p>
+<p>-- POSeq INT,</p>
+<p>-- POSerl INT,</p>
+<p>-- WHSeq INT</p>
+<p>--)</p>
+<p>-- WHERE POSeq = @POSeq</p>
+<p>-- SELECT @DeptSeq = ISNULL(A.DeptSeq, 0)</p>
+<p>-- FROM _TPUORDPO AS A</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.POSeq = @POSeq</p>
+<p>--</p>
+<p>-- SELECT @BizUnit = ISNULL(BizUnit, 0),</p>
+<p>-- @FactUnit = ISNULL(FactUnit, 0)</p>
+<p>-- FROM _TDADept</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND DeptSeq = @DeptSeq</p>
+<p>--1. 품목별 기본창고</p>
+<p>-- IF EXISTS (SELECT 1 FROM _TPUORDPOItem AS A</p>
+<p>-- JOIN _TDAWHItem AS C ON A.CompanySeq = C.CompanySeq</p>
+<p>-- AND A.ItemSeq = C.ItemSeq</p>
+<p>-- JOIN #TPUORDPOItem AS B ON B.POSeq = A.POSeq</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq)</p>
+<p>-- BEGIN</p>
+<p>-- UPDATE #DelvWH</p>
+<p>-- SET WHSeq = (SELECT TOP 1 WHSeq FROM _TDAWHItem WHERe CompanySeq = D.CompanySeq AND ItemSeq = D.ItemSeq)</p>
+<p>-- FROM #DelvWH AS A</p>
+<p>-- JOIN _TPUORDPOItem AS D ON A.POSeq = D.POSeq</p>
+<p>-- AND A.POSerl = D.POSerl</p>
+<p>---- JOIN _TDAWHItem AS C ON D.CompanySeq = C.CompanySeq</p>
+<p>---- AND D.ItemSeq = C.ItemSeq</p>
+<p>-- WHERE D.CompanySeq = @CompanySeq</p>
+<p>-- AND A.WHSeq = 0</p>
+<p>-- END</p>
+<p>---- 2. 구매단가등록의 창고</p>
+<p>--ELSE IF EXISTS (SELECT 1 FROM _TPUBaseBuyPriceItem AS A -- JOIN _TPUORDPOItem AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>-- AND A.ItemSeq = B.ItemSeq</p>
+<p>-- JOIN #DelvWH AS C ON B.POSeq = C.POSeq</p>
+<p>-- AND B.POSerl = C.POSerl</p>
+<p>-- JOIN _TPUORDPO AS D ON D.CompanySeq = @CompanySeq</p>
+<p>-- AND B.POSeq = D.POSeq</p>
+<p>-- AND A.CustSeq = D.CustSeq</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND C.WHSeq = 0)</p>
+<p>--BEGIN</p>
+<p>-- UPDATE #DelvWH</p>
+<p>-- SET WHSeq = D.WHSeq</p>
+<p>-- FROM #DelvWH AS A</p>
+<p>-- JOIN _TPUORDPOItem AS B ON A.POSeq = B.POSeq</p>
+<p>-- AND A.POSerl = B.POSerl</p>
+<p>-- JOIN _TPUORDPO AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>-- AND B.POSeq = C.POSeq</p>
+<p>-- JOIN _TPUBaseBuyPriceItem AS D ON B.CompanySeq = D.CompanySeq</p>
+<p>-- AND B.ItemSeq = D.ItemSeq</p>
+<p>-- AND C.CustSeq = D.CustSeq</p>
+<p>-- WHERE C.PODate BETWEEN D.StartDate AND D.EndDate</p>
+<p>-- AND B.CompanySeq = @CompanySeq</p>
+<p>-- AND A.WHSeq = 0</p>
+<p>--END</p>
+<p>---- 3. 이전 품목별 납품창고</p>
+<p>--ELSE</p>
+<p>--BEGIN --탑엔지니어링 발주서출력 속도 개선으로 구문 변경</p>
+<p>-- --UPDATE #DelvWH</p>
+<p>-- -- SET WHSeq = C.WHSeq</p>
+<p>-- -- FROM #DelvWH AS A</p>
+<p>-- -- JOIN _TPUORDPOItem AS B ON A.POSeq = B.POSeq</p>
+<p>-- -- AND A.POSerl = B.POSerl</p>
+<p>-- -- JOIN _TPUDelvItem AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>-- -- AND B.ItemSeq = C.ItemSeq</p>
+<p>-- -- WHERE B.CompanySeq = @CompanySeq</p>
+<p>-- -- AND DelvSeq IN (SELECT DelvSeq</p>
+<p>-- -- FROM _TPUDelv</p>
+<p>-- -- WHERE DelvNo IN (SELECT MAX(A.DelvNo)</p>
+<p>-- -- FROM _TPUDelv AS A</p>
+<p>-- -- JOIN _TPUDelvItem AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>-- -- AND A.DelvSeq = B.DelvSeq</p>
+<p>-- -- JOIN _TPUORDPOItem AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>-- -- AND B.ItemSeq = C.ItemSeq</p>
+<p>-- -- JOIN #DelvWH AS D ON C.POSeq = D.POSeq</p>
+<p>-- -- AND C.POSerl = D.POSerl</p>
+<p>-- -- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- -- AND D.WHSeq = 0 ) )</p>
+<p>-- UPDATE #DelvWH</p>
+<p>-- SET WHSeq = C.WHSeq</p>
+<p>-- FROM #DelvWH AS A</p>
+<p>-- JOIN _TPUORDPOItem AS B ON A.POSeq = B.POSeq</p>
+<p>-- AND A.POSerl = B.POSerl</p>
+<p>-- JOIN _TPUDelvItem AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>-- AND B.ItemSeq = C.ItemSeq</p>
+<p>-- JOIN (SELECT DelvSeq AS DelvSeq</p>
+<p>-- FROM _TPUDelv</p>
+<p>-- WHERE DelvNo IN (SELECT MAX(A.DelvNo)</p>
+<p>-- FROM _TPUDelv AS A</p>
+<p>-- JOIN _TPUDelvItem AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>-- AND A.DelvSeq = B.DelvSeq</p>
+<p>-- JOIN _TPUORDPOItem AS C ON B.CompanySeq = C.CompanySeq</p>
+<p>-- AND B.ItemSeq = C.ItemSeq</p>
+<p>-- JOIN #DelvWH AS D ON C.POSeq = D.POSeq</p>
+<p>-- AND C.POSerl = D.POSerl</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- AND D.WHSeq = 0 )</p>
+<p>-- ) AS D ON C.DelvSeq = D.DelvSeq</p>
+<p>-- WHERE B.CompanySeq = @CompanySeq</p>
+<p>--END</p>
+<p>--===============================================================================================================</p>
+<p>--금액 합계 구하기</p>
+<p>--===============================================================================================================</p>
+<p>CREATE TABLE #POSumAmt</p>
+<p>(</p>
+<p>POSeq INT,</p>
+<blockquote>
+<p>TotQty                        DECIMAL(19,5),</p>
+</blockquote>
+<p>TotCurAmt DECIMAL(19,5),</p>
+<p>TotCurVAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #POSumAmt (POSeq, TotQty, TotCurAmt, TotCurVAT) -- 2021.10.24 : 오주헌 단위테스트 Insert~Select문 수정</p>
+<p>SELECT A.POSeq,</p>
+<blockquote>
+<p>SUM(ISNULL(A.Qty,0)),</p>
+</blockquote>
+<p>SUM(ISNULL(A.CurAmt,0)),</p>
+<p>SUM(ISNULL(A.CurVAT,0))</p>
+<p>FROM _TPUORDPOItem         AS A WITH(NOLOCK)</p>
+<blockquote>
+<p>JOIN #BIZ_IN_DataBlock1 AS B ON A.POSeq = B.POSeq</p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>GROUP BY A.POSeq</p>
+<p>--===============================================================================================================</p>
+<blockquote>
+<hr />
+</blockquote>
+<p>-- 사업자이력 START 16.07.13 임희진 추가</p>
+<hr />
+<p>CREATE TABLE #TTaxUnit (        TaxUnit                INT,</p>
+<blockquote>
+<p>TaxNo                NVARCHAR(50),</p>
+<p>TaxSerial         NCHAR(4),</p>
+<p>TaxNoSerl         NVARCHAR(50),</p>
+<p>FrDate                 NCHAR(8),</p>
+<p>ToDate                 NCHAR(8),</p>
+</blockquote>
+<p>TaxName                NVARCHAR(100),</p>
+<p>Owner                NVARCHAR(100),</p>
+<p>BizType                NVARCHAR(50),</p>
+<p>BizItem                NVARCHAR(50),</p>
+<p>Zip                        NVARCHAR(10),</p>
+<p>TaxUnitAddr NVARCHAR(200),</p>
+<p>VATRptAddr NVARCHAR(200),</p>
+<p>TelNo         NVARCHAR(400),</p>
+<p>FaxNo         NVARCHAR(30) )</p>
+<p>INSERT INTO #TTaxUnit -- 2021.10.24 : 오주헌 단위테스트 Insert~Select문 수정</p>
+<blockquote>
+<p>(</p>
+<p>TaxUnit                </p>
+<p>,TaxNo                </p>
+<p>,TaxSerial         </p>
+<p>,TaxNoSerl         </p>
+<p>,FrDate                 </p>
+<p>,ToDate                 </p>
+<p>,TaxName                </p>
+<p>,Owner                </p>
+<p>,BizType                </p>
+<p>,BizItem                </p>
+<p>,Zip                        </p>
+<p>,TaxUnitAddr</p>
+<p>,VATRptAddr</p>
+<p>,TelNo         </p>
+<p>,FaxNo         </p>
+<p>)</p>
+</blockquote>
+<p>SELECT A.TaxUnit,</p>
+<blockquote>
+<p>A.TaxNo,</p>
+<p>A.TaxSerial,'' AS TaxNoSerl,</p>
+</blockquote>
+<p>A.FrDate,</p>
+<p>A.ToDate,</p>
+<p>A.TaxName,</p>
+<p>A.Owner,</p>
+<p>A.BizType,</p>
+<p>A.BizItem,</p>
+<p>A.Zip,</p>
+<p>ISNULL(B.Addr,'') AS TaxUnitAddr,</p>
+<p>A.VATRptAddr,</p>
+<p>dbo._FWCOMDecrypt(A.TelNo,N'_TDATaxUnitHist',N'TelNo',@CompanySeq),                         </p>
+<p>A.FaxNo</p>
+<p>FROM _TDATaxUnitHist AS A WITH(NOLOCK)</p>
+<blockquote>
+<p>LEFT OUTER JOIN _VWCOMAddress AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ContactAddressSeq = B.AddressSeq</p>
+<p>AND IsMin = '1'        </p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>UNION ALL</p>
+<blockquote>
+<p>SELECT A.TaxUnit,</p>
+<p>A.TaxNo,</p>
+<p>A.TaxSerial,</p>
+<p>A.TaxNoSerl,</p>
+</blockquote>
+<p>ISNULL((SELECT CONVERT(NCHAR(8),DATEADD(DD,1,MAX(ToDate)),112) FROM _TDATaxUnitHist WHERE CompanySeq = A.CompanySeq AND TaxUnit = A.TaxUnit),'19000101'),</p>
+<p>'99991231',</p>
+<p>A.TaxName,</p>
+<p>A.Owner,</p>
+<p>A.BizType,</p>
+<p>A.BizItem,</p>
+<p>A.Zip,</p>
+<p>ISNULL(B.Addr,'') AS TaxUnitAddr,</p>
+<p>A.VATRptAddr,</p>
+<blockquote>
+<p>dbo._FWCOMDecrypt(A.TelNo,N'_TDATaxUnit',N'TelNo',@CompanySeq),</p>
+<p>A.FaxNo</p>
+</blockquote>
+<p>FROM _TDATaxUnit AS A WITH(NOLOCK)</p>
+<blockquote>
+<p>LEFT OUTER JOIN _VWCOMAddress AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ContactAddressSeq = B.AddressSeq</p>
+<p>AND IsMin = '1'        </p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>ORDER BY A.TaxUnit, A.ToDate</p>
+<p>DECLARE @pIsAccTax INT,                        -- 사업자단위과세제도여부</p>
+<p>@pIsAccTaxDate NCHAR(8),        -- 사업자단위과세제도 적용시점</p>
+<p>@pIsAccTaxUnit NCHAR(15)        -- 사업자단위과세제도 주사업자 번호</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 4016, @UserSeq, @@PROCID, @pIsAccTax OUTPUT</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 4017, @UserSeq, @@PROCID, @pIsAccTaxDate OUTPUT</p>
+<blockquote>
+<p>SELECT @pIsAccTax = ISNULL(@pIsAccTax,'0')</p>
+</blockquote>
+<p>SELECT @pIsAccTaxDate = ISNULL(@pIsAccTaxDate,'19000101')</p>
+<p>SELECT @pIsAccTaxUnit = ISNULL((SELECT TOP 1 TaxUnit FROM _TDATaxUnit WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND SMTaxationType = '4128002'),0)</p>
+<blockquote>
+<hr />
+</blockquote>
+<p>-- 사업자이력 END</p>
+<hr />
+<p>-- 사업자 번호 형식 2019-10-23 성지원 추가</p>
+<p>DECLARE @TaxNo NVARCHAR(20)</p>
+<p>EXEC dbo._SWCOMEnv @CompanySeq, 17 , @UserSeq, @@PROCID, @TaxNo OUTPUT -- 사업자등록번호 입력형태</p>
+<p>SELECT @TaxNo = ISNULL(@TaxNo, '')</p>
+<p>-- 납기일 -&gt; MAX 23.02.17 SJPARK</p>
+<p>SELECT A.POSeq, MAX(A.DelvDate) AS DelvDate</p>
+<p>INTO #TMP_Item</p>
+<p>FROM _TPUORDPOItem AS A</p>
+<p>JOIN #BIZ_IN_DataBlock1 AS B ON A.POSeq = B.POSeq</p>
+<p>GROUP BY A.POSeq</p>
+<p>CREATE TABLE #POData</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(0, 1),</p>
+<p>CustName NVARCHAR(100),</p>
+<p>CustEmpName NVARCHAR(100),</p>
+<p>PONo NVARCHAR(50),</p>
+<p>DeptName NVARCHAR(100),</p>
+<p>PODate NCHAR(8),</p>
+<p>CurrName NVARCHAR(50),</p>
+<blockquote>
+<p>CurrUnit NVARCHAR(5),</p>
+</blockquote>
+<p>ExRate DECIMAL(19,5),</p>
+<blockquote>
+<p>TotQty                        DECIMAL(19,5),                --2016.12.22 임희진 추가</p>
+</blockquote>
+<p>TotCurAmt DECIMAL(19,5),</p>
+<p>TotCurVAT DECIMAL(19,5),</p>
+<p>EmpName NVARCHAR(100),</p>
+<p>MasterRemark NVARCHAR(2000),</p>
+<p>MasterRemarkOri NVARCHAR(2000), -- 2018.09.19 이형민 추가</p>
+<p>CustSeq INT,</p>
+<p>ItemNo NVARCHAR(100),</p>
+<p>ApproReqNo NVARCHAR(50),</p>
+<p>ItemName NVARCHAR(200),</p>
+<p>Spec NVARCHAR(200), --2016.07.07 임희진 (100-&gt;200으로 수정)</p>
+<p>UnitName NVARCHAR(50),</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>DelvDate NCHAR(8),</p>
+<p>Price DECIMAL(19,5),</p>
+<p>CurAmt DECIMAL(19,5),</p>
+<p>CurVAT DECIMAL(19,5),</p>
+<p>WHName NVARCHAR(100),</p>
+<p>MakerName NVARCHAR(100),</p>
+<p>Remark1 NVARCHAR(1000), --2016.07.06 임희진 추가</p>
+<p>TelNo NVARCHAR(400),</p>
+<p>Email NVARCHAR(100),</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+<p>CustFaxNo NVARCHAR(30), --2016.07.05 박수영 추가</p>
+<p>Addr                        NVARCHAR(200),                --2016.07.13 임희진 추가                </p>
+<p>MyTelNo                        NVARCHAR(400),                --2016.07.13 임희진 추가                </p>
+<p>MyFaxNo                        NVARCHAR(30),                --2016.07.13 임희진 추가</p>
+<blockquote>
+<p>MyCompanyName NVARCHAR(100),                --2016.07.13 임희진 추가</p>
+<p>MyOwner                        NVARCHAR(100),                --2016.12.22 임희진 추가</p>
+<p>MyTaxUnitAddr        NVARCHAR(200),                --2016.12.22 임희진 추가</p>
+</blockquote>
+<p>Extension NVARCHAR(100), --2017.04.28 이혜민 추가</p>
+<p>Dummy1 NVARCHAR(100), --2017.05.10 이혜민 추가</p>
+<p>Dummy2 NVARCHAR(100), --2017.05.10 이혜민 추가</p>
+<p>Dummy3 NVARCHAR(100), --2017.05.10 이혜민 추가</p>
+<p>Dummy4 NVARCHAR(100), --2017.05.10 이혜민 추가</p>
+<p>Dummy5 NVARCHAR(100), --2017.05.10 이혜민 추가</p>
+<p>Dummy6 NVARCHAR(100), --2017.05.10 이혜민 추가</p>
+<p>Dummy7 DECIMAL(19,5), --2017.05.10 이혜민 추가</p>
+<p>Dummy8 DECIMAL(19,5), --2017.05.10 이혜민 추가</p>
+<p>Dummy9 DECIMAL(19,5), --2017.05.10 이혜민 추가</p>
+<p>Dummy10 DECIMAL(19,5), --2017.05.10 이혜민 추가</p>
+<p>DeptFax NVARCHAR(20), --2017.05.22 이혜민 추가</p>
+<blockquote>
+<p>EmpPhone NVARCHAR(400), --2018.04.28 이혜민 추가</p>
+<p>EmpEmail                 NVARCHAR(100), --2018.04.28 이혜민 추가</p>
+<p>StdUnitName                NVARCHAR(30),                --2019.01.28 성지원 추가</p>
+<p>StdUnitQty                DECIMAL(19,5),         --2019.01.28 성지원 추가</p>
+</blockquote>
+<p>IsVAT NCHAR(1), --2019.02.19 박수영 추가</p>
+<blockquote>
+<p>WHAddr                        NVARCHAR(600),                --2019.06.12 박수영 추가</p>
+<p>MyBizNo                        NVARCHAR(50),                --2019.10.23 성지원 추가</p>
+<p>CustBizNo                NVARCHAR(50),                --2019.10.23 성지원 추가</p>
+<p>CustOwner                NVARCHAR(100),                --2019.10.23 성지원 추가</p>
+</blockquote>
+<p>ItemCurAmt DECIMAL(19,5), --2020.07.21 이혜민 추가</p>
+<p>MyTaxNoSerl         NVARCHAR(100), --2020.08.12 이혜민 추가</p>
+<p>DeptCompanyName NVARCHAR(100), --2020.08.12 이혜민 추가</p>
+<p>DeptTaxNoSerl NVARCHAR(100), --2020.08.12 이혜민 추가</p>
+<p>Photo NVARCHAR(MAX), -- 로고 추가 23.02.16 SJPARK</p>
+<p>UMJpName NVARCHAR(100), -- 직위 추가 23.02.16 SJPARK</p>
+<p>ItemEngName NVARCHAR(100) -- 영문명 추가 23.02.16 SJPARK</p>
+<p>)</p>
+<p>--select IsSTD,* From _TDACustEmpInfo WHERE CustSeq = 42 ORDER BY LastDateTime DESC</p>
+<p>--select Z.CustSeq,Q.CustSeq,Q.EmpName,Q.JpName,L.Owner,</p>
+<p>-- CASE WHEN ISNULL(Q.CustSeq,0) \&lt;&gt; 0 THEN RTRIM(ISNULL(Q.EmpName,''))+' '+RTRIM(ISNULL(Q.JpName,'')) ELSE RTRIM(ISNULL(L.Owner,'')) END AS CustEmpName -- 성+이름 + 직위 23.02.16 SJPARK</p>
+<p>-- FROM _TPUORDPO AS Z WITH(NOLOCK)</p>
+<p>-- JOIN _TPUORDPOItem AS A WITH(NOLOCK) ON Z.POSeq = A.POSeq</p>
+<p>-- AND Z.CompanySeq = A.CompanySeq</p>
+<p>-- JOIN #BIZ_IN_DataBlock1 AS Y ON Y.POSeq = A.POSeq</p>
+<p>-- LEFT OUTER JOIN _TDACust AS L WITH(NOLOCK) ON Z.CompanySeq = L.CompanySeq</p>
+<p>-- AND Z.CustSeq = L.CustSeq</p>
+<p>-- LEFT OUTER JOIN _TDACustEmpInfo AS Q WITH(NOLOCK) ON Z.CompanySeq = Q.CompanySeq</p>
+<p>-- AND Z.CustSeq = Q.CustSeq</p>
+<p>-- AND Q.IsSTD = '1'</p>
+<p>-- AND Q.EmpSerl = (SELECT TOP 1 EmpSerl --거래처대표담당자정보 가져올때 TOP 1 Serl로 가져오도록 수정</p>
+<p>-- FROM _TDACustEmpInfo WITH(NOLOCK)</p>
+<p>-- WHERE CompanySeq = @CompanySeq AND CustSeq = Z.CustSeq AND IsSTD = '1')</p>
+<p>-- LEFT OUTER JOIN _TDAContact AS CT WITH(NOLOCK) ON Q.ContactSeq = CT.ContactSeq</p>
+<p>-- AND Q.CompanySeq = CT.CompanySeq</p>
+<blockquote>
+<p>-- 2021.10.24 : 오주헌 단위테스트 Insert~Select문 수정</p>
+</blockquote>
+<p>INSERT INTO #POData(</p>
+<blockquote>
+<p>CustName</p>
+<p>,CustEmpName</p>
+<p>,PONo</p>
+<p>,DeptName</p>
+<p>,PODate</p>
+<p>,CurrName</p>
+<p>,CurrUnit</p>
+<p>,ExRate</p>
+<p>,TotQty                        </p>
+<p>,TotCurAmt</p>
+<p>,TotCurVAT</p>
+<p>,EmpName</p>
+<p>,MasterRemark</p>
+<p>,MasterRemarkOri</p>
+<p>,CustSeq</p>
+</blockquote>
+<p>,ApproReqNo</p>
+<blockquote>
+<p>,ItemNo</p>
+<p>,ItemName</p>
+<p>,Spec</p>
+<p>,UnitName</p>
+<p>,Qty</p>
+<p>,DelvDate</p>
+<p>,Price</p>
+<p>,CurAmt</p>
+<p>,CurVAT</p>
+<p>,WHName</p>
+<p>,MakerName</p>
+<p>,Remark1</p>
+<p>,TelNo</p>
+<p>,Email</p>
+<p>,POSeq</p>
+<p>,POSerl</p>
+<p>,CustFaxNo</p>
+<p>,Addr                        </p>
+<p>,MyTelNo                        </p>
+<p>,MyFaxNo                        </p>
+<p>,MyCompanyName</p>
+<p>,MyOwner                        </p>
+<p>,MyTaxUnitAddr        </p>
+<p>,Extension</p>
+<p>,Dummy1</p>
+<p>,Dummy2</p>
+<p>,Dummy3</p>
+<p>,Dummy4</p>
+<p>,Dummy5</p>
+<p>,Dummy6</p>
+<p>,Dummy7</p>
+<p>,Dummy8</p>
+<p>,Dummy9</p>
+<p>,Dummy10</p>
+<p>,DeptFax</p>
+<p>,EmpPhone</p>
+<p>,EmpEmail                 </p>
+<p>,StdUnitName                </p>
+<p>,StdUnitQty                </p>
+<p>,IsVAT</p>
+<p>,WHAddr                        </p>
+<p>,MyBizNo                        </p>
+<p>,CustBizNo                </p>
+<p>,CustOwner                </p>
+<p>,ItemCurAmt</p>
+<p>,MyTaxNoSerl        </p>
+<p>,DeptCompanyName</p>
+<p>,DeptTaxNoSerl</p>
+</blockquote>
+<p>,Photo</p>
+<p>,UMJpName</p>
+<p>,ItemEngName</p>
+<blockquote>
+<p>)</p>
+</blockquote>
+<p>SELECT DISTINCT</p>
+<p>--Master</p>
+<p>--IDENTITY(INT,0,1) AS IDX_NO ,</p>
+<p>ISNULL(L.CustName,'') AS CustName , --거래처명</p>
+<p>CASE WHEN ISNULL(Q.CustSeq,0) \&lt;&gt; 0 THEN RTRIM(ISNULL(Q.EmpName,'')) ELSE RTRIM(ISNULL(L.Owner,'')) END AS CustEmpName , --거래처 대표담당자 (대표담당으로 등록된 담당자가 없을 경우 거래처 대표자로 출력되도록 수정)</p>
+<p>ISNULL(Z.PONo,'') AS PONo , --발주번호</p>
+<p>ISNULL(J.DeptName, '') AS DeptName , --발주부서</p>
+<p>RTRIM(ISNULL(Z.PODate,'')) AS PODate , --발주일</p>
+<p>ISNULL(M.CurrName,'') AS CurrName , --통화</p>
+<blockquote>
+<p>ISNULL(M.CurrUnit,'') AS CurrUnit , --통화표시 18.05.04 이혜민 추가</p>
+</blockquote>
+<p>Z.ExRate AS ExRate , --환율</p>
+<blockquote>
+<p>S.TotQty                                 AS TotQty                 ,         --수량합계 16.12.22 임희진 추가</p>
+</blockquote>
+<p>S.TotCurAmt AS TotCurAmt , --금액합계</p>
+<p>S.TotCurVAT AS TotCurVAT , --부가세합계</p>
+<p>'구매팀' +' '+ISNULL(K.EmpName,'') AS EmpName , --구매담당자</p>
+<p>REPLACE(REPLACE(ISNULL(Z.Remark, ''),CHAR(10),''),CHAR(13),' / ') AS MasterRemark , --특이사항</p>
+<p>ISNULL(Z.Remark, '') AS MasterRemarkOri, -- 2018.09.19 이형민 :: 특이사항(개행유지) 추가</p>
+<p>Z.CustSeq , --거래처 내부번호</p>
+<p>--Detail</p>
+<p>'' AS ApproReqNo , --품의번호</p>
+<p>ISNULL(TC.CustItemNo, B.ItemNo) AS ItemNo , --품번</p>
+<p>ISNULL(TC.CustItemName, B.ItemName) AS ItemName , --품명</p>
+<p>ISNULL(TC.CustItemSpec, B.Spec) AS Spec , --규격</p>
+<p>ISNULL(C.UnitName,'') AS UnitName , --단위</p>
+<p>ISNULL(A.Qty,0) AS Qty , --발주수량</p>
+<p>--RTRIM(ISNULL(A.DelvDate,'')) AS DelvDate , --납품기일</p>
+<p>TRIM(ISNULL(Z1.DelvDate,'')) AS DelvDate, -- 납기일 : 품목 MAX 값 23.02.16 SJPARK</p>
+<p>ISNULL(A.Price,0) AS Price , --단가</p>
+<p>ISNULL(A.CurAmt,0) AS CurAmt , --금액</p>
+<p>ISNULL(A.CurVAT,0) AS CurVAT , --부가세</p>
+<p>ISNULL(E.WHName, '') AS WHName , --창고</p>
+<p>ISNULL(D.CustName,'') AS MakerName , --MakerName</p>
+<p>REPLACE(REPLACE(LTRIM(RTRIM(ISNULL(A.Remark1,''))),CHAR(10),''),CHAR(13),' / ') AS Remark1, -- 비고(품목) 16.07.06 임희진 추가</p>
+<p>--Tail</p>
+<blockquote>
+<p>CASE WHEN ISNULL(CT.ContactNumber,'') \&lt;&gt; '' THEN dbo._FWCOMDecrypt(CT.ContactNumber,N'_TDAContact',N'ContactNumber',@CompanySeq)</p>
+<p>ELSE ISNULL(dbo._FWCOMDecrypt(L.TelNo,N'_TDACust',N'TelNo',@CompanySeq),'') END AS TelNo,                -- 17.01.11 임희진 (거래처 대표담당자 전화번호 없을 시 거래처 세무정보의 전화번호를 출력하도록 수정)</p>
+</blockquote>
+<p>--ISNULL(CT.ContactNumber,'') AS TelNo , --거래처 대표담당자 전화번호</p>
+<p>ISNULL(CT.Email,'') AS Email , --거래처 대표담당자, E-mail</p>
+<p>A.POSeq AS POSeq,</p>
+<p>A.POSerl AS POSerl,</p>
+<p>L1.FAX AS CustFaxNo, -- 거래처 Fax번호 2016.07.05 박수영 추가</p>
+<p>ISNULL(L2.Addr, '') AS Addr,                                 -- 거래처주소         16.07.13 임희진 추가</p>
+<p>T.TelNo AS MyTelNo,                          -- 자사 전화번호 16.07.13 임희진 추가</p>
+<blockquote>
+<p>--T.FaxNo AS MyFaxNo,                          -- 자사 팩스번호 16.07.13 임희진 추가</p>
+</blockquote>
+<p>CASE WHEN ISNULL(T.FaxNo, '') \&lt;&gt; '' THEN ISNULL(T.FaxNo, '') --자사 팩스번호</p>
+<p>WHEN ISNULL(X.DeptFax, '') \&lt;&gt; '' THEN ISNULL(X.DeptFax, '') --근무부서 팩스번호</p>
+<p>ELSE ISNULL(dbo._FWCOMDecrypt(P.Fax, N'_TDAEmpIn', 'Fax', P.CompanySeq), '') END AS MyFaxNo , --개인 팩스번호 :: 22.12.13 우승현 수정</p>
+<blockquote>
+<p>T.TaxName AS MyCompanyName,                          -- 자사 상호 16.07.13 임희진 추가</p>
+<p>T.Owner                 AS MyOwner,                                         -- 자사 대표자명 16.12.22 임희진 추가</p>
+<p>T.TaxUnitAddr AS MyTaxUnitAddr,                                 -- 자사 주소 16.12.22 임희진 추가</p>
+</blockquote>
+<p>V.Extension AS Extension, -- 사내번호 17.04.28 이혜민 추가</p>
+<p>A.Dummy1 AS Dummy1, -- Dummy1~10 17.05.10 이혜민추가</p>
+<p>A.Dummy2 AS Dummy2,</p>
+<p>A.Dummy3 AS Dummy3,</p>
+<p>A.Dummy4 AS Dummy4,</p>
+<p>A.Dummy5 AS Dummy5,</p>
+<p>A.Dummy6 AS Dummy6,</p>
+<p>A.Dummy7 AS Dummy7,</p>
+<p>A.Dummy8 AS Dummy8,</p>
+<p>A.Dummy9 AS Dummy9,</p>
+<p>A.Dummy10 AS Dummy10,</p>
+<p>J.DeptFax AS DeptFax, -- 부서팩스번호 17.05.22 이혜민 추가</p>
+<blockquote>
+<p>-- 발신자 전화번호 18.04.28 이혜민 추가        -- [개인인사정보등록] 화면을 사용하지 않는 고객사가 있어 [사원등록]의 사내번호를 가져올 수 있도록 수정        2018.09.07 BY 이혜민 (요청번호:201808300165)         </p>
+</blockquote>
+<p>-- 부서의 Tel, mail 가져오도록 수정</p>
+<blockquote>
+<p>--CASE WHEN ISNULL(P1.Phone,'') \&lt;&gt; '' THEN dbo._FWCOMDecrypt(P1.Phone,N'_TDAEmpIn',N'Phone',@CompanySeq) ELSE dbo._FWCOMDecrypt(P1.Extension,N'_TDAEmpIn',N'Extension',@CompanySeq) END AS EmpPhone,</p>
+<p>--P1.Email AS EmpEmail, -- 발신자 이메일 18.04.28 이혜민 추가</p>
+</blockquote>
+<p>dbo._FWCOMDecrypt(J.DeptPhone, N'_TDADept', N'DeptPhone', @CompanySeq) AS EmpPhone,</p>
+<p>dbo._FWCOMDecrypt(J.EMail , N'_TDADept', N'EMail' , @CompanySeq) AS EmpEmail,</p>
+<blockquote>
+<p>U.UnitName AS StdUnitName,</p>
+<p>A.StdUnitQty AS StdUnitQty,</p>
+</blockquote>
+<p>A.IsVAT AS IsVAT,</p>
+<blockquote>
+<p>ISNULL(F.Addr, '') AS WHAddr, --창고주소</p>
+<p>dbo._FCOMMaskConv(@TaxNo, T.TaxNo) AS MyBizNo,         --자사사업자번호</p>
+<p>dbo._FCOMMaskConv(@TaxNo, L.BizNo) AS CustBizNo, --거래처사업자번호</p>
+<p>L.Owner                                                         AS CustOwner, --거래처대표자</p>
+</blockquote>
+<p>ISNULL(A.CurAmt,0) + ISNULL(A.CurVAT,0) AS ItemCurAmt, -- 품목별 공급가액+부가세</p>
+<blockquote>
+<p>T.TaxNoSerl                         AS MyTaxNoSerl, -- 자사 일련번호</p>
+<p>ISNULL(T1.TaxName, T2.TaxName) AS DeptCompanyName, -- 부서에 연결된 사업자 상호</p>
+<p>ISNULL(T1.TaxNoSerl,T2.TaxNoSerl) AS DeptTaxNoSerl , -- 부서에 연결된 사업자 일련번호</p>
+</blockquote>
+<p>ISNULL(Z3.Photo ,'') AS Photo ,-- 로고 23.02.16 SJPARK</p>
+<p>--CASE WHEN ISNULL(Q.CustSeq,0) \&lt;&gt; 0 THEN RTRIM(ISNULL(Q.EmpName,''))+' '+RTRIM(ISNULL(Q.JpName,'')) ELSE RTRIM(ISNULL(L.Owner,'')) END AS CustEmpName , -- 성+이름 + 직위 23.02.16 SJPARK</p>
+<p>-- 대표담당자 없을 경우 일반 담당자 (여러명일 경우 Min으로)</p>
+<p>CASE WHEN ISNULL(Q.CustSeq,0) \&lt;&gt; 0</p>
+<p>THEN RTRIM(ISNULL(Q.EmpName,''))+' '+RTRIM(ISNULL(CT.PositionName, ''))</p>
+<p>ELSE RTRIM(ISNULL(Q2.EmpName,''))+' '+RTRIM(ISNULL(CT2.PositionName, '')) END AS CustEmpName , -- 성+이름 + 직위 23.02.16 SJPARK</p>
+<p>ISNULL(B.ItemEngName,'') -- 영문명 추가 23.02.16 SJPARK</p>
+<p>FROM _TPUORDPO AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS A WITH(NOLOCK) ON Z.POSeq = A.POSeq</p>
+<p>AND Z.CompanySeq = A.CompanySeq</p>
+<p>JOIN sys_TPUORDPO AS Z2 WITH(NOLOCK) ON Z2.POSeq = A.POSeq</p>
+<p>AND Z2.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN djb_TDABizImage AS Z3 WITH(NOLOCK) ON Z3.CompanySeq = Z2.CompanySeq</p>
+<p>AND Z3.BizUnit = Z2.BizUnit</p>
+<p>AND Z3.UMImageKind = 1000573001</p>
+<p>JOIN #BIZ_IN_DataBlock1 AS Y ON Y.POSeq = A.POSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.UnitSeq = C.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.MakerSeq = D.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<blockquote>
+<p>AND A.WHSeq = E.WHSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDADept AS J WITH(NOLOCK) ON Z.CompanySeq = J.CompanySeq</p>
+<p>AND Z.DeptSeq = J.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS K WITH(NOLOCK) ON Z.CompanySeq = K.CompanySeq</p>
+<p>AND Z.EmpSeq = K.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS L WITH(NOLOCK) ON Z.CompanySeq = L.CompanySeq</p>
+<p>AND Z.CustSeq = L.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACurr AS M WITH(NOLOCK) ON Z.CompanySeq = M.CompanySeq</p>
+<p>AND Z.CurrSeq = M.CurrSeq</p>
+<p>LEFT OUTER JOIN _TDAEmpIn AS P WITH(NOLOCK) ON Z.CompanySeq = P.CompanySeq</p>
+<p>AND Z.EmpSeq = P.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDACustEmpInfo AS Q WITH(NOLOCK) ON Z.CompanySeq = Q.CompanySeq</p>
+<p>AND Z.CustSeq = Q.CustSeq</p>
+<p>AND Q.IsSTD = '1'</p>
+<p>AND Q.EmpSerl = (SELECT TOP 1 EmpSerl --거래처대표담당자정보 가져올때 TOP 1 Serl로 가져오도록 수정</p>
+<p>FROM _TDACustEmpInfo WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND CustSeq = Z.CustSeq AND IsSTD = '1')</p>
+<p>LEFT OUTER JOIN _TDACustEmpInfo AS Q2 WITH(NOLOCK) ON Z.CompanySeq = Q2.CompanySeq</p>
+<p>AND Z.CustSeq = Q2.CustSeq</p>
+<p>AND Q2.IsSTD = '0'</p>
+<p>AND Q2.EmpSerl = (SELECT TOP 1 EmpSerl --거래처대표담당자정보 가져올때 TOP 1 Serl로 가져오도록 수정</p>
+<p>FROM _TDACustEmpInfo WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND CustSeq = Z.CustSeq AND IsSTD = '0')</p>
+<p>LEFT OUTER JOIN _TDAContact AS CT WITH(NOLOCK) ON Q.ContactSeq = CT.ContactSeq</p>
+<p>AND Q.CompanySeq = CT.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAContact AS CT2 WITH(NOLOCK) ON Q2.ContactSeq = CT2.ContactSeq</p>
+<p>AND Q2.CompanySeq = CT2.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDADept AS R WITH(NOLOCK) ON Z.CompanySeq = R.CompanySeq</p>
+<p>AND Z.DeptSeq = R.DeptSeq</p>
+<p>LEFT OUTER JOIN #POSumAmt AS S ON Z.POSeq = S.POSeq</p>
+<p>LEFT OUTER JOIN _TDACustAdd AS L1 WITH(NOLOCK) ON L.CustSeq = L1.CustSeq</p>
+<p>AND L1.CompanySeq = @CompanySeq</p>
+<blockquote>
+<p>LEFT OUTER JOIN #TTaxUnit AS T WITH(NOLOCK) ON T.TaxUnit = ( CASE WHEN ( @pIsAccTax = 4125002 ) AND ( Z.PODate &gt;= @pIsAccTaxDate ) THEN @pIsAccTaxUnit ELSE J.TaxUnit END ) --2022.10.12 우승현 수정 :: JOIN -&gt; LEFT OUTER JOIN</p>
+<p>AND Z.PODate BETWEEN T.FrDate AND T.ToDate</p>
+<p>LEFT OUTER JOIN _VWCOMAddress                 AS L2                         ON L.CompanySeq = L2.CompanySeq</p>
+<p>AND L.BizAddrSeq = L2.AddressSeq</p>
+<p>AND L2.IsMin = '1'</p>
+</blockquote>
+<p>LEFT OUTER JOIN _VWHREmpInfoLast AS V ON V.CompanySeq = Z.CompanySeq</p>
+<p>AND V.EmpSeq = Z.EmpSeq</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDAEmpIn AS P1 WITH(NOLOCK) ON K.CompanySeq = P1.CompanySeq --발신자의 전화, 이메일 가져오기 추가 18.04.28 HMLEE</p>
+<p>AND K.EmpSeq = P1.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit                         AS U WITH(NOLOCK) ON A.CompanySeq = U.CompanySeq</p>
+<p>AND A.StdUnitSeq = U.UnitSeq                </p>
+<p>LEFT OUTER JOIN _VWCOMAddress AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq</p>
+</blockquote>
+<p>AND E.WHAddress = F.Addressseq</p>
+<p>AND F.IsMin = '1'</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDATaxUnitHist AS T1 WITH(NOLOCK) ON T1.CompanySeq = J.CompanySeq</p>
+</blockquote>
+<p>AND T1.TaxUnit = J.TaxUnit</p>
+<p>AND (Z.PODate BETWEEN T1.FrDate AND T1.ToDate)</p>
+<p>LEFT OUTER JOIN _TDATaxUnit AS T2 WITH(NOLOCK) ON T2.CompanySeq = J.CompanySeq</p>
+<p>AND T2.TaxUnit = J.TaxUnit</p>
+<p>LEFT OUTER JOIN _TSLCustItem AS TC WITH(NOLOCK) ON TC.CompanySeq = Z.CompanySeq</p>
+<p>AND TC.CustSeq = Z.CustSeq</p>
+<p>AND TC.ItemSeq = A.ItemSeq</p>
+<p>AND TC.UnitSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN _VWHREmpInfoLast AS W WITH(NOLOCK) ON W.CompanySeq = K.CompanySeq</p>
+<p>AND W.EmpSeq = K.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS X WITH(NOLOCK) ON X.CompanySeq = W.CompanySeq</p>
+<p>AND X.DeptSeq = W.WkDeptSeq</p>
+<p>-- 납기일 임시테이블 23.02.17 SJPARK</p>
+<p>LEFT OUTER JOIN #TMP_Item AS Z1 ON Z1.POSeq = A.POSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<hr />
+<p>----품의번호 추적 ---</p>
+<hr />
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>INSERT #TMP_SOURCETABLE -- 2021.10.24 : 오주헌 단위테스트 Insert~Select문 수정</p>
+<blockquote>
+<p>(</p>
+<p>IDOrder</p>
+<p>,TABLENAME</p>
+<p>)</p>
+</blockquote>
+<p>SELECT '1','_TPUORDApprovalReqItem'</p>
+<p>EXEC _SWCOMSourceTracking @CompanySeq, '_TPUORDPOItem', '#POData', 'POSeq', 'POSerl', ''</p>
+<p>-- 품의번호 업데이트</p>
+<p>UPDATE #POData</p>
+<p>SET ApproReqNo = ISNULL(D.ApproReqNo, '')</p>
+<p>FROM #POData AS A</p>
+<p>JOIN #TCOMSourceTracking AS C ON A.IDX_NO = C.IDX_NO</p>
+<p>AND C.IDOrder = '1'</p>
+<p>LEFT OUTER JOIN _TPUORDApprovalReq AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND C.Seq = D.ApproReqSeq</p>
+<p>SELECT CustName,</p>
+<p>CustEmpName,</p>
+<p>PONo,</p>
+<p>PODate,</p>
+<p>CurrName,</p>
+<blockquote>
+<p>CurrUnit,</p>
+</blockquote>
+<p>DeptName,</p>
+<p>ExRate,</p>
+<blockquote>
+<p>TotQty,</p>
+</blockquote>
+<p>TotCurAmt,</p>
+<p>EmpName,</p>
+<p>MasterRemark,</p>
+<p>MasterRemarkOri, -- 2018.09.19 이형민 추가</p>
+<p>ItemNo,</p>
+<p>ApproReqNo,</p>
+<p>ItemName,</p>
+<p>Spec,</p>
+<p>UnitName,</p>
+<p>Qty,</p>
+<p>DelvDate,</p>
+<p>Price,</p>
+<p>CurAmt,</p>
+<p>CurVAT,</p>
+<p>WHName,</p>
+<p>MakerName,</p>
+<p>Remark1,</p>
+<p>TelNo,</p>
+<p>Email,</p>
+<p>POSeq,</p>
+<p>POSerl,</p>
+<p>CustFaxNo,</p>
+<p>Addr,</p>
+<blockquote>
+<p>MyTelNo,                        </p>
+<p>MyFaxNo,                        </p>
+<p>MyCompanyName,</p>
+<p>MyOwner,</p>
+<p>MyTaxUnitAddr,</p>
+</blockquote>
+<p>Extension,</p>
+<p>Dummy1,</p>
+<p>Dummy2,</p>
+<p>Dummy3,</p>
+<p>Dummy4,</p>
+<p>Dummy5,</p>
+<p>Dummy6,</p>
+<p>Dummy7,</p>
+<p>Dummy8,</p>
+<p>Dummy9,</p>
+<p>Dummy10,</p>
+<p>DeptFax,</p>
+<blockquote>
+<p>EmpPhone,</p>
+<p>EmpEmail,</p>
+<p>StdUnitName,</p>
+<p>StdUnitQty,</p>
+</blockquote>
+<p>IsVAT,</p>
+<blockquote>
+<p>WHAddr,</p>
+<p>MyBizNo,</p>
+<p>CustBizNo,</p>
+<p>CustOwner,</p>
+</blockquote>
+<p>ItemCurAmt,</p>
+<p>MyTaxNoSerl,</p>
+<p>DeptCompanyName,</p>
+<p>DeptTaxNoSerl,</p>
+<p>Photo,</p>
+<p>UMJpName,</p>
+<p>ItemEngName</p>
+<p>FROM #POData</p>
+<p>ORDER BY PONo, POSerl</p>
+<p>RETURN</p>
+<p>거래처</p>
+<p>CASE WHEN ISNULL(Q.CustSeq,0) \&lt;&gt; 0 THEN RTRIM(ISNULL(Q.EmpName,''))+' '+RTRIM(ISNULL(Q.JpName,'')) ELSE RTRIM(ISNULL(L.Owner,'')) END AS CustEmpName , -- 성+이름 + 직위 23.02.16 SJPARK</p>
+<p>-- 거래처 담당자 가져오는 테이블 (IsSTD = 1 =&gt; 대표 담당자)</p>
+<p>LEFT OUTER JOIN _TDACustEmpInfo AS Q WITH(NOLOCK) ON Z.CompanySeq = Q.CompanySeq</p>
+<p>AND Z.CustSeq = Q.CustSeq</p>
+<p>AND Q.IsSTD = '1'</p>
+<p>AND Q.EmpSerl = (SELECT TOP 1 EmpSerl --거래처대표담당자정보 가져올때 TOP 1 Serl로 가져오도록 수정</p>
+<p>FROM _TDACustEmpInfo WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq AND CustSeq = Z.CustSeq AND IsSTD = '1')</p>
+<p>-- 직위 가져오는 테이블</p>
+<p>LEFT OUTER JOIN _TDAContact AS CT WITH(NOLOCK) ON Q.ContactSeq = CT.ContactSeq</p>
+<p>AND Q.CompanySeq = CT.CompanySeq</p>
+  </article>
+</div>
+</body>
+</html>

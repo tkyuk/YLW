@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/4</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>5/4</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="54">5/4</h1>
+<p>주민등록번호</p>
+<blockquote>
+<p>EXEC _SYMMETRICKeyOpen</p>
+<p>ISNULL(dbo._FWCOMDecrypt(B.ResidID, '_TDAEmp', 'ResidID', @CompanySeq),'') AS ResidId</p>
+</blockquote>
+<p>LEFT JOIN _TDAEmp AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>소스관리도구</p>
+<p>서브SP</p>
+<p>개발툴 SP 목록에 추가 (비즈니스에는 안해도 됨 / 소스관리도구)</p>
+<p>조건별 GROUP</p>
+<p>mcnv_SXPRPayTermAmtListQuery</p>
+  </article>
+</div>
+</body>
+</html>

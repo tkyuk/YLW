@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>특수문자 검색</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>특수문자 검색</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">특수문자 검색</h1>
+<table style="width:79%;">
+<colgroup>
+<col style="width: 70%" />
+<col style="width: 8%" />
+</colgroup>
+<thead>
+<tr>
+<th><p>SELECT 컬럼명 FROM 테이블명</p>
+<p>WHERE 컬럼명 LIKE '%[문자][검색할특수문자]%' ESCAPE '[문자]'</p></th>
+<th><a href="http://colorscripter.com/info#e">cs</a></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+
+<p>출처: \&lt;<a href="https://m.blog.naver.com/s8197/220761137203">https://m.blog.naver.com/s8197/220761137203</a>&gt;</p>
+<p>DROP TABLE #TMP</p>
+<p>CREATE TABLE #TMP(</p>
+<p>A NVARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TMP</p>
+<p>SELECT 'ABC%DEF'</p>
+<p>UNION SELECT'ABC[DEF'</p>
+<p>UNION SELECT'ABC/DEF'</p>
+<p>UNION SELECT'ABC\DEF'</p>
+<p>UNION SELECT'ABC_DEF'</p>
+<p>SELECT * FROM #TMP WHERE A LIKE '%/[%' ESCAPE '/' -- [ 검색</p>
+  </article>
+</div>
+</body>
+</html>

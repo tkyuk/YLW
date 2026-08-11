@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구분에 따른 CASE - GROUP BY</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>구분에 따른 CASE - GROUP BY</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="case-group-by">구분에 따른 CASE - GROUP BY</h1>
+<p>-- SELECT CASE WHEN @UmQryType IN ( 2140123001, 2140123002, 2140123004, 2140123006 ) THEN UmFactoryUnitName</p>
+<p>-- WHEN @UmQryType IN ( 2140123003, 2140123005 ) THEN ' '</p>
+<p>-- ELSE '' END AS UmFactoryUnitName ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123002, 2140123004, 2140123006 ) THEN UmFactoryUnit</p>
+<p>-- WHEN @UmQryType IN ( 2140123003, 2140123005 ) THEN 0</p>
+<p>-- ELSE 0 END AS UmFactoryUnit ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123003, 2140123004, 2140123005 ) THEN CustName</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END AS CustName,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123003, 2140123004, 2140123005 ) THEN CustNo</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END AS CustNo,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123003, 2140123004, 2140123005 ) THEN CustSeq</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123006 ) THEN 0</p>
+<p>-- ELSE 0 END AS CustSeq,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN ItemName</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN ' '</p>
+<p>-- ELSE '' END AS ItemName,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN ItemNo</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN ' '</p>
+<p>-- ELSE '' END AS ItemNo,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN Spec</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN ' '</p>
+<p>-- ELSE '' END AS Spec,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN ItemSeq</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN 0</p>
+<p>-- ELSE 0 END AS ItemSeq,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005 ) THEN CustItemName</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END AS CustItemName,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005 ) THEN CustItemNo</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END AS CustItemNo</p>
+<p>-- FROM #FixData</p>
+<p>--GROUP BY CASE WHEN @UmQryType IN ( 2140123001, 2140123002, 2140123004, 2140123006 ) THEN UmFactoryUnitName</p>
+<p>-- WHEN @UmQryType IN ( 2140123003, 2140123005 ) THEN ' '</p>
+<p>-- ELSE '' END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123002, 2140123004, 2140123006 ) THEN UmFactoryUnit</p>
+<p>-- WHEN @UmQryType IN ( 2140123003, 2140123005 ) THEN 0</p>
+<p>-- ELSE 0 END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123003, 2140123004, 2140123005 ) THEN CustName</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123003, 2140123004, 2140123005 ) THEN CustNo</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123003, 2140123004, 2140123005 ) THEN CustSeq</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123006 ) THEN 0</p>
+<p>-- ELSE 0 END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN ItemName</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN ' '</p>
+<p>-- ELSE '' END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN ItemNo</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN ' '</p>
+<p>-- ELSE '' END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN Spec</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN ' '</p>
+<p>-- ELSE '' END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005, 2140123006 ) THEN ItemSeq</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004 ) THEN 0</p>
+<p>-- ELSE 0 END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005 ) THEN CustItemName</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END ,</p>
+<p>-- CASE WHEN @UmQryType IN ( 2140123001, 2140123005 ) THEN CustItemNo</p>
+<p>-- WHEN @UmQryType IN ( 2140123002, 2140123003, 2140123004, 2140123006 ) THEN ' '</p>
+<p>-- ELSE '' END</p>
+  </article>
+</div>
+</body>
+</html>

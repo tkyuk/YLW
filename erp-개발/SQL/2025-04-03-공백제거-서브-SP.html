@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공백제거 서브 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>공백제거 서브 SP</h1>
+    <div class="meta">
+      <span class="note-date">2025-04-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">공백제거 서브 SP</h1>
+<p>DECLARE @ItemName NVARCHAR(100) = ' 34423 DSAF ASDF ASD 312321 ASDF ASDF D '</p>
+<p>, @TrunName NVARCHAR(100)</p>
+<p>EXEC _SWDATrSpace @ItemName, @TrunName OUTPUT</p>
+<p>SELECT @TrunName</p>
+  </article>
+</div>
+</body>
+</html>

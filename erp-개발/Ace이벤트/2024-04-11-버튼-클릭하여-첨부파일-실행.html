@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>버튼 클릭하여 첨부파일 실행</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>버튼 클릭하여 첨부파일 실행</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">버튼 클릭하여 첨부파일 실행</h1>
+<p>local AttachFileSeq</p>
+<p>AttachFileSeq = tonumber(CellText(SS1, SS1.ActiveRow, 'FileSeq'))</p>
+<p>if AttachFileSeq == 0 then</p>
+<p>MessageBoxShow(GetMessage('1276', '', '', '', '', '','','','','',''),'') -- 다운로드할 파일이 없을때 처리</p>
+<p>else</p>
+<p>akFileUpload.Value = AttachFileSeq -- 해당 파일그룹번호로 파일 리스트를 조회한다.</p>
+<p>akFileUpload.ListFileDownloadRun = 0 -- 리스트의 0번째 파일을 내려받고 실행한다.</p>
+<p>end</p>
+<p><img alt="" src="assets/버튼-클릭하여-첨부파일-실행/image79.png" /></p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>폼목대분류,중분류,소분류 시트값</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>폼목대분류,중분류,소분류 시트값</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">폼목대분류,중분류,소분류 시트값</h1>
+<p>FrmWPDMpsMatTmpPlanList_mcf</p>
+<p>FrmWPDDailyWorkReportList_mcm</p>
+<p>LEFT OUTER JOIN _TDAItem                 AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS E WITH(NOLOCK) ON E.CompanySeq = B.CompanySeq</p>
+<p>AND E.ItemSeq = B.ItemSeq</p>
+<p>AND E.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS D WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.ItemClassSSeq = E.UMItemClass</p>
+<p>WHERE (@CustSeq = 0 OR @CustSeq = A.CustSeq ) -- 거래처</p>
+<p>AND (@AssetSeq = 0 OR @AssetSeq = B.AssetSeq ) -- 품목자산분류</p>
+<p>AND (@ItemClassLSeq = 0 OR @ItemClassLSeq = D.ItemClassLSeq ) -- 대분류</p>
+<p>AND (@ItemClassMSeq = 0 OR @ItemClassMSeq = D.ItemClassMSeq ) -- 중분류</p>
+<p>AND (@ItemClassSSeq = 0 OR @ItemClassSSeq = D.ItemClassSSeq ) -- 소분류</p>
+<p>AND (@ItemName = '' OR B.ItemName LIKE @ItemName + N'%') -- 품명</p>
+<p>AND (@ItemNo = '' OR B.ItemNo LIKE @ItemNo + N'%') -- 품번</p>
+<p>AND (@Spec = '' OR B.Spec LIKE @Spec + N'%') -- 규격</p>
+<p>AND (CASE WHEN @ShortQtyQuery = '1' THEN A.Qty ELSE 1 END)</p>
+<p>\&lt; (CASE WHEN @ShortQtyQuery = '1' THEN 0 ELSE 2 END) -- - 부족수량만 조회 버튼 클릭시 재고가 (-)인 항목만 조회</p>
+<p>TextBox        품목대분류        DataBlock3        UMItemClassLName                품목대분류        DIS        100</p>
+<p>FloatBox        품목대분류코드        DataBlock3        UMItemClassL                품목대분류코드        DIS;HID        100</p>
+<p>TextBox        품목중분류        DataBlock3        UMItemClassMName                품목중분류        DIS        100</p>
+<p>FloatBox        품목중분류코드        DataBlock3        UMItemClassM                품목중분류코드        DIS;HID        100</p>
+<p>TextBox        품목소분류        DataBlock3        UMItemClassName                품목소분류        DIS        100</p>
+<p>FloatBox        품목소분류코드        DataBlock3        UMItemClass                품목소분류코드        DIS;HID        100</p>
+<p>TextBox        품목자산분류        DataBlock3        AssetName                품목자산분류        DIS        100</p>
+<p>FloatBox        품목자산분류코드        DataBlock3        AssetSeq                품목자산분류코드        DIS;HID        100</p>
+<p>ISNULL(F.ItemClassLName, '') AS UMItemClassLName,</p>
+<p>ISNULL(F.ItemClassLSeq , 0) AS UMItemClassL ,</p>
+<p>ISNULL(F.ItemClassMName, '') AS UMItemClassMName,</p>
+<p>ISNULL(F.ItemClassMSeq , 0) AS UMItemClassM ,</p>
+<p>ISNULL(F.ItemClassSName, '') AS UMItemClassName ,</p>
+<p>ISNULL(F.ItemClassSSeq , 0) AS UMItemClass ,</p>
+<p>ISNULL(G.AssetName , '') AS AssetName ,</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS E WITH(NOLOCK) ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.ItemSeq = C.ItemSeq</p>
+<p>AND E.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS F WITH(NOLOCK) ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.ItemClassSSeq = E.UMItemClass</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS G WITH(NOLOCK) ON G.CompanySeq = C.CompanySeq</p>
+<p>AND G.AssetSeq = C.AssetSeq</p>
+<ul>
+<li>중분류</li>
+</ul>
+<blockquote>
+<p>SELECT</p>
+<p>ISNULL(F.ItemClassLName, '') AS UMItemClassLName,</p>
+<p>ISNULL(F.ItemClassLSeq , 0) AS UMItemClassL ,</p>
+<p>ISNULL(F.ItemClassMName, '') AS UMItemClassMName,</p>
+<p>ISNULL(F.ItemClassMSeq , 0) AS UMItemClassM ,</p>
+<p>ISNULL(F.ItemClassSName, '') AS UMItemClassName ,</p>
+<p>ISNULL(F.ItemClassSSeq , 0) AS UMItemClass ,</p>
+<p>ISNULL(G.AssetName , '') AS AssetName</p>
+<p>FROM _TDAItem AS C</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS E WITH(NOLOCK) ON E.CompanySeq = C.CompanySeq</p>
+<p>AND E.ItemSeq = C.ItemSeq</p>
+<p>AND E.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS F WITH(NOLOCK) ON F.CompanySeq = E.CompanySeq</p>
+<p>AND F.ItemClassSSeq = E.UMItemClass</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS G WITH(NOLOCK) ON G.CompanySeq = C.CompanySeq</p>
+<p>AND G.AssetSeq = C.AssetSeq</p>
+<p>SELECT I2.ValueSeq,C.ItemNo,I3.MinorName</p>
+<p>FROM _TDAItem AS C</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS I1 WITH(NOLOCK) ON I1.CompanySeq = C.CompanySeq</p>
+<p>AND I1.ItemSeq = C.ItemSeq</p>
+<p>AND I1.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS I2 WITH(NOLOCK) ON I2.CompanySeq = I1.CompanySeq</p>
+<p>AND I2.MinorSeq = I1.UMItemClass</p>
+<p>AND I2.Serl in (1001,2001)</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS I3 WITH(NOLOCK) ON I2.CompanySeq = I3.CompanySeq</p>
+<p>AND I2.ValueSeq = I3.MinorSeq</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

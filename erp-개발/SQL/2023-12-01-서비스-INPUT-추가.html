@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서비스 INPUT 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>서비스 INPUT 추가</h1>
+    <div class="meta">
+      <span class="note-date">2023-12-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="input">서비스 INPUT 추가</h1>
+<p>SELECT D.DataFieldID,D.DataFieldName,B.*</p>
+<p>FROM _TCAService AS Z</p>
+<p>JOIN _TCAServiceDataBlock AS D ON D.ServiceSeq = Z.ServiceSeq</p>
+<p>JOIN _TCAServiceMethod AS A ON A.ServiceSeq = Z.ServiceSeq</p>
+<p>LEFT OUTER JOIN _TCAServiceMethodLink AS B WITH(NOLOCK) ON B.CompanySeq = 0</p>
+<p>AND D.ServiceSeq = B.ServiceSeq</p>
+<p>AND A.MethodSeq = B.MethodSeq</p>
+<p>AND D.DataFieldSeq = B.DataFieldSeq</p>
+<p>WHERE Z.ServiceSeq =2113 AND B.MethodSeq = 13</p>
+<p>AND Input = '1'</p>
+<p>--AND D.DataFieldID = 'SMCertiType'</p>
+<p>SELECT * fROM _TCAServiceMethodLink</p>
+<p>WHERE ServiceSeq = 2113</p>
+<p>AND MethodSeq = 13</p>
+<p>AND DataFieldSeq = 5</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE _TCAServiceMethodLink</p>
+<p>SET Input = '1'</p>
+<p>WHERE CompanySeq = 0</p>
+<p>AND ServiceSeq = 2113</p>
+<p>AND MethodSeq = 13</p>
+<p>AND DataFieldSeq = 5</p>
+<p>UPDATE _TCAServiceMethodInOutCache</p>
+<p>SET Input = '1'</p>
+<p>WHERE ServiceSeq =2113 AND MethodSeq = 13 AND DataFieldID = 'SMCertiType'</p>
+<p>UPDATE _TCAServiceMethodKWFDataBlockCache</p>
+<p>SET Input = '1'</p>
+<p>WHERE ServiceSeq =2113 AND MethodSeq = 13 AND SourceDataFieldID = 'SMCertiType'</p>
+<p>ROLLBACK TRAN</p>
+<p>SELECT * FROM _TCAServiceMethodInOutCache WHERE ServiceSeq =2113 AND MethodSeq = 13 AND DataFieldID = 'SMCertiType'</p>
+<p>SELECT * FROM _TCAServiceMethodLink WHERE ServiceSeq =2113 AND MethodSeq = 13 AND DataFieldSeq = 5</p>
+<p>SELECT * FROM _TCAServiceMethodKWFDataBlockCache WHERE ServiceSeq =2113 AND MethodSeq = 13 AND SourceDataFieldID = 'SMCertiType'</p>
+  </article>
+</div>
+</body>
+</html>

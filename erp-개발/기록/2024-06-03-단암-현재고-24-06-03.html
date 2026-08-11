@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단암 현재고 24/06/03</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>단암 현재고 24/06/03</h1>
+    <div class="meta">
+      <span class="note-date">2024-06-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="240603">단암 현재고 24/06/03</h1>
+<p>--SELECT * FROm _TLGInoutLotStock WHERE LotNo = '12304190168' AND InoutYM = '202311' AND WHseq = 13849 AND Inouttype = 310 -- 마이너스</p>
+<p>--SELECT * FROm _TLGInoutLotStock WHERE LotNo = '12311160055' AND InoutYM = '202311' AND WHseq = 13849 AND Inouttype = 310 -- 플러스</p>
+<p>--SELECT * FROM _TLGInoutDailyItem WHERE inoutType = 310 AND LotNo = '12311160055'</p>
+<p>--SELECT * FROM _TLGInoutDaily WHERE inoutType = 310 AND InoutSeq = 402900</p>
+<p>--SELECT * FROM _TLGInoutDailyItem WHERE inoutType = 310 AND InoutSeq = 402900</p>
+<p>SELECT CompanySeq, InOUtSeq, InOutSerl, COUNT(*)</p>
+<p>FROM _TLGInoutLotStock</p>
+<p>WHERE InoutType = 310</p>
+<p>GROUP BY CompanySeq, InOUtSeq, InOutSerl</p>
+<p>having COUNT(*) \&lt; 2</p>
+<p>BEGIN TRAN</p>
+<p>INSERT INTO _TLGInoutLotStock</p>
+<p>SELECT CompanySeq,</p>
+<p>InOutType ,</p>
+<p>InOutSeq ,</p>
+<p>InOutSerl ,</p>
+<p>DataKind ,</p>
+<p>1 ,</p>
+<p>InOutSubSerl ,</p>
+<p>InOutLotSerl ,</p>
+<p>-1 ,</p>
+<p>InOutYM ,</p>
+<p>InOutDate ,</p>
+<p>WHSeq ,</p>
+<p>FunctionWHSeq ,</p>
+<p>'12304190168' ,</p>
+<p>ItemSeq ,</p>
+<p>UnitSeq ,</p>
+<p>Qty ,</p>
+<p>StdQty ,</p>
+<p>InOutKind ,</p>
+<p>InOutDetailKind ,</p>
+<p>Amt FROm _TLGInoutLotStock WHERE LotNo = '12311160055' AND InoutYM = '202311' AND WHseq = 13849 AND Inouttype = 310 -- 플러스</p>
+<p>--UPDATE _TLGLotStock</p>
+<p>-- SET PrevQty = 116,</p>
+<p>-- STDPrevQty = 116</p>
+<p>--WHERE LotNo = '12304190168'</p>
+<p>-- AND WHSeq = 13849</p>
+<p>-- AND ItemSeq = 43685</p>
+<p>-- AND StkYM = '202401'</p>
+<p>SELECT * FROM _TLGInoutLotStock WHERE inoutType = 310 AND InoutSeq = 402900</p>
+<p>SELECT * FROM _TLGLotStock WHERE LotNo = '12304190168' AND WHSeq = 13849 AND ItemSeq = 43685 AND StkYM &gt; '202310' ORDER BY StkYM</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP PROC _SLGGetInOutLotStock_TTEST</p>
+<p>GO</p>
+<p>-- 2013.01.10</p>
+<p>/*</p>
+<p>CREATE TABLE #GetInOutLot</p>
+<p>(</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #GetInOutLotStock</p>
+<p>(</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>PrevQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5),</p>
+<p>StockQty DECIMAL(19,5),</p>
+<p>STDPrevQty DECIMAL(19,5),</p>
+<p>STDInQty DECIMAL(19,5),</p>
+<p>STDOutQty DECIMAL(19,5),</p>
+<p>STDStockQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>*/</p>
+<p>CREATE PROC _SLGGetInOutLotStock_TTEST</p>
+<p>@CompanySeq INT = 0, -- 법인코드</p>
+<p>@BizUnit INT = 0, -- 사업부문</p>
+<p>@FactUnit INT = 0, -- 생산사업장</p>
+<p>@DateFr NCHAR(8) = '', -- 조회기간Fr</p>
+<p>@DateTo NCHAR(8) = '', -- 조회기간To</p>
+<p>@WHSeq INT = 0, -- 창고지정</p>
+<p>@SMWHKind INT = 0, -- 창고구분별 조회</p>
+<p>@CustSeq INT = 0, -- 수탁거래처</p>
+<p>@IsTrustCust NCHAR(1) = '', -- 수탁여부</p>
+<p>@IsSubDisplay NCHAR(1) = '', -- 기능창고 조회</p>
+<p>@IsUnitQry NCHAR(1) = '', -- 단위별 조회</p>
+<p>@QryType NCHAR(1) = '', -- 'S': 1007 실재고, 'B':1008 자산포함, 'A':1011 가용재고</p>
+<p>@IsUseDetail NCHAR(1) = '0' -- 입출고상세내역정보를 호출여부</p>
+<p>AS</p>
+<p>DECLARE @QryTypeSeq INT,</p>
+<p>@MonthQry NCHAR(1),</p>
+<p>@PrevDate NCHAR(8),</p>
+<p>@FromDate NCHAR(6),</p>
+<p>@FromYM NCHAR(6),</p>
+<p>@PrevYM NCHAR(6),</p>
+<p>@ToYM NCHAR(6),</p>
+<p>@WHMajor NCHAR(1)</p>
+<p>IF @QryType = 'S'</p>
+<p>SELECT @QryTypeSeq = 1007</p>
+<p>ELSE IF @QryType = 'B'</p>
+<p>SELECT @QryTypeSeq = 1008</p>
+<p>ELSE IF @QryType = 'A'</p>
+<p>SELECT @QryTypeSeq = 1011</p>
+<p>ELSE</p>
+<p>SELECT @QryTypeSeq = 0</p>
+<p>IF @DateFr = ''</p>
+<p>SELECT @DateFr = '19000101'</p>
+<p>IF @DateTo = ''</p>
+<p>SELECT @DateTo = '99991231'</p>
+<p>-- 조회기간 시작일이 물류시작월이 속하는 회계기간의 시작년월보다 앞선 일자면 ...</p>
+<p>-- 조회기간 시작일을 물류시작월이 속하는 회계기간의 시작년월의 1일로 대체함</p>
+<p>-- 원인: 기초재고가 물류시작월이 속하는 회계기간의 시작년월의 1일 이월재고로 들어가는데...</p>
+<p>-- 만약 그전 일자로 조회한다면 (-)재고로 나타남, 기초재고가 0으로 나오기때문에...</p>
+<p>-- 2013.01.10 기초가 입력될 시작년월일을 변량에 담기, START</p>
+<p>DECLARE @PreStkDate NVARCHAR(8)</p>
+<p>SELECT @PreStkDate = B.FrSttlYM+'01'</p>
+<p>FROM _TCOMEnv AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAAccFiscal AS B WITH(NOLOCK) ON ( A.CompanySeq = B.CompanySeq and A.EnvValue between B.FrSttlYM and B.ToSttlYM )</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EnvSeq = 1006</p>
+<p>IF @@ROWCOUNT = 0 SELECT @PreStkDate = ''</p>
+<p>SELECT @DateFr = CASE WHEN @PreStkDate &gt; @DateFr THEN @PreStkDate ELSE @DateFr END</p>
+<p>-- 2013.01.10, END</p>
+<p>SELECT @PrevDate = LEFT(@FromYM,4) + '0101'</p>
+<p>IF LEN(@DateFr) = 6</p>
+<p>SELECT @FromDate = @DateFr + '01'</p>
+<p>ELSE</p>
+<p>SELECT @FromDate = @DateFr</p>
+<p>IF LEN(@DateTo) = 6</p>
+<p>SELECT @MonthQry = '1'</p>
+<p>ELSE</p>
+<p>SELECT @MonthQry = '0'</p>
+<p>EXEC _SACGetAccTerm @CompanySeq, @FromDate, @FromYM OUTPUT ,@ToYM OUTPUT</p>
+<p>IF NOT EXISTS (SELECT 1 FROM _TLGLotStock WHERE CompanySeq = @CompanySeq AND StkYM = @FromYM AND (PrevQty \&lt;&gt; 0 AND STDPrevQty \&lt;&gt; 0))</p>
+<p>BEGIN</p>
+<p>SELECT @FromYM = CONVERT(NCHAR(8), DATEADD(yy, -1, @FromYM + '01'), 112)</p>
+<p>END</p>
+<p>SELECT @FromYM = CASE WHEN LEFT(@PreStkDate,6) &gt; @FromYM THEN LEFT(@PreStkDate,6) ELSE @FromYM END</p>
+<p>SELECT @PrevYM = CONVERT(NCHAR(6), DATEADD(M, -1, @FromDate+'01'), 112),</p>
+<p>@PrevDate = CONVERT(NCHAR(8), DATEADD(D, -1, @FromDate+'01'), 112)</p>
+<p>/****************************</p>
+<p>CREATE TABLE #GetInOutLot</p>
+<p>(</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #GetInOutLotStock</p>
+<p>(</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>PrevQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5),</p>
+<p>StockQty DECIMAL(19,5),</p>
+<p>STDPrevQty DECIMAL(19,5),</p>
+<p>STDInQty DECIMAL(19,5),</p>
+<p>STDOutQty DECIMAL(19,5),</p>
+<p>STDStockQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>Insert into #GetInOutLot</p>
+<p>Select ItemSeq</p>
+<p>From _TDAItem</p>
+<p>****************************/</p>
+<p>SELECT @WHMajor = '1'</p>
+<p>IF ISNULL(@SMWHKind,0) \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SELECT @WHMajor = ISNULL(ValueText,'')</p>
+<p>FROM _TDASMinorValue WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND MinorSeq = @SMWHKind</p>
+<p>AND Serl = 1001</p>
+<p>END</p>
+<p>CREATE TABLE #TempWH</p>
+<p>(</p>
+<p>WHSeq INT,</p>
+<p>WHSubSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #GetInOutLotStock_Temp</p>
+<p>(</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>LotNo NVARCHAR(30),</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>PrevQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5),</p>
+<p>StockQty DECIMAL(19,5),</p>
+<p>STDPrevQty DECIMAL(19,5),</p>
+<p>STDInQty DECIMAL(19,5),</p>
+<p>STDOutQty DECIMAL(19,5),</p>
+<p>STDStockQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>IF @IsUseDetail = '0'</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #TLGInOutLotStock (</p>
+<p>InOutType INT ,</p>
+<p>InOutSeq INT ,</p>
+<p>InOutSerl INT ,</p>
+<p>DataKind INT ,</p>
+<p>InOutSubSerl INT ,</p>
+<p>InOut INT ,</p>
+<p>InOutDate NCHAR(8) ,</p>
+<p>WHSeq INT ,</p>
+<p>FunctionWHSeq INT ,</p>
+<p>ItemSeq INT ,</p>
+<p>LotNo NVARCHAR(30) ,</p>
+<p>UnitSeq INT ,</p>
+<p>Qty DECIMAL(19, 5) ,</p>
+<p>StdQty DECIMAL(19, 5) )</p>
+<p>END</p>
+<p>select @FromYM,@FromYM + '01' ,@DateTo</p>
+<p>-- 대상창고</p>
+<p>INSERT INTO #TempWH</p>
+<p>SELECT DISTINCT A.WHSeq, 0</p>
+<p>FROM _TDAWH AS A WITH (NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDASMinorValue AS C WITH (NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.SMWHKind = C.MinorSeq</p>
+<p>AND C.MajorSeq = 8002</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@BizUnit = 0 OR A.BizUnit = @BizUnit)</p>
+<p>AND (@FactUnit = 0 OR A.FactUnit = @FactUnit)</p>
+<p>AND (@WHSeq = 0 OR A.WHSeq = @WHSeq)</p>
+<p>AND (@CustSeq = 0)</p>
+<p>AND (@SMWHKind = 0 OR (@WHMajor = '1' AND A.SMWHKind = @SMWHKind))</p>
+<p>AND (@QryTypeSeq = 0 OR C.Serl = @QryTypeSeq)</p>
+<p>AND (@IsTrustCust \&lt;&gt; '1')</p>
+<p>INSERT INTO #TempWH</p>
+<p>SELECT DISTINCT A.WHSeq, B.WHSeq</p>
+<p>FROM _TDAWH AS A WITH (NOLOCK)</p>
+<p>JOIN _TDAWHSub AS B WITH (NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.WHSeq = B.UpWHSeq</p>
+<p>LEFT OUTER JOIN _TDASMinorValue AS C WITH (NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.SMWHKind = C.MinorSeq</p>
+<p>AND C.MajorSeq = 8002</p>
+<p>LEFT OUTER JOIN _TDASMinorValue AS D WITH (NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND B.SMWHKind = D.MinorSeq</p>
+<p>AND D.MajorSeq = 8002</p>
+<p>AND D.Serl = 1006</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@BizUnit = 0 OR A.BizUnit = @BizUnit)</p>
+<p>AND (@FactUnit = 0 OR A.FactUnit = @FactUnit)</p>
+<p>AND (@WHSeq = 0 OR A.WHSeq = @WHSeq)</p>
+<p>AND (@CustSeq = 0 OR B.TrustCustSeq = @CustSeq)</p>
+<p>AND (@SMWHKind = 0 OR (@WHMajor = '1' AND A.SMWHKind = @SMWHKind) OR (@WHMajor \&lt;&gt; '1' AND B.SMWHKind = @SMWHKind))</p>
+<p>AND (@QryTypeSeq = 0 OR (C.Serl = @QryTypeSeq AND C.ValueText = '1'))</p>
+<p>AND ((@IsTrustCust \&lt;&gt; '1' AND D.ValueText \&lt;&gt; '1') OR (@IsTrustCust = '1' AND D.ValueText = '1'))</p>
+<p>INSERT INTO #TLGInOutLotStock</p>
+<p>SELECT A.InOutType, A.InOutSeq, A.InOutSerl, A.DataKind, A.InOutSubSerl, A.InOut, A.InOutDate, A.WHSeq, A.FunctionWHSeq, A.ItemSeq, A.LotNo, A.UnitSeq, A.Qty, A.StdQty</p>
+<p>FROM _TLGInOutLotStock AS A WITH (NOLOCK)</p>
+<p>JOIN #TempWH AS B ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.WHSeq = B.WHSeq</p>
+<p>AND A.FunctionWHSeq = B.WHSubSeq</p>
+<p>JOIN _TLGInOutDaily AS C WITH (NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.InOutType = C.InOutType</p>
+<p>AND A.InOutSeq = C.InOutSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>And A.InOutDate BETWEEN @FromYM + '01' AND @DateTo</p>
+<p>AND Exists (SELECT 1 FROM #GetInOutLot where ItemSeq = A.ItemSeq)</p>
+<p>DELETE #TLGInOutLotStock</p>
+<p>FROM #TLGInOutLotStock AS A</p>
+<p>LEFT OUTER JOIN #GetInOutLot AS B ON A.ItemSeq = B.ItemSeq And A.LotNo = B.LotNo</p>
+<p>WHERE ISNULL(B.ItemSeq,0) = 0</p>
+<p>IF (ISNULL((SELECT ValueText FROM _TDASMinorValue WITH (NOLOCK) WHERE CompanySeq = @CompanySeq AND MajorSeq = 8002 AND Serl = 1001 AND MinorSeq = ISNULL(@SMWHKind, 0)), '') \&lt;&gt; '1'</p>
+<p>OR ISNULL(@SMWHKind, 0) \&lt;&gt; 0) AND @IsSubDisplay \&lt;&gt; '1'</p>
+<p>BEGIN</p>
+<p>DELETE #TLGInOutLotStock</p>
+<p>FROM #TLGInOutLotStock X LEFT OUTER JOIN</p>
+<p>(SELECT DISTINCT A.WHSeq, A.InOutType, A.InOutSeq, A.InOutSerl, A.InOutSubSerl, A.ItemSeq, A.LotNo, A.DataKind</p>
+<p>FROM #TLGInOutLotStock A</p>
+<p>GROUP BY A.WHSeq, A.InOutType, A.InOutSeq, A.InOutSerl, A.InOutSubSerl, A.ItemSeq, A.LotNo, A.DataKind</p>
+<p>HAVING SUM(A.InOut * A.Qty) \&lt;&gt; 0) Y ON X.InOutType = Y.InOutType</p>
+<p>AND X.InOutSeq = Y.InOutSeq</p>
+<p>AND X.InOutSerl = Y.InOutSerl</p>
+<p>AND X.DataKind = Y.DataKind</p>
+<p>AND X.InOutSubSerl = Y.InOutSubSerl</p>
+<p>AND X.WHSeq = Y.WHSeq</p>
+<p>AND X.ItemSeq = Y.ItemSeq</p>
+<p>AND X.LotNo = Y.LotNo</p>
+<p>WHERE Y.InOutSeq IS NULL</p>
+<p>END</p>
+<p>SELECT '#TLGInOutLotStock',* FROM #TLGInOutLotStock</p>
+<p>/******************************************</p>
+<p>이월재고</p>
+<p>******************************************/</p>
+<p>SELECT '1',A.StkYM,A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq,</p>
+<p>PrevQty AS PrevQty</p>
+<p>FROM _TLGLotStock AS A WITH (NOLOCK)</p>
+<p>JOIN #TempWH AS B ON A.WHSeq = B.WHSeq</p>
+<p>AND A.FunctionWHSeq = B.WHSubSeq</p>
+<p>JOIN #GetInOutLot AS I ON A.LotNo = I.LotNo</p>
+<p>AND A.ItemSeq = I.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>And A.StkYM = @FromYM</p>
+<p>SELECT * FROm _TLGInoutLotStock WHERE LotNo = '12304190168' AND InoutYM = '202311'</p>
+<p>SELECT * FROm _TLGInoutLotStock WHERE LotNo = '12311160055' AND InoutYM = '202311'</p>
+<p>SELECT * FROm _TLGInoutLotStock WHERE inouttype = 310 AND InoutYM = '202311'</p>
+<p>SELECT * FROM _TLGInOutDaily WHERE inoutNo = '202311160131' AND Inouttype = 310</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE InoutSeq In (SELECT InOutSeq FROM _TLGInOutDaily WHERE inoutNo = '202311160131') AND Inouttype = 310</p>
+<p>SELECT * FROM _TLGInOutDailyItem WHERE lotno= '12311160055'</p>
+<p>--12304190168</p>
+<p>--12311160055</p>
+<p>return</p>
+<p>SELECT '1',A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq,</p>
+<p>SUM(PrevQty) AS PrevQty,</p>
+<p>0 AS InQty,</p>
+<p>0 AS OutQty,</p>
+<p>0 AS StockQty,</p>
+<p>SUM(STDPrevQty) AS STDPrevQty,</p>
+<p>0 AS STDInQty,</p>
+<p>0 AS STDOutQty,</p>
+<p>0 AS STDStockQty</p>
+<p>FROM _TLGLotStock AS A WITH (NOLOCK)</p>
+<p>JOIN #TempWH AS B ON A.WHSeq = B.WHSeq</p>
+<p>AND A.FunctionWHSeq = B.WHSubSeq</p>
+<p>JOIN #GetInOutLot AS I ON A.LotNo = I.LotNo</p>
+<p>AND A.ItemSeq = I.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>And A.StkYM = @FromYM</p>
+<p>GROUP BY A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq</p>
+<p>return</p>
+<p>/*** 기간내 입출고 ***/</p>
+<p>INSERT INTO #GetInOutLotStock_Temp(WHSeq,FunctionWHSeq,LotNo,ItemSeq,UnitSeq,PrevQty,InQty,OutQty,StockQty,STDPrevQty,STDInQty,STDOutQty,STDStockQty)</p>
+<p>SELECT A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq,</p>
+<p>SUM(PrevQty) AS PrevQty,</p>
+<p>0 AS InQty,</p>
+<p>0 AS OutQty,</p>
+<p>0 AS StockQty,</p>
+<p>SUM(STDPrevQty) AS STDPrevQty,</p>
+<p>0 AS STDInQty,</p>
+<p>0 AS STDOutQty,</p>
+<p>0 AS STDStockQty</p>
+<p>FROM _TLGLotStock AS A WITH (NOLOCK)</p>
+<p>JOIN #TempWH AS B ON A.WHSeq = B.WHSeq</p>
+<p>AND A.FunctionWHSeq = B.WHSubSeq</p>
+<p>JOIN #GetInOutLot AS I ON A.LotNo = I.LotNo</p>
+<p>AND A.ItemSeq = I.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>And A.StkYM = @FromYM</p>
+<p>GROUP BY A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq</p>
+<p>UNION ALL</p>
+<p>SELECT A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq,</p>
+<p>SUM(A.InOut * A.Qty) AS PrevQty,</p>
+<p>0 AS InQty,</p>
+<p>0 AS OutQty,</p>
+<p>0 AS StockQty,</p>
+<p>SUM(A.InOut * A.STDQty) AS STDPrevQty,</p>
+<p>0 AS STDInQty,</p>
+<p>0 AS STDOutQty,</p>
+<p>0 AS STDStockQty</p>
+<p>FROM #TLGInOutLotStock AS A</p>
+<p>WHERE A.InOutDate &gt;= @FromYM + '01'</p>
+<p>And A.InOutDate \&lt; @DateFr</p>
+<p>GROUP BY A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq</p>
+<p>UNION ALL</p>
+<p>SELECT A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq,</p>
+<p>0 AS PrevQty,</p>
+<p>SUM(CASE A.InOut WHEN 1 THEN A.Qty ELSE 0 END) AS InQty,</p>
+<p>SUM(CASE A.InOut WHEN 1 THEN 0 ELSE A.Qty END) AS OutQty,</p>
+<p>0 AS StockQty,</p>
+<p>0 AS STDPrevQty,</p>
+<p>SUM(CASE A.InOut WHEN 1 THEN A.STDQty ELSE 0 END) AS STDInQty,</p>
+<p>SUM(CASE A.InOut WHEN 1 THEN 0 ELSE A.STDQty END) AS STDOutQty,</p>
+<p>0 AS STDStockQty</p>
+<p>FROM #TLGInOutLotStock AS A</p>
+<p>WHERE A.InOutDate BETWEEN @DateFr AND @DateTo</p>
+<p>GROUP BY A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq</p>
+<p>--</p>
+<p>-- SELECT A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq,</p>
+<p>-- 0 AS PrevQty,</p>
+<p>-- SUM(CASE A.InOut WHEN 1 THEN A.Qty ELSE 0 END) AS InQty,</p>
+<p>-- SUM(CASE A.InOut WHEN 1 THEN 0 ELSE A.Qty END) AS OutQty,</p>
+<p>-- 0 AS StockQty,</p>
+<p>-- 0 AS STDPrevQty,</p>
+<p>-- SUM(CASE A.InOut WHEN 1 THEN A.STDQty ELSE 0 END) AS STDInQty,</p>
+<p>-- SUM(CASE A.InOut WHEN 1 THEN 0 ELSE A.STDQty END) AS STDOutQty,</p>
+<p>-- 0 AS STDStockQty</p>
+<p>-- FROM #TLGInOutLotStock AS A</p>
+<p>-- WHERE A.InOutDate BETWEEN @DateFr AND @DateTo AND A.ItemSeq = 6308</p>
+<p>-- GROUP BY A.WHSeq, A.FunctionWHSeq, A.LotNo, A.ItemSeq, A.UnitSeq</p>
+<p>--SELECT @DateFr, @DateTo</p>
+<p>-- select * from _TLGInOutDaily</p>
+<p>-- select * from _TLGInOutDailyItem</p>
+<p>-- select * from _TLGInOutDailyItemSub</p>
+<p>-- select * from _TLGInOutLotStock where CompanySeq = 8 and InOutDate like '2008%'</p>
+<p>-- select * from _TDAWH</p>
+<p>-- select * from _TDAWHSub</p>
+<p>select '#GetInOutLotStock_Temp', * from #GetInOutLotStock_Temp return</p>
+<p>INSERT INTO #GetInOutLotStock(WHSeq,FunctionWHSeq,LotNo,ItemSeq,UnitSeq,PrevQty,InQty,OutQty,StockQty,STDPrevQty,STDInQty,STDOutQty,STDStockQty)</p>
+<p>SELECT WHSeq,0,LotNo,ItemSeq,0,</p>
+<p>SUM(PrevQty) AS PrevQty,</p>
+<p>SUM(InQty) AS InQty,</p>
+<p>SUM(OutQty) AS OutQty,</p>
+<p>SUM(PrevQty + InQty - OutQty) AS StockQty,</p>
+<p>SUM(STDPrevQty) AS STDPrevQty,</p>
+<p>SUM(STDInQty) AS STDInQty,</p>
+<p>SUM(STDOutQty) AS STDOutQty,</p>
+<p>SUM(STDPrevQty + STDInQty - STDOutQty) AS STDStockQty</p>
+<p>FROM #GetInOutLotStock_Temp</p>
+<p>GROUP BY WHSeq,LotNo,ItemSeq</p>
+<p>select '#GetInOutLotStock',* from #GetInOutLotStock return</p>
+<p>-- SELECT *</p>
+<p>-- FROM #GetInOutStock</p>
+<p>-- ORDER BY WHSeq, ItemSeq, UnitSeq</p>
+<p>-- SELECT ISNULL((SELECT WHName FROM _TDAWH WHERE WHSeq = A.WHSeq ), '') AS WHSeq,</p>
+<p>-- ISNULL((SELECT WHName FROM _TDAWHSub WHERE WHSeq = A.FunctionWHSeq ), '') AS WHSubSeq,</p>
+<p>-- InQty,OutQty,STDInQty, STDOutQty</p>
+<p>-- FROM #GetInOutStock_Temp AS A</p>
+<p>-- ORDER BY InOutDate, InOutSeq, InOutSerl</p>
+<p>Drop table #GetInOutLotStock_Temp</p>
+<p>Drop table #TempWH</p>
+<p>GO</p>
+<p>exec _SLGWHLotStockListQuery_TTEST @xmlDocument=N'\&lt;ROOT&gt;</p>
+<p>\&lt;DataBlock1&gt;</p>
+<p>\&lt;WorkingTag&gt;A\&lt;/WorkingTag&gt;</p>
+<p>\&lt;IDX_NO&gt;1\&lt;/IDX_NO&gt;</p>
+<p>\&lt;Status&gt;0\&lt;/Status&gt;</p>
+<p>\&lt;DataSeq&gt;1\&lt;/DataSeq&gt;</p>
+<p>\&lt;Selected&gt;1\&lt;/Selected&gt;</p>
+<p>\&lt;TABLE_NAME&gt;DataBlock1\&lt;/TABLE_NAME&gt;</p>
+<p>\&lt;IsChangedMst&gt;1\&lt;/IsChangedMst&gt;</p>
+<p>\&lt;BizUnit&gt;5\&lt;/BizUnit&gt;</p>
+<p>\&lt;BizUnitName&gt;단암시스템즈\&lt;/BizUnitName&gt;</p>
+<p>\&lt;DateFr&gt;20240101\&lt;/DateFr&gt;</p>
+<p>\&lt;DateTo&gt;20240530\&lt;/DateTo&gt;</p>
+<p>\&lt;ValiDateFrom /&gt;</p>
+<p>\&lt;ValiDateTo /&gt;</p>
+<p>\&lt;SMWHKind /&gt;</p>
+<p>\&lt;WHKindName /&gt;</p>
+<p>\&lt;FactUnit /&gt;</p>
+<p>\&lt;FactUnitName /&gt;</p>
+<p>\&lt;WHSeq&gt;13849\&lt;/WHSeq&gt;</p>
+<p>\&lt;WHName /&gt;</p>
+<p>\&lt;AssetSeq /&gt;</p>
+<p>\&lt;AssetName /&gt;</p>
+<p>\&lt;IsZeroQty&gt;0\&lt;/IsZeroQty&gt;</p>
+<p>\&lt;ItemClassLSeq /&gt;</p>
+<p>\&lt;ItemClassMSeq /&gt;</p>
+<p>\&lt;ItemClassSSeq /&gt;</p>
+<p>\&lt;ValiToDate&gt;0\&lt;/ValiToDate&gt;</p>
+<p>\&lt;IsUnitQry&gt;0\&lt;/IsUnitQry&gt;</p>
+<p>\&lt;ItemName /&gt;</p>
+<p>\&lt;ItemNo&gt;1101000\&lt;/ItemNo&gt;</p>
+<p>\&lt;Spec /&gt;</p>
+<p>\&lt;LotNo&gt;12304190168\&lt;/LotNo&gt;</p>
+<p>\&lt;CustSeq /&gt;</p>
+<p>\&lt;CustName /&gt;</p>
+<p>\&lt;IsSubDisplay&gt;0\&lt;/IsSubDisplay&gt;</p>
+<p>\&lt;QryType&gt;S\&lt;/QryType&gt;</p>
+<p>\&lt;/DataBlock1&gt;</p>
+<p>\&lt;/ROOT&gt;',@xmlFlags=2,@ServiceSeq=5150,@WorkingTag=N'',@CompanySeq=1,@LanguageSeq=1,@UserSeq=1,@PgmSeq=1390</p>
+  </article>
+</div>
+</body>
+</html>

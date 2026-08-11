@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.01.07 엘에스머트리얼즈 BOM승인_sys 변경대상품목 차수 -1 조회 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.01.07 엘에스머트리얼즈 BOM승인_sys 변경대상품목 차수 -1 조회 건</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250107-bom_sys-1">25.01.07 엘에스머트리얼즈 BOM승인_sys 변경대상품목 차수 -1 조회 건</h1>
+<p>BEGIN TRAN</p>
+<p>GO</p>
+<p>/****************************************************************************************************</p>
+<p>FORM NAME - FrmWPDBOMECOList (ECO등록조회)</p>
+<p>DEFINITION - ECO등록조회_자재별모품목상세조회_WBS</p>
+<p>DESCRIPTION - ECO등록된 자재별 모품목 상세조회</p>
+<p>CREATE DATE - 2013.10.28 CREATE BY 김고은</p>
+<p>UPDATE DATE - 2013.10.28 UPDATE BY</p>
+<p>****************************************************************************************************/</p>
+<p>CREATE PROCEDURE dbo.sys_SWPDBOMCfmChangeBOMQuery_TTEST</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>--==================================================</p>
+<p>-- 변수선언</p>
+<p>--==================================================</p>
+<p>DECLARE @ItemSeq INT,</p>
+<p>@BOMReqSeq INT,</p>
+<p>@ItemBomRev NCHAR(2)</p>
+<p>--==================================================</p>
+<p>-- 변수에 담기</p>
+<p>--==================================================</p>
+<p>SELECT TOP 1</p>
+<p>@ItemSeq = ISNULL(ItemSeqTree, 0)</p>
+<p>, @BOMReqSeq = ISNULL(BOMReqSeq , 0)</p>
+<p>FROM #BIZ_IN_DATABLOCK1</p>
+<p>SELECT @ItemBomRev = A.ItemBOMRevRemark</p>
+<p>FROM sys_TPDBOMReqManagement AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = @ItemSeq</p>
+<p>AND A.BOMReqSeq = @BOMReqSeq</p>
+<p>SELECT @ItemBOMRev</p>
+<p>SELECT @ItemBOMRev = RIGHT('00' + CONVERT(NVARCHAR, CONVERT(INT, @ItemBOMRev) -1),2)</p>
+<p>CREATE TABLE #ReversedBOM</p>
+<p>(</p>
+<p>CompanySeq INT NOT NULL,</p>
+<p>Seq INT NOT NULL,</p>
+<p>ParentSeq INT NOT NULL,</p>
+<p>ItemSeq INT NOT NULL,</p>
+<p>Sort INT NOT NULL,</p>
+<p>TreeLevel INT NOT NULL,</p>
+<p>ItemRev CHAR(4) NOT NULL,</p>
+<p>NeedQtyNumerator DECIMAL(20,10) null,</p>
+<p>NeedQtyDenominator DECIMAL(20,10) null,</p>
+<p>TextLevel NVARCHAR(60) null</p>
+<p>)</p>
+<p>INSERT INTO #ReversedBOM</p>
+<p>SELECT @CompanySeq, 1, 0, @ItemSeq, 1, 1, @ItemBOMRev, 1, 1, '1'</p>
+<p>EXEC _SPDReversBOM @CompanySeq, @ItemSeq, @ItemBOMRev, 1, 1, 0, '1'</p>
+<p>DELETE #ReversedBOM FROM #ReversedBOM WHERE NeedQtyDenominator = 0 -- 소요량이 필수이기 때문에 분모가 0인 건은 삭제</p>
+<p>SELECT A.Seq AS Seq, A.ParentSeq AS ParentSeq, A.Sort, A.TreeLevel,</p>
+<p>ISNULL(A.ItemSeq, 0) AS ItemSeq,</p>
+<p>CASE B.SMStatus WHEN 2001002 THEN '◈폐기◈' ELSE '' END +</p>
+<p>ISNULL(B.ItemName, '') + '(' + RTRIM(ISNULL(B.ItemNo, '')) + ') [' + LTRIM(RTRIM(ISNULL(A.ItemRev, ''))) + ']' + ' 수량 : ' +</p>
+<p>CAST(CASE ISNULL(A.ItemSeq, 0) WHEN @ItemSeq THEN CAST((ISNULL(NeedQtyNumerator, 0) / ISNULL(NeedQtyDenominator, 0)) AS DECIMAL(20, 10))</p>
+<p>ELSE CAST((ISNULL(NeedQtyDenominator, 0) / ISNULL(NeedQtyNumerator, 0)) AS DECIMAL(20, 10))</p>
+<p>END AS NVARCHAR(100) ) AS NodeName,</p>
+<p>ISNULL(NeedQtyNumerator, 0) AS NeedQtyNumerator ,</p>
+<p>ISNULL(NeedQtyDenominator, 0) AS NeedQtyDenominator,</p>
+<p>CASE D.SMAssetGrp WHEN 6008002 THEN 'ProdItem'</p>
+<p>WHEN 6008004 THEN 'SemiItem'</p>
+<p>WHEN 6008005 THEN 'AssyItem'</p>
+<p>ELSE 'MatItem'</p>
+<p>END AS NodeImg, -- 2013.03.28 김권우</p>
+<p>CASE ISNULL(A.ItemSeq, 0) WHEN @ItemSeq THEN ISNULL(NeedQtyNumerator, 0) / ISNULL(NeedQtyDenominator, 0)</p>
+<p>ELSE ISNULL(NeedQtyDenominator, 0) / ISNULL(NeedQtyNumerator, 0) END AS Qty,</p>
+<p>-- 시트 조회 항목 추가 -- 11.12.09 BY 김세호</p>
+<p>LTRIM(RTRIM(ISNULL(A.ItemRev, ''))) AS ItemBOMRev,</p>
+<p>CASE B.SMStatus WHEN 2001002 THEN '◈폐기◈' ELSE '' END + +B.ItemName AS ItemName,</p>
+<p>B.ItemNo AS ItemNo,</p>
+<p>B.Spec AS Spec,</p>
+<p>C.UnitSeq AS UnitSeq,</p>
+<p>C.UnitName AS UnitName,</p>
+<p>D.SMAssetGrp AS AssetSeq,</p>
+<p>E.MinorName AS AssetName</p>
+<p>FROM #ReversedBOM AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.UnitSeq = C.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.AssetSeq = D.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.SMAssetGrp = E.MinorSeq</p>
+<p>ORDER BY A.TextLevel</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock1') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock1') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock2') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock2</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock2') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock2</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock3') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock3</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock3') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock3</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_IN_DataBlock4') IS NOT NULL DROP TABLE #BIZ_IN_DataBlock4</p>
+<p>IF OBJECT_ID ('tempdb..#BIZ_OUT_DataBlock4') IS NOT NULL DROP TABLE #BIZ_OUT_DataBlock4</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock4 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock4 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock4 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock4 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ItemSeqTree INT, BOMReqSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, ItemName NVARCHAR(500), ItemNo NVARCHAR(500), ItemSpec NVARCHAR(500), SMIsSetName NVARCHAR(100), ReqDateFr NVARCHAR(8), ReqDateTo NVARCHAR(8), EmpName NVARCHAR(100), ReqNo NVARCHAR(100), AssetName NVARCHAR(100), ItemSClassName NVARCHAR(100), ItemSeq INT, SMIsSet INT, EmpSeq INT, AssetSeq INT, ItemSClassSeq INT, IsAppl NVARCHAR(1), BOMReqNo NVARCHAR(100), RegDate NVARCHAR(8), LastEmpName NVARCHAR(100), LastUptDate NVARCHAR(8), RegEmpName NVARCHAR(100), Spec NVARCHAR(500), ItemSeqTree INT, BOMReqSeq INT, ItemBomRevTree NVARCHAR(2), TableName NVARCHAR(100), Agree1 NVARCHAR(1), Agree2 NVARCHAR(1), Agree3 NVARCHAR(1), CheckDelvTeamManager NVARCHAR(1), Agree1Remark NVARCHAR(1000), Agree2Remark NVARCHAR(1000), Agree3Remark NVARCHAR(1000), DelvTeamManagerRemark NVARCHAR(1000), RegCompleteYn NVARCHAR(1)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock4 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock4</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, AssetName NVARCHAR(100), ItemName NVARCHAR(100), ItemNo NVARCHAR(100), Spec NVARCHAR(100), UnitName NVARCHAR(100), ItemBOMRev NVARCHAR(100), IsLastRev NVARCHAR(100), Qty DECIMAL(19, 5), AssetSeq INT, UnitSeq INT, ItemSeq INT, ItemClassLName INT, ItemClassMName INT, ItemClassSName INT, ItemClassLSeq INT, ItemClassMSeq INT, ItemClassSSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock4 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock4 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock4</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, AssetName NVARCHAR(100), ItemName NVARCHAR(100), ItemNo NVARCHAR(100), Spec NVARCHAR(100), UnitName NVARCHAR(100), ItemBOMRev NVARCHAR(100), IsLastRev NVARCHAR(100), Qty DECIMAL(19, 5), AssetSeq INT, UnitSeq INT, ItemSeq INT, ItemClassLName INT, ItemClassMName INT, ItemClassSName INT, ItemClassLSeq INT, ItemClassMSeq INT, ItemClassSSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock4 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, ItemSeqTree, BOMReqSeq)</p>
+<p>SELECT N'', 1, 1, 1, 0, NULL, NULL, NULL, N'DataBlock1', N'175734', N'56'</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 54620077</p>
+<p>--SET @MethodSeq = 11</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 1</p>
+<p>SET @PgmSeq = 54620072</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC sys_SWPDBOMCfmChangeBOMQuery_TTEST</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>DROP TABLE #BIZ_IN_DataBlock4</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock4</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>

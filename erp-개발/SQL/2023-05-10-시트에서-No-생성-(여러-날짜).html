@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트에서 No 생성 (여러 날짜)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트에서 No 생성 (여러 날짜)</h1>
+    <div class="meta">
+      <span class="note-date">2023-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="no">시트에서 No 생성 (여러 날짜)</h1>
+<p>CREATE TABLE #Tmp_Max</p>
+<p>(</p>
+<p>InNo NVARCHAR(100),</p>
+<p>InDate NCHAR(8),</p>
+<p>)</p>
+<p>CREATE TABLE #Tmp_InNo</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>InNo NVARCHAR(100)</p>
+<p>)</p>
+<p>-- 임시테이블에 해당하는 날짜별 InNo 최대값 구하기</p>
+<p>INSERT INTO #Tmp_Max</p>
+<p>SELECT A.InNo,A.InDate</p>
+<p>FROM emk_TSLWasteIn AS A</p>
+<p>INNER JOIN ( SELECT CompanySeq, InDate, MAX(InNo) AS InNo</p>
+<p>FROM emk_TSLWasteIn</p>
+<p>GROUP BY CompanySeq, InDate</p>
+<p>) AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.InDate = B.InDate</p>
+<p>AND A.InNo = B.InNo</p>
+<p>WHERE A.InDate IN (SELECT DISTINCT InDate FROM #BIZ_OUT_DataBlock1)</p>
+<p>-- InNo 생성</p>
+<p>INSERT INTO #Tmp_InNo</p>
+<p>SELECT A.IDX_NO,</p>
+<p>CASE WHEN ISNULL(B.InNo,'') =''</p>
+<p>THEN A.InDate + RIGHT('0000' + CAST(ROW_NUMBER() OVER(PARTITION BY A.InDate ORDER BY A.IDX_NO) AS NVARCHAR), 4)</p>
+<p>ELSE B.InNo + ROW_NUMBER() OVER(PARTITION BY A.InDate ORDER BY A.IDX_NO) END</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN #Tmp_Max AS B ON B.InDate = A.InDate</p>
+<p>-- InNo Update</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET InNo = B.InNo</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN #Tmp_InNo AS B ON B.IDX_NO = A.IDX_NO</p>
+  </article>
+</div>
+</body>
+</html>

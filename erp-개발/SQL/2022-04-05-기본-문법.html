@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기본 문법</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>기본 문법</h1>
+    <div class="meta">
+      <span class="note-date">2022-04-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">기본 문법</h1>
+<ul>
+<li>행 전체 삭제</li>
+</ul>
+<p>TRUNCATE TABLE table_name;</p>
+<p>A 컬럼이 구분 (8019001) 일 때 \~~</p>
+<p>아니면 \~~</p>
+<p>CASE WHEN A.SMQuoteKind = '8019001'</p>
+<p>THEN ISNULL(B.ItemName , '')</p>
+<p>ELSE ISNULL(A.ItemName , '')</p>
+<p>END,</p>
+<p>CASE WHEN A.SMQuoteKind = '8019001'</p>
+<p>THEN ISNULL(B.ItemNo , '')</p>
+<p>ELSE ISNULL(A.ItemNo , '')</p>
+<p>END,</p>
+<p>CASE WHEN A.SMQuoteKind = '8019001'</p>
+<p>THEN ISNULL(B.Spec , '')</p>
+<p>ELSE ISNULL(A.Spec , '')</p>
+<p>END,</p>
+<ul>
+<li>테이블 컬럼 추가</li>
+</ul>
+<blockquote>
+<p>ALTER TABLE gcos_TPUQuoteReqResult ADD ItemSerl INT NULL</p>
+</blockquote>
+<ul>
+<li>테이블 속성 변경</li>
+</ul>
+<blockquote>
+<p>ALTER TABLE jis_TSLOrderDVPlan ALTER COLUMN OutTime NVARCHAR(30) NULL</p>
+</blockquote>
+<ul>
+<li>테이블 컬럼명 변경</li>
+</ul>
+<blockquote>
+<p>EXEC SP_RENAME '테이블명.기존컬럼명', '바꿀컬럼명', 'COLUMN'</p>
+<p>sp_rename 'mcnv_TACAsstKOR.KORYear','MCNKYear'</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>테이블명칼럼 변경</th>
+<th>ALTER TABLE 테이블명 ALTER COLUMN 컬럼명 데이터형식 NULL허용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>칼럼 삭제 </th>
+<th>ALTER TABLE 테이블명 DROP COLUMN 컬럼명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>테이블의 필드 순서 변경</th>
+<th>ALTER TABLE 테이블명 CHANGE COLUMN 변경전 필드명 변경후 필드명 varchar(255) NULL AFTER 기준 필드명; </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>테이블 행 삭제</li>
+</ul>
+<blockquote>
+<p>BEGIN TRAN</p>
+<p>DELETE FROM mcnv_TACAsstText</p>
+<p>WHERE AsstSeq=7262</p>
+<p>SELECT * FROM mcnv_TACAsstText ORDER BY ASSTSEQ DESC</p>
+<p>ROLLBACK TRAN</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

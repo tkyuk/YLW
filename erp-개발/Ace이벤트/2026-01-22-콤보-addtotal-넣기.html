@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>콤보 addtotal 넣기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>콤보 addtotal 넣기</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="addtotal">콤보 addtotal 넣기</h1>
+<p>cmbRetEstYm.IsComboAddTotal  = true</p>
+<p>if _base.PgmSeq ~= 9030881 then</p>
+<blockquote>
+<p>cmbRetEstYm.IsComboAddTotal = true</p>
+<p>SetTypeCombo(cmbRetEstYm, 30010, datYY.Value, '', '', '', true)</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>SetTypeCombo(cmbRetEstYm, 30010, datYY.Value, '', '', '', false)</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.01.03 단암 프로젝트조회 (진행구분 컬럼 로직)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.01.03 단암 프로젝트조회 (진행구분 컬럼 로직)</h1>
+    <div class="meta">
+      <span class="note-date">2025-01-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250103">25.01.03 단암 프로젝트조회 (진행구분 컬럼 로직)</h1>
+<p>-- sp : danam_SPJTProjectListQuery</p>
+<p>SELECT A.ISComplete,</p>
+<p>A.ISStop ,</p>
+<p>B.CfmCode,</p>
+<p>A.ISComplete,</p>
+<p>A.Companyseq, A.PJTSeq, CASE WHEN A.ISComplete = '1' THEN 7027004 -- 완료</p>
+<p>WHEN A.ISStop = '1' THEN 7027002 -- 중단</p>
+<p>WHEN B.CfmCode = 1 AND ISNULL(A.ISComplete,'') in ( '','0') THEN 7027003 -- 확정 -- select * from _TDASminor where majorseq = 7027</p>
+<p>ELSE 7027001 END -- 작성</p>
+<p>FROM _TPJTProject AS A</p>
+<p>LEFT OUTER JOIN _TPJTProject_Confirm AS B ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.PJTSeq = B.CfmSeq</p>
+<p>AND A.PJTRevSeq = B.CfmSerl</p>
+  </article>
+</div>
+</body>
+</html>

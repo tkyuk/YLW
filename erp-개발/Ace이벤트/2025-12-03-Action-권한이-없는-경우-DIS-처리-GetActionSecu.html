@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Action 권한이 없는 경우 DIS 처리 GetActionSecu</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>Action 권한이 없는 경우 DIS 처리 GetActionSecu</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="action-dis-getactionsecu">Action 권한이 없는 경우 DIS 처리 GetActionSecu</h1>
+<p>--Action 권한이 없는 경우 담당자확인 DIS 처리 : 2025.05.12 정민찬</p>
+<p>local mySecu</p>
+<p>mySecu = GetActionSecu('AC_ReceiptCfm')</p>
+<p>if mySecu == 0 then</p>
+<blockquote>
+<p>chkIsConfirm.ControlKey = 'DIS;'</p>
+</blockquote>
+<p>End</p>
+<p>참고화면 : FrmWSLServiceReceipt 서비스접수</p>
+  </article>
+</div>
+</body>
+</html>

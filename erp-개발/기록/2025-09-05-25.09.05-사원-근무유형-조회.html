@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.05 사원 근무유형 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.05 사원 근무유형 조회</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250905">25.09.05 사원 근무유형 조회</h1>
+<p>SELECT F.EMPNAME ,</p>
+<p>ISNULL(K.ValueText ,'0') AS IsWk</p>
+<p>, E.FullTime                                 AS FullTime</p>
+<p>, E.BegTime                                 AS BegTime</p>
+<p>, E.EndTime                                 AS EndTime</p>
+<p>, D.WkTypeSeq                         AS WkTypeSeq</p>
+<p>FROM _TDAEmpIn AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _THRAdmOrdEmp AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.EmpSeq = C.EmpSeq</p>
+<p>AND C.OrdDate \&lt; A.RetireDate -- 퇴직일자 이전발령기준</p>
+<p>AND C.OrdDate \&lt;= CASE WHEN ISNULL(A.RetireDate, '') &gt; CONVERT(NCHAR(8),GETDATE(),112) THEN CONVERT(NCHAR(8),GETDATE(),112) ELSE CONVERT(NCHAR(8), DATEADD(dd, -1, ISNULL(A.RetireDate, '')), 112) END</p>
+<p>AND C.OrdEndDate &gt;= CASE WHEN ISNULL(A.RetireDate, '') &gt; CONVERT(NCHAR(8),GETDATE(),112) THEN CONVERT(NCHAR(8),GETDATE(),112) ELSE CONVERT(NCHAR(8), DATEADD(dd, -1, ISNULL(A.RetireDate, '')), 112) END</p>
+<p>AND C.IsOrdDateLast = '1'</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS J WITH(NOLOCK) ON A.CompanySeq = J.CompanySeq</p>
+<p>AND C.UMJoSeq = J.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS K WITH(NOLOCK) ON K.CompanySeq = J.CompanySeq</p>
+<p>AND K.MinorSeq = J.MinorSeq</p>
+<p>AND K.Serl = 1001</p>
+<p>LEFT OUTER JOIN _TXPRWkTypeEmp AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.EmpSeq = A.EmpSeq</p>
+<p>AND D.EndDate = '99991231'</p>
+<p>LEFT OUTER JOIN _TXPRWkTypeTimeSet AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.WkTypeSeq = D.WkTypeSeq</p>
+<p>AND E.SMWkKindSeq= 5037002</p>
+<p>AND E.DayTypeSeq = 1</p>
+<p>AND E.WkFormSeq = -1</p>
+<p>LEFT OUTER JOIN _TDAEmp AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.EmpSeq = A.EmpSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+  </article>
+</div>
+</body>
+</html>

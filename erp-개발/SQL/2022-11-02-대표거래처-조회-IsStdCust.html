@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대표거래처 조회 IsStdCust</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>대표거래처 조회 IsStdCust</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="isstdcust">대표거래처 조회 IsStdCust</h1>
+<p>CREATE TABLE #CreditLimitDataUpperCust (</p>
+<p>CustSeq INT ,</p>
+<p>BillCustSeq INT ,</p>
+<p>StdCustSeq INT )</p>
+<p>IF @IsStdCust = '1'</p>
+<p>BEGIN</p>
+<p>INSERT INTO #CreditLimitDataUpperCust(CustSeq, BillCustSeq, StdCustSeq)</p>
+<p>SELECT DISTINCT B.CustSeq, A.UpperCustSeq, B.UpperCustSeq</p>
+<p>FROM _TDACustGroup AS A WITH(NOLOCK)</p>
+<p>JOIN ( SELECT DISTINCT CustSeq, UpperCustSeq</p>
+<p>FROM _TDACustGroup WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND UMCustGroup = 8014001 ) AS B ON B.CustSeq = A.CustSeq</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND UMCustGroup = 8014002</p>
+<p>END</p>
+<p>대표거래처 : StdCustSeq</p>
+<p>mcf_SWSLSalesPlanHitRateListQuery</p>
+  </article>
+</div>
+</body>
+</html>

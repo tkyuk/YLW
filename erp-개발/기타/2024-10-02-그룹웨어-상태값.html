@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그룹웨어 상태값</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>그룹웨어 상태값</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기타</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">그룹웨어 상태값</h1>
+<p>-- 1-5. 처리 후 상태값 UPDATE</p>
+<p>-- S : 전자결재 시작(잔자결재문서 저장되는 시점에 호출되어야 함)</p>
+<p>-- E : 전자결재를 모두 마치고, ERP에서 다음단계로 진행되어도 되는 시점에 호출</p>
+<p>-- C : 전자결재 취소(전자결재 문서가 삭제되는 시점에 호출되어야 함)</p>
+<p>-- R : 전자결재가 모두 마쳤졌다가 취소되어 Resart되는 경우(ERP다음단계 진행여부를 체크해야함)</p>
+<p>-- T : 전자결재가 모두 마치고 수신완료까지 한상태</p>
+<p>-- B : 잔자결재가 반려 처리가 되었을 때 ERP상에서 반송된 문서의 상태확인도 하고 재상신도 해야 하는경우. 2011.06.09. nhsong.</p>
+<p>-- L : 최종수신자가 취소한 경우 (환경설정 체크값 읽어와서 체크된 경우에는 R-S 호출, 체크되지 않았으면 작업 없음)</p>
+<p>-- J : 선결, 중간결재자가 결재시 데이터를 전달받기 위함, 사이트용 후처리 예정. 서연탑메탈 요청 202205100249</p>
+<p>/************************************************************</p>
+<p>설 명 - 그룹웨어전자결재완료처리 : 결재문서번호 POPJT_apro</p>
+<p>작성일 -</p>
+<p>작성자 -</p>
+<p>설 명 -</p>
+<p>수 정 -</p>
+<p>************************************************************/</p>
+<p>CREATE PROC dbo.apro_SWPJTSLPORegProc</p>
+<p>@pWorkingTag NCHAR(1),</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@WorkKind NVARCHAR(40) = '',</p>
+<p>@TblKey NVARCHAR(40) = '', -- 넘겨준 키를 그대로 보낸다.</p>
+<p>@TopUserName NVARCHAR(50) = '',</p>
+<p>@TopUserPosition NVARCHAR(50) = '',</p>
+<p>@RevUserName NVARCHAR(50) = '',</p>
+<p>@RevUserPosition NVARCHAR(50) = '',</p>
+<p>@DocID NVARCHAR(MAX) = '',</p>
+<p>@SiteInit NVARCHAR(40) = '' ,</p>
+<p>@MessageType INT OUTPUT,</p>
+<p>@Status INT OUTPUT,</p>
+<p>@Results NVARCHAR(250) OUTPUT,</p>
+<p>@GWDate NVARCHAR(8) = '',</p>
+<p>@EmpID NVARCHAR(40) = ''</p>
+<p>AS</p>
+<p>SET NOCOUNT ON;</p>
+<p>-- 1-5. 처리 후 상태값 UPDATE</p>
+<p>-- S : 전자결재 시작(잔자결재문서 저장되는 시점에 호출되어야 함)</p>
+<p>-- E : 전자결재를 모두 마치고, ERP에서 다음단계로 진행되어도 되는 시점에 호출</p>
+<p>-- C : 전자결재 취소(전자결재 문서가 삭제되는 시점에 호출되어야 함)</p>
+<p>-- R : 전자결재가 모두 마쳤졌다가 취소되어 Resart되는 경우(ERP다음단계 진행여부를 체크해야함)</p>
+<p>-- T : 전자결재가 모두 마치고 수신완료까지 한상태</p>
+<p>-- B : 잔자결재가 반려 처리가 되었을 때 ERP상에서 반송된 문서의 상태확인도 하고 재상신도 해야 하는경우. 2011.06.09. nhsong.</p>
+<p>-- L : 최종수신자가 취소한 경우 (환경설정 체크값 읽어와서 체크된 경우에는 R-S 호출, 체크되지 않았으면 작업 없음)</p>
+<p>-- J : 선결, 중간결재자가 결재시 데이터를 전달받기 위함, 사이트용 후처리 예정. 서연탑메탈 요청 202205100249</p>
+<p>DECLARE @POSeq INT</p>
+<p>SELECT @POSeq = CONVERT(INT, @TblKey)</p>
+<p>CREATE TABLE #TCOMConfirm</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1)</p>
+<p>, CfmSeq INT</p>
+<p>, CfmSerl INT</p>
+<p>, CfmSubSerl INT</p>
+<p>, CfmCode INT</p>
+<p>, UMCfmReason INT</p>
+<p>, CfmReason NVARCHAR(500)</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, DataSeq INT</p>
+<p>)</p>
+<p>IF @pWorkingTag = 'E'</p>
+<p>BEGIN</p>
+<p>INSERT INTO #TCOMConfirm</p>
+<p>(</p>
+<p>CfmSeq, CfmSerl, CfmSubSerl, CfmCode, UMCfmReason, CfmReason, Result, MessageType, Status, DataSeq</p>
+<p>)</p>
+<p>SELECT A.PJTSeq, B.PJTRevSeq, 0, 1, N'0', N'', NULL, NULL, 0, A.POSerl</p>
+<p>FROM apro_TPJTSLPORegItem AS A WITH(NOLOCK)</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PJTSeq = A.PjtSeq</p>
+<p>LEFT OUTER JOIN _TCOMConfirm AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ConfirmSeq = 6307</p>
+<p>AND C.CfmSeq = B.PJTSeq</p>
+<p>AND C.CfmSerl = B.PJTRevSeq</p>
+<p>AND C.CfmCode = 1</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.POSeq = @POSeq</p>
+<p>AND C.CompanySeq IS NULL -- 기 확정건 제외</p>
+<p>EXEC _SWCOMConfirm</p>
+<p>@CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>, @UserSeq = @UserSeq</p>
+<p>, @PgmSeq = 114320043 -- 프로젝트확정처리_apro</p>
+<p>END</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

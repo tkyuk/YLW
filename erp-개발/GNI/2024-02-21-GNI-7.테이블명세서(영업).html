@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI 7.테이블명세서(영업)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI 7.테이블명세서(영업)</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni-7">GNI 7.테이블명세서(영업)</h1>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 조성민</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시 스 템 : 영업관리</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2010.05.28.</td>
+</tr>
+<tr>
+<td>버 전 : 1.0</td>
+<td>페이지 : 1/2</td>
+<td>승 인 : (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>번호</th>
+<th style="text-align: center;">테이블명</th>
+<th style="text-align: center;">설 명</th>
+<th>발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td style="text-align: center;">TSACancelReg</td>
+<td style="text-align: center;">업무월마감</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">98</td>
+</tr>
+<tr>
+<td>2</td>
+<td style="text-align: center;">TSAPrePayment</td>
+<td style="text-align: center;">가지급신청입력</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">83</td>
+</tr>
+<tr>
+<td>3</td>
+<td style="text-align: center;">TSAQutoItem</td>
+<td style="text-align: center;">견적Item</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">734</td>
+</tr>
+<tr>
+<td>4</td>
+<td style="text-align: center;">TSAQutoM</td>
+<td style="text-align: center;">견적Master</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">535</td>
+</tr>
+<tr>
+<td>5</td>
+<td style="text-align: center;">TSAQutoSpec</td>
+<td style="text-align: center;">견적사양</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1183</td>
+</tr>
+<tr>
+<td>6</td>
+<td style="text-align: center;">TSASOItem</td>
+<td style="text-align: center;">수주Item</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">66</td>
+</tr>
+<tr>
+<td>7</td>
+<td style="text-align: center;">TSASOItemRev</td>
+<td style="text-align: center;">수주ItemRev</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">68</td>
+</tr>
+<tr>
+<td>8</td>
+<td style="text-align: center;">TSASOM</td>
+<td style="text-align: center;">수주M</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">77</td>
+</tr>
+<tr>
+<td>9</td>
+<td style="text-align: center;">TSASOMRev</td>
+<td style="text-align: center;">수주MRev</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">685</td>
+</tr>
+<tr>
+<td>10</td>
+<td style="text-align: center;">TSASOSpec</td>
+<td style="text-align: center;">수주사양</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">571</td>
+</tr>
+<tr>
+<td>11</td>
+<td style="text-align: center;">TSASOSpecRev</td>
+<td style="text-align: center;">수주사양Rev</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">276</td>
+</tr>
+<tr>
+<td>12</td>
+<td style="text-align: center;">TSBAccStart</td>
+<td style="text-align: center;">영업시작정보</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">607</td>
+</tr>
+<tr>
+<td>13</td>
+<td style="text-align: center;">TSBChannelPrice</td>
+<td style="text-align: center;">유통별할인다가</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1842</td>
+</tr>
+<tr>
+<td>14</td>
+<td style="text-align: center;">TSBConditionNo</td>
+<td style="text-align: center;">채번기준정보</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">479</td>
+</tr>
+<tr>
+<td>15</td>
+<td style="text-align: center;">TSBCreateNo</td>
+<td style="text-align: center;">채번정보</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1354</td>
+</tr>
+<tr>
+<td>16</td>
+<td style="text-align: center;">TSBCustCredit</td>
+<td style="text-align: center;">거래처여신</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">381</td>
+</tr>
+<tr>
+<td>17</td>
+<td style="text-align: center;">TSBCustItem</td>
+<td style="text-align: center;">업체품목코드</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1282</td>
+</tr>
+<tr>
+<td>18</td>
+<td style="text-align: center;">TSBCustItemPrice</td>
+<td style="text-align: center;">거래처별 단가</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">325</td>
+</tr>
+<tr>
+<td>19</td>
+<td style="text-align: center;">TSBCustSales</td>
+<td style="text-align: center;">거래처미수</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">691</td>
+</tr>
+<tr>
+<td>20</td>
+<td style="text-align: center;">TSBCustSpecCredit</td>
+<td style="text-align: center;">거래처특별여신</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">543</td>
+</tr>
+<tr>
+<td>21</td>
+<td style="text-align: center;">TSBCustUser</td>
+<td style="text-align: center;">거래처담당자</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1023</td>
+</tr>
+<tr>
+<td>22</td>
+<td style="text-align: center;">TSBCustUserHist</td>
+<td style="text-align: center;">거래처담당자이력</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">837</td>
+</tr>
+<tr>
+<td>23</td>
+<td style="text-align: center;">TSBDeliveryCust</td>
+<td style="text-align: center;">거래처별 납품처</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">120</td>
+</tr>
+<tr>
+<td>24</td>
+<td style="text-align: center;">TSBDeptItemWH</td>
+<td style="text-align: center;">부서별기본창고</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>25</td>
+<td style="text-align: center;">TSBGroupItem</td>
+<td style="text-align: center;">그룹품목</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">689</td>
+</tr>
+<tr>
+<td>26</td>
+<td style="text-align: center;">TSBItemCostPrice</td>
+<td style="text-align: center;">품목별원가</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">655</td>
+</tr>
+<tr>
+<td>27</td>
+<td style="text-align: center;">TSBItemCostPriceHist</td>
+<td style="text-align: center;">품목별원가히스토리</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">276</td>
+</tr>
+<tr>
+<td>28</td>
+<td style="text-align: center;">TSBPurGroup</td>
+<td style="text-align: center;">구매그룹</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">607</td>
+</tr>
+<tr>
+<td>29</td>
+<td style="text-align: center;">TSBPurGroupItem</td>
+<td style="text-align: center;">구매그룹품목</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1842</td>
+</tr>
+<tr>
+<td>30</td>
+<td style="text-align: center;">TSBSpecCreditHist</td>
+<td style="text-align: center;">특별여신히스토리</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">479</td>
+</tr>
+<tr>
+<td>31</td>
+<td style="text-align: center;">TSBTotSales</td>
+<td style="text-align: center;">영업실적</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1354</td>
+</tr>
+<tr>
+<td>32</td>
+<td style="text-align: center;">TSBUserCust</td>
+<td style="text-align: center;">거래처사용자등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">381</td>
+</tr>
+<tr>
+<td>33</td>
+<td style="text-align: center;">TSBVolPrice</td>
+<td style="text-align: center;">수량할인율등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1282</td>
+</tr>
+<tr>
+<td>34</td>
+<td style="text-align: center;">TSEBL</td>
+<td style="text-align: center;">계산서세부_BL</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">325</td>
+</tr>
+<tr>
+<td>35</td>
+<td style="text-align: center;">TSEBLInvNo</td>
+<td style="text-align: center;">인보이스BL정보</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">691</td>
+</tr>
+<tr>
+<td>36</td>
+<td style="text-align: center;">TSEELItem</td>
+<td style="text-align: center;">수출면장_허가서D</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">543</td>
+</tr>
+<tr>
+<td>37</td>
+<td style="text-align: center;">TSEExpM</td>
+<td style="text-align: center;">수출면장_허가서M</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1023</td>
+</tr>
+<tr>
+<td>38</td>
+<td style="text-align: center;">TSEExRan</td>
+<td style="text-align: center;">수출란등록</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">837</td>
+</tr>
+<tr>
+<td>39</td>
+<td style="text-align: center;">TSEInvoiceDesc</td>
+<td style="text-align: center;">거래명세세부-Invoice</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">120</td>
+</tr>
+<tr>
+<td>40</td>
+<td style="text-align: center;">TSELCItem</td>
+<td style="text-align: center;">L/C수출계약D</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>41</td>
+<td style="text-align: center;">TSELcM</td>
+<td style="text-align: center;">L/C수출계약M</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">689</td>
+</tr>
+<tr>
+<td>42</td>
+<td style="text-align: center;">TSENego</td>
+<td style="text-align: center;">입금세부_Nego</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">655</td>
+</tr>
+<tr>
+<td>43</td>
+<td style="text-align: center;">TSEOfferDesc</td>
+<td style="text-align: center;">수출견적세부</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">837</td>
+</tr>
+<tr>
+<td>44</td>
+<td style="text-align: center;">TSEOrderDesc</td>
+<td style="text-align: center;">수주세부</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">120</td>
+</tr>
+<tr>
+<td>45</td>
+<td style="text-align: center;">TSPActPlan</td>
+<td style="text-align: center;">년영업목표계획</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>46</td>
+<td style="text-align: center;">TSPMonthPlan</td>
+<td style="text-align: center;">월영업목표계획</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">689</td>
+</tr>
+<tr>
+<td>47</td>
+<td style="text-align: center;">TSPPlan</td>
+<td style="text-align: center;">영업목표계획</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">655</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Version 1.0 EISDMTD22</p>
+<p>※ 작성 방법 :</p>
+<p>테이블별로 관련 정보 사항을 기술함</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>제 목 : 테이블 명세서</strong></th>
+<th>단 계 : 기술 설계</th>
+<th>작성자 : 조성민</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시 스 템 : 영업관리</td>
+<td>업 무 : 물리적 데이터 설계</td>
+<td>작성일 : 2010.05.28.</td>
+</tr>
+<tr>
+<td>버 전 : 1.0</td>
+<td>페이지 : 2/2</td>
+<td>승 인 : (인)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>번호</th>
+<th style="text-align: center;">테이블명</th>
+<th>설 명</th>
+<th>발생건수</th>
+<th style="text-align: center;">주기</th>
+<th style="text-align: center;">크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>48</td>
+<td style="text-align: center;">TSPPLANITEM_SWN</td>
+<td>일자별생산계획Master</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">98</td>
+</tr>
+<tr>
+<td>49</td>
+<td style="text-align: center;">TSPPLANITEMD_SWN</td>
+<td>일자별생산계획Detail</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">83</td>
+</tr>
+<tr>
+<td>50</td>
+<td style="text-align: center;">TSPPLANM_SWN</td>
+<td>일자별생산계획</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">734</td>
+</tr>
+<tr>
+<td>51</td>
+<td style="text-align: center;">TSSAvailStk</td>
+<td>가용재고</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">535</td>
+</tr>
+<tr>
+<td>52</td>
+<td style="text-align: center;">TSSBillItem</td>
+<td>계산서Item</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1183</td>
+</tr>
+<tr>
+<td>53</td>
+<td style="text-align: center;">TSSBillM</td>
+<td>계산서M</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1183</td>
+</tr>
+<tr>
+<td>54</td>
+<td style="text-align: center;">TSSBillPrintItem</td>
+<td>세금계산서인쇄품목</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">66</td>
+</tr>
+<tr>
+<td>55</td>
+<td style="text-align: center;">TSSDelvReqItem</td>
+<td>출하요청세부</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">685</td>
+</tr>
+<tr>
+<td>56</td>
+<td style="text-align: center;">TSSDelvReqM</td>
+<td>출하요청</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">571</td>
+</tr>
+<tr>
+<td>57</td>
+<td style="text-align: center;">TSSInvoiceItem</td>
+<td>거래명세표Item</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">120</td>
+</tr>
+<tr>
+<td>58</td>
+<td style="text-align: center;">TSSInvoiceLotSub</td>
+<td>거래명세표Lot</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">52</td>
+</tr>
+<tr>
+<td>59</td>
+<td style="text-align: center;">TSSInvoiceM</td>
+<td>거래명세표M</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">689</td>
+</tr>
+<tr>
+<td>60</td>
+<td style="text-align: center;">TSSPreReceiptBill</td>
+<td>선급금반제(계산서)</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">98</td>
+</tr>
+<tr>
+<td>61</td>
+<td style="text-align: center;">TSSPreReceiptBillItem</td>
+<td>선급금반제세부(계산서)</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">83</td>
+</tr>
+<tr>
+<td>62</td>
+<td style="text-align: center;">TSSPreReceiptInv</td>
+<td>선급금반제(거래명세표)</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">734</td>
+</tr>
+<tr>
+<td>63</td>
+<td style="text-align: center;">TSSPreReceiptInvItem</td>
+<td>선급금반제세부(거래명세표)</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">535</td>
+</tr>
+<tr>
+<td>64</td>
+<td style="text-align: center;">TSSPreReceiptItem</td>
+<td>선급금세부</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1183</td>
+</tr>
+<tr>
+<td>65</td>
+<td style="text-align: center;">TSSPreReceiptM</td>
+<td>선급금</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">1183</td>
+</tr>
+<tr>
+<td>66</td>
+<td style="text-align: center;">TSSReceiptBill</td>
+<td>입금Item</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">66</td>
+</tr>
+<tr>
+<td>67</td>
+<td style="text-align: center;">TSSReceiptBillItem</td>
+<td>계산서품목별입금</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">685</td>
+</tr>
+<tr>
+<td>68</td>
+<td style="text-align: center;">TSSReceiptDesc</td>
+<td>입금내역</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">571</td>
+</tr>
+<tr>
+<td>69</td>
+<td style="text-align: center;">TSSReceiptInform</td>
+<td>입금통보</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">120</td>
+</tr>
+<tr>
+<td>70</td>
+<td style="text-align: center;">TSSReceiptM</td>
+<td>입금M</td>
+<td> </td>
+<td style="text-align: center;">수시</td>
+<td style="text-align: center;">52</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Version 1.0 EISDMTD22</p>
+<p>※ 작성 방법 :</p>
+<p>테이블별로 관련 정보 사항을</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

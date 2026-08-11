@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.17 영인-모빌리티 세금계산서 -\> 전표</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.17 영인-모빌리티 세금계산서 -\> 전표</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241217-">24.12.17 영인-모빌리티 세금계산서 -&gt; 전표</h1>
+<p>--1. SASSlipMst</p>
+<p>exec SASSlipMst N'D', N'00000', N'19890021', N'02', N'01', N'20241125', N'0019', N'40300300', N''</p>
+<p>--2. SASSlipDel</p>
+<p>EXEC SASSlipDel @pWorkingTag ,</p>
+<p>@pDeptCd ,</p>
+<p>@pEmpId ,</p>
+<p>@pAccUnit ,</p>
+<p>@pAccType ,</p>
+<p>@pAccDate ,</p>
+<p>@pAccSlipSeq ,</p>
+<p>@pSlipKind ,</p>
+<p>'' ,</p>
+<p>'ALLCUT' , -- @pSetDate CHAR(08) = null, -- 승인일</p>
+<p>'D' , -- @pWorkingTag CHAR(01) = null, -- 작업</p>
+<p>@cRowNo ,</p>
+<p>@cRowNo ,</p>
+<p>@vcStatus OUTPUT, -- 계정란</p>
+<p>0,0,0,'' ,</p>
+<p>@cSuperUser , -- 귀속부서란</p>
+<p>@vcResults OUTPUT, -- 적요란</p>
+<p>-- 예산에 관련된 통제값을 넘겨준다.</p>
+<p>@pIsBgtChk = @vcIsBgtChk, -- 예산통제</p>
+<p>@pBgtChkTrm = @vcBgtChkTrm, -- 예산통제기간</p>
+<p>@pBgtChkPnt = @vcBgtChkPnt -- 예산통제시점</p>
+<p>-- 3. SASEtcTblAUD 타시스템키 타테이블에 넣기</p>
+<p>-- 타시스템키조사: ','가 있으면 여러건이 묶어서 들어온것이므로 첫번째것만 일단 잘라냄-그래서 전표통에 넣음</p>
+<p>EXEC SASEtcTblAUD 'D', @cSlipId, @pSlipKind, '', @vcStatus OUTPUT, @vcResults OUTPUT</p>
+<p>-- 4. SASEtcTblAUD_ync</p>
+<p>-- 세금계산서의 'SlipId' 컬럼에 전표번호가 존재</p>
+<p>SELECT * FROM TSSBillM AS B WHERE B.BillNo = '202411250005'</p>
+<p>BEGIN TRAN</p>
+<p>UPDATE TSSBillM</p>
+<p>SET SlipId = ''</p>
+<p>FROM TSSBillM AS B WHERE B.BillNo = '202411250005'</p>
+<p>ROLLBACK TRAN</p>
+<p>전표 삭제 시 세금계산서의 전표 SlipId 컬럼이 공백으로 되어야하지만,</p>
+<p>삭제 후에도 데이터가 그대로 남아있음</p>
+<p>삭제 체크 되어야하지만 체크 안되서 지워지면 안되는 데이터가 지워진 현상</p>
+<p>결과값 마지막에</p>
+<p>insert #Tmp_Status</p>
+<p>select @poStatus,@poResults</p>
+<p>해당 부분 추가</p>
+  </article>
+</div>
+</body>
+</html>

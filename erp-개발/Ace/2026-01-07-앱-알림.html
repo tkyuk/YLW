@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>앱 알림</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>앱 알림</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">앱 알림</h1>
+<p>-- 1. (운영) IsUseFlex = 1 설정 필요</p>
+<p>SELECT IsUseFlex ,* FROM _TCAMobileSecurityPolicy -- '1'</p>
+<p>-- 2. (운영) 법인별KUMS설정값관리</p>
+<p>-- 앱 알림 사용여부 = '1'</p>
+<p>-- UsingMbFlexAppNoti = '1'</p>
+<p>SELECT * FROM OTCACompanyKums</p>
+<p>UNION</p>
+<p>SELECT * FROM SVSTESTCOMMON.DBO.OTCACompanyKums</p>
+<p>-- 프로그램별KUMS설정 (업무)</p>
+<p>SELECT A.*</p>
+<p>FROM OTCAKumsTemplatePgm AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAPgm AS B WITH(NOLOCK) ON A.PgmSeq = B.PgmSeq</p>
+<p>WHERE B.Caption LIKE '기타출고요청%'</p>
+<p>SELECT A.*</p>
+<p>FROM SVSTEST.DBO.OTCAKumsTemplatePgm AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAPgm AS B WITH(NOLOCK) ON A.PgmSeq = B.PgmSeq</p>
+<p>WHERE B.Caption LIKE '기타출고요청%'</p>
+<blockquote></blockquote>
+<p><img alt="" src="assets/앱-알림/image398.png" /></p>
+<p><img alt="" src="assets/앱-알림/image399.png" /></p>
+  </article>
+</div>
+</body>
+</html>

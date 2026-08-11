@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>검사유형 가져오기 / 검사유형 구하기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>검사유형 가져오기 / 검사유형 구하기</h1>
+    <div class="meta">
+      <span class="note-date">2024-05-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">검사유형 가져오기 / 검사유형 구하기</h1>
+<p>-- 검사유형추가</p>
+<p>UPDATE A</p>
+<p>SET SMQCType = CASE WHEN D.Serl IS NOT NULL THEN 6035001 -- 무검사</p>
+<p>WHEN ISNULL(C.IsUse , '') = N'1' THEN 6035002 -- 미검사</p>
+<p>WHEN ISNULL(B.IsInQC, '') = N'1' THEN 6035002 -- 미검사</p>
+<p>ELSE 6035001 -- 무검사 _TDASMinor WHERE MajorSeq = 6035</p>
+<p>END</p>
+<p>FROM #TDelvItem AS A</p>
+<p>OUTER APPLY(SELECT TOP 1 Y.IsInQC</p>
+<p>FROM _TDAItemClass AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPDQAItemClassQCKind AS Y WITH(NOLOCK) ON Z.CompanySeq = Y.CompanySeq</p>
+<p>AND Z.UMItemClass = Y.UMItemClass</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.ItemSeq = A.ItemSeq</p>
+<p>AND Z.UMajorItemClass IN (2001 , 2004)</p>
+<p>) AS B -- 품목소분류별 검사대상</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.IsUse</p>
+<p>FROM _TPDQAItemQCKind AS Z WITH(NOLOCK)</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.ItemSeq = A.ItemSeq</p>
+<p>AND Z.SMQcKind = 6018002 -- _TDASMinor WHERE MajorSeq = 6018</p>
+<p>) AS C -- 품목별 검사여부 예외등록</p>
+<p>OUTER APPLY(SELECT TOP 1 Z.Serl</p>
+<p>FROM _TPDQACustNotQCItem AS Z WITH(NOLOCK)</p>
+<p>JOIN _TPDQACustNotQC AS Y WITH(NOLOCK) ON Z.CompanySeq = Y.CompanySeq</p>
+<p>AND Z.CustSeq = Y.CustSeq</p>
+<p>AND Z.BizUnit = Y.BizUnit</p>
+<p>WHERE Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.BizUnit = A.BizUnit</p>
+<p>AND Z.CustSeq = A.CustSeq</p>
+<p>AND Z.ItemSeq = A.ItemSeq</p>
+<p>AND A.DelvDate BETWEEN Z.StartDate AND Z.EndDate</p>
+<p>) AS D -- 거래처별 무검사품 등록</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(A.SMQCType, 0) = 0 -- 검사유형이 없다면!</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>선택된 행에 대해 필수값, 데이터 없으면 에러 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>선택된 행에 대해 필수값, 데이터 없으면 에러 체크</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">선택된 행에 대해 필수값, 데이터 없으면 에러 체크</h1>
+<p>if SS1.DataRowCnt == 0 then</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>for row = 0, SS1.DataRowCnt do</p>
+<p>if CellText(SS1, row, 'Select') == '1' then</p>
+<p>-- 24.04.23 SJPARK</p>
+<p>WeightDate = CellText(SS1, row, 'WeightDate')</p>
+<p>CarNo = CellText(SS1, row, 'CarNo')</p>
+<p>Driver = CellText(SS1, row, 'Driver')</p>
+<p>HP = CellText(SS1, row, 'HP')</p>
+<p>if WeightDate == '' or WeightDate == '0' or WeightDate == nil or</p>
+<p>CarNo == '' or CarNo == '0' or CarNo == nil or</p>
+<p>Driver == '' or Driver == '0' or Driver == nil or</p>
+<p>HP == '' or HP == '0' or HP == nil then</p>
+<p>MessageBoxShow('필수값이 입력되지 않았습니다.','')</p>
+<blockquote>
+<p>GoTo('END')</p>
+</blockquote>
+<p>return</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

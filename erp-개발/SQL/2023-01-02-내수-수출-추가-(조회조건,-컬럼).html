@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내수/수출 추가 (조회조건, 컬럼)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>내수/수출 추가 (조회조건, 컬럼)</h1>
+    <div class="meta">
+      <span class="note-date">2023-01-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">내수/수출 추가 (조회조건, 컬럼)</h1>
+<p>cmbSMExpKindName        CodeHelp        내수/수출        DataBlock1        SMExpKindName        SMExpKind        내수/수출        QRY</p>
+<p>--Init에 추가</p>
+<p>local columnSchema</p>
+<p>local ds</p>
+<p>local addData</p>
+<p>columnSchema = '{SMExpKindName, string}{SMExpKind, int}'</p>
+<p>ds = CreateDataSet(ds, 'DataBlock1', columnSchema)</p>
+<p>addData = ''</p>
+<p>addData = ''..'전체'..CNST_SP..'0'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'내수'..CNST_SP..'1'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>addData = ''..'수출'..CNST_SP..'2'</p>
+<p>AddDataRow(ds, 'DataBlock1', addData)</p>
+<p>DataSetClear(m_SendXml.Data, '')</p>
+<p>MergeDataSet(m_SendXml, ds)</p>
+<p>SetAddCombo(cmbSMExpKindName, ds, 'DataBlock1', false)</p>
+<p>cmbSMExpKindName.Value = 0</p>
+<p>@SMExpKind          INT</p>
+<p>ISNULL(B.SMExpKind , 0) AS SMExpKind , -- 내수/수출코드</p>
+<p>ISNULL(M.MinorName ,'') AS SMExpKindName , -- 내수/수출</p>
+<p>LEFT OUTER JOIN _TDASMinor AS M WITH(NOLOCK) ON M.CompanySeq = B.CompanySeq</p>
+<p>AND M.MinorSeq = B.SMExpKind</p>
+<p>AND ( ( @SMExpKind = 0 )</p>
+<p>OR( @SMExpKind = 1 AND B.SMExpKind IN (8009001, 8009002, 8009003))</p>
+<p>OR( @SMExpKind = 2 AND B.SMExpKind = 8009004)</p>
+<p>) -- 달라질수도</p>
+  </article>
+</div>
+</body>
+</html>

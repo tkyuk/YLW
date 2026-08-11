@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>SP</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">SP</h1>
+<ul>
+<li>ANSI 설정 (Ace와 다름)</li>
+</ul>
+<!-- -->
+
+<ul>
+<li>
+<p>(옵션 - 쿼리 실행 - SQL Server - ANSI)</p>
+</li>
+<li>
+<p><span class="mark">Q,P,N</span>을 꼭 빼줘야함 (SQL 버전도 옛날 버전일 확률이 높기 때문)</p>
+</li>
+</ul>
+<blockquote>
+<p>ANSI_NULL</p>
+<p>=&gt; NULL 이 조회되면 에러가 난다</p>
+<p>=&gt; 체크해 놓으면 NULL이 발생하는 데이터에 대해서 무시</p>
+<p>==&gt; N은 체크 해야함</p>
+</blockquote>
+<ul>
+<li>+. 바로 적용되는게 아니라 새로 연 창부터 적용</li>
+</ul>
+<p><img alt="" src="assets/SP/image63.png" /></p>
+<p>저장 =&gt; Ace는 테이블 단위로 저장해서 1번만 실행하면 되지만</p>
+<blockquote>
+<p><strong>GNI는 행 개수만큼 실행한다</strong></p>
+</blockquote>
+<p>삭제 =&gt; 키 값만 넣어서 삭제하면 된다</p>
+<p>저장할 때 쓰는 SP</p>
+<p>DECLARE @vcSystemDate NCHAR(12) --YYYYMMDDHHmm</p>
+<p>EXEC SDAGetSystemDate @vcSystemDate OUTPUT</p>
+<p>select @vcSystemDate</p>
+<p><img alt="" src="assets/SP/image64.png" /></p>
+<p><img alt="" src="assets/SP/image65.png" /></p>
+<p>스플리트하는 SP에서 금액은 'N'을 붙여줘야 에러가 안나고 0이 나온다</p>
+<p>금액은 0이 넘어와도 N'0'으로 넘어와야함</p>
+<ul>
+<li>에러 표시</li>
+</ul>
+<p>-TDAErrorMsg (제뉴인처럼 단어 조합은 안됨 / 대신 직접 작성)</p>
+<p>DECLARE @vcStatus NVARCHAR(100),</p>
+<p>@vcResult NVARCHAR(100)</p>
+<p>EXEC SDAErrMsg 'AAUTH', @vcResult OUTPUT, @vcStatus OUTPUT</p>
+<p>-- =====</p>
+<p>-- 애초에 OK가 아니면 다 에러 취급</p>
+<p>SELECT @vcStatus, @vcResult</p>
+<p><img alt="" src="assets/SP/image66.png" /></p>
+<p><img alt="" src="assets/SP/image67.png" /></p>
+<p>TDAErrorMsg</p>
+<p><img alt="" src="assets/SP/image68.png" /></p>
+  </article>
+</div>
+</body>
+</html>

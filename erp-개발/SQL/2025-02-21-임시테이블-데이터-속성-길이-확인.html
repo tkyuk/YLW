@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>임시테이블 데이터 속성 길이 확인</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>임시테이블 데이터 속성 길이 확인</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">임시테이블 데이터 속성 길이 확인</h1>
+<p>SELECT c.name AS ColumnName,</p>
+<p>t.name AS DataType,</p>
+<p>c.max_length AS MaxLength,</p>
+<p>c.precision,</p>
+<p>c.scale,</p>
+<p>CASE</p>
+<p>WHEN t.name IN ('int', 'bigint', 'smallint', 'tinyint', 'bit', 'datetime', 'date', 'smalldatetime', 'money', 'smallmoney')</p>
+<p>THEN t.name</p>
+<p>WHEN t.name IN ('char', 'varchar', 'nchar', 'nvarchar')</p>
+<p>THEN t.name + '(' +</p>
+<p>CASE WHEN t.name LIKE 'n%' THEN CONVERT(NVARCHAR(10), c.max_length / 2)</p>
+<p>ELSE CONVERT(NVARCHAR(10), c.max_length)</p>
+<p>END + ')'</p>
+<p>WHEN t.name IN ('decimal', 'numeric')</p>
+<p>THEN t.name + '(' + CONVERT(NVARCHAR(10), c.precision) + ',' + CONVERT(NVARCHAR(10), c.scale) + ')'</p>
+<p>ELSE t.name</p>
+<p>END AS FormattedDataType</p>
+<p>FROM tempdb.sys.columns c</p>
+<p>JOIN tempdb.sys.types t ON c.user_type_id = t.user_type_id</p>
+<p>WHERE OBJECT_ID('tempdb..#Result') = c.object_id;</p>
+  </article>
+</div>
+</body>
+</html>

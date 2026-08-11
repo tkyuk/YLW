@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>알림 메세지 전송 저장 sp</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>알림 메세지 전송 저장 sp</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">알림 메세지 전송 저장 sp</h1>
+<p>SELECT @DeptSeq = DeptSeq FROM _TCAUser WITH (NOLOCK) where UserSeq = @UserSeq</p>
+<p>SELECT @ID = 0</p>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>SELECT TOP 1</p>
+<p>@ID = DataSeq,</p>
+<p>@Msg1 = ISNULL(B.CustName ,''),</p>
+<p>@CustSeq = CONVERT(NVARCHAR(10), A.CustSeq),</p>
+<p>@Msg2 = ISNULL(C.ItemName ,''),</p>
+<p>@Msg3 = CASE WHEN A.DVDate = '' THEN '' ELSE</p>
+<p>SUBSTRING(ISNULL(A.DVDate ,''),1,4) + '-' +</p>
+<p>SUBSTRING(ISNULL(A.DVDate ,''),5,2) + '-' +</p>
+<p>SUBSTRING(ISNULL(A.DVDate ,''),7,2) END,</p>
+<p>@Msg4 = dbo._fnGWAmtCommma(@CompanySeq,2,1,A.Qty,0,0,2,0) ,</p>
+<p>@Msg5 = Dummy2</p>
+<p>FROM #BIZ_OUT_DataBlock1 A</p>
+<p>LEFT OUTER JOIN _TDACust B WITH(NOLOCK) ON B.CompanySeq =@CompanySeq AND A.CustSeq = B.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAItem C WITH(NOLOCK) ON C.CompanySeq =@CompanySeq AND A.ItemSeq = C.ItemSeq</p>
+<p>WHERE A.DataSeq &gt; @ID</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>ORDER BY DataSeq</p>
+<p>IF @@ROWCOUNT = 0 BREAK</p>
+<p>SELECT @JumpData = N'\&lt;ROOT&gt;\&lt;DataBlock1&gt;\&lt;CustSeq&gt; ' + @CustSeq + ' \&lt;/CustSeq &gt;\&lt;CustName&gt;' + @Msg1 +'\&lt;/CustName&gt;\&lt;/DataBlock1&gt;\&lt;/ROOT&gt;'</p>
+<p>EXEC _SWCAMessageSendProc</p>
+<p>@WorkingTag, -- (필수) WorkingTag (공란)</p>
+<p>@CompanySeq, -- (필수) 법인내부코드</p>
+<p>@LanguageSeq, -- (필수) 언어내부코드</p>
+<p>@UserSeq, -- (필수) 발신자내부코드</p>
+<p>@DeptSeq, -- (필수) 발신자의 부서내부코드</p>
+<p>1, -- (필수) 메시지템플릿내부코드</p>
+<p>-- 프로그램 관련 정보는 알림 메시지에서 프로그램으로 Jump 처리가 필요한 경우 입력</p>
+<p>0, -- 프로그램의 Key값 (ex. 거래처내부코드, 수주내부코드 등)</p>
+<p>100520055, -- 화면내부코드</p>
+<p>@PgmSeq, -- JUMP 화면내부코드</p>
+<p>150003, -- JUMP 유형 (150001 : 신규, 150002 : 조회, 150003 : 저장, 150006 : 추가)</p>
+<p>@JumpData, -- JUMP 데이터 XML</p>
+<p>@Msg1, -- 메시지 내용에 포함할 내용1</p>
+<p>@Msg2, -- 메시지 내용에 포함할 내용2</p>
+<p>@Msg3, -- 메시지 내용에 포함할 내용3</p>
+<p>@Msg4, -- 메시지 내용에 포함할 내용4</p>
+<p>@Msg5 -- 메시지 내용에 포함할 내용5</p>
+<p>END</p>
+<p>djb_SWSLOrderCfmReqSave</p>
+  </article>
+</div>
+</body>
+</html>

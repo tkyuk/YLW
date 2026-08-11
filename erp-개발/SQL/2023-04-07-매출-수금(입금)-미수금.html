@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매출 수금(입금) 미수금</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>매출 수금(입금) 미수금</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">매출 수금(입금) 미수금</h1>
+<p>SELECT * FROM _TSLBillCreditSum -- 세금계산서 월별 집계</p>
+<p>SELECT * FROM _TSLCreditSum -- 거래명세서 월별 집계</p>
+<p>_TSLBillCreditDaily</p>
+<p>_TSLCreditDaily</p>
+<p>SumType In (0, 1, 2) -- 0:이월, 1:채권, 2:수금</p>
+<p>22년 SumType = 0 =&gt; 21년 이월 금액</p>
+<blockquote>
+<p>=&gt; 근데 이월데이터가 없을수도 있음</p>
+<p>=&gt; 21년 1데이터 - 2데이터 으로 22년 이월 미수금 구할 수 있다</p>
+</blockquote>
+<p>수주입력 -&gt; 거래처 입력 후 '여신조회' 클릭 하면 미수금 조회 가능</p>
+<blockquote></blockquote>
+<p>-  <strong>이월 미수금</strong> (전년도 매출액 - 전년도 수금액)</p>
+<p>-  <strong>매출액</strong> (당해년도 매출액)</p>
+<p>-  <strong>수금액</strong> (당해년도 수금액)</p>
+<p>-  <strong>미수금</strong> (2. 이월 미수금 + 3. 매출액 - 4. 수금액)</p>
+  </article>
+</div>
+</body>
+</html>

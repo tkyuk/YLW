@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>데이터가 0보다 작을 경우 색깔 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>데이터가 0보다 작을 경우 색깔 변경</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="0">데이터가 0보다 작을 경우 색깔 변경</h1>
+<blockquote>
+<p>if col &gt;=4 and col \&lt;= 79 then</p>
+<p>-- 데이터가 0보다 작으면 빨간색으로 처리</p>
+<p>if tonumber(CellText(SS1, row, ColName)) \&lt; 0 then</p>
+<p>SS1.ActiveCellForeColor = -65536 --빨강</p>
+<p>end</p>
+<p>end</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

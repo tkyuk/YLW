@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부서에 연결된 사업자번호, 사업자 일련번호</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>부서에 연결된 사업자번호, 사업자 일련번호</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">부서에 연결된 사업자번호, 사업자 일련번호</h1>
+<p>ex.  공급받는자는 발주부서의 사업자등록 정보로 조회        </p>
+<p>SELECT ISNULL(T1.TaxName, T2.TaxName) AS DeptCompanyName, -- 부서에 연결된 사업자 상호</p>
+<blockquote>
+<p>ISNULL(T1.TaxNoSerl,T2.TaxNoSerl) AS DeptTaxNoSerl , -- 부서에 연결된 사업자 일련번호</p>
+</blockquote>
+<p>*</p>
+<p>FROM _TPUORDPO AS Z WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDADept AS J WITH(NOLOCK) ON Z.CompanySeq = J.CompanySeq</p>
+<p>AND Z.DeptSeq = J.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDATaxUnitHist AS T1 WITH(NOLOCK) ON T1.CompanySeq = J.CompanySeq</p>
+<p>AND T1.TaxUnit = J.TaxUnit</p>
+<p>AND (Z.PODate BETWEEN T1.FrDate AND T1.ToDate)</p>
+<p>LEFT OUTER JOIN _TDATaxUnit AS T2 WITH(NOLOCK) ON T2.CompanySeq = J.CompanySeq</p>
+<p>AND T2.TaxUnit = J.TaxUnit</p>
+  </article>
+</div>
+</body>
+</html>

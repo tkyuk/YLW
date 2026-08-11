@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\(G\) BOM 연동 (프로젝트업로드)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\(G\) BOM 연동 (프로젝트업로드)</h1>
+    <div class="meta">
+      <span class="note-date">2024-02-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="g-bom">(G) BOM 연동 (프로젝트업로드)</h1>
+<p>ALTER PROC dat_SIFBOMProc</p>
+<p>@PDMKey NVARCHAR(200),</p>
+<p>@PJTNo NVARCHAR(60),</p>
+<p>@Status INT OUTPUT,</p>
+<p>@Results NVARCHAR(250) OUTPUT</p>
+<p>AS</p>
+<p>SET NOCOUNT ON</p>
+<p>DECLARE @CompanySeq INT,</p>
+<p>@ItemSeq INT,</p>
+<p>@PONo NVARCHAR(12),</p>
+<p>@UserSeq INT,</p>
+<p>@PgmSeq INT,</p>
+<p>@PODate NCHAR(8),</p>
+<p>@CurrSeq INT,</p>
+<p>@LanguageSeq INT</p>
+<p>SELECT @CompanySeq = 1,</p>
+<p>@UserSeq = 1,</p>
+<p>@LanguageSeq = 1</p>
+<p>DECLARE @PJTSeq INT = 0,</p>
+<p>@MessageType INT</p>
+<p>IF NOT EXISTS (SELECT TOP 1 1 FROM dat_IF_TPJTBOM AS A</p>
+<p>WHERE A.PDMKey = @PDMKey</p>
+<p>AND A.PJTNo = @PJTNo</p>
+<p>AND A.FLAG = 'N')</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999,</p>
+<p>@Results = '이미 처리된 건 입니다.'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>SELECT @PJTSeq = B.PJTSeq</p>
+<p>FROM dat_IF_TPJTBOM AS A WITH(NOLOCK)</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTNo = A.PJTNo</p>
+<p>WHERE A.PDMKey = @PDMKey</p>
+<p>AND A.PJTNo = @PJTNo</p>
+<p>IF @PJTSeq = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 9999,</p>
+<p>@Results = '프로젝트가 존재하지 않습니다.'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 필수값 체크</p>
+<p>IF EXISTS (SELECT TOP 1 1</p>
+<p>FROM dat_IF_TPJTBOM AS A</p>
+<p>WHERE A.PDMKey = @PDMKey</p>
+<p>AND (</p>
+<p>ISNULL(A.PJTNo ,'') = '' OR -- 프로젝트번호</p>
+<p>ISNULL(A.BOMLevel ,'') = '' OR -- BOM레벨</p>
+<p>ISNULL(A.ItemNo ,'') = '' OR -- 품번</p>
+<p>ISNULL(A.ItemName ,'') = '' OR -- 품명</p>
+<p>ISNULL(A.BasicQty , 0) = 0 OR -- 기본소요량</p>
+<p>ISNULL(A.TotQty , 0) = 0 OR -- 총소요량</p>
+<p>ISNULL(A.UMSupplyType, 0) = 0 OR -- 조달구분</p>
+<p>ISNULL(A.UMRegType , 0) = 0 OR -- 등록구분</p>
+<p>ISNULL(A.ItemClassSeq, 0) = 0 OR -- 품목소분류</p>
+<p>--ISNULL(A.DWGNo ,'') = '' OR -- 도면번호</p>
+<p>ISNULL(A.ProdCnt , 0) = 0 -- 제작대수</p>
+<p>))</p>
+<p>BEGIN</p>
+<p>-- 필수값 체크</p>
+<p>UPDATE dat_IF_TPJTBOM</p>
+<p>SET Result = '필수입력 항목을 입력하지 않았습니다.',</p>
+<p>Status = 9999,</p>
+<p>ERPProcDateTime = GETDATE()</p>
+<p>FROM dat_IF_TPJTBOM AS A</p>
+<p>WHERE A.PDMKey = @PDMKey</p>
+<p>AND (</p>
+<p>ISNULL(A.PJTNo ,'') = '' OR -- 프로젝트번호</p>
+<p>ISNULL(A.BOMLevel ,'') = '' OR -- BOM레벨</p>
+<p>ISNULL(A.ItemNo ,'') = '' OR -- 품번</p>
+<p>ISNULL(A.ItemName ,'') = '' OR -- 품명</p>
+<p>ISNULL(A.BasicQty , 0) = 0 OR -- 기본소요량</p>
+<p>ISNULL(A.TotQty , 0) = 0 OR -- 총소요량</p>
+<p>ISNULL(A.UMSupplyType, 0) = 0 OR -- 조달구분</p>
+<p>ISNULL(A.UMRegType , 0) = 0 OR -- 등록구분</p>
+<p>--ISNULL(A.DWGNo ,'') = '' OR -- 도면번호</p>
+<p>ISNULL(A.ProdCnt , 0) = 0 -- 제작대수</p>
+<p>)</p>
+<p>SELECT @Status = 9999,</p>
+<p>@Results = '필수입력 항목을 입력하지 않았습니다.'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>/*</p>
+<p>연동 처리 시 수정 없이 신규로만 생성</p>
+<p>실 테이블 (100건) 일 때 수정 건 5 / 신규 건 3 개 인 경우</p>
+<p>임시테이블에만 존재 (8건) =&gt; 수정, 신규 상관없이 상위품목의 max 레벨로 INSERT</p>
+<p>실테이블에만 존재 (5건) =&gt; 삭제 여부에 1 체크</p>
+<p>중복된 건 (95건) =&gt; 변동 없음</p>
+<p>*/</p>
+<p>--===============================================================</p>
+<p>-- 1. 실테이블에만 존재하는 건 담기 (수정 되기 이전 건) =&gt; DAT_TPJTBOM - 삭제 여부 체크</p>
+<p>--===============================================================</p>
+<p>SELECT D.PJTSeq,</p>
+<p>D.BOMSerl</p>
+<p>INTO #Tmp_TPJTBOM_Delete</p>
+<p>FROM _TPJTBOM AS D WITH(NOLOCK)</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.PJTSeq = D.PJTSeq</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.ItemSeq = D.ItemSeq</p>
+<p>LEFT OUTER JOIN DAT_TPJTBOM AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.PJTSeq = D.PJTSeq</p>
+<p>AND E.BOMSerl = D.BOMSerl</p>
+<p>LEFT OUTER JOIN dat_IF_TPJTBOM AS A WITH(NOLOCK) ON A.PJTNo = B.PJTNo</p>
+<p>AND A.ItemNo = C.ItemNo</p>
+<p>--AND A.BOMLevel = D.BOMLevel</p>
+<p>--AND A.UnitSeq = D.UnitSeq</p>
+<p>AND A.BasicQty = D.BasicQty</p>
+<p>AND A.TotQty = D.TotQty</p>
+<p>--AND A.EmpSeq = D.EmpSeq</p>
+<p>--AND A.FullPath = D.FullPath</p>
+<p>--AND A.IsTop = D.IsTop</p>
+<p>AND A.UMSupplyType = D.UMSupplyType</p>
+<p>AND A.UMRegType = D.UMRegType</p>
+<p>AND A.ItemClassSeq = D.ClassSeq</p>
+<p>AND A.UMMatQuality = D.UMMatQuality</p>
+<p>AND A.DWGNo = D.DWGNo</p>
+<p>AND A.MakerSeq = D.MakerSeq</p>
+<p>AND A.ProdCnt = D.ProdCnt</p>
+<p>--AND A.BOMSerl = D.BOMSerl</p>
+<p>--AND A.Remark = D.Remark</p>
+<p>AND A.SurPlusQty = D.SurPlusQty</p>
+<p>AND ISNULL(A.UMProcType, 0) = ISNULL(E.UMProcType, 0)</p>
+<p>AND ISNULL(A.UMTestType, 0) = ISNULL(E.UMTestType, 0)</p>
+<p>AND A.UnitType = E.UnitType</p>
+<p>AND A.PDMKey = @PDMKey</p>
+<p>WHERE D.PJTSeq = @PJTSeq</p>
+<p>AND A.Seq IS NULL</p>
+<p>AND D.BOMSerl \&lt;&gt; -1</p>
+<p>--===============================================================</p>
+<p>-- 2. 연동테이블에만 존재하는 건 담기 (수정 된 건) =&gt; 실제 SP에서 실행할 건</p>
+<p>--===============================================================</p>
+<p>SELECT A.Seq</p>
+<p>INTO #Tmp_TPJTBOM</p>
+<p>FROM dat_IF_TPJTBOM AS A WITH(NOLOCK)</p>
+<p>--JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.PJTNo = A.PJTNo</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemNo = A.ItemNo</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS D WITH(NOLOCK) ON C.ItemSeq = D.ItemSeq</p>
+<p>AND A.BasicQty = D.BasicQty</p>
+<p>AND A.TotQty = D.TotQty</p>
+<p>AND A.UMSupplyType = D.UMSupplyType</p>
+<p>AND A.UMRegType = D.UMRegType</p>
+<p>AND A.ItemClassSeq = D.ClassSeq</p>
+<p>AND A.UMMatQuality = D.UMMatQuality</p>
+<p>AND A.DWGNo = D.DWGNo</p>
+<p>AND A.MakerSeq = D.MakerSeq</p>
+<p>AND A.ProdCnt = D.ProdCnt</p>
+<p>AND @PJTSeq = D.PJTSeq</p>
+<p>--AND A.Remark = D.Remark</p>
+<p>AND A.SurPlusQty = D.SurPlusQty</p>
+<p>--AND A.EmpSeq = D.EmpSeq</p>
+<p>--AND A.UnitSeq = D.UnitSeq</p>
+<p>--AND A.FullPath = D.FullPath</p>
+<p>--AND A.IsTop = D.IsTop</p>
+<p>--AND A.BOMSerl = D.BOMSerl</p>
+<p>LEFT OUTER JOIN DAT_TPJTBOM AS E WITH(NOLOCK) ON E.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.UMProcType, 0) = ISNULL(E.UMProcType, 0)</p>
+<p>AND ISNULL(A.UMTestType, 0) = ISNULL(E.UMTestType, 0)</p>
+<p>AND ISNULL(A.UnitType ,'') = ISNULL(E.UnitType ,'')</p>
+<p>AND @PJTSeq = D.PJTSeq</p>
+<p>WHERE A.PDMKey = @PDMKey</p>
+<p>AND A.PJTNo = @PJTNo</p>
+<p>AND (D.CompanySeq IS NULL OR E.CompanySeq IS NULL)</p>
+<p>CREATE TABLE #TPJTBOM(</p>
+<p>DataSeq INT IDENTITY(1,1)</p>
+<p>,PDMKey NVARCHAR(200) -- PDM고유번호 그룹번호</p>
+<p>,Seq INT -- PDM품목생성내부코드 Identity 1 (Insert 시 자동 증가)</p>
+<p>,WorkingTag NCHAR (1) -- 입력,수정,삭제 플레그 신규A 수정U</p>
+<p>,PJTNo NVARCHAR(40) -- 프로젝트번호 필수</p>
+<p>,UpperItemNo NVARCHAR(100) -- 모품번</p>
+<p>,UpperItemName NVARCHAR(200) -- 모품명</p>
+<p>,UpperSpec NVARCHAR(100) -- 모규격</p>
+<p>,BOMLevel NVARCHAR(30) -- BOM레벨 필수</p>
+<p>,ItemNo NVARCHAR(100) -- 품번 필수</p>
+<p>,ItemName NVARCHAR(200) -- 품명 필수</p>
+<p>,Spec NVARCHAR(100) -- 규격</p>
+<p>,UnitSeq INT -- 단위코드</p>
+<p>,BasicQty DECIMAL(19,5) -- 기본소요량 필수</p>
+<p>,TotQty DECIMAL(19,5) -- 총소요량 필수</p>
+<p>,EmpSeq INT -- 등록자</p>
+<p>,FULLPATH NVARCHAR(MAX) -- 경로 최상위부터 상위 자재 BOM레벨(일단 넣어주세요)</p>
+<p>,IsTOP NCHAR(1) -- 전송 최상위 품목 전송시 최상위 품목 판단 여부</p>
+<p>,UMSupplyType INT -- 조달구분 필수</p>
+<p>,UMRegType INT -- 등록구분 필수</p>
+<p>,ItemClassSeq INT -- 품목소분류 필수</p>
+<p>,UMMatQuality INT -- 재질 24.01.03 보류</p>
+<p>,DWGNo NVARCHAR(80) -- 도면번호 필수(24.01.03 필수 - 회의결과 다시 필수값으로 설정)</p>
+<p>,MakerSeq INT -- Maker</p>
+<p>,ProdCnt DECIMAL(19,5) -- 제작대수 필수, 23.12.19 추가</p>
+<p>,UMProcType INT -- 가공유형코드 23.12.22 추가</p>
+<p>,UMTestType INT -- 검수구분코드 23.12.22 추가</p>
+<p>,Remark NVARCHAR(1000) -- 비고 24.01.03 추가</p>
+<p>,RegDateTime DATETIME -- 등록일시 SYSDATE</p>
+<p>,FLAG NCHAR(1) -- 연동처리여부 플래그 필수, 디폴트 N</p>
+<p>,ERPProcDateTime DATETIME -- ERP처리일시 null로 전송</p>
+<p>,Status INT -- ERP처리상태 0으로 전송</p>
+<p>,Result NVARCHAR(250) -- ERP처리결과 null로 전송</p>
+<p>,PJTSeq INT -- ERP프로젝트내부코드 0으로 전송</p>
+<p>,BOMSerl INT -- ERPBOM내부순번 0으로 전송</p>
+<p>,ItemSeq INT -- ERP품목내부코드 0으로 전송</p>
+<p>,MItemSeq INT -- ERP품목내부코드 0으로 전송</p>
+<p>--===================================================================================</p>
+<p>,DWGVer NCHAR(2) --</p>
+<p>,ISStd NCHAR(1) --</p>
+<p>,SurPlusQty DECIMAL(19,5) -- NULL</p>
+<p>,CurrRate DECIMAL(19,5) -- NULL</p>
+<p>,ReqDelvDate NCHAR(8) --</p>
+<p>,DelvPlaceName NVARCHAR(100) --</p>
+<p>,Receiver NVARCHAR(60) --</p>
+<p>,RcvPlaceName NVARCHAR(100) --</p>
+<p>,VenPartNo NVARCHAR(20) --</p>
+<p>,AssemblingNo NVARCHAR(6) --</p>
+<p>,DWGSerl NVARCHAR(6) --</p>
+<p>,BOMSourceNo NVARCHAR(40) --</p>
+<p>,Number INT -- NULL</p>
+<p>,MakeQty DECIMAL(19,5) -- NULL</p>
+<p>,UMLossType INT -- NULL</p>
+<p>,QrySort INT -- NULL</p>
+<p>,UpperBOMSerl INT -- NULL</p>
+<p>,WidthValue DECIMAL(19,5) -- NULL</p>
+<p>,LengthValue DECIMAL(19,5) -- NULL</p>
+<p>,HeightValue DECIMAL(19,5) -- NULL</p>
+<p>,WeightValue DECIMAL(19,5) -- NULL</p>
+<p>,BulkValue DECIMAL(19,5) -- NULL</p>
+<p>,LengthUnit INT -- NULL</p>
+<p>,AreaUnit INT -- NULL</p>
+<p>,WeightUnit INT -- NULL</p>
+<p>,BulkUnit INT -- NULL</p>
+<p>,CurrSeq INT -- NULL</p>
+<p>,Price DECIMAL(19,5) -- NULL</p>
+<p>,BgtSeq INT -- NULL</p>
+<p>,PurchaseCustSeq INT -- NULL</p>
+<p>,ClassSeq INT -- NULL</p>
+<p>,WBSSeq INT -- NULL</p>
+<p>,PurUnitSeq INT -- NULL</p>
+<p>,OutReqDate NCHAR(8) --</p>
+<p>,BOMRev NCHAR(2) --</p>
+<p>,FileSeq INT -- NULL</p>
+<p>,FileName NVARCHAR(1000) --</p>
+<p>,Amt DECIMAL(19,5) -- NULL</p>
+<p>,RemSerl INT -- NULL</p>
+<p>,RemValue NVARCHAR(100) --</p>
+<p>,MessageType INT</p>
+<p>,IDX_NO INT</p>
+<p>,UnitType NVARCHAR(200)</p>
+<p>)</p>
+<p>INSERT INTO #TPJTBOM</p>
+<p>(PDMKey ,Seq ,WorkingTag ,PJTNo ,UpperItemNo ,UpperItemName ,UpperSpec ,BOMLevel ,</p>
+<p>ItemNo ,ItemName ,Spec ,UnitSeq ,BasicQty ,TotQty ,EmpSeq ,FULLPATH ,IsTOP ,</p>
+<p>UMSupplyType ,UMRegType ,ItemClassSeq ,UMMatQuality ,DWGNo ,MakerSeq ,ProdCnt ,UMProcType ,UMTestType ,</p>
+<p>Remark ,RegDateTime ,FLAG ,ERPProcDateTime,Status ,Result ,PJTSeq ,BOMSerl ,ItemSeq ,</p>
+<p>MItemSeq ,DWGVer ,ISStd ,SurPlusQty ,CurrRate ,ReqDelvDate ,DelvPlaceName ,Receiver ,RcvPlaceName ,</p>
+<p>VenPartNo ,AssemblingNo ,DWGSerl ,BOMSourceNo ,Number ,MakeQty ,UMLossType ,QrySort ,UpperBOMSerl ,</p>
+<p>WidthValue ,LengthValue ,HeightValue ,WeightValue ,BulkValue ,LengthUnit ,AreaUnit ,WeightUnit ,BulkUnit ,</p>
+<p>CurrSeq ,Price ,BgtSeq ,PurchaseCustSeq,ClassSeq ,WBSSeq ,PurUnitSeq ,OutReqDate ,BOMRev ,</p>
+<p>FileSeq ,FileName ,Amt ,RemSerl ,RemValue ,MessageType ,IDX_NO ,UnitType</p>
+<p>)</p>
+<p>SELECT A.PDMKey , A.Seq , A.WorkingTag , A.PJTNo , A.UpperItemNo , A.UpperItemName, A.UpperSpec , A.BOMLevel ,</p>
+<p>C.ItemNo , C.ItemName , C.Spec , C.UnitSeq , A.BasicQty , A.TotQty , A.EmpSeq , A.FULLPATH , A.IsTOP ,</p>
+<p>A.UMSupplyType , A.UMRegType , A.ItemClassSeq , A.UMMatQuality , A.DWGNo , A.MakerSeq , A.ProdCnt , A.UMProcType , A.UMTestType ,</p>
+<p>A.Remark , A.RegDateTime , A.FLAG , NULL , 0 AS Status , NULL AS Result , B.PJTSeq , A.BOMSerl , C.ItemSeq ,</p>
+<p>C.ItemSeq , '' , '1' AS ISStd , A.SurPlusQty , 0 , '' , '' , '' , '' ,</p>
+<p>'' , '' , '' , '' , 0 , 0 , 0 , 0 , 0 ,</p>
+<p>0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,</p>
+<p>0 , 0 , 0 , 0 , A.ItemClassSeq , 0 , 0 , '' , '' ,</p>
+<p>0 , '' , 0 , 0 , '' , 0 , A.Seq , A.UnitType</p>
+<p>FROM dat_IF_TPJTBOM AS A WITH(NOLOCK)</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTNo = A.PJTNo</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemNo = A.ItemNo</p>
+<p>JOIN #Tmp_TPJTBOM AS D ON D.Seq = A.Seq</p>
+<p>WHERE A.PDMKey = @PDMKey</p>
+<p>AND A.PJTNo = @PJTNo</p>
+<p>AND ISNULL(A.FLAG,'') = 'N' -- 처리 안된 건 기준</p>
+<p>ORDER BY A.Seq</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>SELECT @Status = 0,</p>
+<p>@Results = '변경된 내역없이 처리되었습니다.'</p>
+<p>RETURN</p>
+<p>END</p>
+<p>--SELECT '실테이블만 존재',* FROM #Tmp_TPJTBOM_Delete</p>
+<p>--SELECT '수정 건 ',* FROM #Tmp_TPJTBOM</p>
+<p>--SELECT * FROM #TPJTBOM RETURN</p>
+<p>-- 신규 건이 아니면 BOM 채번</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM _TPJTBOM AS A WHERE @PJTSeq = A.PJTSeq)</p>
+<p>BEGIN</p>
+<p>--================================================================================================</p>
+<p>-- 채번 시작</p>
+<p>--================================================================================================</p>
+<p>SELECT DataSeq</p>
+<p>,ROW_NUMBER() OVER (PARTITION BY A.UpperItemNo ORDER BY (SELECT 1)) AS RowCnt</p>
+<p>,UpperItemNo</p>
+<p>INTO #Tmp_BOMLevel</p>
+<p>FROM #TPJTBOM AS A WITH(NOLOCK)</p>
+<p>--SELECT * FROM #TPJTBOM WHERE BOMLevel = '1.1'</p>
+<p>--SELECT * FROM #TPJTBOM WHERE UpperItemNo = 'RET-00A-A000' RETURN</p>
+<p>SELECT LEFT(A.BOMLevel,LEN(A.BOMLevel)-CHARINDEX('.',REVERSE(A.BOMLevel))) AS BOMLevel</p>
+<p>,MAX(CONVERT(INT,REPLACE(RIGHT(A.BOMLevel,CHARINDEX('.',REVERSE(A.BOMLevel))),'.',''))) AS MaxSerl</p>
+<p>,X.ItemNo AS UpperItemNo</p>
+<p>INTO #Tmp_BOMLevel_Max</p>
+<p>FROM _TPJTBOM AS A</p>
+<p>JOIN _TPJTBOM AS Y WITH(NOLOCK) ON A.CompanySeq = Y.CompanySeq</p>
+<p>AND A.PJTSeq = Y.PJTSeq</p>
+<p>AND Y.BOMSerl \&lt;&gt; -1</p>
+<p>AND A.UpperBOMSerl = Y.BOMSerl</p>
+<p>AND ISNULL(Y.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>JOIN _TDAItem AS X WITH(NOLOCK) ON Y.CompanySeq = X.CompanySeq</p>
+<p>AND Y.ItemSeq = X.ItemSeq</p>
+<p>JOIN #TPJTBOM AS B ON B.UpperItemNo = X.ItemNo</p>
+<p>WHERE A.PJTSeq = @PJTSeq</p>
+<p>AND LEN(A.BOMLevel) \&lt;&gt; 1</p>
+<p>GROUP BY LEFT(A.BOMLevel,LEN(A.BOMLevel)-CHARINDEX('.',REVERSE(A.BOMLevel))), X.ItemNo</p>
+<p>--SELECT UpperItemNo,* FROM #TPJTBOM</p>
+<p>--select UpperItemNo from #Tmp_BOMLevel</p>
+<p>--select UpperItemNo,* from #Tmp_BOMLevel_Max RETURN</p>
+<p>--RET-00A-0000</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET BOMLevel = C.BOMLevel +'.' + CONVERT(NVARCHAR(100),(C.MaxSerl + B.RowCnt))</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN #Tmp_BOMLevel AS B ON A.DataSeq = B.DataSeq</p>
+<p>JOIN #Tmp_BOMLevel_Max AS C ON C.UpperItemNo = A.UpperItemNo</p>
+<p>--================================================================================================</p>
+<p>-- 채번 종료</p>
+<p>--================================================================================================</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '중단된 프로젝트 입니다.'</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE ISNULL(B.IsStop,'') = '1'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '완료된 프로젝트 입니다.'</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE ISNULL(B.IsComplete,'') = '1'</p>
+<p>AND A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>-- 다른 프로젝트 입력시 오류</p>
+<p>IF EXISTS(SELECT 1</p>
+<p>FROM #TPJTBOM WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>HAVING COUNT(DISTINCT PJTSeq) &gt;1 )</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Status = 9999,</p>
+<p>Result = '동일한 BOM(@PDMKey)에 다른 프로젝트가 입력 되었습니다. '</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag = 'A'</p>
+<p>END</p>
+<p>-- PJTSeq 추출</p>
+<p>SELECT TOP 1 @PJTSeq = PJTSeq</p>
+<p>FROM #TPJTBOM</p>
+<p>-- BOM레벨의 앞 2자리 , 뒤 1자리 .을 없앰</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET BOMLevel = CASE LEFT(BOMLevel, 2) WHEN '..' THEN SUBSTRING(BOMLevel,3,30)</p>
+<p>ELSE BOMLevel END</p>
+<p>WHERE WorkingTag IN ('A','U')</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET BOMLevel = CASE LEFT(BOMLevel, 2) WHEN '.' THEN SUBSTRING(BOMLevel,2,30)</p>
+<p>ELSE BOMLevel END</p>
+<p>WHERE WorkingTag IN ('A','U')</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET BOMLevel = CASE RIGHT(BOMLevel, 1) WHEN '.' THEN SUBSTRING(BOMLevel,1,LEN(BOMLevel)-1)</p>
+<p>ELSE BOMLevel END</p>
+<p>WHERE WorkingTag IN ('A','U')</p>
+<p>-- 고정컬럼만 빼놓고..</p>
+<p>SELECT DISTINCT IDENTITY(INT, 1, 1) AS DataSeq, WorkingTag, Status, PJTSeq,</p>
+<p>BOMSerl,DWGNo,DWGVer,ISStd,ItemSeq,BasicQty,</p>
+<p>ProdCnt,SurPlusQty,TotQty,UMSupplyType, CurrRate,</p>
+<p>UMRegType,ReqDelvDate,DelvPlaceName,Receiver,</p>
+<p>RcvPlaceName,MakerSeq,UMMatQuality,VenPartNo,AssemblingNo,</p>
+<p>DWGSerl,BOMSourceNo,Number,Remark,MakeQty,UMLossType, UMTestType,</p>
+<p>BOMLevel,QrySort,UpperBOMSerl,WidthValue,LengthValue,</p>
+<p>HeightValue,WeightValue,BulkValue,LengthUnit,</p>
+<p>AreaUnit,WeightUnit,BulkUnit,CurrSeq,</p>
+<p>Price,BgtSeq, PurchaseCustSeq,ClassSeq,WBSSeq, PurUnitSeq, OutReqDate, BOMRev,IDX_NO, MessageType,Result, FileSeq, FileName, Amt,RemSerl,RemValue</p>
+<p>INTO #TPJTBaseMngItem</p>
+<p>FROM #TPJTBOM</p>
+<p>--====================================================</p>
+<p>-- 저장 시 프로젝트 존재여부 체크 ([프로젝트입력] 화면에서 삭제했는데 [프로젝트재료자원입력] 화면에서 재조회를 하지 않고 bom품목이 저장되어 로직 추가) by 18.04.04 이혜민</p>
+<p>--====================================================</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = '프로젝트가 등록되어 있지 않습니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 71003</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN _TPJTProject AS B WITH(NOLOCK) ON B.Companyseq = @CompanySeq</p>
+<p>AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag IN ('A')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.PJTSeq IS NULL</p>
+<p>----====================================================</p>
+<p>-- -- 수정시 데이터 존재여부 체크 ([프로젝트UnitBOM구성] 화면에서 삭제했는데 [프로젝트재료자원입력] 화면에서 재조회를 하지 않고 수정할 경우 확정데이터만 생성되는 Case가 있어 로직 추가) by 17.03.20 임희진</p>
+<p>----====================================================</p>
+<p>--EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>-- @Status OUTPUT,</p>
+<p>-- @Results OUTPUT,</p>
+<p>-- 7 ,</p>
+<p>-- @LanguageSeq ,</p>
+<p>-- 0,''</p>
+<p>-- UPDATE #TPJTBOM</p>
+<p>-- SET Result = @Results,</p>
+<p>-- MessageType = @MessageType,</p>
+<p>-- Status = @Status</p>
+<p>-- FROM #TPJTBOM AS A</p>
+<p>-- LEFT OUTER JOIN _TPJTBOM AS B WITH(NOLOCK) ON B.Companyseq = @CompanySeq</p>
+<p>-- AND A.PJTSeq = B.PJTSeq</p>
+<p>-- AND A.BOMSerl = B.BOMSerl</p>
+<p>-- --AND ISNULL(A.BOMRev,'A') = B.BOMRev</p>
+<p>-- WHERE A.WorkingTag IN ('U')</p>
+<p>-- AND A.Status = 0</p>
+<p>-- AND B.PJTSeq IS NULL</p>
+<hr />
+<p>-- 재료자원 확정을 사용 할 경우 추가되거나 삭제가 되지 않을 수 있도록 수정</p>
+<p>-- _TCOMEnv, _TPJTBOM 테이블 WITH(NOLOCK) 추가 CompanySeq = 1 -&gt; @CompanySeq 수정 2020.03.19 #장민준</p>
+<hr />
+<p>IF (SELECT EnvValue FROM _TCOMEnv WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND EnvSeq = 7024) = 1</p>
+<p>BEGIN</p>
+<p>--BOM에 들어 있는 프로젝트만 조회 하기 위해서</p>
+<p>SELECT CompanySeq,</p>
+<p>PJTSeq,</p>
+<p>IsCfm,</p>
+<p>ISNULL(CfmUserSeq,0) AS CfmUserSeq,</p>
+<p>ISNULL(CfmDate,'') AS CfmDate</p>
+<p>INTO #PJTBom</p>
+<p>FROM _TPJTBOM WITH(NOLOCK)</p>
+<p>WHERE BOMSerl = -1</p>
+<p>Group by CompanySeq, PJTSeq, IsCfm, CfmUserSeq, CfmDate</p>
+<p>-- BOM청구가 되어 있으면 삭제 불가</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = '확정(승인)된 자료는 수정/삭제할 수 없습니다.',</p>
+<p>MessageType = 14500,</p>
+<p>Status = 71001</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN #PJTBom AS B ON B.Companyseq = @CompanySeq</p>
+<p>AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.WorkingTag IN ('D','U','A')</p>
+<p>AND B.IsCfm = 1</p>
+<p>AND A.Status = 0</p>
+<p>END</p>
+<p>DECLARE @Forflag INT,</p>
+<p>@flag INT,</p>
+<p>@RowCount INT</p>
+<p>SELECT @flag = 0</p>
+<p>SELECT @Forflag = MAX(LEN(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(BOMLevel,'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'0','')))+1</p>
+<p>FROM #TPJTBOM</p>
+<p>CREATE TABLE #temp( Split NVARCHAR(100),</p>
+<p>Remain NVARCHAR(100),</p>
+<p>Chkresult INT,</p>
+<p>DataSeq INT )</p>
+<p>INSERT #temp(Split, Remain,Chkresult,DataSeq)</p>
+<p>SELECT LEFT (BOMLevel, CASE WHEN CHARINDEX('.', BOMLevel) &gt; 0 THEN CHARINDEX('.', BOMLevel)-1</p>
+<p>ELSE LEN(BOMLevel) END ),</p>
+<p>STUFF(BOMLevel, 1, CASE WHEN CHARINDEX('.', BOMLevel) = 0 THEN LEN(BOMLevel)</p>
+<p>ELSE CHARINDEX('.', BOMLevel) END ,''),</p>
+<p>0,</p>
+<p>DataSeq</p>
+<p>FROM #TPJTBOM</p>
+<p>UPDATE #temp</p>
+<p>SET Chkresult = 1</p>
+<p>WHERE LEN(Split)&gt; 4 -- By 18.04.30 hjlim (3-&gt;4로 수정)</p>
+<p>SELECT @RowCount = COUNT(1)</p>
+<p>FROM #TPJTBOM</p>
+<p>IF @RowCount &gt; 0 -- 무한루프 이슈로 #TPJTBOM에 데이터가 없을 경우 종료 추가 :: 20.03.20 #장민준</p>
+<p>BEGIN</p>
+<p>WHILE (@flag\&lt;@Forflag)</p>
+<p>BEGIN</p>
+<hr />
+<p>-- BOMLevel 문자형식 체크 -- 19.08.26 #이혜민</p>
+<hr />
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = 'BOM레벨은(는) *숫자형식 이어야 합니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 71001</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN #temp AS B ON A.DataSeq = B.DataSeq</p>
+<p>WHERE ISNUMERIC(ISNULL(B.Split,0)) = 0</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(B.Split, '') \&lt;&gt; ''</p>
+<hr />
+<p>UPDATE #temp</p>
+<p>SET Split = LEFT (Remain, CASE WHEN CHARINDEX('.', Remain) &gt; 0 THEN CHARINDEX('.', Remain)-1</p>
+<p>ELSE LEN(Remain) END),</p>
+<p>Remain = STUFF(Remain, 1, CASE WHEN CHARINDEX('.', Remain) = 0 THEN LEN(Remain)</p>
+<p>ELSE CHARINDEX('.', Remain) END,'' )</p>
+<p>WHERE Chkresult = 0</p>
+<p>AND Remain IS NOT NULL</p>
+<p>UPDATE #temp</p>
+<p>SET Chkresult = 1</p>
+<p>WHERE LEN(Split) &gt; 4 -- By 18.04.30 hjlim (3-&gt;4로 수정)</p>
+<p>SELECT @flag = @flag + 1</p>
+<p>END</p>
+<p>END</p>
+<hr />
+<p>-- 4자리수 초과 체크</p>
+<hr />
+<p>DECLARE @WordTXT NVARCHAR(30)</p>
+<p>SELECT @WordTXT = ISNULL(Word,'')</p>
+<p>FROM _TCADictionary WITH(NOLOCK)</p>
+<p>WHERE WordSeq = 309</p>
+<p>AND LanguageSeq = @LanguageSeq</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = 'BOM레벨은 최대 4자리 까지 가능합니다.',</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN #temp AS B ON A.DataSeq = B.DataSeq</p>
+<p>WHERE Chkresult = 1</p>
+<p>AND A.Status = 0</p>
+<hr />
+<p>-- 중복여부체크</p>
+<p>-- _TPJTBOM 테이블 WITH(NOLOCK) 추가 2020.03.19 #장민준</p>
+<hr />
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = '중복된 BOM레벨 '+C.BOMLevel+'자리가 입력되었습니다.',</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN #TPJTBaseMngItem AS C ON A.PJTSeq = C.PJTSeq</p>
+<p>AND A.IDX_NO = C.IDX_NO</p>
+<p>JOIN ( SELECT S.BOMLevel</p>
+<p>FROM (</p>
+<p>SELECT A1.BOMLevel</p>
+<p>FROM #TPJTBOM AS A1</p>
+<p>WHERE A1.WorkingTag IN ('A','U')</p>
+<p>AND A1.Status = 0</p>
+<p>UNION ALL</p>
+<p>SELECT A1.BOMLevel</p>
+<p>FROM _TPJTBOM AS A1 WITH(NOLOCK)</p>
+<p>WHERE A1.CompanySeq = @CompanySeq</p>
+<p>AND A1.PJTSeq = @PJTSeq</p>
+<p>AND A1.BeforeBOMSerl = 0</p>
+<p>AND A1.BOMSerl NOT IN (SELECT BOMSerl</p>
+<p>FROM #TPJTBOM</p>
+<p>WHERE WorkingTag IN ('U','D')</p>
+<p>AND Status = 0)</p>
+<p>) AS S</p>
+<p>GROUP BY S.BOMLevel</p>
+<p>HAVING COUNT(1) &gt; 1</p>
+<p>) AS B ON (A.BOMLevel = B.BOMLevel)</p>
+<hr />
+<p>-- DAT 추가</p>
+<p>-- 품목분류에 가공여부가 체크된건 가공유형 체크</p>
+<p>-- 1000006 가공여부</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = '가공유형을 입력하세요.',</p>
+<p>Status = 9999</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ClassSeq = B.MinorSeq</p>
+<p>AND B.Serl = 1000006</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.ValueText = '1' AND A.UMProcType = 0 -- 가공인데 가공유형을 선택안한경우 에러</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = '가공유형을 입력할 수 없습니다.',</p>
+<p>Status = 9999</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ClassSeq = B.MinorSeq</p>
+<p>AND B.Serl = 1000006</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(B.ValueText, '') \&lt;&gt; '1' AND A.UMProcType \&lt;&gt; 0 -- 가공이 아닌데 가공유형을 선택한경우 에러</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Result = '품목분류가 재료비(가공)일 경우 검수구분이 공란일 수 없습니다.',</p>
+<p>Status = 9999</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ClassSeq = B.MinorSeq</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND A.ClassSeq = 2004013 -- 1번개발서버 예시로 품목분류 구매일시 에러처리하도록 임시로 함.</p>
+<p>AND ISNULL(A.UMTestType,0) = 0 -- '품목분류' 컬럼의 값이 "재료비(가공)" 일 경우 '검수구분' 컬럼 미지정 시 오류처리 2021.11.26 hwkim</p>
+<p>-- 에러가 발생하면 전부다 에러</p>
+<p>IF EXISTS(SELECT TOP 1 1 FROM #TPJTBOM WHERE Status \&lt;&gt; 0)</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET ERPProcDateTime = GETDATE(),</p>
+<p>Status = B.Status,</p>
+<p>Result = B.Result</p>
+<p>FROM dat_IF_TPJTBOM AS A JOIN #TPJTBOM AS B ON A.PDMKey = B.PDMKey</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>AND A.Seq = B.Seq</p>
+<p>SELECT @Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #TPJTBOM</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 저장 시작</p>
+<p>DECLARE --@PJTSeq INT,</p>
+<p>@BOMSerl INT,</p>
+<p>@SMOutKind INT -- 불출구분(생산정보)</p>
+<p>BEGIN TRAN</p>
+<p>---- #TPJTBOM</p>
+<p>--CREATE TABLE #TPJTBaseMngItem (WorkingTag NCHAR(1) NULL)</p>
+<p>--ExEC _SCAOpenXmlToTemp @xmlDocument, @xmlFlags, @CompanySeq, @ServiceSeq, 'DataBlock3', '#TPJTBaseMngItem'</p>
+<p>--로그테이블 남기기(마지막 파라메터는 반드시 한줄로 보내기)</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPJTBOM', -- 원테이블명</p>
+<p>'#TPJTBaseMngItem', -- 템프테이블명</p>
+<p>'PJTSeq,BOMSerl', -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq,PJTSeq,BOMSerl,DWGNo,DWGVer,ISStd,ItemSeq,BasicQty,ProdCnt,SurPlusQty,TotQty,UMSupplyType,UMRegType,ReqDelvDate,</p>
+<p>DelvPlaceName,Receiver,RcvPlaceName,MakerSeq,UMMatQuality,VenPartNo,AssemblingNo,DWGSerl,BOMSourceNo,Number,Remark,MakeQty,</p>
+<p>UMLossType,BOMLevel,QrySort,UpperBOMSerl,WidthValue,LengthValue,HeightValue,WeightValue,BulkValue,LengthUnit,AreaUnit,WeightUnit,</p>
+<p>BulkUnit,CurrSeq, CurrRate,Price,BgtSeq,PurchaseCustSeq, TreeCd,ClassSeq, WBSSeq, TreeCode, LastUserSeq,LastDateTime,</p>
+<p>OutReqDate, BeforeBOMSerl, BOMRev, IssueSeq, isCfm, Amt, MTreeCode, FileSeq, FileName, ProgFromSeq, ProgFromSerl, ProgFromSubserl, ProgFromTableSeq',</p>
+<p>'',@PgmSeq</p>
+<p>EXEC _SCOMLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'dat_TPJTBOM', -- 원테이블명</p>
+<p>'#TPJTBaseMngItem', -- 템프테이블명</p>
+<p>'PJTSeq,BOMSerl', -- 키가 여러개일 경우는 , 로 연결한다.</p>
+<p>'CompanySeq,PJTSeq,BOMSerl,UMProcType,LastUserSeq,LastDateTime,UnitType,IsPDMStop, IsDelete',</p>
+<p>'',@PgmSeq</p>
+<p>--DECLARE @MessageType INT,</p>
+<p>-- @Status INT,</p>
+<p>-- @Results NVARCHAR(250)</p>
+<p>-- PJTSeq</p>
+<p>SELECT TOP 1 @PJTSeq = PJTSeq</p>
+<p>FROM #TPJTBaseMngItem</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET BOMRev = 'A'</p>
+<p>WHERE ISNULL(BOMRev, '') = ''</p>
+<p>--17.01.04 hmlee 환율이 null일 때 1로 설정되도록 구문추가</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET CurrRate = 1</p>
+<p>WHERE ISNULL(CurrRate, 0) = 0</p>
+<p>-- CREATE TABLE #TmpLevel</p>
+<p>-- ( BOMSerl INT,</p>
+<p>-- Level INT</p>
+<p>-- )</p>
+<p>-- INSERT INTO #TmpLevel</p>
+<p>-- SELECT BOMSerl FROM #TPJTBOM</p>
+<p>-- INSERT</p>
+<p>IF EXISTS (SELECT 1 FROM #TPJTBOM WHERE WorkingTag = 'A' AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>SELECT @BOMSerl = ISNULL((SELECT MAX(BOMSerl) FROM _TPJTBOM WHERE CompanySeq = @CompanySeq AND PJTSeq = @PJTSeq),0)</p>
+<p>IF @BOMSerl = -1 SELECT @BOMSerl = 0</p>
+<p>-- BOM등록 시 프로젝트코드를 넣어준다</p>
+<p>--IF @BOMSerl = 0</p>
+<p>IF NOT EXISTS ( SELECT 1 FROM _TPJTBOM A JOIN _TPJTProject B ON A.CompanySeq = B.CompanySeq AND A.PJTSeq = B.PJTSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq AND A.PJTSeq = @PJTSeq )</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TPJTBOM</p>
+<p>(CompanySeq, PJTSeq, BOMSerl, DWGNo, DWGVer,</p>
+<p>ISStd, ItemSeq, BasicQty, ProdCnt, SurPlusQty,</p>
+<p>TotQty, UMSupplyType, UMRegType, ReqDelvDate, DelvPlaceName,</p>
+<p>Receiver, RcvPlaceName, MakerSeq, UMMatQuality, VenPartNo,</p>
+<p>AssemblingNo, DWGSerl, BOMSourceNo, Number, Remark,</p>
+<p>MakeQty, UMLossType, BOMLevel, QrySort, UpperBOMSerl,</p>
+<p>WidthValue, LengthValue, HeightValue, WeightValue, BulkValue,</p>
+<p>LengthUnit, AreaUnit, WeightUnit, BulkUnit, CurrSeq,</p>
+<p>CurrRate, Price, BgtSeq, PurchaseCustSeq, ClassSeq,</p>
+<p>WBSSeq, TreeCode, OutReqDate, BOMRev, BeforeBOMSerl,</p>
+<p>LastUserSeq, LastDateTime, FileSeq, FileName, Amt)</p>
+<p>SELECT @CompanySeq, @PJTSeq, -1,'','',</p>
+<p>'1',A.PJTItemSeq,0,0,0,</p>
+<p>1,0,0,'','',</p>
+<p>'','',0,0,'',</p>
+<p>'','','',0,'',</p>
+<p>1,0,'',0,0,</p>
+<p>0,0,0,0,0,</p>
+<p>0,0,1,1,1,</p>
+<p>1,0,0, 0,0,</p>
+<p>0,'','','A',0,</p>
+<p>@UserSeq, GETDATE(),0, '', 0</p>
+<p>FROM _TPJTProject AS A</p>
+<p>--LEFT OUTER JOIN _TPJTProjectItem AS B ON A.CompanySeq = B.CompanySeq AND A.PJTSeq = B.PJTSeq AND A.PJTItemSeq = B.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTSeq = @PJTSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO dat_TPJTBOM</p>
+<p>(CompanySeq, PJTSeq, BOMSerl, UMProcType,</p>
+<p>LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq, @PJTSeq, -1,0,</p>
+<p>@UserSeq, GETDATE()</p>
+<p>FROM _TPJTProject AS A</p>
+<p>--LEFT OUTER JOIN _TPJTProjectItem AS B ON A.CompanySeq = B.CompanySeq AND A.PJTSeq = B.PJTSeq AND A.PJTItemSeq = B.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTSeq = @PJTSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>----------키 업데이트</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET BOMSerl = @BOMSerl + DataSeq</p>
+<p>FROM #TPJTBOM</p>
+<p>WHERE WorkingTag = 'A' AND Status = 0</p>
+<p>-- 관리항목을 위해 BOMSerl 업데이트</p>
+<p>UPDATE #TPJTBaseMngItem</p>
+<p>SET BOMSerl = B.BOMSerl</p>
+<p>FROM #TPJTBaseMngItem AS A</p>
+<p>JOIN #TPJTBOM AS B ON A.PJTSeq = B.PJTSeq AND A.BOMLevel = B.BOMLevel</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>UPDATE #TPJTBaseMngItem</p>
+<p>SET BOMRev = CASE ISNULL(BOMRev,'') WHEN '' THEN 'A' ELSE BOMRev END</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND BOMRev = ''</p>
+<p>AND Status = 0</p>
+<p>INSERT INTO _TPJTBOM</p>
+<p>(CompanySeq, PJTSeq, BOMSerl, DWGNo, DWGVer,</p>
+<p>ISStd, ItemSeq, BasicQty, ProdCnt, SurPlusQty,</p>
+<p>TotQty, UMSupplyType, UMRegType, ReqDelvDate, DelvPlaceName,</p>
+<p>Receiver, RcvPlaceName, MakerSeq, UMMatQuality, VenPartNo,</p>
+<p>AssemblingNo, DWGSerl, BOMSourceNo, Number, Remark,</p>
+<p>MakeQty, UMLossType, BOMLevel, QrySort, UpperBOMSerl,</p>
+<p>WidthValue, LengthValue, HeightValue, WeightValue, BulkValue,</p>
+<p>LengthUnit, AreaUnit, WeightUnit, BulkUnit, CurrSeq,</p>
+<p>CurrRate, Price, BgtSeq, PurchaseCustSeq, ClassSeq, WBSSeq,</p>
+<p>TreeCode, OutReqDate, BOMRev, BeforeBOMSerl, LastUserSeq,</p>
+<p>LastDateTime, FileSeq, FileName, Amt)</p>
+<p>SELECT @CompanySeq, @PJTSeq, BOMSerl, DWGNo, DWGVer,</p>
+<p>ISStd, ItemSeq, BasicQty, ProdCnt, SurPlusQty,</p>
+<p>TotQty, UMSupplyType, UMRegType, ReqDelvDate, DelvPlaceName,</p>
+<p>Receiver, RcvPlaceName, MakerSeq, UMMatQuality, VenPartNo,</p>
+<p>AssemblingNo, DWGSerl, BOMSourceNo, Number, Remark,</p>
+<p>MakeQty, UMLossType, BOMLevel, QrySort, UpperBOMSerl,</p>
+<p>WidthValue, LengthValue, HeightValue, WeightValue, BulkValue,</p>
+<p>LengthUnit, AreaUnit, WeightUnit, BulkUnit, CurrSeq,</p>
+<p>CurrRate , Price, BgtSeq, PurchaseCustSeq, ClassSeq, WBSSeq,</p>
+<p>'', OutReqDate, CASE ISNULL(BOMRev,'') WHEN '' THEN 'A' ELSE BOMRev END, 0, @UserSeq,</p>
+<p>GETDATE(), FileSeq, FileName, Amt</p>
+<p>FROM #TPJTBOM</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT INTO dat_TPJTBOM</p>
+<p>(CompanySeq, PJTSeq, BOMSerl, UMProcType, UMTestType, -- 검수구분 추가 2021.11.26 hwkim</p>
+<p>LastUserSeq, LastDateTime ,UnitType)</p>
+<p>SELECT @CompanySeq, @PJTSeq, BOMSerl, UMProcType, UMTestType, -- 검수구분 추가 2021.11.26 hwkim</p>
+<p>@UserSeq, GETDATE() , UnitType</p>
+<p>FROM #TPJTBOM</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- INSERT INTO _TPJTBOMWBS</p>
+<p>-- ( CompanySeq,PJTSeq,BOMSerl,BOMWBSSerl,WBSSeq,Remark, LastUserSeq,LastDateTime)</p>
+<p>-- SELECT @CompanySeq, @PJTSeq, BOMSerl, 1, WBSSeq, '', @UserSeq, GETDATE()</p>
+<p>-- FROM #TPJTBOM</p>
+<p>-- WHERE WorkingTag = 'A' AND WBSSeq \&lt;&gt; 0</p>
+<p>--</p>
+<p>-- IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- DAT 추가</p>
+<p>-- 품목분류에 가공여부가 체크된건은 품목추가정보에 가공유형 추가</p>
+<p>-- 1000006 가공여부</p>
+<p>UPDATE _TDAItemUserDefine</p>
+<p>SET MngValSeq = CASE WHEN B.ValueText = '1' THEN A.UMProcType ELSE 0 END, -- 가공여부에 체크된건만 저장</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE(),</p>
+<p>PgmSeq = @PgmSeq</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ClassSeq = B.MinorSeq</p>
+<p>AND B.Serl = 1000006</p>
+<p>JOIN _TDAItemUserDefine AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND C.MngSerl = 1000006</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>INSERT _TDAItemUserDefine (CompanySeq, ItemSeq, MngSerl, MngValSeq, MngValText, LastUserSeq, LastDateTime, PgmSeq)</p>
+<p>SELECT @CompanySeq, A.ItemSeq, 1000006, CASE WHEN B.ValueText = '1' THEN A.UMProcType ELSE 0 END, '', @UserSeq, GETDATE(), @PgmSeq</p>
+<p>FROM #TPJTBOM AS A</p>
+<p>JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ClassSeq = B.MinorSeq</p>
+<p>AND B.Serl = 1000006</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>AND C.MngSerl = 1000006</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.ValueText = '1'</p>
+<p>AND C.ItemSeq IS NULL</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<hr />
+<p>--품목추가정보 저장 끝.</p>
+<hr />
+<p>/*</p>
+<p>-- 관리항목</p>
+<p>-- UPDATE</p>
+<p>IF EXISTS (SELECT *</p>
+<p>FROM #TPJTBaseMngItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND EXISTS (SELECT *</p>
+<p>FROM _TPJTBaseMngItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTTypeSeq = A.PJTSeq</p>
+<p>AND PgmSeq = 2023</p>
+<p>AND SomeSeq = A.BOMSerl</p>
+<p>AND RemSerl = A.RemSerl)</p>
+<p>AND A.BOMSerl &gt; 0</p>
+<p>AND A.RemSerl \&lt;&gt; -1</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>-- sminputtype = 1027003 인것은 코드헬프이다.</p>
+<p>-- 코드헬프로 설정된 것은 RemValSeq 에 입력된 값이 들어가도록 한다.</p>
+<p>UPDATE _TPJTBaseMngItem SET</p>
+<p>RemValSeq = CASE WHEN ISNULL(C.CodeHelpConst, 0) \&lt;&gt; 0 AND C.SMInputType = 1027003 THEN B.RemValue ELSE 0 END,</p>
+<p>RemValText = CASE WHEN ISNULL(C.CodeHelpConst, 0) = 0 AND C.SMInputType \&lt;&gt; 1027003 THEN B.RemValue ELSE '' END,</p>
+<p>LastUserSeq = @UserSeq,</p>
+<p>LastDateTime = GETDATE()</p>
+<p>FROM _TPJTBaseMngItem AS A</p>
+<p>INNER JOIN #TPJTBaseMngItem AS B</p>
+<p>ON A.PJTTypeSeq = B.PJTSeq</p>
+<p>AND A.PgmSeq = 2023</p>
+<p>AND A.SomeSeq = B.BOMSerl</p>
+<p>AND A.RemSerl = B.RemSerl</p>
+<p>JOIN _TPJTProject AS P ON A.CompanySeq = P.CompanySeq</p>
+<p>AND B.PJTSeq = P.PJTSeq</p>
+<p>INNER JOIN _TCOMUserDefine AS C</p>
+<p>ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.TableName = '_TPJTBOM'</p>
+<p>AND C.DefineUnitSeq = P.PJTTypeSeq</p>
+<p>AND C.TitleSerl = A.RemSerl</p>
+<p>WHERE B.Status = 0</p>
+<p>AND B.WorkingTag \&lt;&gt; 'D'</p>
+<p>AND EXISTS (SELECT *</p>
+<p>FROM _TPJTBaseMngItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTTypeSeq = A.PJTTypeSeq</p>
+<p>AND PgmSeq = BOMSerl</p>
+<p>AND SomeSeq = A.SomeSeq</p>
+<p>AND RemSerl = A.RemSerl)</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>-- INSERT</p>
+<p>IF EXISTS (SELECT *</p>
+<p>FROM #TPJTBaseMngItem AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT *</p>
+<p>FROM _TPJTBaseMngItem</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTTypeSeq = A.PJTSeq</p>
+<p>AND PgmSeq = 2023</p>
+<p>AND SomeSeq = A.BOMSerl</p>
+<p>AND RemSerl = A.RemSerl)</p>
+<p>AND A.BOMSerl &gt; 0</p>
+<p>AND A.RemSerl \&lt;&gt; -1</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>INSERT INTO _TPJTBaseMngItem</p>
+<p>( CompanySeq, PJTTypeSeq, PgmSeq, RemSerl, SomeSeq,</p>
+<p>RemValSeq, RemValText, LastUserSeq, LastDateTime)</p>
+<p>SELECT @CompanySeq, A.PJTSeq, 2023, A.RemSerl,</p>
+<p>A.BOMSerl,</p>
+<p>-- sminputtype = 1027003 인것은 코드헬프이다.</p>
+<p>-- 코드헬프로 설정된 것은 RemValSeq 에 입력된 값이 들어가도록 한다.</p>
+<p>CASE WHEN ISNULL(C.CodeHelpConst, 0) \&lt;&gt; 0 AND C.SMInputType = 1027003 THEN CONVERT(INT, A.RemValue) ELSE 0 END,</p>
+<p>CASE WHEN ISNULL(C.CodeHelpConst, 0) = 0 AND C.SMInputType \&lt;&gt; 1027003 THEN A.RemValue ELSE '' END,</p>
+<p>@UserSeq,</p>
+<p>GETDATE()</p>
+<p>FROM #TPJTBaseMngItem AS A</p>
+<p>JOIN _TPJTProject AS P ON P.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTSeq = P.PJTSeq</p>
+<p>INNER JOIN _TCOMUserDefine AS C</p>
+<p>ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.TableName = '_TPJTBOM'</p>
+<p>AND C.DefineUnitSeq = P.PJTTypeSeq</p>
+<p>AND C.TitleSerl = A.RemSerl</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag \&lt;&gt; 'D'</p>
+<p>-- AND A.RemValue \&lt;&gt; 0</p>
+<p>AND A.RemSerl \&lt;&gt; -1</p>
+<p>-- AND NOT EXISTS (SELECT *</p>
+<p>-- FROM _TPJTBaseMngItem</p>
+<p>-- WHERE CompanySeq = @CompanySeq</p>
+<p>-- AND PJTTypeSeq = A.PJTTypeSeq</p>
+<p>-- AND PgmSeq = 2000</p>
+<p>-- AND WBSSeq = A.WBSSeq</p>
+<p>-- AND RemSerl = A.RemSerl)</p>
+<p>AND A.BOMSerl &gt; 0</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>--</p>
+<p>--</p>
+<p>*/</p>
+<p>-- 정렬</p>
+<p>CREATE TABLE #Tmp</p>
+<p>( BOMSerl INT,</p>
+<p>SortNum NVARCHAR(30),</p>
+<p>QrySort INT NULL,</p>
+<p>UpperSortNum NVARCHAR(30) NULL,</p>
+<p>UpperBOMSerl INT NULL,</p>
+<p>NodeCode NVARCHAR(6) NULL,</p>
+<p>TreeCode NVARCHAR(100) NULL,</p>
+<p>TmpSortNum NCHAR(30) NULL,</p>
+<p>Pos INT null</p>
+<p>)</p>
+<p>INSERT INTO #Tmp</p>
+<p>(BOMSerl, SortNum, TmpSortnum)</p>
+<p>SELECT BOMSerl, BOMLevel, BOMLevel+'.'</p>
+<p>FROM _TPJTBOM</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PJTSeq = @PJTSeq</p>
+<p>AND BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(BeforeBOMSerl,0) = 0 -- 최종차수만..</p>
+<p>UPDATE #Tmp</p>
+<p>SET QrySort = CONVERT(INT, RIGHT(SortNum, CHARINDEX('.', REVERSE('.'+SortNum))-1)),</p>
+<p>UpperSortNum = SUBSTRING(SortNum, 1, LEN(SortNum) - CHARINDEX('.', REVERSE(SortNum)))</p>
+<p>UPDATE #Tmp</p>
+<p>SET UpperBOMSerl = CASE WHEN B.BOMSerl = A.BOMSerl THEN -1 ELSE B.BOMSerl END,</p>
+<p>NodeCode = CASE WHEN B.BOMSerl = A.BOMSerl THEN REPLICATE('0',6- len(convert(varchar,A.QrySort)))+convert(varchar,A.QrySort)</p>
+<p>ELSE REPLICATE('0',4- len(convert(varchar,A.QrySort)))+convert(varchar,A.QrySort) END -- By 18.04.30 hjlim (4자리까지 가능하도록 수정)</p>
+<p>FROM #Tmp AS A</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = @PJTSeq</p>
+<p>AND A.UpperSortNum = B.BOMLevel AND B.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(B.BeforeBOMSerl,0) = 0 -- 최종차수만..</p>
+<p>UPDATE #Tmp</p>
+<p>SET TreeCode = NodeCode,</p>
+<p>TmpSortnum = SortNum</p>
+<p>WHERE UpperBOMSerl = -1</p>
+<p>--==============================================================================================</p>
+<p>-- 상위코드를 입력하지 않은 BOM은 오류 뿌려주기</p>
+<p>--==============================================================================================</p>
+<p>UPDATE #TPJTBaseMngItem</p>
+<p>SET Result = '상위품목이 존재하지 않습니다.',</p>
+<p>Status = 71001</p>
+<p>FROM #TPJTBaseMngItem AS A</p>
+<p>JOIN #Tmp AS B ON A.BOMSerl = B.BOMSerl</p>
+<p>WHERE A.WorkingTag IN ('A','U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.UpperBOMSerl IS NULL</p>
+<p>--================================================================================</p>
+<p>-- 수정 시 화면에서 받아온 데이터 외 상위레벨이 없는 경우 체크 By 18.01.30 hjlim 추가</p>
+<p>--================================================================================</p>
+<p>DECLARE @Cnt INT</p>
+<p>SELECT @Cnt = 0</p>
+<p>WHILE(@Cnt \&lt; 9)</p>
+<p>BEGIN</p>
+<p>UPDATE B</p>
+<p>SET TreeCode = A.TreeCode + LTRIM(RTRIM(B.NodeCode))</p>
+<p>FROM #Tmp AS A</p>
+<p>JOIN #Tmp AS B ON A.BOMSerl = B.UpperBOMSerl</p>
+<p>WHERE A.TreeCode is not null</p>
+<p>SELECT @Cnt = @Cnt+1</p>
+<p>END</p>
+<p>-- 상위없는것도 트리코드 부여</p>
+<p>SELECT @Cnt = 0</p>
+<p>WHILE(@Cnt \&lt; 9)</p>
+<p>BEGIN</p>
+<p>UPDATE B</p>
+<p>SET TreeCode = A.TreeCode + LTRIM(RTRIM(B.NodeCode))</p>
+<p>FROM #Tmp AS A</p>
+<p>JOIN #Tmp AS B ON A.SortNum = B.UpperSortNum</p>
+<p>WHERE B.UpperBOMSerl IS NULL</p>
+<p>SELECT @Cnt = @Cnt+1</p>
+<p>END</p>
+<p>UPDATE _TPJTBOM</p>
+<p>SET QrySort = B.QrySort,</p>
+<p>UpperBOMSerl = B.UpperBOMSerl,</p>
+<p>TreeCode = ISNULL(B.TreeCode,'')</p>
+<p>FROM _TPJTBOM AS A</p>
+<p>JOIN #Tmp AS B on A.BOMSerl = B.BOMSerl</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.PJTSeq = @PJTSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>UPDATE #TPJTBOM</p>
+<p>SET Status = 9999,</p>
+<p>Result = '입력중 에러가 발생하였습니다.'</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>GOTO ERR_PROC</p>
+<p>RETURN</p>
+<p>END</p>
+<p>COMMIT TRAN</p>
+<p>UPDATE A</p>
+<p>SET ERPProcDateTime = GETDATE(),</p>
+<p>FLAG = 'Y',</p>
+<p>PJTSeq = B.PJTSeq ,</p>
+<p>BOMSerl = B.BOMSerl ,</p>
+<p>Status = 0,</p>
+<p>Result = '정상 처리 되었습니다.',</p>
+<p>ItemSeq = B.ItemSeq</p>
+<p>FROM dat_IF_TPJTBOM AS A JOIN #TPJTBOM AS B ON A.PDMKey = B.PDMKey</p>
+<p>AND A.Seq = B.Seq</p>
+<p>WHERE B.Status = 0</p>
+<p>AND A.PDMKey = @PDMKey</p>
+<p>AND A.PJTNo = @PJTNo</p>
+<p>UPDATE A</p>
+<p>SET ERPProcDateTime = GETDATE(),</p>
+<p>FLAG = 'Y',</p>
+<p>PJTSeq = 0,</p>
+<p>BOMSerl = 0,</p>
+<p>Status = 0,</p>
+<p>Result = '변경 없이 처리 되었습니다.',</p>
+<p>ItemSeq = 0</p>
+<p>FROM dat_IF_TPJTBOM AS A</p>
+<p>WHERE A.PDMKey = @PDMKey</p>
+<p>AND A.PJTNo = @PJTNo</p>
+<p>AND A.FLAG = 'N'</p>
+<p>-- -- 사이트 테이블 삭제여부 반영</p>
+<p>-- UPDATE DAT_TPJTBOM</p>
+<p>-- SET IsDelete = '1'</p>
+<p>-- ,LastDateTime = GETDATE()</p>
+<p>-- ,LastUserSeq = @UserSeq</p>
+<p>-- FROM DAT_TPJTBOM AS A WITH(NOLOCK)</p>
+<p>-- JOIN #Tmp_TPJTBOM_Delete AS B ON B.BOMSerl = A.BOMSerl</p>
+<p>-- AND B.PJTSeq = B.PJTSeq</p>
+<p>SELECT @Status = 0, @Results = '정상 처리 되었습니다.'</p>
+<p>RETURN</p>
+<p>/*******************************************************************************************/</p>
+<p>ERR_PROC:</p>
+<p>ROLLBACK TRAN</p>
+<p>UPDATE A</p>
+<p>SET ERPProcDateTime = GETDATE(),</p>
+<p>Status = B.Status,</p>
+<p>Result = B.Result</p>
+<p>FROM dat_IF_TPJTBOM AS A JOIN #TPJTBOM AS B ON A.PDMKey = B.PDMKey</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>AND A.Seq = B.Seq</p>
+<p>SELECT @Status = Status,</p>
+<p>@Results = Result</p>
+<p>FROM #TPJTBOM</p>
+<p>WHERE Status \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>/*</p>
+<p>go</p>
+<p>BEGIN TRAN</p>
+<p>DECLARE @Status INT ,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>--EXEC dat_SIFPJTBOM 'BOMTX.2024.01.16.11.49.22.083', 0,''</p>
+<p>EXEC dat_SIFPJTBOM 'BOMTX.2024.01.18.11.53.57.467', @Status OUTPUT,@Results OUTPUT</p>
+<p>SELECT @Status ,@Results</p>
+<p>SELECT * FROM dat_IF_TPJTBOM --WHERE PDMKey = 'BOMTX.2024.01.18.11.53.57.467'</p>
+<p>select * from _TPJTBOM where pjtseq =2905 order by lastdatetime desc</p>
+<p>select * from dat_TPJTBOM where pjtseq =2905 order by lastdatetime desc</p>
+<p>/*</p>
+<p>DELETE from _TPJTBOM where pjtseq =2905</p>
+<p>DELETE from dat_TPJTBOM where pjtseq =2905</p>
+<p>UPDATE A</p>
+<p>SET ERPProcDateTime = NULL,</p>
+<p>FLAG = 'N',</p>
+<p>PJTSeq = 0 ,</p>
+<p>BOMSerl = 0 ,</p>
+<p>Status = 0,</p>
+<p>Result = NULL,</p>
+<p>ItemSeq = 0</p>
+<p>FROM dat_IF_TPJTBOM AS A</p>
+<p>*/</p>
+<p>ROLLBACK TRAN</p>
+<p>*/</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컨트롤 스타일</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>컨트롤 스타일</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-31</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">컨트롤 스타일</h1>
+<p><img alt="" src="assets/컨트롤-스타일/image90.png" /></p>
+<p>txtSerialNo2.StyleName = 'styleTextDis' -- styleTextDis Init 추가</p>
+<p>체크박스</p>
+<p>styleCheckboxIcon Favorite</p>
+<p>styleCheckDefault</p>
+<p>styleCheckHL</p>
+<p>styleCheckHL colorGreen text18 textBold</p>
+<p>styleCheckHL colorRed</p>
+<p>styleCheckToggle</p>
+<p>styleCheckToggle colorGreen</p>
+<p>styleCheckToggle toggleRight</p>
+<p>styleCheckToggle1</p>
+<p>styleTextDis</p>
+<hr />
+<p>styleCheckHL colorRed</p>
+<p><img alt="" src="assets/컨트롤-스타일/image91.png" /></p>
+<p>styleCheckHL colorBlue</p>
+<p><img alt="" src="assets/컨트롤-스타일/image92.png" /></p>
+<p>SELECT A.Style, A.PgmSeq, B.Caption</p>
+<p>FROM _TCAPgmControls AS A</p>
+<p>JOIN _TCAPgm AS B ON B.PgmSeq = A.PgmSeq</p>
+<p>WHERE A.ControlType = 4 -- 체크박스</p>
+<p>AND ISNULL(A.Style,'') \&lt;&gt; ''</p>
+<p>AND A.Style LIKE 'Style%'</p>
+<p>SELECT DISTINCT A.Style</p>
+<p>FROM _TCAPgmControls AS A</p>
+<p>JOIN _TCAPgm AS B ON B.PgmSeq = A.PgmSeq</p>
+<p>WHERE A.ControlType = 4 -- 체크박스</p>
+<p>AND ISNULL(A.Style,'') \&lt;&gt; ''</p>
+<p>AND A.Style LIKE 'Style%'</p>
+  </article>
+</div>
+</body>
+</html>

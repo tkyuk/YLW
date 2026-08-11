@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 - 구매요청 진행 로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 - 구매요청 진행 로직</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-16</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">제뉴인 - 구매요청 진행 로직</h1>
+<p>프로젝트자재구매진행조회</p>
+<p>_SPJTSupplyProgListQuery</p>
+<p>/************************************************************</p>
+<p>설 명 - 프로젝트 자재진행 현황</p>
+<p>작성일 - 2008년 12월 02일</p>
+<p>작성자 - 김수연</p>
+<p>수정자 - 이형민 :: 2018.03.29 컬럼추가(Maker, Maker코드, 2차납품기일, 발주거래처, 발주거래처코드)</p>
+<p>수정자 - 이형민 :: 2018.04.28 조회조건 추가(발주거래처)</p>
+<p>수정자 - 김대영 :: 2019.03.04 SET 옵션추가</p>
+<p>수정자 - 이혜민 :: 2019.06.21 구매요청Memo1~8 컬럼 추가</p>
+<p>수정자 - 나태형 :: 2020.08.21 UMinorSeq1~3, UMinorSeqName1~3 컬럼 추가</p>
+<p>7023 프로젝트자재진행조회기간기준</p>
+<p>7024 프로젝트자재진행구분</p>
+<p>7025 프로젝트자재진행상태</p>
+<p>************************************************************/</p>
+<p>CREATE PROC dbo._SPJTSupplyProgListQuery</p>
+<p>@xmlDocument NVARCHAR(MAX) ,</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<blockquote>
+<p>SET NOCOUNT ON</p>
+<p>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</p>
+</blockquote>
+<p>DECLARE @docHandle INT,</p>
+<p>@MRPEmpSeq INT,</p>
+<p>@MRPDeptSeq INT,</p>
+<p>@PJTSeq INT,</p>
+<p>@WBSSeq INT,</p>
+<p>@ItemSeq INT,</p>
+<p>@FrDate NCHAR(8),</p>
+<p>@ToDate NCHAR(8),</p>
+<p>@MRPNo NVARCHAR(12),</p>
+<p>@CMOrPM INT,</p>
+<p>@ProgStatus INT,</p>
+<p>@QryDateType INT,</p>
+<p>@QryFrDate NCHAR(8),</p>
+<p>@QryToDate NCHAR(8),</p>
+<p>@PurchaseCustSeq INT,</p>
+<p>@ItemName NVARCHAR(400) ,</p>
+<p>@ItemNo NVARCHAR(200) ,</p>
+<p>@TopUnitName NVARCHAR(200) ,</p>
+<p>@TopUnitNo NVARCHAR(200) ,</p>
+<p>@PJTName NVARCHAR(100) ,</p>
+<p>@PJTNo NVARCHAR(100) ,</p>
+<p>@POReqNoFr NVARCHAR(30) ,</p>
+<p>@POReqNoTo NVARCHAR(30) ,</p>
+<p>@UMItemClassS NVARCHAR(200) ,</p>
+<p>@ProdPlanNo NVARCHAR(50) ,</p>
+<p>@WorkOrderNo NVARCHAR(50) ,</p>
+<p>@PJTTypeSeq INT,</p>
+<p>@ReqIsStop NCHAR(1),</p>
+<p>@DelvInFrDate NCHAR(8),</p>
+<p>@DelvInToDate NCHAR(8),</p>
+<p>@BizUnits INT,</p>
+<p>@IsPJTPur                        INT,</p>
+<p>@UMSupplyType INT,</p>
+<p>@POCustSeq INT</p>
+<p>EXEC sp_xml_preparedocument @docHandle OUTPUT, @xmlDocument</p>
+<p>SELECT @MRPNo = ISNULL(MRPNo , ''),</p>
+<p>@PJTSeq = ISNULL(PJTSeq , 0),</p>
+<p>@WBSSeq = ISNULL(WBSSeq , 0),</p>
+<p>@ItemSeq = ISNULL(ItemSeq , 0),</p>
+<p>@FrDate = ISNULL(MRPFrDate , ''),</p>
+<p>@ToDate = ISNULL(MRPToDate , ''),</p>
+<p>@CMOrPM = ISNULL(CMOrPM , ''),</p>
+<p>@ProgStatus = ISNULL(ProgStatus , ''),</p>
+<p>@QryDateType = ISNULL(QryDateType , ''),</p>
+<p>@QryFrDate = ISNULL(QryFrDate , ''),</p>
+<p>@QryToDate = ISNULL(QryToDate , ''),</p>
+<p>@PurchaseCustSeq = ISNULL(PurchaseCustSeq, 0),</p>
+<p>@ItemName = ISNULL(ItemName , ''),</p>
+<p>@ItemNo = ISNULL(ItemNo , ''),</p>
+<p>@TopUnitName = ISNULL(TopUnitName , ''),</p>
+<p>@TopUnitNo = ISNULL(TopUnitNo , ''),</p>
+<p>@PJTName = ISNULL(PJTName , ''),</p>
+<p>@PJTNo = ISNULL(PJTNo , ''),</p>
+<p>@MRPEmpSeq = ISNULL(MRPEmpSeq , 0),</p>
+<p>@MRPDeptSeq = ISNULL(MRPDeptSeq , 0),</p>
+<p>@POReqNoFr = ISNULL(POReqNoFr , ''),</p>
+<p>@POReqNoTo = ISNULL(POReqNoTo , ''),</p>
+<p>@UMItemClassS = ISNULL(UMItemClassS , ''),</p>
+<p>@ProdPlanNo = ISNULL(ProdPlanNo , ''),</p>
+<p>@WorkOrderNo = ISNULL(WorkOrderNo , ''),</p>
+<p>@PJTTypeSeq = ISNULL(PJTTypeSeq , 0),</p>
+<p>@ReqIsStop = ISNULL(ReqIsStop , '0'),</p>
+<p>@DelvInFrDate = ISNULL(DelvInFrDate , ''),</p>
+<p>@DelvInToDate = ISNULL(DelvInToDate , ''),</p>
+<p>@BizUnits = ISNULL(BizUnit , 0),</p>
+<p>@IsPJTPur                 = ISNULL(IsPJTPur , 0),</p>
+<p>@UMSupplyType = ISNULL(UMSupplyType , 0),</p>
+<p>@POCustSeq = ISNULL(POCustSeq , 0)</p>
+<p>FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags)</p>
+<p>WITH ( MRPNo NVARCHAR(12),</p>
+<p>PJTSeq INT,</p>
+<p>WBSSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>MRPFrDate NCHAR(8),</p>
+<p>MRPToDate NCHAR(8),</p>
+<p>CMOrPM INT,</p>
+<p>ProgStatus INT,</p>
+<p>QryDateType INT,</p>
+<p>QryFrDate NCHAR(8),</p>
+<p>QryToDate NCHAR(8),</p>
+<p>PurchaseCustSeq INT,</p>
+<p>ItemName NVARCHAR(400),</p>
+<p>ItemNo NVARCHAR(200),</p>
+<p>TopUnitName NVARCHAR(200),</p>
+<p>TopUnitNo NVARCHAR(200),</p>
+<p>PJTName NVARCHAR(100),</p>
+<p>PJTNo NVARCHAR(100),</p>
+<p>MRPEmpSeq INT,</p>
+<p>MRPDeptSeq INT,</p>
+<p>POReqNoFr NVARCHAR(30) ,</p>
+<p>POReqNoTo NVARCHAR(30) ,</p>
+<p>UMItemClassS NVARCHAR(200),</p>
+<p>ProdPlanNo NVARCHAR(50) ,</p>
+<p>WorkOrderNo NVARCHAR(50),</p>
+<p>PJTTypeSeq INT,</p>
+<p>ReqIsStop NCHAR(1),</p>
+<p>DelvInFrDate NCHAR(8),</p>
+<p>DelvInToDate NCHAR(8),</p>
+<p>BizUnit INT,</p>
+<p>IsPJTPur INT,</p>
+<p>UMSupplyType INT,</p>
+<p>POCustSeq INT )</p>
+<blockquote>
+<p>EXEC sp_xml_removedocument @docHandle</p>
+</blockquote>
+<p>IF ISNULL(@ToDate , '') = '' SELECT @ToDate = '99991231'</p>
+<p>IF ISNULL(@DelvInToDate, '') = '' SELECT @DelvInToDate = '99991231'</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100))</p>
+<p>CREATE TABLE #TCOMProgressTracking</p>
+<p>( IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>CREATE TABLE #BOMReqTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>POQty DECIMAL(19,5),</p>
+<p>InputQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5))</p>
+<p>CREATE TABLE #POReqTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>NextSeq INT NULL,</p>
+<p>NextSerl INT NULL,</p>
+<p>IsFinish INT NULL,</p>
+<p>DelvInDate NCHAR(8) NULL,</p>
+<p>POQty DECIMAL(19,5),</p>
+<p>DelvQty DECIMAL(19,5),</p>
+<p>InputQty DECIMAL(19,5),</p>
+<p>OutReqQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5),</p>
+<p>EtcOutReqQty DECIMAL(19,5),</p>
+<p>EtcOutQty DECIMAL(19,5),</p>
+<p>ApprovalQty DECIMAL(19,5),</p>
+<p>ReturnReqQty DECIMAL(19,5),</p>
+<p>ReturnQty DECIMAL(19,5) )</p>
+<p>CREATE TABLE #Temp_POReq</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POReqSeq INT,</p>
+<p>POReqSerl INT,</p>
+<p>UnitSeq INT,</p>
+<p>SourceSeq INT NULL,</p>
+<p>SourceSerl INT NULL,</p>
+<p>WorkOrderSeq INT NULL,</p>
+<p>WorkOrderNo NVARCHAR(50) NULL,</p>
+<p>ProdPlanSeq INT NULL,</p>
+<p>ProdPlanNo NVARCHAR(50) NULL,</p>
+<p>ReqQty DECIMAL(19,5) NULL,</p>
+<p>UpperUnitName NVARCHAR(200) NULL,</p>
+<p>UpperUnitNo NVARCHAR(100) NULL,</p>
+<p>TopUnitName NVARCHAR(200) NULL,</p>
+<p>TopUnitNo NVARCHAR(100) NULL</p>
+<p>)</p>
+<p>Create index IX_#Temp_orderamt on #Temp_POReq (POReqSeq, POReqSerl)</p>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 1, '_TPUORDPOItem' -- 구매발주</p>
+<p>UNION</p>
+<p>SELECT 2, '_TPUDelvItem' -- 구매납품</p>
+<p>UNION</p>
+<p>SELECT 3, '_TPUDelvInItem' -- 구매입고</p>
+<p>UNION</p>
+<p>SELECT 4, '_TPDMMOutReqItem' -- 출고요청</p>
+<p>UNION</p>
+<p>SELECT 5, '_TPDMMOutItem' -- 출고</p>
+<p>UNION</p>
+<p>SELECT 6, '_TLGInOutReqItem' -- 입출고요청</p>
+<p>UNION</p>
+<p>SELECT 7, '_TLGInOutDailyItem' -- 입출고</p>
+<p>UNION</p>
+<p>SELECT 8, '_TUIImpBLItem' -- 수입BL</p>
+<p>UNION</p>
+<p>SELECT 9, '_TUIImpDelvItem' -- 수입입고</p>
+<p>UNION</p>
+<p>SELECT 10, '_TPUORDApprovalReqItem' -- 구매품의</p>
+<p>DELETE FROM #TCOMProgressTracking</p>
+<p>INSERT INTO #Temp_POReq( POReqSeq, POReqSerl, UnitSeq, SourceSeq, SourceSerl, WorkOrderSeq, WorkOrderNo, ProdPlanSeq, ProdPlanNo, ReqQty, UpperUnitName, UpperUnitNo, TopUnitName, TopUnitNo )</p>
+<p>SELECT A.POReqSeq,</p>
+<p>B.POReqSerl,</p>
+<p>B.UnitSeq,</p>
+<p>B.SourceSeq,</p>
+<p>B.SourceSerl,</p>
+<p>H.WorkOrderSeq,</p>
+<p>H.WorkOrderNo,</p>
+<p>F.ProdPlanSeq,</p>
+<p>G.ProdPlanNo,</p>
+<p>B.Qty,</p>
+<p>M2.ItemName AS UpperUnitName, -- 상위Unit품명 :: 20.02.21 #임희진 (최종 Select문에서 조회조건 적용되는 부분으로 구문 이동)</p>
+<p>M2.ItemNo AS UpperUnitNo, -- 상위Unit품번 :: 20.02.21 #임희진 (최종 Select문에서 조회조건 적용되는 부분으로 구문 이동)</p>
+<p>M4.ItemName AS TopUnitName, -- 최상위Unit품명 :: 20.02.21 #임희진 (최종 Select문에서 조회조건 적용되는 부분으로 구문 이동)</p>
+<p>M4.ItemNo AS TopUnitNo -- 최상위Unit품번 :: 20.02.21 #임희진 (최종 Select문에서 조회조건 적용되는 부분으로 구문 이동)</p>
+<p>FROM _TPUORDPOReq AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOReqItem AS B WITH(NOLOCK) ON A.CompanySeq= B.CompanySeq AND A.POReqSeq = B.POReqSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON A.CompanySeq= C.CompanySeq AND B.ItemSeq = C.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS D WITH(NOLOCK) ON A.CompanySeq= D.CompanySeq AND B.PJTSeq = D.PJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M5 WITH(NOLOCK) ON B.CompanySeq= M5.CompanySEq</p>
+<p>AND B.PJTSeq = M5.PJTSeq</p>
+<p>AND B.BOMSerl = M5.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M1 WITH(NOLOCK) ON B.CompanySeq= M1.CompanySeq</p>
+<p>AND B.PJTSeq = M1.PJTSeq</p>
+<p>AND M1.BOMSerl \&lt;&gt; -1</p>
+<p>AND M5.UpperBOMSerl = M1.BOMSerl</p>
+<p>AND ISNULL(M1.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TDAItem AS M2 WITH(NOLOCK) ON B.CompanySEq = M2.CompanySeq</p>
+<p>AND M1.ItemSeq = M2.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS M3 WITH(NOLOCK) ON B.CompanySeq = M3.CompanySeq</p>
+<p>AND B.PJTSeq = M3.PJTSeq</p>
+<p>AND M3.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(M3.BeforeBOMSerl,0) = 0</p>
+<p>AND SUBSTRING(M1.TreeCode,1,6) = M3.TreeCode -- 최상위</p>
+<p>AND ISNUMERIC(REPLACE(M3.BOMLevel,'.','/')) = 1 -- 가장 최상위 조건 추가 :: 20.02.21 #임희진</p>
+<p>LEFT OUTER JOIN _TDAItem AS M4 WITH(NOLOCK) ON B.CompanySeq = M4.CompanySeq</p>
+<p>AND M3.ItemSeq = M4.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS E WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<p>AND E.UMajorItemClass IN (2001, 2004)</p>
+<p>AND B.ItemSeq = E.ItemSeq</p>
+<p>LEFT OUTER JOIN _TPDMRPDailyitem AS F WITH(NOLOCK) ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.UMPOReqType = 6501014</p>
+<p>AND B.SourceSeq = F.MRPDailySeq</p>
+<p>AND B.SourceSerl = F.Serl</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS G WITH(NOLOCK) ON F.CompanySeq = G.CompanySeq</p>
+<p>AND F.ProdPlanSeq = G.ProdPlanSeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS H WITH(NOLOCK) ON F.CompanySeq = H.CompanySeq</p>
+<p>AND F.ProdPlanSeq = H.ProdPlanSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@MRPNo = '' OR A.POReqNo like @MRPNo + '%')</p>
+<p>AND (@PJTSeq = 0 OR B.PJTSeq = @PJTSeq)</p>
+<p>AND (@WBSSeq = 0 OR B.WBSSeq = @WBSSeq)</p>
+<p>AND (@ItemSeq = 0 OR B.ItemSeq = @ItemSeq)</p>
+<p>AND (@FrDate = '' OR A.ReqDate &gt;= @FrDate)</p>
+<p>AND (@ToDate = '' OR A.ReqDate \&lt;= @ToDate)</p>
+<p>AND (@CMOrPM = 0 OR A.UMPOReqType = @CMOrPM)</p>
+<p>AND (@ItemName = '' OR C.ItemName LIKE @ItemName + '%')</p>
+<p>AND (@ItemNo = '' OR C.ItemNo LIKE @ItemNo + '%')</p>
+<p>AND (@PurchaseCustSeq = 0 OR B.CustSeq = @PurchaseCustSeq)</p>
+<p>AND (@PJTName = '' OR D.PJTName LIKE @PJTName + '%')</p>
+<p>AND (@PJTTypeSeq = 0 OR D.PJTTypeSeq = @PJTTypeSeq)</p>
+<p>AND (@PJTNo = '' OR D.PJTNo LIKE @PJTNo + '%')</p>
+<p>AND (@TopUnitName = '' OR M4.ItemName LIKE @TopUnitName + '%')</p>
+<p>AND (@TopUnitNo = '' OR M4.ItemNo LIKE @TopUnitNo + '%')</p>
+<p>AND (@MRPEmpSeq = 0 OR A.EmpSeq = @MRPEmpSeq)</p>
+<p>AND (@MRPDeptSeq = 0 OR A.DeptSeq = @MRPDeptSeq)</p>
+<p>AND (@ProdPlanNo = '' OR G.ProdPlanNo LIKE @ProdPlanNo + '%')</p>
+<p>AND (@WorkOrderNo = '' OR H.WorkOrderNo LIKE @WorkOrderNo + '%')</p>
+<p>AND ( (@POReqNoFr = '' AND @POReqNoTo = '') OR (@POReqNoFr = '' AND A.POReqNo \&lt;= @POReqNoTo)</p>
+<p>OR (@POReqNoTo = '' AND A.POReqNo &gt;= @POReqNoFr)</p>
+<p>OR (A.POReqNo BETWEEN @POReqNoFr AND @POReqNoTo))</p>
+<p>AND (@UMItemClassS = 0 OR E.UMItemClass = @UMItemClassS)</p>
+<p>AND (@ReqIsStop = '0' OR B.IsStop \&lt;&gt; @ReqIsStop)</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUORDPOReqItem', '#Temp_POReq', 'POReqSeq', 'POReqSerl', ''</p>
+<p>--프로젝트반품 따로 빼놓고..</p>
+<p>SELECT * INTO #TCOMProgressTracking_ReturnReq</p>
+<p>FROM #TCOMProgressTracking AS A JOIN _TPDMMOutReqM AS B ON A.Seq = B.OutReqSeq</p>
+<p>AND A.IDOrder = 4 -- 출고요청</p>
+<p>AND B.UseType = 6044010 -- 프로젝트반품</p>
+<p>--프로젝트 반품 삭제 처리 20130306 이재혁</p>
+<p>DELETE #TCOMProgressTracking</p>
+<p>FROM #TCOMProgressTracking AS A JOIN _TPDMMOutReqM AS B ON A.Seq = B.OutReqSeq</p>
+<p>AND A.IDOrder = 4 -- 출고요청</p>
+<p>AND B.UseType = 6044010 -- 프로젝트반품</p>
+<p>--삭제 완료</p>
+<p>--프로젝트반품 따로 빼놓고..</p>
+<p>SELECT * INTO #TCOMProgressTracking_Return</p>
+<p>FROM #TCOMProgressTracking AS A JOIN _TPDMMOutM AS B ON A.Seq = B.MatOutSeq</p>
+<p>AND A.IDOrder = 5 -- 출고</p>
+<p>AND B.UseType = 6044010 -- 프로젝트반품</p>
+<p>--프로젝트 반품 삭제 처리 20130306 이재혁</p>
+<p>DELETE #TCOMProgressTracking</p>
+<p>FROM #TCOMProgressTracking AS A JOIN _TPDMMOutM AS B ON A.Seq = B.MatOutSeq</p>
+<p>AND A.IDOrder = 5 -- 출고</p>
+<p>AND B.UseType = 6044010 -- 프로젝트반품</p>
+<p>--삭제 완료</p>
+<p>INSERT INTO #POReqTracking</p>
+<p>SELECT A.IDX_NO,</p>
+<p>MAX(CASE A.IDOrder WHEN 1 THEN A.Seq ELSE 0 END),</p>
+<p>CASE A.IDOrder WHEN 1 THEN B.Serl ELSE 0 END, 0,</p>
+<p>CASE A.IDOrder WHEN 1 THEN C.DelvInDate</p>
+<p>WHEN 9 THEN D.DelvInDate</p>
+<p>ELSE '' END,</p>
+<p>SUM(CASE IDOrder WHEN 1 THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE WHEN IDOrder IN (2, 8) THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE WHEN IDOrder IN (3, 9) THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 4 THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 5 THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 6 THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 7 THEN A.Qty ELSE 0 END),</p>
+<p>SUM(CASE IDOrder WHEN 10 THEN A.Qty ELSE 0 END),</p>
+<p>0,</p>
+<p>0</p>
+<p>FROM #TCOMProgressTracking AS A</p>
+<p>LEFT OUTER JOIN (SELECT IDX_NO, Seq, Max(Serl) AS Serl</p>
+<p>FROM #TCOMProgressTracking</p>
+<p>WHERE IDOrder = 1</p>
+<p>GROUP BY IDX_NO, Seq) as b on A.IDX_NO = B.IDX_NO AND A.Seq = B.Seq</p>
+<p>LEFT OUTER JOIN (SELECT IDX_No, MAX(Y.DelvInDate) AS DelvInDate</p>
+<p>FROM #TCOMProgressTracking AS Z</p>
+<p>JOIN _TPUDelvIn AS Y ON Z.Seq = Y.DelvInSeq</p>
+<p>WHERE Z.IDOrder = 3</p>
+<p>AND Y.CompanySeq = @CompanySeq</p>
+<p>GROUP BY IDX_NO) as C on A.IDX_NO = C.IDX_NO</p>
+<p>LEFT OUTER JOIN (SELECT IDX_No, MAX(Y2.DelvDate) AS DelvInDate</p>
+<p>FROM #TCOMProgressTracking AS Z2</p>
+<p>JOIN _TUIImpDelv AS Y2 ON Z2.Seq = Y2.DelvSeq</p>
+<p>WHERE Z2.IDOrder = 9</p>
+<p>AND Y2.CompanySeq = @CompanySeq</p>
+<p>GROUP BY IDX_NO) as D on A.IDX_NO = D.IDX_NO</p>
+<p>GROUP BY A.IDX_No, CASE A.IDOrder WHEN 1 THEN B.Serl ELSE 0 END, C.DelvInDate, D.DelvInDate, A.IDOrder</p>
+<p>INSERT INTO #POReqTracking</p>
+<p>SELECT A.IDX_NO,</p>
+<p>MAX(CASE A.IDOrder WHEN 1 THEN A.Seq ELSE 0 END),</p>
+<p>CASE A.IDOrder WHEN 1 THEN B.Serl ELSE 0 END, 0,</p>
+<p>'',</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>SUM(A.Qty),</p>
+<p>0</p>
+<p>FROM #TCOMProgressTracking_ReturnReq AS A --프로젝트반품요청</p>
+<p>LEFT OUTER JOIN (SELECT IDX_NO, Seq, Max(Serl) AS Serl</p>
+<p>FROM #TCOMProgressTracking</p>
+<p>WHERE IDOrder = 1</p>
+<p>GROUP BY IDX_NO, Seq) as b on A.IDX_NO = B.IDX_NO AND A.Seq = B.Seq</p>
+<p>LEFT OUTER JOIN (SELECT IDX_No, MAX(Y.DelvInDate) AS DelvInDate</p>
+<p>FROM #TCOMProgressTracking AS Z</p>
+<p>JOIN _TPUDelvIn AS Y ON Z.Seq = Y.DelvInSeq</p>
+<p>WHERE Z.IDOrder = 3</p>
+<p>AND Y.CompanySeq = @CompanySeq</p>
+<p>GROUP BY IDX_NO) as C on A.IDX_NO = C.IDX_NO</p>
+<p>GROUP BY A.IDX_No, CASE A.IDOrder WHEN 1 THEN B.Serl ELSE 0 END, C.DelvInDate</p>
+<p>INSERT INTO #POReqTracking</p>
+<p>SELECT A.IDX_NO,</p>
+<p>MAX(CASE A.IDOrder WHEN 1 THEN A.Seq ELSE 0 END),</p>
+<p>CASE A.IDOrder WHEN 1 THEN B.Serl ELSE 0 END, 0,</p>
+<p>'',</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>0,</p>
+<p>SUM(A.Qty)</p>
+<p>FROM #TCOMProgressTracking_Return AS A --프로젝트반품</p>
+<p>LEFT OUTER JOIN (SELECT IDX_NO, Seq, Max(Serl) AS Serl</p>
+<p>FROM #TCOMProgressTracking</p>
+<p>WHERE IDOrder = 1</p>
+<p>GROUP BY IDX_NO, Seq) as b on A.IDX_NO = B.IDX_NO AND A.Seq = B.Seq</p>
+<p>LEFT OUTER JOIN (SELECT IDX_No, MAX(Y.DelvInDate) AS DelvInDate</p>
+<p>FROM #TCOMProgressTracking AS Z</p>
+<p>JOIN _TPUDelvIn AS Y ON Z.Seq = Y.DelvInSeq</p>
+<p>WHERE Z.IDOrder = 3</p>
+<p>AND Y.CompanySeq = @CompanySeq</p>
+<p>GROUP BY IDX_NO) as C on A.IDX_NO = C.IDX_NO</p>
+<p>GROUP BY A.IDX_No, CASE A.IDOrder WHEN 1 THEN B.Serl ELSE 0 END, C.DelvInDate</p>
+<p>-- 안합쳐지네</p>
+<p>INSERT INTO #POReqTracking</p>
+<p>SELECT IDX_NO, MAX(NextSeq), MAX(NextSerl), 1, MAX(DelvInDate), SUM(POQty), SUM(DelvQty), SUM(InputQty), SUM(OutReqQty), SUM(OutQty), SUM(EtcOutReqQty), SUM(EtcOutQty), SUM(ApprovalQty), SUM(ReturnReqQty), SUM(ReturnQty)</p>
+<p>FROM #POReqTracking</p>
+<p>GROUP BY IDX_NO</p>
+<p>-- 진행상태에 따라 해당내역삭제</p>
+<p>IF @ProgStatus = 7025001 -- 미발주</p>
+<p>BEGIN</p>
+<p>DELETE #Temp_POReq</p>
+<p>FROM #Temp_POReq AS M WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN #POReqTracking AS Q WITH(NOLOCK) ON M.IDX_No = Q.IDX_No</p>
+<p>AND Q.IsFinish = 1</p>
+<p>WHERE M.ReqQty \&lt;= Q.POQty</p>
+<p>END</p>
+<p>IF @ProgStatus = 7025002 -- 미입고</p>
+<p>BEGIN</p>
+<p>DELETE #Temp_POReq</p>
+<p>FROM #Temp_POReq AS M WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN #POReqTracking AS Q WITH(NOLOCK) ON M.IDX_No = Q.IDX_No</p>
+<p>AND Q.IsFinish = 1</p>
+<p>WHERE M.ReqQty \&lt;= Q.InputQty</p>
+<p>END</p>
+<p>IF @ProgStatus = 7025003 -- 미출고</p>
+<p>BEGIN</p>
+<p>DELETE #Temp_POReq</p>
+<p>FROM #Temp_POReq AS M WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN #POReqTracking AS Q WITH(NOLOCK) ON M.IDX_No = Q.IDX_No</p>
+<p>AND Q.IsFinish = 1</p>
+<p>WHERE M.ReqQty \&lt;= Q.OutQty OR M.ReqQty \&lt;= Q.EtcOutQty</p>
+<p>END</p>
+<hr />
+<p>--수주번호 추적 ---</p>
+<hr />
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100))</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1,'_TSLOrderItem'</p>
+<p>-- UNION</p>
+<p>-- SELECT 2,'_TPUORDApprovalReqItem'</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>EXEC _SCOMSourceTracking @CompanySeq, '_TPUORDPOReqItem', '#Temp_POReq', 'POReqSeq', 'POReqSerl', ''</p>
+<hr />
+<p>-- 재고 가져오기</p>
+<p>CREATE TABLE #GetInOutItem</p>
+<p>(</p>
+<p>ItemSeq INT</p>
+<p>)</p>
+<p>CREATE TABLE #GetInOutStock</p>
+<p>(</p>
+<p>WHSeq INT,</p>
+<p>FunctionWHSeq INT,</p>
+<p>ItemSeq INT,</p>
+<p>UnitSeq INT,</p>
+<p>PrevQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>OutQty DECIMAL(19,5),</p>
+<p>StockQty DECIMAL(19,5),</p>
+<p>STDPrevQty DECIMAL(19,5),</p>
+<p>STDInQty DECIMAL(19,5),</p>
+<p>STDOutQty DECIMAL(19,5),</p>
+<p>STDStockQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT #GetInOutItem (ItemSeq)</p>
+<p>SELECT DISTINCT B.ItemSeq</p>
+<p>FROM #Temp_POReq AS A</p>
+<p>JOIN _TPUORDPOReqItem AS B WITH(NOLOCK) ON A.POReqSeq = B.POReqSeq AND A.POReqSerl = B.POReqSerl</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>-- 현재일 기준</p>
+<p>DECLARE @CurrDate NCHAR(8)</p>
+<p>SELECT @CurrDate = CONVERT(NCHAR(8), GETDATE(),112)</p>
+<p>EXEC _SLGGetInOutStock</p>
+<p>@CompanySeq = @CompanySeq, -- 법인코드</p>
+<p>@BizUnit = 0, -- 사업부문</p>
+<p>@FactUnit = 0, -- 생산사업장</p>
+<p>@DateFr = @CurrDate, -- 조회기간Fr</p>
+<p>@DateTo = @CurrDate, -- 조회기간To</p>
+<p>@WHSeq = 0, -- 창고지정</p>
+<p>@SMWHKind = 0, -- 창고구분별 조회</p>
+<p>@CustSeq = 0, -- 수탁거래처</p>
+<p>@IsSubDisplay = '', -- 기능창고 조회</p>
+<p>@IsUnitQry = '', -- 단위별 조회</p>
+<p>@QryType = 'S' -- 'S': 1007 실재고, 'B':1008 자산포함, 'A':1011 가용재고</p>
+<hr />
+<p>SELECT A.POReqNo,</p>
+<p>A.POReqSeq,</p>
+<p>B.POReqSerl,</p>
+<p>B.PJTSeq,</p>
+<p>B.WBSSeq,</p>
+<p>B.ItemSeq,</p>
+<p>B.Qty                        AS PurchaseQty,</p>
+<p>Q.POQty                AS POQty,</p>
+<p>Q.DelvQty                AS DelvQty,</p>
+<p>Q.InputQty                AS InputQty,</p>
+<p>Q.OutReqQty        AS OutReqQty,</p>
+<p>Q.OutQty                AS OutQty,</p>
+<blockquote>
+<p>0                                AS RemainQty,</p>
+</blockquote>
+<p>CASE WHEN ISNULL(S.IsQty,'0') = '1' THEN 0 ELSE R.StockQty END AS StockQty,        -- 재고수량 (품목자산분류의 '재고수량관리안함' 설정이 되어 있으면 0으로 조회         By 18.01.09 hjlim 수정)</p>
+<p>Q.EtcOutReqQty AS EtcOutReqQty,</p>
+<p>Q.EtcOutQty        AS EtcOutQty,</p>
+<p>Q.ApprovalQty AS ApprovalQty,</p>
+<p>B.MakerSeq,</p>
+<p>B.DelvDate                AS ExpectInDate,</p>
+<p>C.PJTName,</p>
+<p>C.PJTTypeSeq,</p>
+<blockquote>
+<p>(SELECT PJTTypeName FROM _TPJTType WHERE CompanySeq = @CompanySeq AND PJTTypeSeq = C.PJTTypeSeq) AS PJTTypeName,</p>
+</blockquote>
+<p>D.WBSName,</p>
+<p>E.ItemName,</p>
+<p>F.UnitName AS PuUnitName,</p>
+<p>B.UnitSeq AS UnitSeq,</p>
+<p>H.CustName AS PurchaseCustName,</p>
+<p>A.EmpSeq,</p>
+<p>A.DeptSeq,</p>
+<p>C.PJTNo,</p>
+<p>E.ItemNo,</p>
+<p>E.Spec,</p>
+<p>I.EmpName AS MRPEmpName,</p>
+<p>J.DeptName AS MRPDeptName,</p>
+<p>K.CCtrName,</p>
+<p>K.CCtrSeq,</p>
+<p>M.UpperUnitNo AS UpperUnitNo,</p>
+<p>M.UpperUnitName AS UpperUnitName,</p>
+<p>M.TopUnitName AS TopUnitName,</p>
+<p>M.TopUnitNo AS TopUnitNo,</p>
+<p>Q.NextSeq,</p>
+<blockquote>
+<p>Q.NextSerl,</p>
+</blockquote>
+<p>Q1.DelvDate AS DelvDate,</p>
+<p>B.IsStop AS IsStop, --요청</p>
+<p>Q1.IsStop AS PUIsStop, --발주</p>
+<blockquote>
+<p>V3.ISStop AS AppIsStop, --품의</p>
+</blockquote>
+<p>CASE WHEN B.IsStop = 1 THEN B.StopDate ELSE '' END AS StopDate, --중단됬을시 중단일 빈값으로 2013.05.23 김민석(2013)</p>
+<p>B.StopEmpSeq AS StopEmpSeq,</p>
+<p>CASE WHEN B.IsStop = 1 THEN B.StopRemark ELSE '' END AS StopRemark, --중단됬을시 중단설면 빈값으로 2013.05.23 김민석(2013)</p>
+<p>CASE WHEN B.IsStop = 1 THEN P.EmpName ELSE '' END AS StopEmpName, --중단됬을시 중단자 빈값으로 2013.05.23 김민석(2013)</p>
+<p>Q1.StopDate AS PUStopDate,</p>
+<p>Q1.StopEmpSeq AS PUStopEmpSeq,</p>
+<p>Q1.StopRemark AS PUStopRemark,</p>
+<p>P1.UserName AS PUStopEmpName,</p>
+<p>V3.StopDate AS AppStopDate,</p>
+<p>V3.StopEmpSeq AS AppStopEmpSeq,</p>
+<p>V3.StopRemark AS AppStopRemark,</p>
+<p>P2.EmpName AS AppStopEmpName,</p>
+<p>O.Seq AS OrderSeq,</p>
+<p>O2.OrderNo AS OrderNo,</p>
+<p>A.UMPOReqType AS UMPOReqType,</p>
+<p>A1.MinorName AS UMPOReqTypeName,</p>
+<p>C.ISComplete AS ISComplete,</p>
+<p>C.ISStop AS ISPJTStop,</p>
+<p>X.ValueText AS ISDirectCost,</p>
+<p>Q.DelvInDate AS DelvInDate,</p>
+<p>L.UMItemClass AS UMItemClassS,</p>
+<p>L1.MinorName AS ItemClassSName,</p>
+<p>M.SourceSeq,</p>
+<p>M.SourceSerl,</p>
+<p>M.WorkOrderSeq,</p>
+<p>M.WorkOrderNo,</p>
+<p>M.ProdPlanSeq,</p>
+<p>M.ProdPlanNo,</p>
+<p>DATEDIFF(DAY, B.DelvDate, Q1.DelvDate) AS OverDay, -- 20101020 추가,</p>
+<blockquote>
+<p>V3.ApproReqSerl,</p>
+<p>V.Serl,</p>
+<p>ISNULL( Q.ReturnReqQty, 0) AS ReturnReqQty, --반품요청수량</p>
+<p>ISNULL( Q.ReturnQty, 0) AS ReturnQty, --반품수량</p>
+<p>ISNULL( Q.OutQty, 0) - ISNULL(Q.ReturnReqQty, 0) AS residualQty, --(출고-반품요청)수량 residualQty</p>
+<p>ISNULL( Q.OutQty, 0) - ISNULL(Q.ReturnQty, 0) AS Out_ReturnQty, --(출고-반품)수량 Out_ReturnQty</p>
+<p>(ISNULL( B.Qty, 0) - ISNULL(Q.OutReqQty, 0) + ISNULL(Q.ReturnQty, 0)) AS OutReqImpQty, -- 출고요청가능수량 (구매요청수량 – 출고요청수량 + 반품처리수량)</p>
+<p>(ISNULL( Q.OutQty, 0) - ISNULL(Q.ReturnReqQty, 0)) AS ReturnReqImpQty, -- 반품요청가능수량 (출고처리수량 – 반품요청수량 + 반품처리수량)</p>
+<p>MP.MinorName AS BOMRegName, --BOM등록구분 추가 20130509 김민석</p>
+<p>MP.MinorSeq AS BOMRegSeq, --BOM등록코드 추가 20130509 김민석</p>
+<p>M5.UMSupplyType AS UMSupplyType, --자재조달구분 코드 20131021 김민석(2013)</p>
+<p>AP.MinorName AS UMSupplyTypeName, --자재조달구분 20131021 김민석(2013)</p>
+</blockquote>
+<p>B.MakerSeq AS MakerSeq, -- 2018.03.29 이형민 :: Maker코드 추가</p>
+<p>HM.CustName AS MakerName, -- 2018.03.29 이형민 :: Maker 추가</p>
+<p>Q1.DelvDate2 AS DelvDate2, -- 2018.03.29 이형민 :: 2차납품기일 추가</p>
+<p>Q1M.CustSeq AS POCustSeq, -- 2018.03.29 이형민 :: 발주거래처코드 추가</p>
+<p>Q1C.CustName AS POCustName, -- 2018.03.29 이형민 :: 발주거래처 추가</p>
+<p>A.Remark AS MasterRemark, -- 2019.01.04 이혜민 :: 마스터비고 추가</p>
+<p>B.Remark AS Remark, -- 2019.01.04 이혜민 :: 비고 추가</p>
+<p>ISNULL(B.Memo1,'') AS Memo1,</p>
+<p>ISNULL(B.Memo2,'') AS Memo2,</p>
+<p>ISNULL(B.Memo3,'') AS Memo3,</p>
+<p>ISNULL(B.Memo4,'') AS Memo4,</p>
+<p>ISNULL(B.Memo5,'') AS Memo5,</p>
+<p>ISNULL(B.Memo6,'') AS Memo6,</p>
+<p>ISNULL(B.Memo7,0) AS Memo7,</p>
+<p>ISNULL(B.Memo8,0) AS Memo8,</p>
+<p>UM1.MinorName AS UMinorSeq1Name, --2020.08.21 나태형 추가</p>
+<p>B.UMinorSeq1 AS UMinorSeq1, --2020.08.21 나태형 추가</p>
+<p>UM2.MinorName AS UMinorSeq2Name, --2020.08.21 나태형 추가</p>
+<p>B.UMinorSeq2 AS UMinorSeq2, --2020.08.21 나태형 추가</p>
+<p>UM3.MinorName AS UMinorSeq3Name, --2020.08.21 나태형 추가</p>
+<p>B.UMinorSeq3 AS UMinorSeq3 --2020.08.21 나태형 추가</p>
+<p>FROM #Temp_POReq AS M        WITH(NOLOCK)</p>
+<blockquote>
+<p>JOIN _TPUORDPOReqItem AS B        WITH(NOLOCK) ON M.POReqSeq = B.POReqSeq</p>
+<p>AND M.POReqSerl = B.POReqSerl</p>
+</blockquote>
+<p>JOIN _TPUORDPOReq AS A        WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND B.POReqSeq = A.POReqSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUMinor AS A1        WITH(NOLOCK) ON B.CompanySeq = A1.CompanySeq</p>
+<blockquote>
+<p>AND A.UMPOReqType = A1.MinorSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TPJTProject AS C        WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<blockquote>
+<p>AND B.PJTSeq = C.PJTSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TPJTWBS AS D        WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<blockquote>
+<p>AND B.PJTSeq = D.PJTSeq</p>
+<p>AND B.WBSSeq = D.WBSSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItem AS E        WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<blockquote>
+<p>AND B.ItemSeq = E.ItemSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUnit AS F        WITH(NOLOCK) ON B.CompanySeq = F.CompanySeq</p>
+<blockquote>
+<p>AND B.UnitSeq = F.UnitSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDACust AS H        WITH(NOLOCK) ON B.CompanySeq = H.CompanySeq</p>
+<blockquote>
+<p>AND B.CustSeq        = H.CustSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAEmp AS I        WITH(NOLOCK) ON B.CompanySeq = I.CompanySeq</p>
+<blockquote>
+<p>AND A.EmpSeq = I.EmpSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDADept AS J        WITH(NOLOCK) ON B.CompanySeq = J.CompanySeq</p>
+<blockquote>
+<p>AND A.DeptSeq = J.DeptSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDACCtr AS K        WITH(NOLOCK) ON B.CompanySeq = K.CompanySeq</p>
+<blockquote>
+<p>AND C.CCtrSeq = K.CCtrSeq</p>
+<p>LEFT OUTER JOIN _TCAUser                         AS O1        WITH(NOLOCK) ON B.CompanySeq = O1.CompanySeq</p>
+<p>AND B.StopEmpSeq = O1.UserSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp                         AS P        WITH(NOLOCK) ON B.CompanySeq = P.CompanySeq</p>
+<p>AND O1.EmpSeq = P.EmpSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN #POReqTracking AS Q        WITH(NOLOCK) ON M.IDX_No = Q.IDX_No</p>
+<blockquote>
+<p>AND Q.IsFinish = 1</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TPUORDPOItem AS Q1        WITH(NOLOCK) ON B.CompanySeq = Q1.CompanySeq</p>
+<p>AND Q.NextSeq = Q1.POSeq</p>
+<p>AND Q.NextSerl = Q1.POSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM                         AS M5        WITH(NOLOCK) ON B.CompanySeq = M5.CompanySEq --원상태로 복귀 20130812 김민석(2013)</p>
+<blockquote>
+<p>AND B.PJTSeq = M5.PJTSeq</p>
+<p>AND B.BOMSerl = M5.BOMSerl</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUMinor                         AS AP        WITH(NOLOCK) ON M5.CompanySeq = AP.CompanySeq</p>
+<blockquote>
+<p>AND M5.UMSupplyType = AP.MinorSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN (SELECT ItemSeq, SUM(STDStockQty) AS StockQty -- 동일 품목이라도 단위가 다를 수 있기에 기준단위재고수량을 SUM하도록 수정 :: 19.12.05 #임희진</p>
+<p>FROM #GetInOutStock</p>
+<p>GROUP BY ItemSeq) AS R ON B.ItemSeq = R.ItemSeq</p>
+<blockquote>
+<p>LEFT OUTER JOIN _TDAItemAsset AS S        WITH(NOLOCK) ON E.CompanySeq = S.CompanySeq</p>
+<p>AND E.AssetSeq = S.AssetSeq                                                                </p>
+</blockquote>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS O ON M.IDX_NO = O.IDX_NO</p>
+<p>LEFT OUTER JOIN _TSLOrder AS O2        WITH(NOLOCK) ON B.CompanySeq = O2.CompanySeq</p>
+<blockquote>
+<p>AND O.Seq = O2.OrderSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDACCtr AS Z        WITH(NOLOCK) ON B.CompanySeq = Z.CompanySeq</p>
+<blockquote>
+<p>AND C.CCtrSeq = Z.CCtrSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUMinorValue         AS X        WITH(NOLOCK) ON B.CompanySeq = X.CompanySeq</p>
+<blockquote>
+<p>AND X.MinorSeq = Z.UMCCtrKind</p>
+<p>AND X.SErl = 1003</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAItemClass AS L        WITH(NOLOCK) ON B.CompanySeq = L.CompanySeq</p>
+<blockquote>
+<p>AND L.UMajorItemClass IN (2001, 2004)</p>
+<p>AND B.ItemSeq = L.ItemSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUMiNor AS L1        WITH(NOLOCK) ON B.CompanySeq = L1.CompanySeq</p>
+<blockquote>
+<p>AND L1.MinorSeq = L.UMItemClass</p>
+<p>LEFT OUTER JOIN (SELECT IDX_NO, IDOrder, MAX(Seq) AS Seq, MAX(Serl) AS Serl FROM #TCOMProgressTracking WHERE IDOrder = 10 GROUP BY IDX_NO, IDOrder) AS V ON M.IDX_NO = V.IDX_NO AND V.IDOrder = 10 -- By 18.02.19 hjlim 수정 (TOP 1 -&gt; Group By)</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TPUORDApprovalReqItem AS V3 WITH(NOLOCK) ON B.CompanySeq = V3.CompanySeq</p>
+<blockquote>
+<p>AND V.Seq = V3.ApproReqSeq</p>
+<p>AND V.Serl = V3.ApproReqSerl --구매품의</p>
+<p>LEFT OUTER JOIN _TCAUser AS P1        WITH(NOLOCK) ON B.CompanySeq = P1.CompanySeq</p>
+<p>AND Q1.StopEmpSeq = P1.UserSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAEmp AS P2        WITH(NOLOCK) ON B.CompanySeq = P2.CompanySeq</p>
+<blockquote>
+<p>AND V3.StopEmpSeq = P2.EmpSeq</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDAUMinor AS MP        WITH(NOLOCK) ON MP.CompanySeq = M5.CompanySeq --BOM 등록</p>
+<blockquote>
+<p>AND MP.MinorSeq = M5.UMRegType</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDABizUnit AS AD        WITH(NOLOCK) ON C.CompanySeq = AD.CompanySeq</p>
+<blockquote>
+<p>AND C.BizUnit = AD.BizUnit</p>
+</blockquote>
+<p>LEFT OUTER JOIN _TDACUST AS HM WITH(NOLOCK) ON B.CompanySeq = HM.CompanySeq -- 2018.03.29 이형민 :: Maker 값을 가져오기 위해 추가</p>
+<p>AND B.MakerSeq = HM.CustSeq</p>
+<p>LEFT OUTER JOIN _TPUORDPO AS Q1M WITH(NOLOCK) ON Q1.CompanySeq = Q1M.CompanySeq -- 2018.03.29 이형민 :: 구매발주</p>
+<p>AND Q1.POSeq = Q1M.POSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS Q1C WITH(NOLOCK) ON Q1M.CompanySeq = Q1C.CompanySeq -- 2018.03.29 이형민 :: 발주거래처 정보</p>
+<p>AND Q1M.CustSeq = Q1C.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS UM1 WITH(NOLOCK) ON UM1.CompanySeq = @CompanySeq</p>
+<p>AND UM1.MinorSeq = B.UMinorSeq1</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS UM2 WITH(NOLOCK) ON UM2.CompanySeq = @CompanySeq</p>
+<p>AND UM2.MinorSeq = B.UMinorSeq2</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS UM3 WITH(NOLOCK) ON UM3.CompanySeq = @CompanySeq</p>
+<p>AND UM3.MinorSeq = B.UMinorSeq3</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(Q.DelvInDate, '') BETWEEN @DelvInFrDate AND @DelvInToDate --20130513 김민석 입고일 조건추가</p>
+<p>AND (@BizUnits = 0 OR C.BizUnit = @BizUnits) --20130812 김민석 사업부문 조회조건 추가</p>
+<p>AND ISNULL(B.PJTSeq,0) \&lt;&gt; 0 --프로젝트가 아닌것들은 제외 20130813 김민석</p>
+<p>AND (@IsPJTPur = 0 OR (ISNULL(C.PJTSeq,0) = 0 AND @IsPJTPur = 7063001)--일반구매</p>
+<p>OR (ISNULL(C.PJTSeq,0) \&lt;&gt; 0 AND @IsPJTPur = 7063002))--프로젝트구매</p>
+<p>AND (@UMSupplyType = 0 OR M5.UMSupplyType = @UMSupplyType)</p>
+<p>AND (@POCustSeq = 0 OR Q1M.CustSeq = @POCustSeq)</p>
+<p>ORDER BY A.POReqSeq, B.POReqSerl</p>
+<p>RETURN</p>
+<p>/**********************************************************************************************************/</p>
+  </article>
+</div>
+</body>
+</html>

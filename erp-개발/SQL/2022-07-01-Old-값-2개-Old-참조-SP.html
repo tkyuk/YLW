@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Old 값 2개 / Old 참조 SP</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>Old 값 2개 / Old 참조 SP</h1>
+    <div class="meta">
+      <span class="note-date">2022-07-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="old-2-old-sp">Old 값 2개 / Old 참조 SP</h1>
+<p>sys_SWPDItemRoutingCheck</p>
+<p>재제조품목단가입력_hsg</p>
+<p>CREATE PROCEDURE hsg_SWPDReWorkPriceCheck</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>-- 변수선언</p>
+<p>DECLARE @Count INT,</p>
+<p>@Seq INT,</p>
+<p>@MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>----===============--</p>
+<p>---- 필수입력 체크 --</p>
+<p>----===============--</p>
+<p>---- 필수입력 Message 받아오기</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1038 , -- 필수입력 항목을 입력하지 않았습니다. (SELECT * FROM _TCAMessageLanguage WHERE Message like '%필수%')</p>
+<p>@LanguageSeq ,</p>
+<p>0,'' -- SELECT * FROM _TCADictionary WHERE Word like '%%'</p>
+<p>---- 필수입력 Check</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag IN ('A','U')</p>
+<p>AND A.Status = 0</p>
+<p>-- guide : 이곳에 필수입력 체크 할 항목을 조건으로 넣으세요.</p>
+<p>-- e.g. :</p>
+<p>AND (ISNULL(A.BizUnit , 0) = 0 OR</p>
+<p>ISNULL(A.ReworkYear , '') = '' OR</p>
+<p>ISNULL(A.ItemSeq , 0) = 0 OR</p>
+<p>ISNULL(A.ReWorkPrice, 0) = 0</p>
+<p>)</p>
+<p>----==================================================================================--</p>
+<p>-------- 데이터 유무 체크 : UPDATE, DELETE 시 데이터 존재하지 않으면 에러처리 ----------</p>
+<p>----==================================================================================--</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>7 , -- 자료가 등록되어 있지 않습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 7)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'' -- SELECT * FROM _TCADictionary WHERE Word like '%%'</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>LEFT OUTER JOIN hsg_TSLReWorkItemPrice AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.ReworkYearOld = B.ReworkYear</p>
+<p>AND A.BizUnitOld = B.BizUnit</p>
+<p>AND A.ItemSeqOld = B.ItemSeq</p>
+<p>WHERE A.WorkingTag IN ('U', 'D')</p>
+<p>AND B.CompanySeq IS NULL</p>
+<p>----====================================--</p>
+<p>---- 중복여부체크(PalletSeq이 2개 이상일 경우)</p>
+<p>----====================================--</p>
+<p>---- 중복체크Message 받아오기</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된@1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq ,</p>
+<p>0,'' -- SELECT * FROM _TCADictionary WHERE Word like '%구매카드번호%'</p>
+<p>--========================================--</p>
+<p>-- 이미저장된시트에서중복되는것있는지확인 --</p>
+<p>--========================================--</p>
+<p>--Old값 초기화</p>
+<p>UPDATE A</p>
+<p>SET ReworkYearOld = 0, BizUnitOld = 0, ItemSeqOld = 0</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag = 'A'</p>
+<p>AND A.Status = 0</p>
+<p>--중복체크</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results ,</p>
+<p>MessageType = @MessageType ,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN hsg_TSLReWorkItemPrice AS B WITH(NOLOCK) ON (A.ReworkYearOld \&lt;&gt; B.ReworkYear OR A.BizUnitOld \&lt;&gt; B.BizUnit OR A.ItemSeqOld \&lt;&gt; B.ItemSeq) --내가 아닌것, 내자신이 아님</p>
+<p>AND A.ReworkYear = B.ReworkYear</p>
+<p>AND A.BizUnit = B.BizUnit</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>--========================================--</p>
+<p>-- 같은저장시트에서중복되는것이있는지확인 --</p>
+<p>--========================================--</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results ,</p>
+<p>MessageType = @MessageType ,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.IDX_NO \&lt;&gt; B.IDX_NO</p>
+<p>AND A.ReworkYear = B.ReworkYear</p>
+<p>AND A.BizUnit = B.BizUnit</p>
+<p>AND A.ItemSeq = B.ItemSeq</p>
+<p>-- 중복 컬럼이 추가 될수록 똑같이 조건 넣어주기</p>
+<p>WHERE A.WorkingTag IN ( 'A','U' )</p>
+<p>AND A.Status = 0</p>
+<p>RETURN</p>
+<p>/*******************************************************************************************************************/</p>
+  </article>
+</div>
+</body>
+</html>

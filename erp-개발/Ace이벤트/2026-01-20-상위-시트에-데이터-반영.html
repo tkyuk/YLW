@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>상위 시트에 데이터 반영</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>상위 시트에 데이터 반영</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">상위 시트에 데이터 반영</h1>
+<p>ExpanderC32.IsExpanded = false</p>
+<p>-- Serial 저장 후 시트1 Serial수량에 반영</p>
+<p>if SS3.DataRowCnt-1 ~= '-1' then</p>
+<blockquote>
+<p>SetText(SS1, SS1.DblClickRow, 'SerialNoQty' ,SS3.DataRowCnt)        </p>
+<p>SS1.ActiveRow = SS1.DblClickRow</p>
+<p>SS1.ActiveColumnName = 'SerialNoQty'</p>
+<p>if CellText(SS1, SS1.DblClickRow, 'IsSerial') == '1' and CellText(SS1, SS1.DblClickRow, 'Qty') ~= CellText(SS1, SS1.DblClickRow, 'SerialNoQty') then</p>
+<p>SS1.ActiveCellBackColor = '#FF8282'</p>
+<p>else</p>
+<p>SS1.ActiveCellBackColor = -1118482</p>
+<p>end                                </p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

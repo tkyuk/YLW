@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>워크센터</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>워크센터</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">워크센터</h1>
+<p>CREATE OR ALTER VIEW mcm_VMESPDBaseWorkCenter</p>
+<p>AS</p>
+<p>SELECT ISNULL(A.CompanySeq , 0) AS CompanySeq, -- 법인내부코드</p>
+<p>ISNULL(B.CompanyName ,'') AS CompanyName, -- 법인명</p>
+<p>ISNULL(A.WorkCenterSeq , 0) AS WorkCenterSeq, -- 워크센터코드</p>
+<p>ISNULL(A.WorkCenterName,'') AS WorkCenterName, -- 워크센터명</p>
+<p>ISNULL(A.DeptSeq , 0) AS DeptSeq, -- 부서코드</p>
+<p>ISNULL(C.DeptName ,'') AS DeptName, -- 부서명</p>
+<p>ISNULL(A.MatOutWhSeq , 0) AS MatOutWhSeq, -- 불출창고코드</p>
+<p>ISNULL(D.WHName ,'') AS MatOutWhName, -- 불출창고명</p>
+<p>ISNULL(A.GoodOutWHSeq , 0) AS GoodOutWhSeq, -- 자재불출창고코드</p>
+<p>ISNULL(G.WHName ,'') AS GoodOutWhName, -- 자재불출창고명</p>
+<p>ISNULL(A.FieldWhSeq , 0) AS FieldWhSeq, -- 현장창고코드</p>
+<p>ISNULL(E.WHName ,'') AS FieldWhName, -- 현장창고명</p>
+<p>ISNULL(A.ProdInWhSeq , 0) AS ProdInWhSeq, -- 입고창고코드</p>
+<p>ISNULL(F.WHName ,'') AS ProdInWhName, -- 입고창고명</p>
+<p>ISNULL(A.LastUserSeq , 0) AS LastUserSeq, -- 최종등록자</p>
+<p>ISNULL(A.LastDateTime ,'') AS LastDateTime -- 최종등록일자</p>
+<p>FROM _TPDBaseWorkCenter AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCACompany AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDADept AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.DeptSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.WHSeq = A.MatOutWhSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.WHSeq = A.FieldWhSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.WHSeq = A.ProdInWhSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.WHSeq = A.GoodOutWHSeq</p>
+<p>sdng_VPDBaseWorkCenterView</p>
+<p>hsg_VWPDWorkCenter</p>
+<p>_VWPDWorkCenter</p>
+<p>smc_VMESTPDBaseWorkCenter</p>
+<p>HIA_VPDSFCWkGroupReport</p>
+<p>smc_VMESTPDSFCWorkOrder</p>
+<p>dial_VPDBaseWorkCenterView</p>
+  </article>
+</div>
+</body>
+</html>

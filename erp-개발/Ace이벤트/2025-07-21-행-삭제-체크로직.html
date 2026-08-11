@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>행 삭제 체크로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>행 삭제 체크로직</h1>
+    <div class="meta">
+      <span class="note-date">2025-07-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">행 삭제 체크로직</h1>
+<p>local row, IsNotCut</p>
+<p>IsNotCut = '0'</p>
+<p>for row = SS2.SelectedRowStart, SS2.SelectedRowEnd do</p>
+<blockquote>
+<p>if tonumber(CellText(SS2, row, 'IsAuto')) == '1' then</p>
+<p>IsNotCut = '1'</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>if IsNotCut == '1' then</p>
+<blockquote>
+<p>MessageBox('자동 생성 건은 삭제할 수 없습니다.')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

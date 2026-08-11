@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조회조건 하나도 없으면 에러</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>조회조건 하나도 없으면 에러</h1>
+    <div class="meta">
+      <span class="note-date">2023-01-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">조회조건 하나도 없으면 에러</h1>
+<p>--==============================================================</p>
+<p>-- 조회조건 하나도 없으면 에러 (품목별검사여부조회,품목별검사항목등록_djb)</p>
+<p>--==============================================================</p>
+<p>local msg</p>
+<p>if GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'SMQryType', 0) == '' and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'ItemClass', 0) == ''</p>
+<blockquote>
+<p>and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'ItemName', 0) == '' and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'ItemNo', 0) == ''</p>
+<p>and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'Spec', 0) == '' and GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'AssetSeq', 0) == '' then</p>
+<p>msg = GetMessage('1260', AddStringObjects('1', GetDictionary(50316), '', '', '', '', '', '', '', ''),GetDictionary(359), '', '', '', '', '', '', '', '')</p>
+<p>MessageBox(msg, '', 'MsgBoxTypeOK')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

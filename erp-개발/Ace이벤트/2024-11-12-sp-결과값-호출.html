@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sp 결과값 호출</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>sp 결과값 호출</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">sp 결과값 호출</h1>
+<p>local cnt, status, msg</p>
+<p>cnt = 0</p>
+<p>status = 0</p>
+<p>msg = '여신한도가 반영되었습니다.'</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'Sel') == '1' then</p>
+<p>status = GetDataSetValue(m_RecvXml.Data, 'DataBlock2', 'Status', cnt)</p>
+<blockquote>
+<p>if status ~= 0 and status ~= '0' and status ~= '999998' and status ~= '999999' then</p>
+</blockquote>
+<p>msg = GetDataSetValue(m_RecvXml.Data, 'DataBlock2', 'Result', cnt)</p>
+<blockquote>
+<p>GoTo('END')</p>
+</blockquote>
+<p>end</p>
+<p>cnt = tonumber(cnt) + 1</p>
+<blockquote>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>MessageBoxShow(msg, '')</p>
+<p>Msg = '차수 삭제되었습니다.'</p>
+<p>if        GetDataBlock(m_RecvXml.Data, 'DataBlock6') ~= nil and</p>
+<blockquote>
+<p>GetDataBlock(m_RecvXml.Data, 'DataBlock6').Rows.Count &gt; 0 and</p>
+<p>GetDataSetValue(m_RecvXml.Data, 'DataBlock6', 'Status', 0) ~= 0 and</p>
+<p>GetDataSetValue(m_RecvXml.Data, 'DataBlock6', 'Status', 0) ~= '0' and</p>
+<p>GetDataSetValue(m_RecvXml.Data, 'DataBlock6', 'Status', 0) ~= nil then</p>
+<p>MessageBoxShow(GetDataSetValue(m_RecvXml.Data, 'DataBlock6', 'Result', 0), 'Message')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>else</p>
+<p>MessageBoxShow(Msg ,'')</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다른 DB 테이블 불러오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>다른 DB 테이블 불러오기</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="db">다른 DB 테이블 불러오기</h1>
+<p>delete from MTL220801.DBO._TDAUMinor WHERE MajorSeq in (2001,2002,2003,2004,2005,2006)</p>
+<p>insert into MTL220801.DBO._TDAUMinor</p>
+<p>select * from _TDAUMajor</p>
+<p>select * from MTL220801.DBO._TDAUMinor</p>
+<p>select * from MTL220801.DBO._TDAUMinor AS A LEFT OUTER JOIN _TDAUMinor AS B ON A.MinorSeq = b.MinorSeq</p>
+<p>WHERE b.CompanySeq IS NULL</p>
+<p>select * from MTL220801.DBO._TDAUMAJor AS A LEFT OUTER JOIN _TDAUMAJor AS B ON A.MajorSeq = b.MajorSeq</p>
+<p>WHERE b.CompanySeq IS NULL</p>
+<p>ORDER BY mIBNORs`</p>
+<p>SELECT * FROM _TDAUMinorValue</p>
+<p>SELECT * from MTL220801.DBO._TDAUMinorValue WHERE MajorSeq in (2001,2002,2003,2004,2005,2006)</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>합계, 소계</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>합계, 소계</h1>
+    <div class="meta">
+      <span class="note-date">2023-04-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">합계, 소계</h1>
+<p>hsg_SWACCondLoanQuery</p>
+<p>차입금조회_hsg</p>
+<p>DROP PROC hsg_SWACCondLoanQuery</p>
+<p>GO</p>
+<p>CREATE PROC hsg_SWACCondLoanQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @AccUnit INT ,</p>
+<p>@AccSeq INT ,</p>
+<p>@BankSeq INT ,</p>
+<p>@CurrSeq INT ,</p>
+<p>@SMKoOrFor INT ,</p>
+<p>@UMLoanKind INT ,</p>
+<p>@LoanDate NCHAR(8) ,</p>
+<p>@LoanDateTo NCHAR(8) ,</p>
+<p>@Date NCHAR(8) ,</p>
+<p>@MinorSeq1 INT ,</p>
+<p>@LoanNo NVARCHAR(50),</p>
+<p>@LoanName NVARCHAR(100),</p>
+<p>@SMAccStd INT,</p>
+<p>@RemSeq INT -- 관리항목코드</p>
+<p>SELECT @AccUnit = ISNULL(AccUnit , 0),</p>
+<p>@AccSeq = ISNULL(AccSeq , 0),</p>
+<p>@BankSeq = ISNULL(BankSeq , 0),</p>
+<p>@CurrSeq = ISNULL(CurrSeq , 0),</p>
+<p>@SMKoOrFor = ISNULL(SMKoOrFor , 0),</p>
+<p>@UMLoanKind = ISNULL(UMLoanKind , 0),</p>
+<p>@LoanDate = ISNULL(LoanDate , ''),</p>
+<p>@LoanDateTo = ISNULL(LoanDateTo , ''),</p>
+<p>@Date = ISNULL(Date , ''),</p>
+<p>@MinorSeq1 = ISNULL(MinorSeq1 , 0),</p>
+<p>@LoanNo = ISNULL(LoanNo , ''),</p>
+<p>@LoanName = ISNULL(LoanName , '')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>SELECT @SMAccStd = 1 -- 회계기준단위 GAAP로 우선 세팅 -- 추후제거 -- IFRS 링크드화면 연결로 인해 주석처리 및 아래와 같이 가져오도록 수정 2017.05.08 by sryoun.</p>
+<p>SELECT @RemSeq = 1007 -- 관리항목 차입(1007)</p>
+<p>IF @LoanDateTo = ''</p>
+<p>BEGIN</p>
+<p>SELECT @LoanDateTo = '29991231'</p>
+<p>END</p>
+<p>CREATE TABLE #Temp_LoanMain ( -- 20070329 by Him 조건에 해당하는 차입번호</p>
+<p>LoanSeq INT NULL ,</p>
+<p>Amt DECIMAL(19,5) NULL, -- 원화금액</p>
+<p>ForAmt DECIMAL(19,5) NULL, -- 외화금액</p>
+<p>BfrOpenDate NCHAR(8) NULL)</p>
+<p>CREATE CLUSTERED INDEX idx_LoanSeqMain ON #Temp_LoanMain( LoanSeq )</p>
+<p>CREATE TABLE #Temp_TACLoanPlan(</p>
+<p>LoanSeq INT , -- 차입코드</p>
+<p>Amt DECIMAL(19,5) null, -- 원화금액 -- 대변금액</p>
+<p>ForAmt DECIMAL(19,5) null, -- 외화금액 -- 대변금액</p>
+<p>Amt1 DECIMAL(19,5) null, -- 원화상환금액 -- 차변금액</p>
+<p>Amt5 DECIMAL(19,5) null, -- 외화상환금액 -- 차변금액</p>
+<p>Amt2 DECIMAL(19,5) null, -- 원화이자지급액</p>
+<p>Amt6 DECIMAL(19,5) null, -- 외화이자지급액</p>
+<p>Amt4 DECIMAL(19,5) null, -- 원화이자잔액</p>
+<p>Amt8 DECIMAL(19,5) null -- 외화이자잔액</p>
+<p>)</p>
+<p>CREATE CLUSTERED INDEX idx_LoanSeq ON #Temp_TACLoanPlan( LoanSeq )</p>
+<p>CREATE TABLE #LoanPlan(</p>
+<p>LoanSeq INT,</p>
+<p>IsPay NCHAR(01),</p>
+<p>SMInterestOrCapital INT,</p>
+<p>PayAmt DECIMAL(19,5),</p>
+<p>PayForAmt DECIMAL(19,5),</p>
+<p>PayInAmt DECIMAL(19,5),</p>
+<p>PayForIntAmt DECIMAL(19,5))</p>
+<p>CREATE CLUSTERED INDEX idx_LoanSeqPlan ON #LoanPlan( LoanSeq )</p>
+<p>INSERT INTO #Temp_LoanMain ( LoanSeq ,Amt , ForAmt, BfrOpenDate)</p>
+<p>SELECT B.LoanSeq , ISNULL(B.Amt, 0), ISNULL(B.ForAmt, 0), C.SystemOpenDate</p>
+<p>FROM _TACLoan AS B WITH (NOLOCK)</p>
+<p>JOIN _TDAAccUnit AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq AND B.AccUnit = C.AccUnit</p>
+<p>WHERE B.CompanySeq = @CompanySeq</p>
+<p>AND (@LoanDate = N'' OR B.LoanDate &gt;= @LoanDate)</p>
+<p>AND (@LoanDateTo = N'' OR B.LoanDate \&lt;= @LoanDateTo)</p>
+<p>AND B.LoanDate \&lt;= @Date -- 차입일이 기준일보다 작아야 함</p>
+<p>AND (@AccUnit = 0 OR B.AccUnit = @AccUnit )</p>
+<p>AND (@AccSeq = 0 OR B.Accseq = @AccSeq )</p>
+<p>AND (@BankSeq = 0 OR B.BankSeq = @BankSeq )</p>
+<p>AND (@UMLoanKind = 0 OR B.UMLoanKind = @UMLoanKind )</p>
+<p>AND (@LoanName = N'' OR B.LoanName LIKE @LoanName + N'%')</p>
+<p>INSERT INTO #LoanPlan (LoanSeq, IsPay, SMInterestOrCapital, PayAmt, PayForAmt, PayInAmt, PayForIntAmt)</p>
+<p>SELECT A.LoanSeq,</p>
+<p>CASE WHEN C.AccDate &gt; @Date THEN N'0' -- 기준일 조회 이후 전표처리 한 경우 제외 by 김성훈 2019.01.30 201901290205</p>
+<p>WHEN ISNULL(A.RepaySlipSeq, 0) \&lt;&gt; 0 AND C.IsSet = N'1' THEN N'1' -- 상환전표를 작성하였더라도 승인되지 않은 건의 경우 상환액으로 조회되지 않도록 수정 (202209130121) 2022.09.15 by 박민경</p>
+<p>WHEN A.PayDate \&lt; @Date AND A.PayDate \&lt; B.BfrOpenDate THEN N'1'</p>
+<p>ELSE N'0'</p>
+<p>END ,</p>
+<p>A.SMInterestOrCapital,</p>
+<p>A.PayAmt,</p>
+<p>A.PayForAmt,</p>
+<p>A.PayIntAmt,</p>
+<p>A.PayForIntAmt</p>
+<p>FROM _TACLoanPlan AS A WITH (NOLOCK) JOIN #Temp_LoanMain AS B</p>
+<p>ON A.LoanSeq = B.LoanSeq</p>
+<p>LEFT OUTER JOIN _TACSlipRow AS C WITH(NOLOCK)</p>
+<p>ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.SlipSeq = A.RepaySlipSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>INSERT INTO #Temp_TACLoanPlan(LoanSeq,Amt,ForAmt,Amt1,Amt5,Amt2,Amt6,Amt4,Amt8)</p>
+<p>SELECT B.LoanSeq,</p>
+<p>ISNULL(B.Amt, 0),</p>
+<p>ISNULL(B.ForAmt, 0),</p>
+<p>SUM(CASE WHEN A.IsPay = N'1' AND A.SMInterestOrCapital IN (4025001,4025003) THEN A.PayAmt ELSE 0 END) Amt1, -- 원화상환금액</p>
+<p>SUM(CASE WHEN A.IsPay = N'1' AND A.SMInterestOrCapital IN (4025001,4025003) THEN A.PayForAmt ELSE 0 END) Amt5, -- 외화상환금액</p>
+<p>SUM(CASE WHEN A.IsPay = N'1' AND A.SMInterestOrCapital IN (4025002,4025003) THEN A.PayInAmt ELSE 0 END) Amt2, -- 원화이자지급액</p>
+<p>SUM(CASE WHEN A.IsPay = N'1' AND A.SMInterestOrCapital IN (4025002,4025003) THEN A.PayForIntAmt ELSE 0 END) Amt6, -- 외화이자지급액</p>
+<p>SUM(CASE WHEN A.IsPay = N'0' AND A.SMInterestOrCapital IN (4025002,4025003) THEN A.PayInAmt ELSE 0 END) Amt4, -- 원화이자잔액</p>
+<p>SUM(CASE WHEN A.IsPay = N'0' AND A.SMInterestOrCapital IN (4025002,4025003) THEN A.PayForIntAmt ELSE 0 END) Amt8 -- 외화이자잔액</p>
+<p>FROM #Temp_LoanMain AS B LEFT OUTER JOIN #LoanPlan AS A</p>
+<p>ON B.LoanSeq = A.LoanSeq</p>
+<p>GROUP BY B.LoanSeq, ISNULL(B.Amt, 0), ISNULL(B.ForAmt, 0)</p>
+<p>SELECT ISNULL(B.BankName , '') AS BankName , -- 차입금융기관지점BankName</p>
+<p>ISNULL(A.LoanName , '') AS LoanName , -- 차입명 LoanName</p>
+<p>ISNULL(A.LoanNo , '') AS LoanNo , -- 차입번호 LoasNo</p>
+<p>ISNULL(C.MinorName , '') AS MinorName1 , -- 차입종류 MinorName1</p>
+<p>ISNULL(A.LoanDate , '') AS LoanDate , -- 차입일 LoanDate</p>
+<p>ISNULL(E.Todate , '') AS Date1 , -- 최종상환일 Date1</p>
+<p>ISNULL(G.InterestRate , 0) AS InterestRate , -- 이율 InterestRate</p>
+<p>ISNULL(A.Amt , 0) AS Amt , -- 원화차입액 Amt -- 대변금액</p>
+<p>ISNULL(N.DrAmt , 0) AS Amt1 , -- 원화상환액 Amt1 -- 차변금액</p>
+<p>ISNULL(A.Amt, 0) - ISNULL(N.DrAmt, 0) AS Amt3 , -- 원화상환잔액 Amt3 -- 잔액</p>
+<p>ISNULL(A.Remark , '') AS Remark , -- 비고 Remark</p>
+<p>ISNULL(A.ForAmt , 0) AS ForAmt , -- 외화차입액 ForAmt -- 대변금액</p>
+<p>ISNULL(N.DrForAmt , 0) AS Amt5 , -- 외화상환액 Amt5 -- 차변금액</p>
+<p>ISNULL(A.ForAmt, 0) - ISNULL(N.DrForAmt, 0) AS Amt7 , -- 외화상환잔액 Amt7 -- 잔액</p>
+<p>ISNULL(I.CurrName , '') AS CurrName , -- 통화 CurrName</p>
+<p>ISNULL(A.ExRateDate , '') AS ExRateDate , -- 환율일 ExRateDate</p>
+<p>ISNULL(A.ExRate , 0) AS ExRate , -- 환율 ExRate</p>
+<p>ISNULL(J.AccName , '') AS AccName , -- 차입계정 AccName</p>
+<p>ISNULL(K.MinorName , '') AS SMLoanType , -- 차입구분 SMLoanType</p>
+<p>A.LoanSeq,</p>
+<p>ISNULL(L.AccUnitName , '') AS AccUnitName,</p>
+<p>ISNULL(A.BankSeq , 0) AS BankSeq,</p>
+<p>ISNULL(M.AccName , '') AS CurrAccSeqName , -- 유동성차입계정 CurrAccSeqName</p>
+<p>A.CurrSeq , -- 통화내부코드</p>
+<p>A.AccUnit -- 회계단위내부코드</p>
+<p>INTO #Tmp_Result</p>
+<p>FROM _TACLoan AS A WITH(NOLOCK) LEFT OUTER JOIN _TDABank AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.BankSeq = B.BankSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.UMLoanKind = C.MinorSeq</p>
+<p>LEFT OUTER JOIN (SELECT LoanSeq, MAX(Serl) AS Serl</p>
+<p>FROM _TACLoanRepayOpt WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>GROUP BY LoanSeq) AS D ON A.LoanSeq = D.LoanSeq -- 차입상환조건 Serl 맥스값 구한것(최종상환일)</p>
+<p>LEFT OUTER JOIN _TACLoanRepayOpt AS E WITH (NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND D.LoanSeq = E.LoanSeq</p>
+<p>AND D.Serl = E.Serl</p>
+<p>LEFT OUTER JOIN (SELECT LoanSeq, MAX(Serl) AS Serl</p>
+<p>FROM _TACLoanInterestOpt WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>GROUP BY LoanSeq) AS F ON A.LoanSeq = F.LoanSeq -- 차입이자조건 Serl 맥스값 구한것(이자율)</p>
+<p>LEFT OUTER JOIN _TACLoanInterestOpt AS G WITH(NOLOCK) ON A.CompanySeq = G.CompanySeq</p>
+<p>AND F.LoanSeq = G.LoanSeq</p>
+<p>AND F.Serl = G.Serl</p>
+<p>LEFT OUTER JOIN _TDACurr AS I WITH (NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND A.CurrSeq = I.CurrSeq</p>
+<p>LEFT OUTER JOIN _TDAAccount AS J WITH (NOLOCK) ON A.CompanySeq = J.CompanySeq</p>
+<p>AND A.AccSeq = J.AccSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS K WITH(NOLOCK) ON A.CompanySeq = K.CompanySeq</p>
+<p>AND A.SMLoanType = K.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAAccUnit AS L WITH(NOLOCK) ON A.CompanySeq = L.CompanySeq</p>
+<p>AND A.AccUnit = L.AccUnit</p>
+<p>LEFT OUTER JOIN _TDAAccount AS M WITH(NOLOCK) ON A.CompanySeq = M.CompanySeq</p>
+<p>AND A.CurrAccSeq = M.AccSeq</p>
+<p>OUTER APPLY(SELECT SUM(ISNULL(Z.DrAmt, 0)) AS DrAmt,</p>
+<p>SUM(ISNULL(Z.DrForAmt, 0)) AS DrForAmt</p>
+<p>FROM _TACSlipRow AS Z WITH(NOLOCK)</p>
+<p>JOIN _TACSlipRem AS Y WITH(NOLOCK) ON Y.CompanySeq = Z.CompanySeq</p>
+<p>AND Y.SlipSeq = Z.SlipSeq</p>
+<p>AND Y.RemSeq = 1007</p>
+<p>WHERE Z.CompanySeq = A.CompanySeq</p>
+<p>AND Z.AccSeq = A.AccSeq</p>
+<p>AND Y.RemValSeq = A.LoanSeq</p>
+<p>AND Z.AccDate BETWEEN A.LoanDate AND @Date</p>
+<p>AND Z.IsSet = '1') AS N</p>
+<p>WHERE A.Companyseq = @CompanySeq</p>
+<p>AND (@AccUnit = 0 OR A.AccUnit = @AccUnit )</p>
+<p>AND (@AccSeq = 0 OR A.Accseq = @AccSeq )</p>
+<p>AND A.LoanDate &gt;= @LoanDate</p>
+<p>AND A.LoanDate \&lt;= RTRIM(@LoanDateTo) + '99999999'</p>
+<p>AND A.LoanDate \&lt;= @Date -- 차입일이 기준일보다 작아야 함</p>
+<p>AND (@BankSeq = 0 OR A.BankSeq = @BankSeq )</p>
+<p>AND (@UMLoanKind = 0 OR A.UMLoanKind = @UMLoanKind )</p>
+<p>AND (@SMKoOrFor = 0 OR A.SMKoOrFor = @SMKoOrFor )</p>
+<p>AND (@CurrSeq = 0 OR A.CurrSeq = @CurrSeq )</p>
+<p>AND (@LoanNo = N'' OR A.LoanNo LIKE @LoanNo + N'%' )</p>
+<p>AND (@LoanName = N'' OR A.LoanName LIKE @LoanName + N'%' )</p>
+<p>AND ((@MinorSeq1 = 0)</p>
+<p>OR (@MinorSeq1 = 4032001 AND ISNULL(A.Amt, 0) - ISNULL(N.DrAmt , 0) &gt; 0)</p>
+<p>OR (@MinorSeq1 = 4032002 AND ISNULL(A.Amt, 0) - ISNULL(N.DrAmt , 0) \&lt;= 0)</p>
+<p>)</p>
+<p>ORDER BY B.BankName, A.LoanName, A.LoanNo</p>
+<p>CREATE TABLE #TMP</p>
+<p>(</p>
+<p>BankSeq INT,</p>
+<p>LoanSeq INT,</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>Amt1 DECIMAL(19,5),</p>
+<p>Amt3 DECIMAL(19,5),</p>
+<p>ForAmt DECIMAL(19,5),</p>
+<p>Amt5 DECIMAL(19,5),</p>
+<p>Amt7 DECIMAL(19,5)</p>
+<p>)</p>
+<p>INSERT INTO #TMP</p>
+<p>SELECT A.BankSeq, A.LoanSeq, A.Amt, A.Amt1, A.Amt3, A.ForAmt, A.Amt5, A.Amt7</p>
+<p>FROM #Tmp_Result AS A</p>
+<p>SELECT BankSeq,</p>
+<p>LoanSeq,</p>
+<p>IIF(BankSeq IS NULL, '1', '0') AS BankSort,</p>
+<p>IIF(LoanSeq IS NULL, '1', '0') AS LoanSort,</p>
+<p>SUM(Amt ) AS Amt ,</p>
+<p>SUM(Amt1 ) AS Amt1 ,</p>
+<p>SUM(Amt3 ) AS Amt3 ,</p>
+<p>SUM(ForAmt) AS ForAmt,</p>
+<p>SUM(Amt5 ) AS Amt5 ,</p>
+<p>SUM(Amt7 ) AS Amt7</p>
+<p>INTO #Result</p>
+<p>FROM #TMP</p>
+<p>GROUP BY ROLLUP(BankSeq, LoanSeq)</p>
+<p>SELECT CASE WHEN A.BankSeq IS NULL THEN '합계' ELSE D.BankName END AS BankName, -- 차입금융기관지점BankName</p>
+<p>A.BankSeq,</p>
+<p>CASE WHEN A.BankSeq IS NULL THEN ''</p>
+<p>WHEN A.LoanSeq IS NULL THEN '소계' ELSE C.LoanName END AS LoanName, -- 차입명 LoanName</p>
+<p>A.LoanSeq,</p>
+<p>B.LoanNo , -- 차입번호 LoasNo</p>
+<p>B.MinorName1 , -- 차입종류 MinorName1</p>
+<p>B.LoanDate , -- 차입일 LoanDate</p>
+<p>B.Date1 , -- 최종상환일 Date1</p>
+<p>B.InterestRate , -- 이율 InterestRate</p>
+<p>A.Amt , -- 원화차입액 Amt -- 대변금액</p>
+<p>A.Amt1 , -- 원화상환액 Amt1 -- 차변금액</p>
+<p>A.Amt3 , -- 원화상환잔액 Amt3 -- 잔액</p>
+<p>B.Remark , -- 비고 Remark</p>
+<p>A.ForAmt , -- 외화차입액 ForAmt -- 대변금액</p>
+<p>A.Amt5 , -- 외화상환액 Amt5 -- 차변금액</p>
+<p>A.Amt7 , -- 외화상환잔액 Amt7 -- 잔액</p>
+<p>B.CurrName , -- 통화 CurrName</p>
+<p>B.ExRateDate , -- 환율일 ExRateDate</p>
+<p>B.ExRate , -- 환율 ExRate</p>
+<p>B.AccName , -- 차입계정 AccName</p>
+<p>B.SMLoanType , -- 차입구분 SMLoanType</p>
+<p>B.AccUnitName,</p>
+<p>B.CurrAccSeqName , -- 유동성차입계정 CurrAccSeqName</p>
+<p>B.CurrSeq , -- 통화내부코드</p>
+<p>B.AccUnit -- 회계단위내부코드</p>
+<p>FROM #Result AS A</p>
+<p>LEFT OUTER JOIN #Tmp_Result AS B ON A.BankSeq = B.BankSeq</p>
+<p>AND A.LoanSeq = B.LoanSeq</p>
+<p>LEFT OUTER JOIN _TACLoan AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.LoanSeq = A.LoanSeq</p>
+<p>LEFT OUTER JOIN _TDABank AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.BankSeq = A.BankSeq</p>
+<p>ORDER BY A.BankSort, 1, A.LoanSort, 3</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일괄 중단 / 중단취소 참고화면</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>일괄 중단 / 중단취소 참고화면</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-27</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">일괄 중단 / 중단취소 참고화면</h1>
+<p>FrmWSLOrderItemInfo_tnt</p>
+<p>tnt_SWSLOrderItemListStopCheck</p>
+<p>tnt_SWSLOrderItemListStop</p>
+<p><img alt="" src="assets/일괄-중단-중단취소-참고화면/image41.png" /></p>
+<p>CREATE PROCEDURE dbo.tnt_SWSLOrderItemListStop</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>CREATE TABLE #TCOMStop</p>
+<p>(</p>
+<p>IDX_NO INT</p>
+<p>, StopSeq INT</p>
+<p>, StopSerl INT</p>
+<p>, StopSubSerl INT</p>
+<p>, IsStop NCHAR(1)</p>
+<p>, UMStopReason INT</p>
+<p>, StopReason NVARCHAR(500)</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, DataSeq INT</p>
+<p>)</p>
+<p>INSERT INTO #TCOMStop(IDX_NO, StopSeq, StopSerl, StopSubSerl, IsStop, UMStopReason, StopReason, Result, MessageType, Status, DataSeq)</p>
+<p>SELECT IDX_NO, OrderSeq, OrderSerl, 0, IsStop, 0, '', NULL, NULL, 0, DataSeq</p>
+<p>FROM #BIZ_OUT_DATABLOCK1</p>
+<p>WHERE Status = 0</p>
+<p>EXEC _SWCOMStop</p>
+<p>@CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>, @UserSeq = @UserSeq</p>
+<p>, @PgmSeq = @PgmSeq</p>
+<p>UPDATE #BIZ_OUT_DATABLOCK1</p>
+<p>SET Result = B.Result</p>
+<p>, MessageType = B.MessageType</p>
+<p>, Status = B.Status</p>
+<p>FROM #BIZ_OUT_DATABLOCK1 AS A</p>
+<p>JOIN #TCOMStop AS B ON A.IDX_NO = B.IDX_NO</p>
+<p>WHERE B.Status \&lt;&gt; 0</p>
+<p>RETURN</p>
+<p>/****************************************************************************************************/</p>
+<p>CREATE PROCEDURE dbo.tnt_SWSLOrderItemListStopCheck</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @IsStop INT</p>
+<p>, @MessageType INT</p>
+<p>, @Status INT</p>
+<p>, @Results NVARCHAR(250)</p>
+<p>SELECT @IsStop = IsStop FROM #BIZ_OUT_DATABLOCK1</p>
+<p>IF @IsStop = 1 -- 확정처리</p>
+<p>BEGIN</p>
+<p>EXEC dbo._SWCOMStopCheck</p>
+<p>@CompanySeq = @CompanySeq</p>
+<p>, @LanguageSeq = @LanguageSeq</p>
+<p>, @PgmSeq = @PgmSeq</p>
+<p>, @TempTableName = N'#BIZ_OUT_DATABLOCK1'</p>
+<p>, @Seq = N'OrderSeq'</p>
+<p>, @Serl = N'OrderSerl'</p>
+<p>, @SubSerl = N''</p>
+<p>, @IsStop = N'Status' -- 체크 컬럼</p>
+<p>, @StopTableSeq = 19 -- 수주</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1152 ,</p>
+<p>@LanguageSeq ,</p>
+<p>1326 , N'중단'</p>
+<p>END</p>
+<p>ELSE -- 중단취소</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Status = 99999,</p>
+<p>Result = '중단 되지 않은 건은 중단취소 할수 없습니다.'</p>
+<p>FROM #BIZ_OUT_DATABLOCK1 AS A LEFT OUTER JOIN _TCOMStop AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.TableSeq = 19</p>
+<p>AND A.OrderSeq = B.StopSeq</p>
+<p>AND A.OrderSerl = B.StopSerl</p>
+<p>WHERE A.Status = 0</p>
+<p>AND ISNULL(B.IsStop,'') \&lt;&gt; '1'</p>
+<p>-- EXEC dbo._SWCOMStopCheck</p>
+<p>-- @CompanySeq = @CompanySeq</p>
+<p>-- , @LanguageSeq = @LanguageSeq</p>
+<p>-- , @PgmSeq = @PgmSeq</p>
+<p>-- , @TempTableName = N'#BIZ_OUT_DATABLOCK1'</p>
+<p>-- , @Seq = N'OrderSeq'</p>
+<p>-- , @Serl = N'OrderSerl'</p>
+<p>-- , @SubSerl = N''</p>
+<p>-- , @IsStop = N'Status' -- 체크 컬럼</p>
+<p>-- , @StopTableSeq = 19 -- 수주</p>
+<p>-- EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>-- @Status OUTPUT,</p>
+<p>-- @Results OUTPUT,</p>
+<p>-- 1123 , -- 확정 되지 않은 건은 확정취소 할수 없습니다.</p>
+<p>-- @LanguageSeq ,</p>
+<p>-- 1326 , N'중단',</p>
+<p>-- 17584 , N'중단취소'</p>
+<p>END</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results</p>
+<p>, MessageType = @MessageType</p>
+<p>, Status = @Status</p>
+<p>FROM #BIZ_OUT_DATABLOCK1 AS A</p>
+<p>WHERE A.Status = 1</p>
+<p>RETURN</p>
+<p>/****************************************************************************************************/</p>
+  </article>
+</div>
+</body>
+</html>

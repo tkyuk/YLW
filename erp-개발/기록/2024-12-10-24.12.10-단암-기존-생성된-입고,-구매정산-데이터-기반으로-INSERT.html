@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.10 단암 기존 생성된 입고, 구매정산 데이터 기반으로 INSERT</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.10 단암 기존 생성된 입고, 구매정산 데이터 기반으로 INSERT</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241210-insert">24.12.10 단암 기존 생성된 입고, 구매정산 데이터 기반으로 INSERT</h1>
+<p>select * from _tpudelvitem where delvseq = 42461</p>
+<p>select * from danam_tpudelvitem where delvseq = 42461</p>
+<p>select * from _tpudelvinitem where ProgFromSeq = 42461</p>
+<p>select * from _TPUBuyingAcc where SourceSeq = 42461</p>
+<p>--select * from _TPDQCTestReport where SourceSeq = 42461</p>
+<p>BEGIN TRAN</p>
+<p>declare @DelvInSeq int</p>
+<p>select @DelvInSeq = max(DelvInSeq)</p>
+<p>from _TPUDelvInItem</p>
+<p>INSERT INTO _TPUDelvInItem</p>
+<p>select</p>
+<p>CompanySeq</p>
+<p>-- ('4','6','10','12','14','16','20','22')</p>
+<p>-- ('5','7','11','13','15','17','21','23')</p>
+<p>,CASE WHEN DELVINSErl =4 THEN @DelvInSeq + 1</p>
+<p>WHEN DELVINSErl =6 THEN @DelvInSeq + 2</p>
+<p>WHEN DELVINSErl =10 THEN @DelvInSeq + 3</p>
+<p>WHEN DELVINSErl =12 THEN @DelvInSeq + 4</p>
+<p>WHEN DELVINSErl =14 THEN @DelvInSeq + 5</p>
+<p>WHEN DELVINSErl =16 THEN @DelvInSeq + 6</p>
+<p>WHEN DELVINSErl =20 THEN @DelvInSeq + 7</p>
+<p>WHEN DELVINSErl =22 THEN @DelvInSeq + 8 END</p>
+<p>,CASE WHEN DELVINSErl =4 THEN 5</p>
+<p>WHEN DELVINSErl =6 THEN 7</p>
+<p>WHEN DELVINSErl =10 THEN 11</p>
+<p>WHEN DELVINSErl =12 THEN 13</p>
+<p>WHEN DELVINSErl =14 THEN 15</p>
+<p>WHEN DELVINSErl =16 THEN 17</p>
+<p>WHEN DELVINSErl =20 THEN 21</p>
+<p>WHEN DELVINSErl =22 THEN 23 END</p>
+<p>,SMImpType</p>
+<p>,SMDelvType</p>
+<p>,SMStkType</p>
+<p>,ItemSeq</p>
+<p>,UnitSeq</p>
+<p>,Price</p>
+<p>,DomPrice</p>
+<p>,Qty</p>
+<p>,CurAmt</p>
+<p>,DomAmt</p>
+<p>,StdUnitSeq</p>
+<p>,StdUnitQty</p>
+<p>,IsVAT</p>
+<p>,CurVAT</p>
+<p>,DomVAT</p>
+<p>,WHSeq</p>
+<p>,SalesCustSeq</p>
+<p>,DelvCustSeq</p>
+<p>,LOTNo</p>
+<p>,FromSerial</p>
+<p>,ToSerial</p>
+<p>,SMPayType</p>
+<p>,AccSeq</p>
+<p>,AntiAccSeq</p>
+<p>,IsFiction</p>
+<p>,FicRateNum</p>
+<p>,FicRateDen</p>
+<p>,EvidSeq</p>
+<p>,PJTSeq</p>
+<p>,WBSSeq</p>
+<p>,Remark</p>
+<p>,IsReturn</p>
+<p>,SlipSeq</p>
+<p>,TaxDate</p>
+<p>,PayDate</p>
+<p>,SourceType</p>
+<p>,SourceSeq</p>
+<p>,SourceSerl</p>
+<p>,LastUserSeq</p>
+<p>,LastDateTime</p>
+<p>,ProgFromSeq</p>
+<p>,ProgFromSerl</p>
+<p>,ProgFromSubSerl</p>
+<p>,ProgFromTableSeq</p>
+<p>,OriCurAmt</p>
+<p>,OriCurVAT</p>
+<p>,OriDomAmt</p>
+<p>,OriDomVAT</p>
+<p>,SupplyAmt</p>
+<p>,SupplyVAT</p>
+<p>,SMPriceType</p>
+<p>,PgmSeq</p>
+<p>,Memo1</p>
+<p>,Memo2</p>
+<p>,Memo3</p>
+<p>,Memo4</p>
+<p>,Memo5</p>
+<p>,Memo6</p>
+<p>,Memo7</p>
+<p>,Memo8</p>
+<p>from _TPUDelvInItem where ProgFromSeq = 42461 AND ProgFromSerl IN ('4','6','10','12','14','16','20','22')</p>
+<p>-- =============================================</p>
+<p>-- 진행연결</p>
+<p>-- =============================================</p>
+<p>insert into _TCOMSourceDaily</p>
+<p>select</p>
+<p>CompanySeq</p>
+<p>,ToTableSeq</p>
+<p>,CASE WHEN ToSErl =4 THEN 220496</p>
+<p>WHEN ToSErl =6 THEN 220497</p>
+<p>WHEN ToSErl =10 THEN 220498</p>
+<p>WHEN ToSErl =12 THEN 220499</p>
+<p>WHEN ToSErl =14 THEN 220500</p>
+<p>WHEN ToSErl =16 THEN 220501</p>
+<p>WHEN ToSErl =20 THEN 220502</p>
+<p>WHEN ToSErl =22 THEN 220503 END</p>
+<p>,CASE WHEN ToSerl =4 THEN 5</p>
+<p>WHEN ToSerl =6 THEN 7</p>
+<p>WHEN ToSerl =10 THEN 11</p>
+<p>WHEN ToSerl =12 THEN 13</p>
+<p>WHEN ToSerl =14 THEN 15</p>
+<p>WHEN ToSerl =16 THEN 17</p>
+<p>WHEN ToSerl =20 THEN 21</p>
+<p>WHEN ToSerl =22 THEN 23 END</p>
+<p>,ToSubSerl</p>
+<p>,FromTableSeq</p>
+<p>,FromSeq</p>
+<p>,FromSerl</p>
+<p>,FromSubSerl</p>
+<p>,ToQty</p>
+<p>,ToSTDQty</p>
+<p>,ToAmt</p>
+<p>,ToVAT</p>
+<p>,FromQty</p>
+<p>,FromSTDQty</p>
+<p>,FromAmt</p>
+<p>,FromVAT</p>
+<p>,ADD_DEL</p>
+<p>,PrevFromTableSeq</p>
+<p>,LastUserSeq</p>
+<p>,LastDateTime</p>
+<p>,PgmSeq</p>
+<p>from _TCOMSourceDaily where fromTableSeq = 10 and FromSeq = 42461 and fromSerl in ('4','6','10','12','14','16','20','22')</p>
+<p>-- ('5','7','11','13','15','17','21','23')</p>
+<p>-- =============================================</p>
+<p>-- 정산</p>
+<p>-- =============================================</p>
+<p>declare @BuyingAccSeq int</p>
+<p>select @BuyingAccSeq = max(BuyingAccSeq)</p>
+<p>from _TPUBuyingAcc</p>
+<p>insert into _TPUBuyingAcc</p>
+<p>SELECT</p>
+<p>c.CompanySeq</p>
+<p>,CASE WHEN DELVINSErl =4 THEN @BuyingAccSeq + 1</p>
+<p>WHEN DELVINSErl =6 THEN @BuyingAccSeq + 2</p>
+<p>WHEN DELVINSErl =10 THEN @BuyingAccSeq + 3</p>
+<p>WHEN DELVINSErl =12 THEN @BuyingAccSeq + 4</p>
+<p>WHEN DELVINSErl =14 THEN @BuyingAccSeq + 5</p>
+<p>WHEN DELVINSErl =16 THEN @BuyingAccSeq + 6</p>
+<p>WHEN DELVINSErl =20 THEN @BuyingAccSeq + 7</p>
+<p>WHEN DELVINSErl =22 THEN @BuyingAccSeq + 8 END</p>
+<p>,c.SourceType</p>
+<p>,CASE WHEN DELVINSErl =4 THEN 220496</p>
+<p>WHEN DELVINSErl =6 THEN 220497</p>
+<p>WHEN DELVINSErl =10 THEN 220498</p>
+<p>WHEN DELVINSErl =12 THEN 220499</p>
+<p>WHEN DELVINSErl =14 THEN 220500</p>
+<p>WHEN DELVINSErl =16 THEN 220501</p>
+<p>WHEN DELVINSErl =20 THEN 220502</p>
+<p>WHEN DELVINSErl =22 THEN 220503 END</p>
+<p>,CASE WHEN DELVINSErl =4 THEN 5</p>
+<p>WHEN DELVINSErl =6 THEN 7</p>
+<p>WHEN DELVINSErl =10 THEN 11</p>
+<p>WHEN DELVINSErl =12 THEN 13</p>
+<p>WHEN DELVINSErl =14 THEN 15</p>
+<p>WHEN DELVINSErl =16 THEN 17</p>
+<p>WHEN DELVINSErl =20 THEN 21</p>
+<p>WHEN DELVINSErl =22 THEN 23 END</p>
+<p>,c.BizUnit</p>
+<p>,c.FactUnit</p>
+<p>,c.BuyingAccDate</p>
+<p>,c.DelvInNo</p>
+<p>,c.DelvInDate</p>
+<p>,c.ItemSeq</p>
+<p>,c.CustSeq</p>
+<p>,c.EmpSeq</p>
+<p>,c.DeptSeq</p>
+<p>,c.UnitSeq</p>
+<p>,c.CurrSeq</p>
+<p>,c.ExRate</p>
+<p>,c.Price</p>
+<p>,c.DomPrice</p>
+<p>,c.Qty</p>
+<p>,c.PriceUnitSeq</p>
+<p>,c.PriceQty</p>
+<p>,c.CurAmt</p>
+<p>,c.CurVAT</p>
+<p>,c.DomAmt</p>
+<p>,c.DomVAT</p>
+<p>,c.StdUnitSeq</p>
+<p>,c.StdUnitQty</p>
+<p>,c.IsVAT</p>
+<p>,c.SMImpType</p>
+<p>,c.WHSeq</p>
+<p>,c.DelvCustSeq</p>
+<p>,c.SMPayType</p>
+<p>,c.AccSeq</p>
+<p>,c.MatAccSeq</p>
+<p>,c.AntiAccSeq</p>
+<p>,c.VatAccSeq</p>
+<p>,c.IsFiction</p>
+<p>,c.FicRateNum</p>
+<p>,c.FicRateDen</p>
+<p>,c.EvidSeq</p>
+<p>,c.PjtSeq</p>
+<p>,c.WBSSeq</p>
+<p>,c.Remark</p>
+<p>,c.IsReturn</p>
+<p>,c.SlipSeq</p>
+<p>,c.TaxDate</p>
+<p>,c.PayDate</p>
+<p>,c.ImpDomAmt</p>
+<p>,c.ImpCurAmt</p>
+<p>,c.LastUserSeq</p>
+<p>,c.LastDateTime</p>
+<p>,c.SMRNPMethod</p>
+<p>,c.CCtrSeq</p>
+<p>,c.ProgFromSeq</p>
+<p>,c.ProgFromSerl</p>
+<p>,c.ProgFromSubSerl</p>
+<p>,c.ProgFromTableSeq</p>
+<p>,c.MstRemark</p>
+<p>,c.OriCurAmt</p>
+<p>,c.OriCurVAT</p>
+<p>,c.OriDomAmt</p>
+<p>,c.OriDomVAT</p>
+<p>,c.SupplyAmt</p>
+<p>,c.SupplyVAT</p>
+<p>,c.PgmSeq</p>
+<p>FROM _TPUDelvItem AS A</p>
+<p>JOIN _TPUDelvInItem AS B ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ProgFromSeq = A.DelvSeq</p>
+<p>AND B.ProgFromSerl = A.DelvSerl</p>
+<p>JOIN _TPUBuyingAcc AS C ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.SourceSeq = B.DelvInSeq</p>
+<p>AND C.SourceSerl = B.DelvInSerl</p>
+<p>WHERE A.DelvSeq = 42461</p>
+<p>and a.DelvSerl in ('4','6','10','12','14','16','20','22')</p>
+<p>-- ('5','7','11','13','15','17','21','23')</p>
+<p>ROLLBACK TRAN</p>
+<p>select MAX(DelvInSeq) from _TPUDelvInItem WHERE CompanySeq = 1</p>
+  </article>
+</div>
+</body>
+</html>

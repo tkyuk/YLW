@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>트리코드 부여</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>트리코드 부여</h1>
+    <div class="meta">
+      <span class="note-date">2025-10-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">트리코드 부여</h1>
+<p>-- 1. _TPJTWBS 원본 데이터를 담을 임시 테이블 생성 (실제 SP에서는 메인 임시 테이블일 수 있음)</p>
+<p>-- SortNum_New 컬럼을 정렬 가능한 형태(INT, BIGINT 혹은 NVARCHAR)로 추가합니다.</p>
+<p>-- 여기서는 최대 9자리 이상의 값이 나올 수 있으므로 BIGINT를 권장합니다.</p>
+<p>CREATE TABLE #Temp_TPJTWBS</p>
+<p>(</p>
+<p>CompanySeq INT NOT NULL,</p>
+<p>PJTSeq INT NOT NULL,</p>
+<blockquote>
+<p>WBSSeq INT NOT NULL,</p>
+</blockquote>
+<p>SortNum NVARCHAR(100) NOT NULL, -- 원본 SortNum</p>
+<p>SortNum_New BIGINT NULL -- 변환된 정렬용 SortNum</p>
+<p>);</p>
+<p>-- 예시 데이터 삽입 (테스트용)</p>
+<p>INSERT INTO #Temp_TPJTWBS (CompanySeq, PJTSeq,WBSSeq, SortNum)</p>
+<p>SELECT PJTSeq FROM _TPJTWBS WHERE SortNum LIKE '%.%'</p>
+<p>SELECT CompanySeq, PJTSeq,WBSSeq, SortNum FROM _TPJTWBS WHERE PJTSEQ IN (SELECT PJTSeq FROM _TPJTWBS WHERE SortNum LIKE '%.%') ORDER BY 1,2,3,4</p>
+<p>-- 2. SortNum 변환 로직 적용 및 SortNum_New 업데이트 (4단계 구조, 2자리 패딩)</p>
+<p>UPDATE T1</p>
+<p>SET</p>
+<p>T1.SortNum_New =</p>
+<p>-- 최종적으로 BIGINT로 변환합니다. (TRY_CAST로 변환 오류 방지)</p>
+<p>TRY_CAST(</p>
+<p>(</p>
+<p>-- [1단계 (X) 추출]: 패딩 없이 원래 길이 그대로 사용</p>
+<p>ISNULL(</p>
+<p>CASE WHEN CHARINDEX('.', T1.SortNum) = 0 THEN T1.SortNum</p>
+<p>ELSE LEFT(T1.SortNum, CHARINDEX('.', T1.SortNum) - 1)</p>
+<p>END, N'0'</p>
+<p>)</p>
+<p>)</p>
+<p>+</p>
+<p>(</p>
+<p>-- [2단계 (YY) 추출]: 첫 마침표 이후. 정렬 유지를 위해 2자리 패딩 적용.</p>
+<p>RIGHT('00' + -- 3자리 대신 2자리 패딩</p>
+<p>CASE</p>
+<p>WHEN CHARINDEX('.', T1.SortNum) = 0 THEN N''</p>
+<p>ELSE</p>
+<p>SUBSTRING(</p>
+<p>T1.SortNum,</p>
+<p>CHARINDEX('.', T1.SortNum) + 1,</p>
+<p>CASE</p>
+<p>WHEN CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum) + 1) = 0 THEN 1000</p>
+<p>ELSE CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum) + 1) - CHARINDEX('.', T1.SortNum) - 1</p>
+<p>END</p>
+<p>)</p>
+<p>END, 2) -- 3자리 대신 2자리 추출</p>
+<p>)</p>
+<p>+</p>
+<p>-- [3단계 (ZZZ) 추출]: 마침표가 2개 이상일 때만 결합. 2자리 패딩 적용.</p>
+<p>CASE</p>
+<p>WHEN LEN(T1.SortNum) - LEN(REPLACE(T1.SortNum, '.', N'')) &gt;= 2 THEN</p>
+<p>RIGHT('00' + -- 3자리 대신 2자리 패딩</p>
+<p>SUBSTRING(</p>
+<p>T1.SortNum,</p>
+<p>CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum) + 1) + 1,</p>
+<p>CASE</p>
+<p>WHEN CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum) + 1) + 1) = 0 THEN 1000</p>
+<p>ELSE CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum) + 1) + 1) - CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum) + 1) - 1</p>
+<p>END</p>
+<p>)</p>
+<p>, 2) -- 3자리 대신 2자리 추출</p>
+<p>ELSE N''</p>
+<p>END</p>
+<p>+</p>
+<p>-- [4단계 (AAAA) 추출]: 마침표가 3개 이상일 때만 결합. 2자리 패딩 적용.</p>
+<p>CASE</p>
+<p>WHEN LEN(T1.SortNum) - LEN(REPLACE(T1.SortNum, '.', N'')) &gt;= 3 THEN</p>
+<p>RIGHT('00' + -- 3자리 대신 2자리 패딩</p>
+<p>SUBSTRING(</p>
+<p>T1.SortNum,</p>
+<p>CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum, CHARINDEX('.', T1.SortNum) + 1) + 1) + 1,</p>
+<p>1000</p>
+<p>)</p>
+<p>, 2) -- 3자리 대신 2자리 추출</p>
+<p>ELSE N''</p>
+<p>END</p>
+<p>AS BIGINT)</p>
+<p>FROM #Temp_TPJTWBS AS T1</p>
+<p>WHERE</p>
+<p>T1.SortNum IS NOT NULL;</p>
+<p>-- 3. 결과 확인 및 정렬 테스트</p>
+<p>SELECT B.PJTSeq</p>
+<p>,B.WBSSeq</p>
+<p>,B.SortNum</p>
+<p>,A.SortNum_New</p>
+<p>FROM #Temp_TPJTWBS AS A</p>
+<p>JOIN _TPJTWBS AS B ON B.CompanySeq = A.CompanySeq</p>
+<blockquote>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>AND B.WBSSeq = A.WBSSeq</p>
+</blockquote>
+<p>ORDER BY SortNum_New;</p>
+<p>-- 4. 임시 테이블 정리</p>
+<p>DROP TABLE #Temp_TPJTWBS;</p>
+<p><span class="mark">-- WBS 트리코드 업데이트 (참고 : _SWPJTWBSSave) / 6,3,3,3 자리 (9개까지 가능)</span></p>
+<p>begin tran</p>
+<p>DROP TABLE #Tmp</p>
+<p>select QrySort ,UpperWBSSeq,TreeCode,SortNum,* from _TPJTWBS</p>
+<p>/*트리 정렬*/</p>
+<p>-- 정렬</p>
+<p>CREATE TABLE #Tmp</p>
+<p>( WBSSeq INT --</p>
+<blockquote>
+<p>, PJTSeq INT</p>
+</blockquote>
+<p>, SortNum NVARCHAR(30) -- 작업순서</p>
+<p>, QrySort INT NULL -- 리프의 순서</p>
+<p>, UpperSortNum NVARCHAR(30) NULL -- 상위 순서</p>
+<p>, UpperWBSSeq INT NULL -- 상위 WBSSeq</p>
+<p>, NodeCode NVARCHAR(6) NULL --</p>
+<p>, TreeCode NVARCHAR(100) NULL --</p>
+<p>, TmpSortNum NCHAR(30) NULL --</p>
+<p>, Pos INT NULL --</p>
+<p>)</p>
+<p>INSERT INTO #Tmp(WBSSeq,PJTSeq, SortNum, TmpSortnum)</p>
+<p>SELECT WBSSeq, PJTSeq,SortNum, SortNum+'.'</p>
+<p>FROM _TPJTWBS WITH(NOLOCK)</p>
+<p>WHERE LEN(TreeCode) \&lt; 6</p>
+<p>-- 작업순서로 리프랑 상위 Order</p>
+<p>UPDATE #Tmp</p>
+<p>SET QrySort = CONVERT(INT, RIGHT(SortNum, CHARINDEX('.', REVERSE('.'+SortNum))-1)),</p>
+<p>UpperSortNum = SUBSTRING(SortNum, 1, LEN(SortNum) - CHARINDEX('.', REVERSE(SortNum)))</p>
+<p>-- 상위 WBSSeq 찾기</p>
+<p>UPDATE #Tmp</p>
+<p>SET UpperWBSSeq = CASE WHEN B.WBSSeq = A.WBSSeq THEN -1</p>
+<p>ELSE B.WBSSeq END,</p>
+<p>NodeCode = CASE WHEN B.WBSSeq = A.WBSSeq THEN REPLICATE('0',6- len(convert(varchar,A.QrySort)))+convert(varchar,A.QrySort)</p>
+<p>ELSE REPLICATE('0',3- len(convert(varchar,A.QrySort)))+convert(varchar,A.QrySort) END</p>
+<p>FROM #Tmp AS A</p>
+<p>LEFT OUTER JOIN _TPJTWBS AS B WITH(NOLOCK) ON B.CompanySeq = 1</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<blockquote>
+<p>AND B.WBSSeq = A.WBSSeq</p>
+</blockquote>
+<p>AND B.SortNum = A.UpperSortNum</p>
+<p>--</p>
+<p>UPDATE #Tmp</p>
+<p>SET TreeCode = NodeCode,</p>
+<p>TmpSortNum = SortNum</p>
+<p>WHERE UpperWBSSeq = -1</p>
+<p>-- 하위를 9세대까지 연결할 수 있다. ex)1.2.3.4.5.6.7.8.9</p>
+<p>DECLARE @Cnt INT</p>
+<p>SELECT @Cnt = 0</p>
+<p>WHILE(@Cnt \&lt; 9)</p>
+<p>BEGIN</p>
+<p>UPDATE B</p>
+<p>SET TreeCode = A.TreeCode + LTRIM(RTRIM(B.NodeCode))</p>
+<p>FROM #Tmp AS A</p>
+<p>JOIN #Tmp AS B ON A.WBSSeq = B.UpperWBSSeq</p>
+<p>WHERE A.TreeCode is not null</p>
+<p>SELECT @Cnt = @Cnt+1</p>
+<p>END</p>
+<p>UPDATE _TPJTWBS</p>
+<p>SET TreeCode = ISNULL(B.TreeCode,'')</p>
+<p>FROM _TPJTWBS AS A WITH(NOLOCK)</p>
+<p>JOIN #Tmp AS B on A.WBSSeq = B.WBSSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>AND B.WBSSeq = A.WBSSeq</p>
+<blockquote>
+<p>select QrySort ,UpperWBSSeq,TreeCode,SortNum,* from _TPJTWBS</p>
+<p>rollback tran</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부서 조직도</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>부서 조직도</h1>
+    <div class="meta">
+      <span class="note-date">2023-05-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">부서 조직도</h1>
+<p>CREATE TABLE #Tmp_CTE_OrgDept (</p>
+<p>DeptSeq INT,</p>
+<p>UppDeptSeq INT,</p>
+<p>Seq INT,</p>
+<p>BegDate NCHAR(8),</p>
+<p>EndDate NCHAR(8),</p>
+<p>UMDeptLevel INT,</p>
+<p>Remark NVARCHAR(200),</p>
+<p>DispSeq INT,</p>
+<p>OrgCd NVARCHAR(50)</p>
+<p>)</p>
+<p>EXEC _SWHROrgDeptSub</p>
+<p>@CompanySeq,</p>
+<p>0,</p>
+<p>@DeptSeq,</p>
+<p>@BaseDate,</p>
+<p>@OrgType</p>
+<p>/*************** 조직도 반영 ***************/</p>
+<p>SELECT @OrgStdDate = @BillDateTo</p>
+<p>SELECT @SMOrgSortSeq = 0</p>
+<p>CREATE TABLE #Tmp_CTE_OrgDept (</p>
+<p>DeptSeq INT ,</p>
+<p>UppDeptSeq INT ,</p>
+<p>Seq INT ,</p>
+<p>BegDate NCHAR(8) ,</p>
+<p>EndDate NCHAR(8) ,</p>
+<p>UMDeptLevel INT ,</p>
+<p>Remark NVARCHARSMDrOrCr(200),</p>
+<p>DispSeq INT ,</p>
+<p>OrgCd NVARCHAR(50) )</p>
+<p>EXEC _SWHROrgDeptSub @CompanySeq ,</p>
+<p>@SMOrgSortSeq OUTPUT,</p>
+<p>@DeptSeq ,</p>
+<p>@OrgStdDate ,</p>
+<p>0 ,</p>
+<p>@PgmSeq</p>
+<p>/*******************************************/</p>
+  </article>
+</div>
+</body>
+</html>

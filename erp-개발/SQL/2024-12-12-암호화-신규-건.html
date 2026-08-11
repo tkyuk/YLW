@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>암호화 신규 건</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>암호화 신규 건</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">암호화 신규 건</h1>
+<p>예시</p>
+<p>테이블 컬럼 암호화 되는 과정</p>
+<p>제뉴인 : _TCOMEncryptInfo</p>
+<p>ACE : _TWCOMEncryptInfo</p>
+<p>이 테이블에 테이블명과 해당테이블의 컬럼이 등록되어있어야 해당 테이블에 해당컬럼이 저장될때</p>
+<p>암호화되서 저장된다.</p>
+<p>이미 값이 있는 테이블을 나중에 암호화 하려면</p>
+<p>1. 해당 테이블에 테이블과 컬럼을 인서트 해주고</p>
+<p>EX)</p>
+<p>sys_TDACustDivisionStoreHist</p>
+<p>sys_TDACustDivision</p>
+<p>sys_TDACustAddDivision</p>
+<p>sys_TDACustBankAccDivision</p>
+<p>sys_TDACustEmpInfoDivision</p>
+<p>sys_TDACustTaxHistDivision</p>
+<p>insert _TCOMEncryptInfo</p>
+<p>select 1 CompanySeq, 197 Seq, '_TDABankAcc' TableName, 'BankAccNo' ColumnName, 1 LastUserSeq, getdate() LastDateTime</p>
+<p>union select 1 CompanySeq, 198 Seq, '_TDACustBankAcc' TableName, 'BankAccNo' ColumnName, 1 LastUserSeq, getdate() LastDateTime</p>
+<p>2. 암호화시킬 컬럼 길이를 바꿔준다. 너무 짧으면 오류난다.</p>
+<p>EX)</p>
+<p>alter table _TDABankAcc alter column BankAccNo nvarchar(400) not null</p>
+<p>alter table _TDACustBankAcc alter column BankAccNo nvarchar(400) not null</p>
+<p>3.테이블에 해당컬럼만 전체 업데이트하면 암호화되서 업데이트됨</p>
+<p>EX)</p>
+<p>UPDATE _TDABankAcc</p>
+<p>SET BankAccNo = dbo._FCOMEncrypt(B.BankAccNo, '_TDABankAcc', 'BankAccNo', 1)</p>
+<p>from _TDABankAcc B</p>
+<p>UPDATE _TDACustBankAcc</p>
+<p>SET BankAccNo = dbo._FCOMEncrypt(B.BankAccNo, '_TDACustBankAcc', 'BankAccNo', 1)</p>
+<p>from _TDACustBankAcc B</p>
+<p>암호화 된 컬럼은 복호화해야 정상 조회 가능</p>
+<p>ex) dbo._FCOMDecrypt(KE.AccNo, '_THRBasEmpAccNo', 'AccNo', @CompanySeq)</p>
+<p>DECLARE @Seq INT</p>
+<p>SELECT @Seq = MAX(Seq)</p>
+<p>FROM _TCOMEncryptInfo</p>
+<p>INSERT _TCOMEncryptInfo</p>
+<p>SELECT 1 , @Seq + 1 , 'sys_TDACustDivision' , 'CustName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 2 , 'sys_TDACustDivision' , 'TrunName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 3 , 'sys_TDACustDivision' , 'FullName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 4 , 'sys_TDACustDivision' , 'BizNo' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 5 , 'sys_TDACustDivision' , 'PersonId' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 6 , 'sys_TDACustDivision' , 'Owner' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 7 , 'sys_TDACustDivision' , 'LawRegNo' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 8 , 'sys_TDACustDivision' , 'BizAddr' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 9 , 'sys_TDACustDivision' , 'BizKind' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 10 , 'sys_TDACustDivision' , 'BizType' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 11 , 'sys_TDACustDivision' , 'TelNo' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 12 , 'sys_TDACustAddDivision' , 'Tel2' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 13 , 'sys_TDACustAddDivision' , 'FAX' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 14 , 'sys_TDACustAddDivision' , 'ZipCode' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 15 , 'sys_TDACustAddDivision' , 'KorAddr1' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 16 , 'sys_TDACustAddDivision' , 'KorAddr2' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 17 , 'sys_TDACustAddDivision' , 'KorAddr3' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 18 , 'sys_TDACustAddDivision' , 'EngCustName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 19 , 'sys_TDACustAddDivision' , 'EngAddr1' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 20 , 'sys_TDACustAddDivision' , 'EngAddr2' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 21 , 'sys_TDACustAddDivision' , 'EngAddr3' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 22 , 'sys_TDACustAddDivision' , 'Email' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 23 , 'sys_TDACustAddDivision' , 'CustSName1' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 24 , 'sys_TDACustAddDivision' , 'CustSName2' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 25 , 'sys_TDACustBankAccDivision' , 'BankAccNo' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 26 , 'sys_TDACustBankAccDivision' , 'Owner' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 27 , 'sys_TDACustEmpInfoDivision' , 'EmpName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 28 , 'sys_TDACustEmpInfoDivision' , 'JpName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 29 , 'sys_TDACustEmpInfoDivision' , 'DeptName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 30 , 'sys_TDACustEmpInfoDivision' , 'TELNo' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 31 , 'sys_TDACustEmpInfoDivision' , 'MobileNo' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 32 , 'sys_TDACustEmpInfoDivision' , 'FAX' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 33 , 'sys_TDACustEmpInfoDivision' , 'Email' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 34 , 'sys_TDACustEmpInfoDivision' , 'Remark' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 35 , 'sys_TDACustTaxHistDivision' , 'FullName' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 36 , 'sys_TDACustTaxHistDivision' , 'BizNo' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 37 , 'sys_TDACustTaxHistDivision' , 'PersonId' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 38 , 'sys_TDACustTaxHistDivision' , 'Owner' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 39 , 'sys_TDACustTaxHistDivision' , 'BizAddr' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 40 , 'sys_TDACustTaxHistDivision' , 'BizKind' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 41, 'sys_TDACustTaxHistDivision' , 'BizType' , 1 , getdate()</p>
+<p>UNION SELECT 1 , @Seq + 42, 'sys_TDACustTaxHistDivision' , 'TelNo' , 1 , getdate()</p>
+  </article>
+</div>
+</body>
+</html>

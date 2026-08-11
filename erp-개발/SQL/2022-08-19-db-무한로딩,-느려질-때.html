@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>db 무한로딩, 느려질 때</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>db 무한로딩, 느려질 때</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="db">db 무한로딩, 느려질 때</h1>
+<p><strong>--1.  sp_lock 실행</strong></p>
+<p>-- Lock 내용 확인. <strong>Mode가 X 인 것들을 확인</strong>하고, spid 를 기억해 둔다.</p>
+<p>-- 보통 spid 가 여러개 중복되어 출력되는 경우가 많다.</p>
+<p>exec sp_lock</p>
+<p><strong>--2. dbcc inputbuffer(spid)</strong></p>
+<p>-- 클라이언트에서 MSSQL로 보낸 최종 명령문을 표시한다.</p>
+<p>-- 1번에서 Mode 가 X 인 것의 spid를 입력하면 해당 내용이 출력된다.</p>
+<p>dbcc inputbuffer(60)</p>
+<p>--3<strong>. sp_who spid</strong></p>
+<p>--1번에서 확인된 spid 를 입력하면 관련 정보를 표시해 준다.</p>
+<p>exec sp_who 60</p>
+<p><strong>--4. kill spid</strong></p>
+<p>-- Lock을 확인했으면 해당 spid 를 입력하여 해당 프로세스를 끝낸다.</p>
+<p>-- kill 60</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사원</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사원</h1>
+    <div class="meta">
+      <span class="note-date">2025-02-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사원</h1>
+<p>CREATE OR ALTER VIEW mcm_VMESDAEmp</p>
+<p>AS</p>
+<p>SELECT ISNULL(A.CompanySeq , 0) AS CompanySeq, -- 법인코드</p>
+<p>ISNULL(B.CompanyName ,'') AS CompanyName, -- 법인명</p>
+<p>ISNULL(A.EmpSeq , 0) AS EmpSeq, -- 사원코드</p>
+<p>ISNULL(A.EmpName ,'') AS EmpName, -- 사원명</p>
+<p>ISNULL(A.Empid ,'') AS EmpID, -- 사번</p>
+<p>ISNULL(A.DeptSeq , 0) AS DeptSeq, -- 부서코드</p>
+<p>ISNULL(C.DeptName ,'') AS DeptName, -- 부서명</p>
+<p>ISNULL(E.MinorName ,'') AS UMJpName, -- 직위</p>
+<p>ISNULL(F.MinorName ,'') AS UMJdName, -- 직책</p>
+<p>ISNULL(G.Email ,'') AS Email, -- 이메일주소</p>
+<p>ISNULL(H.MinorSeq , 0) AS IsRetType, -- 재직퇴직구분</p>
+<p>CASE WHEN H.MinorSeq = 3031001 THEN '1' ELSE '0' END AS IsRetYn, -- 퇴사여부</p>
+<p>ISNULL(I.UserSeq , 0) AS UserSeq, -- 사용자내부코드</p>
+<p>ISNULL(I.UserName ,'') AS UserName, -- 사용자이름</p>
+<p>ISNULL(A.LastUserSeq , 0) AS LastUserSeq, -- 최종등록자</p>
+<p>ISNULL(A.LastDateTime,'') AS LastDateTime -- 최종등록일자</p>
+<p>FROM _TDAEmp AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCACompany AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDADept AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.DeptSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN _THRAdmOrdEmp AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.EmpSeq = A.EmpSeq</p>
+<p>AND D.IsOrdDateLast = '1'</p>
+<p>AND D.OrdDate \&lt;= ISNULL(A.RetireDate, '99991231')</p>
+<p>AND D.OrdDate \&lt;= CASE WHEN ISNULL(A.RetireDate, '99991231') &gt; CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>THEN CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>ELSE ISNULL(A.RetireDate, '99991231')</p>
+<p>END</p>
+<p>AND D.OrdEndDate &gt;= CASE WHEN ISNULL(A.RetireDate, '99991231') &gt; CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>THEN CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>ELSE ISNULL(A.RetireDate, '99991231')</p>
+<p>END</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.MinorSeq = D.UMJpSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS F WITH(NOLOCK) ON F.CompanySeq = D.CompanySeq</p>
+<p>AND F.MinorSeq = D.UMJdSeq</p>
+<p>LEFT OUTER JOIN _TDAEmpIn AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.EmpSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN _VWXBMSMinor AS H WITH(NOLOCK) ON H.CompanySeq = A.CompanySeq</p>
+<p>AND H.MinorSeq = CASE WHEN ISNULL(A.RetireDate, '99991231') &gt;= CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>THEN 3031001</p>
+<p>ELSE 3031002</p>
+<p>END</p>
+<p>AND H.LanguageSeq = 1</p>
+<p>LEFT OUTER JOIN _TCAUser AS I WITH(NOLOCK) ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.EmpSeq = A.EmpSeq</p>
+<p>-- View_사원</p>
+<p>CREATE VIEW emk_VDAEmpView</p>
+<p>AS</p>
+<p>-- 사원정보 조회 쿼리</p>
+<p>SELECT ISNULL(A.CompanySeq , 0) AS CompanySeq,</p>
+<blockquote>
+<p>ISNULL(A.EmpSeq , 0) AS EmpSeq , -- 사원내부코드</p>
+</blockquote>
+<p>ISNULL(B.EmpName ,'') AS EmpName , -- 사원명</p>
+<p>ISNULL(A.EmpId ,'') AS EmpID         , -- 사원번호</p>
+<p>ISNULL(D.DeptName ,'') AS DeptName , -- 부서명</p>
+<p>ISNULL(A.EntDate ,'') AS EntDate , -- 입사일</p>
+<p>ISNULL(A.RetireDate ,'') AS RetireDate, -- 퇴사일</p>
+<p>CASE WHEN ISNULL(A.RetireDate, '') &gt;= CONVERT(NCHAR(8), GETDATE(), 112) THEN '재직자' ELSE '퇴직자' END AS TypeName , -- 재직/퇴직구분</p>
+<p>ISNULL(H.MinorName ,'') AS UMPgName , -- 직급</p>
+<p>ISNULL(G.MinorName ,'') AS UMJPName , -- 직위</p>
+<p>ISNULL(I.MinorName ,'') AS UMJdName , -- 직책</p>
+<p>ISNULL(J.MinorName ,'') AS UMJoName , -- 직종                </p>
+<p>ISNULL(A.LastDateTime,'') AS LastDateTime -- 최종수정일시(변경일자)</p>
+<p>FROM _TDAEmpIn AS A WITH(NOLOCK)</p>
+<p>JOIN _TDAEmp AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRAdmOrdEmp AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.EmpSeq = C.EmpSeq</p>
+<p>AND C.OrdDate \&lt; A.RetireDate -- 퇴직일자 이전발령기준</p>
+<p>AND C.OrdDate \&lt;= CASE WHEN ISNULL(A.RetireDate, '') &gt; CONVERT(NCHAR(8),GETDATE(),112) THEN CONVERT(NCHAR(8),GETDATE(),112) ELSE CONVERT(NCHAR(8), DATEADD(dd, -1, ISNULL(A.RetireDate, '')), 112) END</p>
+<p>AND C.OrdEndDate &gt;= CASE WHEN ISNULL(A.RetireDate, '') &gt; CONVERT(NCHAR(8),GETDATE(),112) THEN CONVERT(NCHAR(8),GETDATE(),112) ELSE CONVERT(NCHAR(8), DATEADD(dd, -1, ISNULL(A.RetireDate, '')), 112) END</p>
+<p>AND C.IsOrdDateLast = '1'</p>
+<p>JOIN _TDADept AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND C.DeptSeq = D.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS G WITH(NOLOCK) ON A.CompanySeq = G.CompanySeq</p>
+<p>AND C.UMJpSeq = G.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS H WITH(NOLOCK) ON A.CompanySeq = H.CompanySeq</p>
+<p>AND C.UMPgSeq = H.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS I WITH(NOLOCK) ON A.CompanySeq = I.CompanySeq</p>
+<p>AND C.UMJdSeq = I.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS J WITH(NOLOCK) ON A.CompanySeq = J.CompanySeq</p>
+<p>AND C.UMJoSeq = J.MinorSeq</p>
+  </article>
+</div>
+</body>
+</html>

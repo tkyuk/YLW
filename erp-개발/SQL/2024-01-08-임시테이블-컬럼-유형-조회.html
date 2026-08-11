@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>임시테이블 컬럼 유형 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>임시테이블 컬럼 유형 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-01-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">임시테이블 컬럼 유형 조회</h1>
+<p>SELECT</p>
+<p>COLUMN_NAME,</p>
+<p>DATA_TYPE,</p>
+<p>CHARACTER_MAXIMUM_LENGTH</p>
+<p>FROM</p>
+<p>tempdb.INFORMATION_SCHEMA.COLUMNS</p>
+<p>WHERE</p>
+<p>TABLE_NAME LIKE '#TDAItem%'; -- 임시 테이블 이름에 맞게 수정</p>
+  </article>
+</div>
+</body>
+</html>

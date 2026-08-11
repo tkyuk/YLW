@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>반복문 (행별로 반복, 반복문 2개) 출력물</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>반복문 (행별로 반복, 반복문 2개) 출력물</h1>
+    <div class="meta">
+      <span class="note-date">2023-02-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="2">반복문 (행별로 반복, 반복문 2개) 출력물</h1>
+<p>반복문 1개</p>
+<p>DROP PROC djb_SWPUDelvPrintQcCodeQuery</p>
+<p>GO</p>
+<p>CREATE PROC djb_SWPUDelvPrintQcCodeQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>CREATE TABLE #Tmp_Result</p>
+<p>(</p>
+<p>Serl INT IDENTITY(1,1),</p>
+<p>ItemName NVARCHAR(100),</p>
+<p>ItemNo NVARCHAR(100),</p>
+<p>LotNo NVARCHAR(100),</p>
+<p>DelvDate NVARCHAR(100),</p>
+<p>Dummy5 NVARCHAR(100),</p>
+<p>CustName NVARCHAR(100),</p>
+<p>Dummy6 NVARCHAR(100)</p>
+<p>--DelvSeq INT ,</p>
+<p>--DelvSerl INT ,</p>
+<p>--Dummy10 NVARCHAR(100)</p>
+<p>)</p>
+<p>UPDATE #BIZ_IN_DataBlock1</p>
+<p>SET Dummy10 = 1</p>
+<p>WHERE Dummy10 = 0</p>
+<p>DECLARE @Start INT ,</p>
+<p>@End INT ,</p>
+<p>@Loop INT</p>
+<p>SELECT @Start = MIN(A.DataSeq),</p>
+<p>@End = MAX(A.DataSeq)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>--반복처리</p>
+<p>WHILE (@Start \&lt;= @End)</p>
+<p>BEGIN</p>
+<p>SELECT @Loop = Dummy10</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>WHERE A.DataSeq = @Start</p>
+<p>WHILE (@Loop &gt; 0)</p>
+<p>BEGIN</p>
+<p>INSERT INTO #Tmp_Result</p>
+<p>SELECT G.ItemName AS ItemName , -- 품명</p>
+<p>G.ItemNo AS ItemNo , -- 품번</p>
+<p>B.LotNo AS LotNo , -- LotNo</p>
+<p>A.DelvDate AS DelvDate , -- 납품일</p>
+<p>B.Dummy5 AS Dummy5 , -- 사용기한</p>
+<p>C.CustName AS CustName , -- 납품처</p>
+<p>B.Dummy6 AS Dummy6 -- 제조처</p>
+<p>--B.DelvSeq AS DelvSeq , --</p>
+<p>--B.DelvSerl AS DelvSerl , --</p>
+<p>--B.Dummy10 AS Dummy10 -- 라벨 출력 횟수</p>
+<p>FROM #BIZ_IN_DataBlock1 AS Z</p>
+<p>JOIN _TPUDelv AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND A.DelvSeq = Z.DelvSeq</p>
+<p>JOIN _TPUDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.DelvSeq = Z.DelvSeq</p>
+<p>AND B.DelvSerl = Z.DelvSerl</p>
+<p>LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.CustSeq = C.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON B.CompanySeq = G.CompanySeq</p>
+<p>AND B.ItemSeq = G.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND Z.DataSeq = @Start</p>
+<p>ORDER BY A.DelvDate, A.DelvNo, B.DelvSeq, B.DelvSerl, G.ItemName, G.ItemNo, B.LOTNo</p>
+<p>SELECT @Loop = @Loop - 1</p>
+<p>END</p>
+<p>SELECT @Start = @Start +1</p>
+<p>END</p>
+<p>SELECT * FROM #Tmp_Result</p>
+<p>--SELECT G.ItemName AS ItemName , -- 품명</p>
+<p>-- G.ItemNo AS ItemNo , -- 품번</p>
+<p>-- B.LotNo AS LotNo , -- LotNo</p>
+<p>-- A.DelvDate AS DelvDate , -- 납품일</p>
+<p>-- B.Dummy5 AS Dummy5 , -- 사용기한</p>
+<p>-- C.CustName AS CustName , -- 납품처</p>
+<p>-- B.Dummy6 AS Dummy6 , -- 제조처</p>
+<p>-- B.DelvSeq AS DelvSeq , --</p>
+<p>-- B.DelvSerl AS DelvSerl , --</p>
+<p>-- B.Dummy10 AS Dummy10 -- 라벨 출력 횟수</p>
+<p>-- FROM #BIZ_IN_DataBlock1 AS Z</p>
+<p>-- JOIN _TPUDelv AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>-- AND A.DelvSeq = Z.DelvSeq</p>
+<p>-- JOIN _TPUDelvItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>-- AND B.DelvSeq = Z.DelvSeq</p>
+<p>-- AND B.DelvSerl = Z.DelvSerl</p>
+<p>-- LEFT OUTER JOIN _TDACust AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>-- AND A.CustSeq = C.CustSeq</p>
+<p>-- LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON B.CompanySeq = G.CompanySeq</p>
+<p>-- AND B.ItemSeq = G.ItemSeq</p>
+<p>-- WHERE A.CompanySeq = @CompanySeq</p>
+<p>-- ORDER BY A.DelvDate, A.DelvNo, G.ItemName, G.ItemNo, B.LOTNo</p>
+<p>RETURN</p>
+<p>INSERT INTO #Result(NUM, InvoiceSeq, ItemSeq)</p>
+<p>SELECT CASE WHEN (InvNUM % 8) = 0 THEN (FLOOR(InvNUM/8) -1) ELSE FLOOR(InvNUM/8) end +1 , InvoiceSeq, ItemSeq</p>
+<p>FROM #TEMP</p>
+<p>UPDATE #Result</p>
+<p>SET MaxNUM = A.minValue</p>
+<p>FROM (SELECT MAX(NUM) AS minValue, InvoiceSeq FROM #Result AS B GROUP BY InvoiceSeq) AS A</p>
+<p>WHERE A.InvoiceSeq = #Result.InvoiceSeq</p>
+<p>CREATE TABLE #ResultSUM</p>
+<p>(</p>
+<p>Serl INT IDENTITY(1,1),</p>
+<p>InvoiceSeq INT ,</p>
+<p>TotCurAmt DECIMAL(19,5),</p>
+<p>TotVAT DECIMAL(19,5),</p>
+<p>TotQty DECIMAL(19,5),</p>
+<p>TotAmt DECIMAL(19,5),</p>
+<p>TotDomAmt DECIMAL(19,5),</p>
+<p>ABSSumTot DECIMAL(19,5),</p>
+<p>HanAmt         NVARCHAR(MAX)</p>
+<p>)</p>
+<p>INSERT INTO #ResultSUM</p>
+<p>SELECT B.InvoiceSeq,</p>
+<p>SUM(B.CurAmt) AS TotCurAmt,</p>
+<p>SUM(B.CurVAT) AS TotVAT ,</p>
+<p>SUM(B.Qty) AS TotQty ,</p>
+<p>ISNULL(SUM(B.CurAmt), 0) + ISNULL(SUM(B.CurVAT), 0) AS TotAmt ,</p>
+<p>ISNULL(SUM(B.DomAmt), 0) + ISNULL(SUM(B.DomVAT), 0) AS TotDomAmt,</p>
+<p>ABS(ISNULL(SUM(B.CurAmt), 0) + ISNULL(SUM(B.CurVAT), 0)) AS ABSSumTot,</p>
+<p>''</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A JOIN _TSLInvoiceItem AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.InvoiceSeq = B.InvoiceSeq</p>
+<p>GROUP BY B.InvoiceSeq</p>
+<p>DECLARE @Start INT ,</p>
+<p>@End INT ,</p>
+<p>@ABSSumTot DECIMAL(19,5)</p>
+<p>SELECT @Start = MIN(A.Serl),</p>
+<p>@End = MAX(A.Serl)</p>
+<p>FROM #ResultSUM AS A</p>
+<p>--반복처리</p>
+<p>WHILE (@Start \&lt;= @End)</p>
+<p>BEGIN</p>
+<p>SELECT @ABSSumTot = ABSSumTot</p>
+<p>FROM #ResultSUM AS A</p>
+<p>WHERE A.Serl = @Start</p>
+<blockquote>
+<p>EXEC _SWDAGetAmtHan @ABSSumTot , @HanAmt OUTPUT</p>
+</blockquote>
+<p>UPDATE #ResultSUM</p>
+<p>SET HanAmt = @HanAmt</p>
+<p>FROM #ResultSUM AS A</p>
+<p>WHERE A.Serl = @Start</p>
+<p>SELECT @Start = @Start +1,</p>
+<p>@HanAmt = 0</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

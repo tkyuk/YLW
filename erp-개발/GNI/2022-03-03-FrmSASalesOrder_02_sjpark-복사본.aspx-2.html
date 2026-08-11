@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\<\<FrmSASalesOrder_02_sjpark - 복사본.aspx\>\></title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>\<\<FrmSASalesOrder_02_sjpark - 복사본.aspx\>\></h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="frmsasalesorder_02_sjpark-aspx">\&lt;\&lt;FrmSASalesOrder_02_sjpark - 복사본.aspx&gt;&gt;</h1>
+<p>\&lt;%@ Register TagPrefix="cc1" Namespace="Ylw.Common" Assembly="Ylw.Common.Controls" %&gt;</p>
+<p>\&lt;%@ Page language="c#" Codebehind="FrmSASalesOrder_02_sjpark.aspx.cs" AutoEventWireup="false" Inherits="sjpark.Sales.FrmSASalesOrder_02_sjpark" %&gt;</p>
+<p>\&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" &gt;</p>
+<p>\&lt;HTML&gt;</p>
+<blockquote>
+<p>\&lt;HEAD&gt;</p>
+<p>\&lt;title&gt;WebForm1\&lt;/title&gt;</p>
+<p>\&lt;meta content="True" name="vs_snapToGrid"&gt;</p>
+<p>\&lt;meta content="True" name="vs_showGrid"&gt;</p>
+<p>\&lt;meta content="Microsoft Visual Studio 7.0" name="GENERATOR"&gt;</p>
+<p>\&lt;meta content="C#" name="CODE_LANGUAGE"&gt;</p>
+<p>\&lt;meta content="VBScript" name="vs_defaultClientScript"&gt;</p>
+<p>\&lt;meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema"&gt;</p>
+<p>\&lt;LINK href="../../../Common/Css/base.css" type="text/css" rel="stylesheet"&gt;</p>
+<p>\&lt;/HEAD&gt;</p>
+<p>\&lt;body MS_POSITIONING="GridLayout"&gt;</p>
+<p>\&lt;form id="Form1" name="Form1" method="post" runat="server"&gt;</p>
+<p>\&lt;DIV id="DIV_content" style="Z-INDEX: 100; POSITION: absolute; WIDTH: 1106px; HEIGHT: 584px; TOP: 8px; LEFT: 8px"</p>
+<p>MS_POSITIONING="GridLayout"&gt;\&lt;cc1:kedittext id="txtRemark" style="Z-INDEX: 106; POSITION: absolute; TOP: 141px; LEFT: 416px"</p>
+<p>tabIndex="17" runat="server" DicCode="Remark" Caption="비고" TextMode="MultiLine" BackColor="Transparent" BorderColor="MediumBlue"</p>
+<p>BorderWidth="0px" maxlength="200" DefautValue="" CaptionWidth="70" name="txtRemark" ControlKey="" Width="370px" Height="51px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:khtmlbutton id="cmdWhNm" style="Z-INDEX: 135; POSITION: absolute; TOP: 233px; LEFT: 816px" tabIndex="26"</p>
+<p>runat="server" DicCode="Command1_1964" name="cmdWhNm" Width="169px" Height="23px" Text="창고일괄" Visible="False"&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="cmdRev" style="Z-INDEX: 136; POSITION: absolute; TOP: 21px; LEFT: 859px" tabIndex="5"</p>
+<p>runat="server" DicCode="AmdReg" name="cmdRev" Width="60" Height="23px" Text="Amd등록"&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="cmdAmdQ" style="Z-INDEX: 142; POSITION: absolute; TOP: 21px; LEFT: 921px" tabIndex="6"</p>
+<p>runat="server" DicCode="AmdInq..." name="cmdAmdQ" Width="60px" Height="23px" Text="Amd조회..."&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:keditoption id="optExpClss" style="Z-INDEX: 108; POSITION: absolute; TOP: 216px; LEFT: 416px"</p>
+<p>tabIndex="24" runat="server" DicCode="" Caption="" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="" CaptionWidth="0" name="optExpClss" ControlKey="" Width="368px"</p>
+<p>Height="32px" DesignItemCnt="3" RepeatColumns="3" DefaultValue="0" RepeatLayout="Flow" RepeatDirection="Horizontal"&gt;\&lt;/cc1:keditoption&gt;\&lt;cc1:khtmlbutton id="cmdPay" style="Z-INDEX: 141; POSITION: absolute; TOP: 130px; LEFT: 16px" tabIndex="15"</p>
+<p>runat="server" DicCode="PayCond..." name="cmdPay" Width="168px" Height="23px" Text="지불조건..."&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="cmdStockList" style="Z-INDEX: 140; POSITION: absolute; TOP: 155px; LEFT: 816px"</p>
+<p>tabIndex="20" runat="server" DicCode="ItemClassifyStkStat..." name="cmdStockList" Width="169px" Height="23px" Text="품목별재고현황..."&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="cmdEstProfit" style="Z-INDEX: 139; POSITION: absolute; TOP: 179px; LEFT: 816px"</p>
+<p>tabIndex="21" runat="server" DicCode="ExpProfit..." name="cmdEstProfit" Width="169px" Height="23px" Text="예상이익..."&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="cmdChkAvailStock" style="Z-INDEX: 138; POSITION: absolute; TOP: 131px; LEFT: 816px"</p>
+<p>tabIndex="18" runat="server" DicCode="AvailStk" name="cmdChkAvailStock" Width="81" Height="23px" Text="가용재고"&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="cmdPriceChange" style="Z-INDEX: 137; POSITION: absolute; TOP: 131px; LEFT: 904px"</p>
+<p>tabIndex="19" runat="server" DicCode="PriceApply" name="cmdPriceChange" Width="81px" Height="23px" Text="단가적용"&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:ksheet id="ylwsh" style="Z-INDEX: 112; POSITION: absolute; TOP: 349px; LEFT: 0px" tabIndex="30"</p>
+<p>runat="server" DicCode="" Width="1001px" Height="235px" IsSaveToFileDataOnly="False"&gt;\&lt;/cc1:ksheet&gt;\&lt;cc1:kedittext id="txtRev" style="Z-INDEX: 123; POSITION: absolute; TOP: 8px; LEFT: 816px" runat="server"</p>
+<p>DicCode="" Caption="Amd" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="2" DefautValue="" CaptionWidth="29" name="txtRev" ControlKey="DIS" Width="40px" Height="21px"</p>
+<p>TabKeyIndex="0"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditcheck id="ChkFixYn" style="Z-INDEX: 113; POSITION: absolute; TOP: 104px; LEFT: 712px"</p>
+<p>tabIndex="14" runat="server" DicCode="Conf" Caption="확정" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10"</p>
+<p>DefautValue="" CaptionWidth="57" name="ChkFixYn" ControlKey="QRY;" Width="74px" Height="18px"&gt;\&lt;/cc1:keditcheck&gt;\&lt;cc1:keditcheck id="chkShortAmtYn" style="Z-INDEX: 129; POSITION: absolute; TOP: 136px; LEFT: 616px"</p>
+<p>runat="server" DicCode="AmtShort" Caption="금액미달" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="" CaptionWidth="57" name="chkShortAmtYn" Width="192px" Height="18px"&gt;\&lt;/cc1:keditcheck&gt;\&lt;cc1:keditcombo id="cmbProgressType" style="Z-INDEX: 115; POSITION: absolute; TOP: 48px; LEFT: 816px"</p>
+<p>tabIndex="11" runat="server" DicCode="ProgStat" Caption="진행현황" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="1" DefautValue="" CaptionWidth="57" name="cmbProgressType" ControlKey="DIS;" Width="168px" Height="21px" TabKeyIndex="0"&gt;\&lt;/cc1:keditcombo&gt;\&lt;cc1:keditfloat id="fltTotTaxAmt" style="Z-INDEX: 125; POSITION: absolute; TOP: 264px; LEFT: 216px"</p>
+<p>runat="server" DicCode="AddTaxTot" Caption="부가세계" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="25" DefautValue="" CaptionWidth="57" name="fltTotTaxAmt" ControlKey="DIS;" Width="169px" Height="21px" TabKeyIndex="0" declength="0"&gt;\&lt;/cc1:keditfloat&gt;\&lt;cc1:keditcheck id="chkCredit" style="Z-INDEX: 117; POSITION: absolute; TOP: 136px; LEFT: 528px"</p>
+<p>runat="server" DicCode="CreditExcess" Caption="여신초과" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="" CaptionWidth="86" name="chkCredit" Width="73px" Height="16px"&gt;\&lt;/cc1:keditcheck&gt;\&lt;cc1:kedittext id="txtCurrNm" style="Z-INDEX: 130; POSITION: absolute; TOP: 264px; LEFT: 816px"</p>
+<p>tabIndex="28" runat="server" DicCode="CurrName" Caption="화폐" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="20" DefautValue="" CaptionWidth="34" name="txtCurrNm" ControlKey="DIC;NON;" Width="65px" Height="21px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditfloat id="fltTotSupplyAmt" style="Z-INDEX: 119; POSITION: absolute; TOP: 264px; LEFT: 16px"</p>
+<p>runat="server" DicCode="SellPriceAmtTot" Caption="판매가액계" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="25" DefautValue="" CaptionWidth="100" name="fltTotSupplyAmt" ControlKey="DIS;" Width="171" Height="21px" TabKeyIndex="0" declength="0"&gt;\&lt;/cc1:keditfloat&gt;\&lt;cc1:keditfloat id="fltTotalAmt" style="Z-INDEX: 127; POSITION: absolute; TOP: 264px; LEFT: 416px"</p>
+<p>runat="server" DicCode="OutActTot" Caption="총액" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="25" DefautValue="" CaptionWidth="34" name="fltTotalAmt" ControlKey="DIS;" Width="172" Height="21px" TabKeyIndex="0" declength="0"&gt;\&lt;/cc1:keditfloat&gt;\&lt;cc1:keditcombo id="cmbOrderType" style="Z-INDEX: 100; POSITION: absolute; TOP: 48px; LEFT: 617px"</p>
+<p>tabIndex="10" runat="server" DicCode="OrdDiv" Caption="주문구분" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="8" DefautValue="" CaptionWidth="57" name="cmbOrderType" ControlKey="" Width="169" Height="21px"&gt;\&lt;/cc1:keditcombo&gt;\&lt;cc1:kedittext id="txtFixEmpNo" style="Z-INDEX: 102; POSITION: absolute; TOP: 88px; LEFT: 617px"</p>
+<p>tabIndex="16" runat="server" DicCode="FixEmpNo" Caption="확정자" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="30" DefautValue="" CaptionWidth="70" name="txtFixEmpNo" ControlKey="DIS;" Width="80px" Height="20px" TabKeyIndex="0"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditfloat id="fltExRate" style="Z-INDEX: 103; POSITION: absolute; TOP: 264px; LEFT: 888px"</p>
+<p>tabIndex="29" runat="server" DicCode="ExcRate" Caption="환율" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="25" DefautValue="" CaptionWidth="34" name="fltExRate" ControlKey="DIC;NON;" Width="96px" Height="21px" declength="0"&gt;\&lt;/cc1:keditfloat&gt;\&lt;cc1:kedittext id="txtGiveCond" style="Z-INDEX: 105; POSITION: absolute; TOP: 219px; LEFT: 16px"</p>
+<p>tabIndex="23" runat="server" DicCode="GiveCond" Caption="인도조건" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="100" DefautValue="" CaptionWidth="70" name="txtGiveCond" ControlKey="" Width="368px" Height="24px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditfloat id="fltDCRate" style="Z-INDEX: 111; POSITION: absolute; TOP: 264px; LEFT: 616px"</p>
+<p>tabIndex="27" runat="server" DicCode="DCRate" Caption="할인율" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="11" DefautValue="" CaptionWidth="46" name="fltDCRate" ControlKey="" Width="147" Height="21px" declength="1"&gt;\&lt;/cc1:keditfloat&gt;\&lt;cc1:keditcombo id="cmbStkCenter" style="Z-INDEX: 114; POSITION: absolute; TOP: 304px; LEFT: 616px"</p>
+<p>tabIndex="32" runat="server" DicCode="StkCenter" Caption="물류센터" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="2" DefautValue="" CaptionWidth="57" name="cmbWhNm" ControlKey="QRY;" Width="176px" Height="21px"&gt;\&lt;/cc1:keditcombo&gt;\&lt;cc1:keditdate id="datOrderDt" style="Z-INDEX: 116; POSITION: absolute; TOP: 8px; LEFT: 216px"</p>
+<p>tabIndex="2" runat="server" DicCode="ReceiveOrdDate" Caption="주문일" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="YiMiDi" CaptionWidth="80" name="datOrderDt" ControlKey="NON;" Width="72" Height="21px" DefaultValue="YiMiDi" DateType="YMD"&gt;\&lt;/cc1:keditdate&gt;\&lt;cc1:keditcombo id="cmbAccUnit" style="Z-INDEX: 118; POSITION: absolute; TOP: 8px; LEFT: 16px" tabIndex="1"</p>
+<p>runat="server" DicCode="AccUnit_01" Caption="사업장" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="2" DefautValue="" CaptionWidth="70" name="cmbAccUnit" ControlKey="NON;" Width="168px" Height="21px"&gt;\&lt;/cc1:keditcombo&gt;\&lt;cc1:kedittext id="txtOrderNo" style="Z-INDEX: 120; POSITION: absolute; TOP: 8px; LEFT: 296px"</p>
+<p>runat="server" DicCode="ReceiveOrdNo" Caption="주문번호" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="12" DefautValue="" CaptionWidth="57" name="txtOrderNo" ControlKey="DIS;" Width="88" Height="21px" TabKeyIndex="0"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtDeptNm" style="Z-INDEX: 121; POSITION: absolute; TOP: 88px; LEFT: 16px" tabIndex="11"</p>
+<p>runat="server" DicCode="DeptNm" Caption="부서명" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="40" DefautValue="C_Dept" CaptionWidth="70" name="txtDeptNm" ControlKey="DIC;" Width="168px" Height="23px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtEmpNm" style="Z-INDEX: 122; POSITION: absolute; TOP: 88px; LEFT: 216px" tabIndex="12"</p>
+<p>runat="server" DicCode="Pers" Caption="담당자" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="30" DefautValue="C_Emp" CaptionWidth="80" name="txtEmpNm" ControlKey="DIC;" Width="168px" Height="23px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtCustNm" style="Z-INDEX: 124; POSITION: absolute; TOP: 48px; LEFT: 16px" tabIndex="7"</p>
+<p>runat="server" DicCode="CustPlace" Caption="거래처" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="40" DefautValue="" CaptionWidth="70" name="txtCustNm" ControlKey="DIC;KEY;NON" Width="168px" Height="23px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditdate id="datFixDate" style="Z-INDEX: 126; POSITION: absolute; TOP: 88px; LEFT: 527px"</p>
+<p>tabIndex="15" runat="server" DicCode="FixDate" Caption="확정일" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="" CaptionWidth="57" name="datFixDate" ControlKey="DIS;" Width="80px" Height="23px" TabKeyIndex="0" DateType="ymd"&gt;\&lt;/cc1:keditdate&gt;\&lt;cc1:kedittext id="txtCust2Nm" style="Z-INDEX: 132; POSITION: absolute; TOP: 48px; LEFT: 416px"</p>
+<p>tabIndex="9" runat="server" DicCode="Cust2Nm" Caption="중개인" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="40" DefautValue="" CaptionWidth="57" name="txtCust2Nm" ControlKey="DIC;" Width="168px" Height="23px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditdate id="datContractDate" style="Z-INDEX: 133; POSITION: absolute; TOP: 8px; LEFT: 616px"</p>
+<p>tabIndex="4" runat="server" DicCode="ContDate" Caption="계약일" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="" CaptionWidth="57" name="datContractDate" ControlKey="" Width="72px" Height="22px" DateType="ymd"&gt;\&lt;/cc1:keditdate&gt;\&lt;cc1:kedittext id="txtPONo" style="Z-INDEX: 134; POSITION: absolute; TOP: 8px; LEFT: 416px" tabIndex="3"</p>
+<p>runat="server" DicCode="P/ONo" Caption="P/ONo" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="20" DefautValue="" CaptionWidth="80" name="txtPONo" ControlKey="" Width="168px" Height="21px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtQuotNo" style="Z-INDEX: 104; POSITION: absolute; TOP: 8px; LEFT: 696px" runat="server"</p>
+<p>DicCode="QuotNo" Caption="견적번호" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="30" DefautValue="" CaptionWidth="70" name="txtQuotNo" ControlKey="DIS;" Width="88px" Height="21px" TabKeyIndex="0"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditdate id="datDelvDate" style="Z-INDEX: 109; POSITION: absolute; TOP: 88px; LEFT: 416px"</p>
+<p>tabIndex="13" runat="server" DicCode="LimitDate" Caption="납기일" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="" CaptionWidth="57" name="datDelvDate" Width="169" Height="22px" DateType="ymd"&gt;\&lt;/cc1:keditdate&gt;\&lt;cc1:kedittext id="txtCustomerNo" style="Z-INDEX: 128; POSITION: absolute; TOP: 48px; LEFT: 216px"</p>
+<p>tabIndex="8" runat="server" DicCode="Cust_No" Caption="거래처번호" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="40" DefautValue="" CaptionWidth="80" name="txtCustomerNo" ControlKey="DIC;" Width="168px" Height="23px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtPayment" style="Z-INDEX: 110; POSITION: absolute; TOP: 141px; LEFT: 16px"</p>
+<p>tabIndex="16" runat="server" DicCode="" Caption="" TextMode="MultiLine" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="200" DefautValue="" CaptionWidth="0" name="txtPayment" ControlKey="" Width="370px" Height="51px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditlabel id="Label3" style="Z-INDEX: 131; POSITION: absolute; TOP: 280px; LEFT: 771px" runat="server"</p>
+<p>DicCode="" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" name="Label3" ControlKey="" Width="16px" Height="13px" Text="%"&gt;%\&lt;/cc1:keditlabel&gt;\&lt;cc1:khtmlbutton id="btnItemGrpSel" style="Z-INDEX: 101; POSITION: absolute; TOP: 203px; LEFT: 816px"</p>
+<p>tabIndex="22" runat="server" DicCode="ItemGroupSel2" Width="169px" Height="23px" Text="품목그룹선택..."&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:kedittext id="txtCustDelvWay" style="Z-INDEX: 143; POSITION: absolute; TOP: 304px; LEFT: 16px"</p>
+<p>tabIndex="30" runat="server" DicCode="CustDelvWay" Caption="고객지정운송편" Width="168px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditcheck id="chkEarlyShipYn" style="Z-INDEX: 144; POSITION: absolute; TOP: 320px; LEFT: 216px"</p>
+<p>runat="server" DicCode="EarlyShipYn" Caption="납기전출하여부" CaptionWidth="200" ControlKey="HID" Width="128px" Enabled="False"&gt;\&lt;/cc1:keditcheck&gt;\&lt;cc1:keditcheck id="chkDirectShipYn" style="Z-INDEX: 145; POSITION: absolute; TOP: 320px; LEFT: 360px"</p>
+<p>runat="server" DicCode="DirectShipYn" Caption="즉시출하여부" CaptionWidth="200" ControlKey="HID" Width="104px" Enabled="False"&gt;\&lt;/cc1:keditcheck&gt;\&lt;cc1:keditcheck id="chkDirectDelvYn" style="Z-INDEX: 146; POSITION: absolute; TOP: 320px; LEFT: 480px"</p>
+<p>tabIndex="31" runat="server" DicCode="DirectDelvY" Caption="직송여부" CaptionWidth="200" Width="80px"&gt;\&lt;/cc1:keditcheck&gt;\&lt;cc1:khtmlbutton id="btnSaleOrder02Cfm" style="Z-INDEX: 147; POSITION: absolute; TOP: 232px; LEFT: 816px"</p>
+<p>tabIndex="25" runat="server" DicCode="AppReport" name="CmdRePrice" Width="80px" Height="23px" Text="결재상신" TabKeyIndex="25"&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="btnSaleOrder02Cancel" style="Z-INDEX: 148; POSITION: absolute; TOP: 232px; LEFT: 904px"</p>
+<p>tabIndex="26" runat="server" DicCode="AppCancel" name="CmdRePrice" Width="80px" Height="23px" Text="결재취소" TabKeyIndex="26"&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="CmdStkCenter" style="Z-INDEX: 149; POSITION: absolute; TOP: 312px; LEFT: 816px"</p>
+<p>tabIndex="33" runat="server" DicCode="BatchChange" name="Command1" Width="168px" Height="26px" Text="일괄변경"&gt;\&lt;/cc1:khtmlbutton&gt;\&lt;cc1:khtmlbutton id="btnSaleOrder02Status" style="Z-INDEX: 150; POSITION: absolute; TOP: 232px; LEFT: 904px"</p>
+<p>tabIndex="26" runat="server" DicCode="AppReport" name="CmdRePrice" Width="80px" Height="23px" Text="결재진행상태" TabKeyIndex="26"&gt;\&lt;/cc1:khtmlbutton&gt;</p>
+<p>\&lt;cc1:keditfloat style="Z-INDEX: 151; POSITION: absolute; TOP: 304px; LEFT: 216px" id="fltSjparkFrom"</p>
+<p>tabIndex="27" runat="server" Height="21px" Width="80px" ControlKey="" name="fltDCRate" CaptionWidth="46"</p>
+<p>DefautValue="" maxlength="11" BorderWidth="0px" BorderColor="MediumBlue" BackColor="Transparent"</p>
+<p>Caption="sjpark_최소값" DicCode="DCRate" declength="0"&gt;\&lt;/cc1:keditfloat&gt;</p>
+<p>\&lt;cc1:keditfloat style="Z-INDEX: 106; POSITION: absolute; TOP: 304px; LEFT: 304px" id="fltSjparkTo"</p>
+<p>tabIndex="27" runat="server" Height="21px" Width="80px" ControlKey="" name="fltDCRate" CaptionWidth="46"</p>
+<p>DefautValue="" maxlength="11" BorderWidth="0px" BorderColor="MediumBlue" BackColor="Transparent"</p>
+<p>Caption="sjpark_최대값" DicCode="DCRate" declength="0"&gt;\&lt;/cc1:keditfloat&gt;\&lt;/DIV&gt;</p>
+<p>\&lt;cc1:kedittext id="txtSourceType" style="Z-INDEX: 105; POSITION: absolute; TOP: 616px; LEFT: 152px"</p>
+<p>tabIndex="0" runat="server" DicCode="" Caption="" BackColor="Transparent" BorderColor="MediumBlue"</p>
+<p>BorderWidth="0px" maxlength="8000" DefautValue="" CaptionWidth="0" name="txtOtherSerl" ControlKey="HID;"</p>
+<p>Width="24px" Height="15px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:keditcombo id="cmbProType" style="Z-INDEX: 103; POSITION: absolute; TOP: 96px; LEFT: 824px"</p>
+<p>tabIndex="11" runat="server" DicCode="ProType" Caption="재고관리구분" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="1"</p>
+<p>DefautValue="" CaptionWidth="57" name="cmbProgressType" Width="168px" Height="21px" TabKeyIndex="0"&gt;\&lt;/cc1:keditcombo&gt;</p>
+<p>\&lt;DIV dataFld="divHid" id="divHid" style="Z-INDEX: 101; POSITION: absolute; WIDTH: 160px; HEIGHT: 44px; VISIBILITY: hidden; TOP: 601px; LEFT: 11px"</p>
+<p>ms_positioning="GridLayout"&gt;\&lt;cc1:keditlabel id="lblNoOption" style="Z-INDEX: 126; POSITION: absolute; TOP: 25px; LEFT: 8px"</p>
+<p>runat="server" DicCode="OptNotExist" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" name="lblNoOption"</p>
+<p>ControlKey="" Width="51px" Height="14px" Text="옵션없음"&gt;옵션없음\&lt;/cc1:keditlabel&gt;\&lt;cc1:keditlabel id="lblOption" style="Z-INDEX: 151; POSITION: absolute; TOP: 7px; LEFT: 7px" runat="server"</p>
+<p>DicCode="OptExist" Caption="옵션있음" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" name="lblNoOption" ControlKey="" Width="51px" Height="14px" Text="옵션없음"&gt;옵션있음\&lt;/cc1:keditlabel&gt;\&lt;cc1:kedittext id="txtOtherNo" style="Z-INDEX: 152; POSITION: absolute; TOP: 15px; LEFT: 107px"</p>
+<p>tabIndex="0" runat="server" DicCode="" Caption="" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="8000" DefautValue="" CaptionWidth="0" name="txtOtherNo" ControlKey="HID;" Width="24px" Height="8px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtPlanNm" style="Z-INDEX: 153; POSITION: absolute; TOP: 15px; LEFT: 88px" runat="server"</p>
+<p>DicCode="SalesAct" Caption="영업활동" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="10" DefautValue="" CaptionWidth="57" name="txtPlanNm" ControlKey="DIS;HID;" Width="40px" Height="12px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtOtherRev" style="Z-INDEX: 154; POSITION: absolute; TOP: 15px; LEFT: 65px"</p>
+<p>tabIndex="0" runat="server" DicCode="" Caption="" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="8000" DefautValue="" CaptionWidth="0" name="txtOtherRev" ControlKey="HID;" Width="24px" Height="8px"&gt;\&lt;/cc1:kedittext&gt;\&lt;INPUT id="hidSalesCommon" style="Z-INDEX: 155; POSITION: absolute; WIDTH: 1px; HEIGHT: 5px; TOP: 12px; LEFT: 121px"</p>
+<p>type="hidden" size="1" name="Hidden1" runat="server"&gt;</p>
+<p>\&lt;cc1:kedittext id="txtPay" style="Z-INDEX: 156; POSITION: absolute; TOP: 15px; LEFT: 79px" runat="server"</p>
+<p>DicCode="" Caption="Pay" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px"</p>
+<p>maxlength="10" DefautValue="" CaptionWidth="29" name="txtPay" ControlKey="HID;" Width="1px"</p>
+<p>Height="11px"&gt;\&lt;/cc1:kedittext&gt;\&lt;cc1:kedittext id="txtOtherSerl" style="Z-INDEX: 157; POSITION: absolute; TOP: 15px; LEFT: 99px"</p>
+<p>tabIndex="0" runat="server" DicCode="" Caption="" BackColor="Transparent" BorderColor="MediumBlue" BorderWidth="0px" maxlength="8000"</p>
+<p>DefautValue="" CaptionWidth="0" name="txtOtherSerl" ControlKey="HID;" Width="24px" Height="15px"&gt;\&lt;/cc1:kedittext&gt;\&lt;/DIV&gt;</p>
+<p>\&lt;/form&gt;</p>
+<p>\&lt;!--#include file="../../../Common/Script/Common.bas"--&gt;</p>
+<p>\&lt;!--#include file="../../../Common/Script/Page.bas"--&gt;</p>
+<p>\&lt;!--#include file="../../../Common/Script/GroupWare.bas"--&gt;</p>
+<p>\&lt;!--Dialog폼관련 Script--&gt;</p>
+<p>\&lt;SCRIPT language="vbscript" src="../../../Common/Script/CommonDlg.vbs"&gt;\&lt;/SCRIPT&gt;</p>
+<p>\&lt;SCRIPT language="vbscript"&gt;</p>
+</blockquote>
+<p>\&lt;!--</p>
+<blockquote>
+<p>Option Explicit</p>
+</blockquote>
+<p>' == 주문등록 ==</p>
+<p>' ============================================</p>
+<p>Private gstrOpen</p>
+<p>Private gstrCustNm</p>
+<p>Private gstrCustNo</p>
+<p>Private gstrDeptNm</p>
+<p>Private gstrDeptNo</p>
+<p>Private gstrEmpNm</p>
+<p>Private gstrEmpNo</p>
+<p>Private msItemCd</p>
+<p>Private msUnitCd</p>
+<p>Private mlngActiveRow ' Sheet현재행</p>
+<blockquote>
+<p>Private IsfltExRateChg</p>
+</blockquote>
+<p>Private mstrDelvCust()</p>
+<p>Private msNo ' No</p>
+<p>Private msItemNo ' 품번</p>
+<p>Private msItemNm ' 품목</p>
+<p>Private msSize ' 규격</p>
+<p>Private msUnitNm ' 단위</p>
+<p>Private msOption ' 옵션</p>
+<p>Private msOriginPrice ' 공급단가</p>
+<p>Private msDCRate ' 할인율</p>
+<p>Private msPrice ' 할인단가</p>
+<p>Private msVatClss ' 부가세포함</p>
+<p>Private msQty ' 수량</p>
+<p>Private msVat ' 부가세</p>
+<p>Private msAmt ' 공급가액</p>
+<p>Private msDelvDate ' 납품기일</p>
+<p>Private msDelvQty ' 생산(납품)수량</p>
+<p>Private msProgClss ' 진행구분</p>
+<p>Private msKorAmt ' 원화공급가액</p>
+<p>Private msSOSerl ' 주문순번</p>
+<p>Private msDeliveryCust ' 납품처</p>
+<p>Private msstkUnitNm ' 단위(재고단위)</p>
+<p>Private msStkQty ' 재고단위수량</p>
+<p>Private msControlNo ' 관리번호</p>
+<p>Private msDeliveryCustCd ' 납품처코드</p>
+<p>Private msCustItemNo ' 거래처품번</p>
+<p>Private msCustItemSpec ' 거래처품번</p>
+<p>Private msCustItemUnit ' 거래처품번</p>
+<p>Private msFixYn ' 확정</p>
+<p>Private msStdCost ' 표준원가</p>
+<p>Private msTotCost ' 총비용</p>
+<p>Private msBasicPrice ' 기본단가</p>
+<p>Private msOptionPrice ' 옵션추가단가</p>
+<p>Private msKorPrice ' 원화단가</p>
+<p>Private msRemark ' 비고</p>
+<p>Private msButton ' 버튼</p>
+<p>Private msStkUnitCd ' 단위(재고단위)</p>
+<p>Private msVatRate ' 부가세율</p>
+<p>Private msAvailStock ' 가용재고</p>
+<p>Private msNextQty ' 진행수량</p>
+<p>Private msSumAmt ' 금액(공급가액+부가세</p>
+<p>Private msQutoNo ' 견적번호</p>
+<p>Private msQutoRev ' 견적차수</p>
+<p>Private msQutoSerl ' 견적순번</p>
+<p>Private msOldCustCd</p>
+<p>Private msOldDeptCd</p>
+<p>Private msOldEmpId</p>
+<p>Private msOldCurrCd</p>
+<p>Private msStkOriQty</p>
+<p>Private msCustomPrice</p>
+<p>Private msStdSalesPrice</p>
+<p>Private msMinPrice</p>
+<p>Private msStkCenter</p>
+<p>Private msPriceUnitNm ' 단가단위</p>
+<p>Private msUnitPrice ' 단위단가</p>
+<p>Private msPriceUnitCd ' 단가단위코드</p>
+<p>Private msPriceUnitQty ' 단가단위수량</p>
+<p>Private msDeliveryCustBtn</p>
+<p>Private nExpClss</p>
+<p>Private msCustItemNm ' 거래처품목(by keko '2002/01/29)</p>
+<p>Private msDelvHour ' 납품시</p>
+<blockquote>
+<p>Private msOverShipPermit                ' 과출하허용여부</p>
+<p>Private msPriceDiv                                ' 단가구분</p>
+<p>Private msPriceUnitRate                        ' 단가기준단위환산율</p>
+</blockquote>
+<p>Private bRev</p>
+<p>Private vntOtherNo</p>
+<p>Private mvntRevKey</p>
+<p>Private mvntSerlKey</p>
+<p>Private cnt, cntQutoRev, cntQutoSerl</p>
+<p>Private QutoNo, QutoRev, QutoSerl</p>
+<p>Private objSalesCommFn</p>
+<p>Private bDoYeoShin</p>
+<p>Private msRemark2</p>
+<p>Private mstest_sjpark</p>
+<p>Private mstest_hcwoo</p>
+<p>IsfltExRateChg = false</p>
+<blockquote>
+<p>'@@ Function = 툴바</p>
+<p>Function NewPage(strParam)</p>
+<p>Form1.ylwsh_Data.value = ""</p>
+<p>Form1.pageMode.value = "NewPage"</p>
+<p>Form1.pageParam.value = strParam</p>
+<p>Call GoSubmit()        </p>
+<p>End Function</p>
+<p>Function Query(strParam)</p>
+<p>If IsDataChanged() = True Then ' 데이터 변경여부 확인</p>
+</blockquote>
+<p>Dim bulbtn</p>
+<blockquote>
+<p>bulBtn = MessageBox("\&lt;%=_page.GetMessageString(ConstMessage.CHANGESAVEYESNO,"내용이 변경되었습니다. 저장하시겠습니까?")%&gt;", vbYesNo) ' 데이터가 변경되었습니다. + VbLf + 저장하시겠습니까?</p>
+<p>If bulBtn = vbYes then</p>
+<p>Call Save("")</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>End If</p>
+</blockquote>
+<p>Form1.pageMode.value = "Query"</p>
+<blockquote>
+<p>Form1.pageParam.value = strParam</p>
+<p>Call SetLocalInfoToServer("")</p>
+<p>Call GoSubmit()</p>
+<p>End Function</p>
+<p>Function Save(strParam)</p>
+<p>Dim lngRow</p>
+<p>Dim strTemp</p>
+<p>Dim StrOriginPrice</p>
+<p>Dim strEtcPrice1</p>
+<p>Dim strItemNo</p>
+<p>Dim msgResult</p>
+<p>If Form1.ylwsh.DataRowCnt = 0 Then</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.SheetDataNotFound,"쉬트에 자료가 없습니다. 자료를 입력하세요.")%&gt;") ' 쉬트에 자료가 없습니다. + VbLf + 자료를 입력하세요.</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>If Form1.ylwsh.fnCheckNotNull() = False then</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>if strParam = "A" then ' Save As</p>
+<p>txtOrderNo.all(1).Value = ""</p>
+<p>txtRev.all(1).Value = ""</p>
+<p>Form1.chkFixYN.Checked = false</p>
+<p>datFixDate.all(1).Value = ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msControlNo), SS_ALLROWS, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msQutoNo), SS_ALLROWS, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msQutoRev), SS_ALLROWS, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msQutoSerl), SS_ALLROWS, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msDelvQty), SS_ALLROWS, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msProgClss), SS_ALLROWS, ""</p>
+<p>cmbProgressType.all(1).Value = "0"</p>
+<p>else</p>
+<p>if strParam \&lt;&gt; "RV" then                </p>
+<p>If Form1.ChkFixYn.checked = true Then</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRMUPDATE)%&gt;")</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>end if</p>
+<p>end if</p>
+<p>if fnCustCreditCheck() = false then</p>
+<p>exit function</p>
+<p>end if</p>
+</blockquote>
+<p>If "\&lt;%=_vari.S_MINPRICEMSG%&gt;" = "0" or "\&lt;%=_vari.S_MINPRICEMSG%&gt;" = "2" Then ' 경고:SubSeq = '002' and Seq = '304', 메세지(0), 불가(2)</p>
+<p>For lngRow = 1 To Form1.ylwsh.DataRowCnt Step 1 ' 표준대리점가 보다 판매단가가 작을 경우에는 경고메세지</p>
+<p>Form1.ylwsh.GetText SS_HEADER, lngRow, strTemp</p>
+<p>If strTemp = SSHD_ADD Or strTemp = SSHD_UPDATE Then</p>
+<p>StrOriginPrice = Form1.ylwsh.cellText(msPrice , lngRow)</p>
+<p>strEtcPrice1 = Form1.ylwsh.cellText(msMinPrice, lngRow)</p>
+<p>strItemNo = Form1.ylwsh.cellText(msItemNo, lngRow)</p>
+<blockquote>
+<p>If "\&lt;%=_vari.S_MINPRICEMSG%&gt;" = "0" Then '메세지</p>
+<p>If CDBL(strEtcPrice1) \&lt;&gt; 0 And CDBL(strEtcPrice1) &gt; CDBL(StrOriginPrice) Then</p>
+<p>msgResult = MessageBox("\&lt;%=_page.GetMessageString(ConstMessage.MINPRICEOVER,"최소판매가보다 판매단가가 작습니다. 저장하시겠습니까?")%&gt;", vbYesNo) ' 삭제하시겠습니까?</p>
+<p>If msgResult = vbNo Then</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>End If</p>
+<p>Else '불가</p>
+<p>If CDBL(strEtcPrice1) \&lt;&gt; 0 And CDBL(strEtcPrice1) &gt; CDBL(StrOriginPrice) Then</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.MINPRICEOVERERR,"최소판매가보다 판매단가가 작습니다. 저장할 수 없습니다.")%&gt;")</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>End IF</p>
+</blockquote>
+<p>End If</p>
+<p>Next</p>
+<p>End If</p>
+<blockquote>
+<p>Form1.ylwsh_Data.value = Form1.ylwsh.GetData() ' 문자열을 '', ''형태로 생성한다. ControlKey가 NPA가 아닌것을..</p>
+<p>Form1.pageMode.value = "Save"</p>
+<p>Form1.pageParam.value = strParam</p>
+<p>Call SetLocalInfoToServer("")</p>
+<p>Call GoSubmit()</p>
+<p>End Function</p>
+<p>Function Delete(strParam)</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" And Form1.chkFixYN.Checked = True Then '통제에서 확정사용시 0; 미사용 1; 사용</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRMUPDATE,"확정된 자료는 변경할 수 없습니다.")%&gt;") ' 쉬트에 자료가 없습니다. + VbLf + 자료를 입력하세요.</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>Dim bulbtn</p>
+<p>if txtOrderNo.all(1).Value = "" then exit function</p>
+<p>bulBtn = MessageBox("\&lt;%=_page.GetMessageString(ConstMessage.DELYESNO,"삭제하시겠습니까?")%&gt;", vbYesNo) ' 삭제하시겠습니까?</p>
+<p>If bulBtn = vbYes then</p>
+<p>Form1.ylwsh_Data.value = ""</p>
+<p>Form1.pageMode.value = "Delete"</p>
+<p>Form1.pageParam.value = strParam</p>
+<p>Call SetLocalInfoToServer("")</p>
+<p>Call GoSubmit()</p>
+<p>End If</p>
+<p>End Function</p>
+<p>Function Cut(strParam)</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" And Form1.chkFixYN.Checked = True Then '통제에서 확정사용시 0; 미사용 1; 사용</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRMUPDATE,"확정된 자료는 변경할 수 없습니다.")%&gt;") ' 쉬트에 자료가 없습니다. + VbLf + 자료를 입력하세요.</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>Dim Row</p>
+<p>Row = Form1.ylwsh.CutHeaderSetting()</p>
+<p>If Row \&lt;&gt; 0 Then</p>
+<p>if Row = Form1.ylwsh.DataRowCnt then</p>
+<p>call Delete("")</p>
+<p>else</p>
+<p>Form1.ylwsh_Data.value = Form1.ylwsh.GetData</p>
+<p>Form1.pageMode.value = "Cut"</p>
+<p>Form1.pageParam.value = strParam</p>
+<p>Call SetLocalInfoToServer("")</p>
+<p>Call GoSubmit()</p>
+<p>end if</p>
+<p>End If</p>
+<p>Call fnAfterProcCut</p>
+<p>End Function</p>
+<p>Sub ReportPrint()</p>
+<p>Dim strAccUnit, strExpClss, strOrderNo, strPgm, strMrdFileNm</p>
+<p>strAccUnit = cmbAccUnit.all(1).Value</p>
+<p>strExpClss = GetOptionData(Form1, "optExpClss")</p>
+<p>strOrderNo = txtOrderNo.all(1).Value</p>
+<p>If strOrderNo = "" Then Exit Sub</p>
+<p>strMrdFileNm = "SSPOrderPrt.mrd"</p>
+<p>strPgm = "/rv WorkType[PRINT] @pAccUnit[" + strAccUnit + "]" + " @pExpClss[" + strExpClss + "] " + " @pOrderNo[" + strOrderNo + "] "</p>
+<p>Call fnShowReport(CNST_RD_NORMAL, strMrdFileNm, "", strPgm)</p>
+<p>End Sub</p>
+<p>' ActionPostBack되기 전 처리작업을 코딩한다.</p>
+<p>'@@ Action의 ex : 툴바 누르기</p>
+<p>Sub ActionPostBackBefore(strMode)</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" Then '통제에서 확정사용시 0; 미사용 1; 사용</p>
+<p>Form1.ChkFixYn.ParentElement.style.display = ""</p>
+<p>datFixDate.style.display = ""</p>
+<p>txtFixEmpNo.style.display = ""</p>
+<p>Else</p>
+<p>Form1.ChkFixYn.ParentElement.style.display = "NONE"</p>
+<p>datFixDate.style.display = "NONE"</p>
+<p>txtFixEmpNo.style.display = "NONE"</p>
+<p>End If                </p>
+<p>If "\&lt;%=_vari.S_SOYEOSHIN%&gt;" = "1" Then                                        '통제에서 여신상용시</p>
+<p>Form1.chkCredit.ParentElement.style.display = ""</p>
+<p>Form1.chkShortAmtYn.ParentElement.style.display = ""</p>
+<p>Else</p>
+<p>Form1.chkCredit.ParentElement.style.display = "NONE"</p>
+<p>Form1.chkShortAmtYn.ParentElement.style.display = "NONE"</p>
+<p>End If                </p>
+<p>End Sub</p>
+<p>' ActionPostBack된 후 처리작업을 코딩한다.</p>
+<p>Sub ActionPostBackAfter(strMode)</p>
+<p>'전자결재 사용여부(구매발주서)를 체크하여 사용하지 않는 경우에는 버튼을 숨긴다. (20060110.SHMIN)</p>
+<p>If "\&lt;%=_vari.A_GROUPWARESASalesOrder%&gt;" \&lt;&gt; "1" then</p>
+<p>Call SetControlKey("btnSaleOrder02Cfm", "HID")</p>
+<p>Call SetControlKey("btnSaleOrder02Cancel", "HID")</p>
+<p>Else</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" Then '통제에서 확정사용시 0; 미사용 1; 사용</p>
+<p>Call SetControlKey("ChkFixYn", "DIS")</p>
+<p>End If</p>
+<p>End If</p>
+<p>If strMode = "Cut" Then</p>
+<p>Call fnAfterProcCut</p>
+<p>End If</p>
+<p>End Sub</p>
+<p>' Jump하여 In되는 경우</p>
+<p>Function JumpIn(strParam)</p>
+<p>End Function</p>
+<p>' Jump하여 Out되는 경우</p>
+<p>Function JumpOut(strParam)</p>
+<p>Dim i</p>
+<p>Dim strArray</p>
+<p>Dim strJumpMsg</p>
+</blockquote>
+<p>Dim vntTmp1</p>
+<p>Dim vntSONo</p>
+<blockquote>
+<p>Dim vntSOSerl</p>
+<p>' 쉬트의 조건의 경우 설정한다.</p>
+<p>Call JumpStringToSplit(strParam, strArray)</p>
+<p>Dim strJumpPgmID</p>
+<p>Dim strURL</p>
+<p>strJumpPgmID        = strArray(2, 2)        ' Jump하는 프로그램 ID</p>
+<p>strURL                        = strArray(3, 2)        ' Jump하는 프로그램의 URL</p>
+<p>strJumpMsg                = strParam                        ' strJumpMsg에 Jump 기본 정보를 입력한다.        </p>
+<p>Dim strJumpPgmIdTruc</p>
+<p>if instr(strJumpPgmID,"_") \&lt;&gt; 0 then</p>
+<p>strJumpPgmIdTruc = left(strJumpPgmID, instr(strJumpPgmID,"_") - 1)</p>
+<p>else</p>
+<p>strJumpPgmIdTruc = strJumpPgmID</p>
+<p>end if</p>
+<p>' AddJumpString strJumpMsg, Tag, value</p>
+<p>Select Case ucase(strJumpPgmIdTruc) 'Jump하는 프로그램 ID</p>
+</blockquote>
+<p>Case UCASE("dlgPMItemSearch")        '사양품목조회 - 20050927.WGKIM</p>
+<blockquote>
+<p>Dim strRtnValue</p>
+<p>Dim strParameter</p>
+<p>Dim arrRtnValue</p>
+<p>Dim RowCnt</p>
+<p>RowCnt = Form1.ylwsh.DataRowCnt + 1</p>
+<p>strParameter = ""</p>
+<p>arrRtnValue = ""</p>
+<p>strParameter = "ACCUNIT=" + cmbAccUnit.All(1).Value</p>
+<p>strRtnValue = LoadDlgForm(true,"dlgPMItemSearch",strParameter ,GetDlgData())</p>
+<p>arrRtnValue = Split(strRtnValue, CNST_SP)</p>
+<p>If UCase(arrRtnValue(0)) = "FALSE" Then</p>
+<p>ElseIf UCase(arrRtnValue(0)) = "CANCEL" Then</p>
+<p>Else        </p>
+<p>arrRtnValue = ""</p>
+<p>arrRtnValue = SplitArray(strRtnValue, CNST_SP_NT, CNST_SP_LF, CNST_SP)</p>
+<p>If arrRtnValue(0,0) \&lt;&gt; "" Then</p>
+<p>Form1.ylwsh.CellText(msItemNm, RowCnt)                = arrRtnValue(0,0)</p>
+<p>Form1.ylwsh.CellText(msItemNo, RowCnt)                = arrRtnValue(0,1)</p>
+<p>Form1.ylwsh.CellText(msItemCd, RowCnt)                = arrRtnValue(0,2)</p>
+<p>Form1.ylwsh.CellText(msSize, RowCnt)         = arrRtnValue(0,3)</p>
+<p>Form1.ylwsh.CellText(msUnitNm, RowCnt)                = arrRtnValue(0,4)</p>
+<p>Form1.ylwsh.CellText(msUnitCd, RowCnt)                = arrRtnValue(0,5)</p>
+<p>Form1.ylwsh.CellText(msStkUnitNm, RowCnt)         = arrRtnValue(0,4)</p>
+<p>Form1.ylwsh.CellText(msStkUnitCd, RowCnt)         = arrRtnValue(0,5)        </p>
+<p>End If</p>
+<p>End If                        </p>
+<p>Call fnPriceChange(RowCnt, RowCnt + UBound(arrRtnValue))</p>
+<p>Exit Function                </p>
+<p>'AddJumpString strJumpMsg, "AccUnit", cmbAccUnit.All(1).Value</p>
+</blockquote>
+<p>Case UCASE("frmSADelvReq"), UCASE("frmSADelvReqMti") '출하의뢰</p>
+<p>If GetOptionData(Form1, "optExpClss") = 3 Then</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOJUMPORDERINV, "내수/Local구분이 Local[선LC]인 건은 LC로 먼저 진행해야 합니다.")%&gt;")</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" and Form1.ChkFixYn.checked = false Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRM, "확정작업이 선행되어야 합니다...")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<blockquote>
+<p>AddJumpString strJumpMsg, "SONo", txtOrderNo.all(1).Value</p>
+<p>AddJumpString strJumpMsg, "ProType"                , cmbProType.all(1).Value</p>
+</blockquote>
+<p>Case UCASE("frmSASalesInvoice") '거래명세서 Jump</p>
+<p>''''''' 추가 4월27일 선LC는 출하의뢰및 거래명세서로 점프 못함</p>
+<p>If GetOptionData(Form1, "optExpClss") = 3 Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOJUMPORDERINV, "내수/Local구분이 Local[선LC]인 건은 LC로 먼저 진행해야 합니다.")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" and Form1.ChkFixYn.checked = false Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRM, "확정작업이 선행되어야 합니다...")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<blockquote>
+<p>AddJumpString strJumpMsg, "SONo", txtOrderNo.all(1).Value</p>
+<p>AddJumpString strJumpMsg, "ProType"        , cmbProType.all(1).Value</p>
+</blockquote>
+<p>Case UCASE("frmSABill") '계산서</p>
+<p>' 내수만 점프</p>
+<p>If GetOptionData(Form1, "optExpClss") \&lt;&gt; 1 Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.ORDERBILLJUMP,"내수만 세금계산서로 진행할 수 있습니다.")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" and Form1.ChkFixYn.checked = false Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRM, "확정작업이 선행되어야 합니다...")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<blockquote>
+<p>AddJumpString strJumpMsg, "SONo", txtOrderNo.all(1).Value</p>
+</blockquote>
+<p>Case UCASE("frmSELCAdd") '수출LC 등록</p>
+<p>If GetOptionData(Form1, "optExpClss") \&lt;&gt; 3 Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOJUMPORDERLC,"내자 및 Local(후LC)는 LC등록으로 진행할 수 없습니다.")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" and Form1.ChkFixYn.checked = false Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRM, "확정작업이 선행되어야 합니다...")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<blockquote>
+<p>AddJumpString strJumpMsg, "SONo", txtOrderNo.all(1).Value</p>
+<p>AddJumpString strJumpMsg, "cmbBizCombo", cmbAccUnit.All(1).value</p>
+</blockquote>
+<p>Case UCASE("frmPPReq") '생산의뢰</p>
+<p>For i = 1 To Form1.ylwsh.DataRowCnt Step 1</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msSOSerl), i, vntTmp1</p>
+<p>If i = 1 Then</p>
+<p>vntSONo = txtOrderNo.all(1).Value</p>
+<p>vntSOSerl = vntTmp1</p>
+<p>Else</p>
+<p>vntSONo = vntSONo &amp; "_/" &amp; txtOrderNo.all(1).Value</p>
+<p>vntSOSerl = vntSOSerl &amp; "_/" &amp; vntTmp1</p>
+<p>End If</p>
+<p>Next</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" and Form1.ChkFixYn.checked = false Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRM, "확정작업이 선행되어야 합니다...")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<p>AddJumpString strJumpMsg, "SONo", vntSONo</p>
+<p>AddJumpString strJumpMsg, "SOSerl", vntSOSerl</p>
+<p>Case UCASE("frmUGPOReq") '구매요청</p>
+<p>vntSONo = ""</p>
+<p>vntSONo = txtOrderNo.all(1).Value</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" and Form1.ChkFixYn.checked = false Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRM, "확정작업이 선행되어야 합니다...")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<p>AddJumpString strJumpMsg, "SONo", vntSONo</p>
+<blockquote>
+<p>Case UCASE("frmUGPumi") '구매품의</p>
+</blockquote>
+<p>vntSONo = ""</p>
+<p>vntSONo = txtOrderNo.all(1).Value</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" = "1" and Form1.ChkFixYn.checked = false Then</p>
+<blockquote>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOTCONFIRM, "확정작업이 선행되어야 합니다...")%&gt;")</p>
+</blockquote>
+<p>Exit Function</p>
+<p>End If</p>
+<p>AddJumpString strJumpMsg, "SONo", vntSONo</p>
+<blockquote>
+<p>Case UCASE("ylwa09006")</p>
+<p>AddJumpString strJumpMsg, "cmbBizCombo", cmbAccUnit.All(1).value</p>
+<p>AddJumpString strJumpMsg, "RowCount", CStr(Form1.ylwsh.DataRowCnt)</p>
+<p>AddJumpString strJumpMsg, "RowNo", ""</p>
+<p>AddJumpString strJumpMsg, "szCombo1", "NON" + Form1.ylwsh.CellText(msStkCenter, Form1.ylwsh.ActiveRow)</p>
+<p>AddJumpString strJumpMsg, "szCodeHelp1", "NON" + Form1.ylwsh.CellText(msItemCd, Form1.ylwsh.ActiveRow) + space(20) + _</p>
+<p>Form1.ylwsh.CellText(msItemNm, Form1.ylwsh.ActiveRow)</p>
+<p>AddJumpString strJumpMsg, "szCodeHelp2", "NON" + Form1.ylwsh.CellText(msItemCd, Form1.ylwsh.ActiveRow) + space(20) + _</p>
+<p>Form1.ylwsh.CellText(msItemNo, Form1.ylwsh.ActiveRow)                                                                                                </p>
+<p>'Doan add</p>
+<p>Case UCASE("dlgSASalesOrder") 'SITE_SNSV</p>
+<p>AddJumpString strJumpMsg, "SONo", txtOrderNo.all(1).Value</p>
+</blockquote>
+<p>'Doan And</p>
+<blockquote>
+<p>Case Else</p>
+<p>Dim vntRow</p>
+<p>Dim vntItemNm1</p>
+<p>Dim vntItemNo1</p>
+<p>Dim vntSpec1</p>
+<p>Dim vntItemCd1</p>
+<p>Dim vntUnit1</p>
+<p>Dim vntUnitCd1</p>
+<p>Dim vntStkQty1</p>
+<p>Dim vntItemNmTmp1</p>
+<p>Dim vntItemNoTmp1</p>
+<p>Dim vntSpecTmp1</p>
+<p>Dim vntItemCdTmp1</p>
+<p>Dim vntUnitTmp1</p>
+<p>Dim vntUnitCdTmp1</p>
+<p>Dim vntStkQtyTmp1</p>
+<p>For i = 1 To Form1.ylwsh.DataRowCnt Step 1</p>
+<p>If i = i Then</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemNm)                , i, vntItemNmTmp1</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemNo)                , i, vntItemNoTmp1</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msSize)                , i, vntSpecTmp1</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemCd)                , i, vntItemCdTmp1</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msstkUnitNm)        , i, vntUnitTmp1</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkUnitCd)        , i, vntUnitCdTmp1</p>
+<p>vntStkQtyTmp1 = Form1.ylwsh.Celltext(msStkQty, i)</p>
+<p>'vntRow = CVar(Form1.ylwsh.DataRowCnt)</p>
+<p>vntRow = CStr(Form1.ylwsh.DataRowCnt)</p>
+<p>If i = 1 Then</p>
+<p>vntItemNm1        = vntItemNmTmp1</p>
+<p>vntItemNo1        = vntItemNoTmp1</p>
+<p>vntSpec1        = vntSpecTmp1</p>
+<p>vntItemCd1        = vntItemCdTmp1</p>
+<p>vntUnit1        = vntUnitTmp1</p>
+<p>vntUnitCd1        = vntUnitCdTmp1</p>
+<p>vntStkQty1        = vntStkQtyTmp1</p>
+<p>Else</p>
+<p>vntItemNm1        = vntItemNm1        &amp; "_/" &amp; vntItemNmTmp1</p>
+<p>vntItemNo1        = vntItemNo1        &amp; "_/" &amp; vntItemNoTmp1</p>
+<p>vntSpec1        = vntSpec1                &amp; "_/" &amp; vntSpecTmp1</p>
+<p>vntItemCd1        = vntItemCd1        &amp; "_/" &amp; vntItemCdTmp1</p>
+<p>vntUnit1        = vntUnit1                &amp; "_/" &amp; vntUnitTmp1</p>
+<p>vntUnitCd1        = vntUnitCd1        &amp; "_/" &amp; vntUnitCdTmp1</p>
+<p>vntStkQty1        = vntStkQty1        &amp; "_/" &amp; vntStkQtyTmp1</p>
+<p>End If</p>
+<p>End If</p>
+<p>Next</p>
+<p>AddJumpString strJumpMsg, "SONo"                , txtOrderNo.all(1).Value</p>
+<p>AddJumpString strJumpMsg, "AccUnit"                , cmbAccUnit.all(1).Value</p>
+<p>AddJumpString strJumpMsg, "No"                        , txtOrderNo.all(1).Value</p>
+<p>AddJumpString strJumpMsg, "OtrAccUnit"        , cmbAccUnit.all(1).Value</p>
+<p>AddJumpString strJumpMsg, "OtrNo"                , txtOrderNo.all(1).Value</p>
+<p>'품목, 수량을 다른 폼으로 Jump길 수 있도록 수정(적송요청, 이동요청)</p>
+<p>AddJumpString strJumpMsg, "vntRow"                , vntRow</p>
+<p>AddJumpString strJumpMsg, "vntItemNm"        , vntItemNm1</p>
+<p>AddJumpString strJumpMsg, "vntItemNo"        , vntItemNo1</p>
+<p>AddJumpString strJumpMsg, "vntSpec"                , vntSpec1</p>
+<p>AddJumpString strJumpMsg, "vntItemCd"        , vntItemCd1</p>
+<p>AddJumpString strJumpMsg, "vntUnit"                , vntUnit1</p>
+<p>AddJumpString strJumpMsg, "vntUnitCd"        , vntUnitCd1</p>
+<p>AddJumpString strJumpMsg, "vntStkQty"        , vntStkQty1</p>
+<p>End Select</p>
+<p>Call SetLocalInfoToServer(strJumpMsg + CNST_SP_LF + strURL+"?PgmID=" + strJumpPgmID)</p>
+<p>Erase strArray</p>
+<p>Form1.pageMode.value = "JumpOut"</p>
+<p>Form1.pageParam.value = strParam</p>
+<p>Call GoJumpOut(strJumpPgmID, strJumpMsg, "")        </p>
+<p>End Function</p>
+<p>'@@ Resize 시트가 여러개 일 때 만들어줘야함 (1개일 때는 필요없음)</p>
+<p>'@@ 전체를 비율로 분배하기 때문에 화면 보면서 만들어야함</p>
+<p>Sub Page_Resize()</p>
+<p>Form1.ylwsh.style.width = abs(Parent.document.body.clientWidth - cint(replace(Form1.ylwsh.style.left,"px","")) - 16 - cint(replace(DIV_content.style.left,"px","")))</p>
+<p>Form1.ylwsh.style.height = abs(Parent.document.body.clientheight - cint(replace(Form1.ylwsh.style.top,"px","")) - 8 - cint(replace(DIV_content.style.top,"px","")))</p>
+<p>End Sub</p>
+<p>' Page 초기화 작업을 코딩한다.</p>
+<p>Sub Page_Load()</p>
+</blockquote>
+<p>Form1.ylwsh.ReDraw = False</p>
+<p>If Form1.ylwsh.SheetInit(61) = False then</p>
+<p>Form1.ylwsh.MaxCols = 61</p>
+<p>End If</p>
+<p>Form1.ylwsh.AddItem "No"                                , "No"                                , EnText        , msNo                        , 3         , 0, ""</p>
+<p>Form1.ylwsh.AddItem "PNum"                                , "품번"                        , EnText        , msItemNo                , 40 , 0, "DIC;"</p>
+<p>Form1.ylwsh.AddItem "ItemNm"                        , "품명"                        , EnText        , msItemNm                , 100, 0, "DIC;NON;"</p>
+<p>Form1.ylwsh.AddItem "CustItemNm"                , "거래처품명"                , EnText        , msCustItemNm        , 100, 0, "DIC;"</p>
+<p>Form1.ylwsh.AddItem "AdSpec"                        , "규격"                        , EnText        , msSize                , 60 , 0, "DIC;"</p>
+<p>'5</p>
+<p>If "\&lt;%=_vari.S_SALESBASEPRICE%&gt;" = "0" then</p>
+<blockquote>
+<p>Form1.ylwsh.AddItem "PriceBasisUnit"        , "단가기준단위"        , EnText        , msPriceUnitNm        , 20 , 0, "DIS;SHID;"</p>
+<p>Form1.ylwsh.AddItem "UnitCost"                        , "기준단위단가"        , EnFloat        , msUnitPrice        , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, "DIS;SHID;"</p>
+<p>Else</p>
+<p>Form1.ylwsh.AddItem "PriceBasisUnit"        , "단가기준단위"        , EnText        , msPriceUnitNm        , 20 , 0, "DIS;"</p>
+<p>Form1.ylwsh.AddItem "UnitCost"                        , "기준단위단가"        , EnFloat        , msUnitPrice        , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, ""</p>
+<p>End If</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "SalUnitNm"                        , "판매단위"                , EnText        , msUnitNm                , 40 , 0, "DIC;NON;"</p>
+<p>If "\&lt;%=_vari.S_SALESBASEPRICE%&gt;" = "0" then</p>
+<blockquote>
+<p>Form1.ylwsh.AddItem "PriceBasisUnitQty"        , "단가기준단위환산율", EnFloat        , msPriceUnitQty, 25 , 13, "DIS;SHID;"</p>
+<p>Else</p>
+<p>Form1.ylwsh.AddItem "PriceBasisUnitQty"        , "단가기준단위환산율", EnFloat        , msPriceUnitQty, 25 , 13, "DIS;"</p>
+<p>End If</p>
+</blockquote>
+<p>'10</p>
+<p>If "\&lt;%=_vari.S_SALESOPTION%&gt;" = "0" then</p>
+<blockquote>
+<p>Form1.ylwsh.AddItem "UPrice"                        , "기본단가"                , EnFloat        , msBasicPrice        , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, "DIS;SHID;"</p>
+<p>Form1.ylwsh.AddItem "Opt"                                , "옵션"                        , EnButton        , msOption                , 20 , 0, "DIS;SHID;"</p>
+<p>Form1.ylwsh.AddItem "Option_Price"                , "옵션단가"                , EnFloat        , msOptionPrice        , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, "DIS;SHID;"</p>
+<p>Else</p>
+<p>Form1.ylwsh.AddItem "UPrice"                        , "기본단가"                , EnFloat        , msBasicPrice        , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, ""                </p>
+<p>Form1.ylwsh.AddItem "Opt"                                , "옵션"                        , EnButton        , msOption                , 20 , 0, "DIS;"</p>
+<p>Form1.ylwsh.AddItem "Option_Price"                , "옵션단가"                , EnFloat        , msOptionPrice        , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, "DIS;"</p>
+<p>End If</p>
+<p>Form1.ylwsh.AddItem "SalPrice"                        , "판매단가"                , EnFloat        , msOriginPrice        , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, ""</p>
+<p>If "\&lt;%=_vari.S_SALESRATE%&gt;" = "0" then</p>
+<p>Form1.ylwsh.AddItem "DCRate"                        , "할인율"                        , EnFloat        , msDCRate                , 19 , 2, "DIS;SHID;"</p>
+<p>Form1.ylwsh.AddItem "DiscSellPrice"                , "할인판매단가"        , EnFloat        , msPrice                , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, "DIS;HID;"</p>
+<p>Else</p>
+<p>Form1.ylwsh.AddItem "DCRate"                        , "할인율"                        , EnFloat        , msDCRate                , 19 , 2, ""</p>
+<p>Form1.ylwsh.AddItem "DiscSellPrice"                , "할인판매단가"        , EnFloat        , msPrice                , 19 , \&lt;%=this.Session["GoodsForCost"]%&gt;, ""</p>
+<p>End If</p>
+</blockquote>
+<p>'15</p>
+<p>Form1.ylwsh.AddItem "PriceDiv"                        , "단가구분"                , EnCombo        , msPriceDiv        , 1 , 0, "NON;"</p>
+<p>Form1.ylwsh.AddItem "Qty"                                , "수량"                        , EnFloat        , msQty                        , 19 , \&lt;%=this.Session["GoodsQry"]%&gt;, ""</p>
+<p>If "\&lt;%=_vari.D_VATINCLUDE%&gt;" = "2" then</p>
+<blockquote>
+<p>Form1.ylwsh.AddItem "BTax"                                , "부가세포함"                , EnCheck        , msVatClss                , 1 , 0, ""</p>
+<p>Else</p>
+<p>Form1.ylwsh.AddItem "BTax"                                , "부가세포함"                , EnCheck        , msVatClss                , 1 , 0, "DIS;SHID"</p>
+<p>End If</p>
+<p>Form1.ylwsh.AddItem "SellPriceAmt"                , "판매가액"                , EnFloat        , msAmt                        , 19 , \&lt;%=this.Session["GoodsForAmt"]%&gt;, ""</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "AddedTax"                        , "부가세"                        , EnFloat        , msVat                        , 19 , \&lt;%=this.Session["GoodsForAmt"]%&gt;, ""</p>
+<blockquote>
+<p>'20</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "Tot_Amt"                        , "합계금액"                , EnFloat        , msSumAmt                , 19 , \&lt;%=this.Session["GoodsForAmt"]%&gt;, ""</p>
+<p>Form1.ylwsh.AddItem "WonAmtSell_Price"        , "원화판매단가"        , EnFloat        , msKorPrice        , 19 , \&lt;%=this.Session["GoodsWonCost"]%&gt;, ""</p>
+<p>Form1.ylwsh.AddItem "WonAmtSellPriceAmt", "원화판매가액"        , EnFloat        , msKorAmt                , 19 , \&lt;%=this.Session["GoodsWonAmt"]%&gt;, ""</p>
+<p>Form1.ylwsh.AddItem "Day_01"                        , "납품기일"                , EnDate        , msDelvDate        , 10 , 0, ""</p>
+<p>Form1.ylwsh.AddItem "DeliveryPart"                , "납품시분"                , EnMask        , msDelvHour        , 5 , 0, ""                , , "##:##"</p>
+<blockquote>
+<p>'25</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "ProgQty"                        , "진행된수량"                , EnFloat        , msDelvQty                , 19 , \&lt;%=this.Session["GoodsQry"]%&gt;, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "OrderOrd"                        , "주문순번"                , EnText        , msSOSerl                , 4 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "UnitU"                                , "재고단위"                , EnText        , msstkUnitNm        , 40 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "UnitA"                                , "재고단위수량"        , EnFloat        , msStkQty                , 19 , \&lt;%=this.Session["GoodsQry"]%&gt;, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "MNum"                                , "관리번호"                , EnText        , msControlNo        , 20 , 0, "DIS;HID;"</p>
+<blockquote>
+<p>'30</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "DeliveryPlaceNew"        , "납품처신규"                , EnButton        , msDeliveryCustBtn, 40, 0, ""</p>
+<p>Form1.ylwsh.AddItem "Deliver_01"                , "납품처"                        , EnText        , msDeliveryCust, 40 , 0, "DIC;"</p>
+<p>Form1.ylwsh.AddItem "IUCode"                        , "재고단위코드"        , EnText        , msStkUnitCd        , 10 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "ItemCode"                        , "품목코드"                , EnText        , msItemCd                , 10 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "Remark"                        , "비고"                        , EnText        , msRemark                , 200, 0, ""</p>
+<blockquote>
+<p>'35</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "UCode"                                , "단위코드"                , EnText        , msUnitCd                , 10 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "BUPrice"                        , "표준원가"                , EnFloat        , msStdCost                , 19 , \&lt;%=this.Session["GoodsWonCost"]%&gt;, ""</p>
+<p>Form1.ylwsh.AddItem "TotSalCost"                , "총원가"                        , EnFloat        , msTotCost                , 19 , \&lt;%=this.Session["GoodsWonCost"]%&gt;, ""</p>
+<p>Form1.ylwsh.AddItem "ProgType"                        , "진행구분"                , EnCombo        , msProgClss        , 1 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "VatRate"                        , "부가세율"                , EnFloat        , msVatRate                , 8 , \&lt;%=this.Session["CurrQty"]%&gt;, "HID;"</p>
+<blockquote>
+<p>'40</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "AvailStk"                        , "가용재고"                , EnFloat        , msAvailStock        , 19 , \&lt;%=this.Session["GoodsQry"]%&gt;, "DIS;"</p>
+<p>Form1.ylwsh.AddItem "QuotNo"                        , "견적번호"                , EnText        , msQutoNo                , 12 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "EstA"                                , "견적차수"                , EnText        , msQutoRev                , 2 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "EstNo"                                , "견적순번"                , EnText        , msQutoSerl        , 4 , 0, "DIS;"</p>
+<p>Form1.ylwsh.AddItem "OldCustCd"                        , "OldCustCd"                , EnText        , msOldCustCd        , 6 , 0, "DIS;HID;"</p>
+<blockquote>
+<p>'45</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "OldDeptCd"                        , "OldDeptCd"                , EnText        , msOldDeptCd        , 5 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "OldEmpId"                        , "OldEmpId"                , EnText        , msOldEmpId        , 8 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "OldCurrCd"                        , "OldCurrCd"                , EnText        , msOldCurrCd        , 3 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "ConsuPrice"                , "소비자가"                , EnFloat        , msCustomPrice        , 19 , \&lt;%=this.Session["GoodsWonCost"]%&gt;, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "SalStdPrice"                , "판매기준가"                , EnFloat        , msStdSalesPrice,19 , \&lt;%=this.Session["GoodsWonCost"]%&gt;, "DIS;HID;"</p>
+<blockquote>
+<p>'50</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "SalMinPrice"                , "최저판매가"                , EnFloat        , msMinPrice        , 19 , \&lt;%=this.Session["GoodsWonCost"]%&gt;, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "StkCenter"                        , "물류센터"                , EnCombo        , msStkCenter                , 2 , 0, ""</p>
+<p>Form1.ylwsh.AddItem "PriceBasisUnitCode", "단가기준단위코드", EnText        , msPriceUnitCd        , 3 , 0, "DIS;HID;"</p>
+<p>Form1.ylwsh.AddItem "DeliveryPlaceCode"        , "납품처코드"                , EnText        , msDeliveryCustCd,9 , 0, "DIS;HID;"</p>
+<p>'54</p>
+<p>Form1.ylwsh.AddItem "VendItemNo"                , "업체품번"                , EnText        , msCustItemNo        , 40 , 0, "DIS;"</p>
+<p>Form1.ylwsh.AddItem "VendStan"                        , "업체규격"                , EnText        , msCustItemSpec, 60 , 0, "DIS;"</p>
+<p>Form1.ylwsh.AddItem "VendUnit"                        , "업체단위"                , EnText        , msCustItemUnit, 40 , 0, "DIS;"</p>
+<p>Form1.ylwsh.AddItem "OverShipPermit"        , "과출하허용"                , EnCheck        , msOverShipPermit, 1 , 0, ""</p>
+<blockquote>
+<p>'58</p>
+<p>Form1.ylwsh.AddItem "Remark2"                        , "비고2"                        , EnText        , msRemark2                , 100, 0, ""</p>
+</blockquote>
+<p>Form1.ylwsh.AddItem "test_sjpark"         , "test_sjpark"                , EnFloat        , mstest_sjpark        , 19, 0, ""</p>
+<p>Form1.ylwsh.AddItem "test_hcwoo"         , "test_hcwoo"                , EnFloat        , mstest_hcwoo        , 19, 0, ""</p>
+<p>'@@기본적으로 보여지는 시트 갯수 (기본값이 10 / 안뿌리고 싶으면 0 작성)</p>
+<p>Form1.ylwsh.AddRowsToSheet</p>
+<p>Form1.ylwsh.ReDraw = True</p>
+<blockquote>
+<p>' Form1.SS 초기화 END</p>
+<p>'@@ SheetComboInit() 없으면 초기화가 안된다</p>
+<p>Call SheetComboInit() 'Sheet Combo를 초기화 한다.</p>
+<p>Call fnFloatDecimalPlaces(txtCurrNm.all(1).TextCode)</p>
+<p>Call ActionPostBack(Form1.pageMode.value)</p>
+<p>Call SetControlKey("chkCredit", "DIS;")</p>
+<p>Call SetControlKey("chkShortAmtYn", "DIS;")</p>
+<p>End Sub</p>
+<p>' Page unload시 호출한다.</p>
+<p>'@@새로 화면이 초기화 될때마다 매번 조회할 수 없으니 파일에 저장하여 필요할 때마다 뿌린다</p>
+<p>Sub Page_UnLoad()</p>
+<p>Form1.ylwsh.SaveTitleInfo ' 쉬트 정보를 Local File에저장한다.</p>
+<p>Call SetControlKey("chkCredit", "")</p>
+<p>Call SetControlKey("chkShortAmtYn", "")</p>
+<p>End Sub</p>
+<p>' 쉬트에 데이터를 출력한다.</p>
+<p>'@@ DataDisplay - 실제로 화면에 뿌림</p>
+<p>Sub DataDisplay()</p>
+<p>Call cmbAccUnit__ctl_onChange()</p>
+<p>Call Form1.ylwsh.Display(Form1.ylwsh_Data.value)</p>
+<p>Call ylwshButtonDisplay(Form1.ylwsh_Data.value)</p>
+<p>Form1.ylwsh_Data.value = ""</p>
+<p>if txtOrderNo.All(1).value = "" then                                                'Jump할 경우에는 Query타지만 BLNo없은 것은 ADD Mode로</p>
+<p>Dim i</p>
+<p>for i = 1 to Form1.ylwsh.DataRowCnt</p>
+<p>Form1.ylwsh.SetText SS_HEADER, i, SSHD_ADD</p>
+<p>next</p>
+<p>end if        </p>
+<p>Call fnAfterProcCut</p>
+<p>End Sub</p>
+<p>Sub ylwshButtonDisplay(strylwshData)</p>
+<p>Dim i</p>
+<p>Dim ObjSheet</p>
+<p>Dim arrylwshData</p>
+<p>If "\&lt;%=_vari.S_SALESOPTION%&gt;" = "0" Then</p>
+<p>Exit Sub</p>
+<p>End If</p>
+<p>Set ObjSheet = Form1.ylwsh.GetSheet</p>
+<p>arrylwshData = SplitArray(strylwshData,CNST_SP_NT,CNST_SP_LF,CNST_SP)</p>
+<p>For i = 0 To Form1.ylwsh.DataRowCnt - 1</p>
+<p>ObjSheet.Col = Form1.ylwsh.ColX(msOption)</p>
+<p>ObjSheet.Row = i + 1</p>
+<p>ObjSheet.TypeButtonText = arrylwshData(CInt(i), 10) + "..."</p>
+<p>Next</p>
+<p>End Sub</p>
+<p>' 쉬트에 저장과 같은 처리결과를 설정한다.</p>
+<p>' @@SheetMessageCheck()를 안하면 serl에 값이 안들어감</p>
+<p>Sub SheetMessageCheck()</p>
+<p>'@@ Call Form~ 무조건 있어야함</p>
+<p>Call Form1.ylwsh.MessageCheckSaveSheet(Form1.ylwsh_Data.value, _ '@@ _ =&gt; 한칸 띄워도 이어줌</p>
+</blockquote>
+<p>2, msSOSerl, msSOSerl, _</p>
+<p>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)</p>
+<blockquote>
+<p>Form1.ylwsh_Data.value = ""</p>
+<p>End Sub</p>
+<p>' @@ 컨트롤에 대한 코드도움 설정</p>
+<p>Sub txtDeptNm_CodeHelp(IsDblClick)        ' 부서</p>
+<p>Dim arrRtnValue,strRtnSelCnt         </p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHel        p.H_DEPT%&gt;", txtDeptNm.All(1), _</p>
+<p>'@@ ========================= =&gt; 원래는 숫자인데 알아보기 편하게 명칭으로 작성</p>
+<p>'@@ d - ksystem - Common - Const - CodeHelp cs에 나와있음</p>
+<p>Nothing, Nothing, _</p>
+<p>Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>'@@ 2 1</p>
+<p>'@@ 3 4 5 6 7 8 9</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") = false then</p>
+</blockquote>
+<p>Else</p>
+<blockquote>
+<p>End If</p>
+<p>End Sub</p>
+<p>Sub txtEmpNm_CodeHelp(IsDblClick)        ' 담당자</p>
+<p>Dim arrRtnValue,strRtnSelCnt         </p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.H_EMP%&gt;", txtEmpNm.All(1), _</p>
+<p>Nothing, Nothing, _</p>
+<p>Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") = false then</p>
+</blockquote>
+<p>Else</p>
+<blockquote>
+<p>End If</p>
+<p>End Sub</p>
+<p>Sub txtCust2Nm_CodeHelp(IsDblClick)        ' 중개인</p>
+<p>Dim arrRtnValue,strRtnSelCnt         </p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.D_CUST%&gt;", txtCust2Nm.All(1), _</p>
+<p>Nothing, Nothing, _</p>
+<p>Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") = false then</p>
+</blockquote>
+<p>Else</p>
+<blockquote>
+<p>End If                                                        </p>
+<p>End Sub</p>
+<p>Sub txtCustNm_CodeHelp(IsDblClick)        ' 거래처</p>
+<p>Dim arrRtnValue,strRtnSelCnt         </p>
+<p>Dim strCustCodeCold</p>
+<p>strCustCodeCold = txtCustNm.All(1).TextCode</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.D_CUST%&gt;", txtCustNm.All(1), _</p>
+<p>Nothing, Nothing, _</p>
+<p>Nothing, Nothing, Nothing, Nothing, txtCustomerNo.All(1), Nothing, Nothing, arrRtnValue, _</p>
+<p>'@@ ==================== 7번째 (=거래처번호)</p>
+<p>'@@ ==&gt; 거래처를 가져올 때 거래처번호도 같이 가져온다</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") then</p>
+<p>If Trim(txtCustNm.All(1).TextCode) = "" Then</p>
+<p>Else</p>
+<p>Call GetCustInfo(txtCustNm.All(1).TextCode)</p>
+<p>End If</p>
+<p>If strCustCodeCold \&lt;&gt; txtCustNm.All(1).TextCode Then</p>
+<p>Call fnPriceChange(1, Form1.ylwsh.DataRowCnt)</p>
+<p>End If        </p>
+</blockquote>
+<p>Else</p>
+<blockquote>
+<p>End If                                                        </p>
+<p>End Sub</p>
+<p>Sub txtCustomerNo_CodeHelp(IsDblClick)        ' 거래처번호</p>
+<p>Dim arrRtnValue,strRtnSelCnt</p>
+<p>Dim strCustCodeCold,strCustNmOld</p>
+<p>strCustCodeCold = txtCustNm.All(1).TextCode         </p>
+<p>strCustNmOld = txtCustNm.All(1).Value</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.D_CUSTNO%&gt;", txtCustomerNo.All(1), _</p>
+<p>Nothing, txtCustNm.All(1), _</p>
+<p>Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") then</p>
+<p>If Trim(txtCustomerNo.All(1).TextCode) = "" Then</p>
+<p>txtCustNm.all(1).TextCode = strCustCodeCold</p>
+<p>txtCustNm.all(1).Text= strCustNmOld</p>
+<p>Else</p>
+<p>txtCustNm.all(1).TextCode = txtCustomerNo.all(1).TextCode</p>
+<p>Call GetCustInfo(txtCustomerNo.All(1).TextCode)</p>
+<p>End If</p>
+<p>If strCustCodeCold \&lt;&gt; txtCustNm.All(1).TextCode Then</p>
+<p>Call fnPriceChange(1, Form1.ylwsh.DataRowCnt)</p>
+<p>End If                        </p>
+</blockquote>
+<p>Else</p>
+<blockquote>
+<p>End If                                                        </p>
+<p>End Sub        </p>
+<p>Sub txtCurrNm_CodeHelp(IsDblClick)        ' 화폐</p>
+<p>Dim arrRtnValue,strRtnSelCnt</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.A_CURR%&gt;", txtCurrNm.All(1), _</p>
+<p>Nothing, Nothing, _</p>
+<p>Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") = false then</p>
+</blockquote>
+<p>Else</p>
+<blockquote>
+<p>End If</p>
+<p>Call fnFloatDecimalPlaces(txtCurrNm.all(1).TextCode)</p>
+<p>Call fnGetCurrRate()</p>
+</blockquote>
+<p>'                Dim i</p>
+<p>'                Dim vntTemp</p>
+<p>'                For i = 1 To Form1.ylwsh.DataRowCnt</p>
+<p>'                        Call CalcOrderSheet(i, 9)</p>
+<p>'                Next</p>
+<blockquote>
+<p>End Sub</p>
+</blockquote>
+<p>'        Sub datOrderDt__ctl_onChange()</p>
+<blockquote></blockquote>
+<p>'         Call fnGetCurrRate()</p>
+<blockquote></blockquote>
+<p>'        End Sub</p>
+<blockquote>
+<p>Sub fnGetCurrRate()</p>
+<p>Dim strSpNm</p>
+<p>Dim strTag</p>
+<p>Dim strParams</p>
+<p>Dim arrRtnData, strDate, strCurrCd</p>
+<p>call parent.divScreenChgZIndex(true)                ' 작업 수행하는 동안 화면 전체 Lock작업(true, false - lock 풀어줌)</p>
+<p>strDate = replace(datOrderDt.All(1).Value, "-", "")</p>
+<p>strCurrCd = txtCurrNm.All(1).TextCode</p>
+<p>strSpNm = "SSAGetCurrRate"</p>
+<p>'Parameter를 생성합니다.</p>
+<p>strParams = strParams + strSpNm + "'S' " + ",'" + _</p>
+<p>strDate + "','" + _</p>
+<p>strCurrCd + "'" + CNST_SP_LF</p>
+<p>'생성한 Parameter로 저장후 결과값을 가져옵니다.(파라메타,CommandTimeOut)</p>
+<p>arrRtnData = fnComDB(strParams, 30, "Q")</p>
+<p>If arrRtnData \&lt;&gt; "" then</p>
+<p>fltExRate.All(1).SetValue(Trim(Split(arrRtnData,CNST_SP)(0)))</p>
+<p>End If</p>
+<p>IsfltExRateChg = true</p>
+<p>if parent.fnSerializeProc(true) = false then ' 순차적으로 실행되게 합니다.</p>
+<p>call parent.divScreenChgZIndex(false)</p>
+<p>exit Sub</p>
+<p>end if        </p>
+<p>Call fltExRate__ctl_onblur()</p>
+<p>if parent.fnSerializeProc(false) = false then '순차적으로 실행되게 합니다.</p>
+<p>call parent.divScreenChgZIndex(false)</p>
+<p>exit Sub</p>
+<p>end if                         </p>
+<p>call parent.divScreenChgZIndex(false)</p>
+<p>End Sub</p>
+<p>Sub fltExRate_CodeHelp(IsDblClick)</p>
+<p>Dim arrRtnValue</p>
+<p>Dim strParameter</p>
+<p>if IsDblClick = false then</p>
+<p>Call fltExRate__ctl_onblur()</p>
+<p>exit sub</p>
+<p>End If</p>
+<p>strParameter = "ExRateDate=" + escape(replace(datOrderDt.all(1).value,"-","")) _</p>
+<p>&amp; "&amp;CurrCd=" + escape(txtCurrNm.all(1).TextCode) _</p>
+<p>&amp; "&amp;CurrNm=" + escape(txtCurrNm.all(1).Value)</p>
+<p>arrRtnValue = LoadDlgForm(true,"DlgAAGetExRate",strParameter ,GetDlgData())</p>
+<p>if typename(arrRtnValue) = "String" And Trim(arrRtnValue) \&lt;&gt; "Cancel" then</p>
+<p>Dim arrTemp</p>
+<p>arrTemp = cdbl(arrRtnValue)</p>
+<p>fltExRate.all(1).SetValue(arrTemp)</p>
+<p>end if</p>
+<p>Call fltExRate__ctl_onblur()</p>
+<p>End Sub</p>
+<p>' 쉬트에서 CodeHelp를 선택한 경우</p>
+<p>'@@ ShowDic - 시트 코드헬프 관리하는 부분 =&gt; case문으로 관리한다</p>
+<p>Sub ylwsh_ShowDic(Col, Row, NewCol, NewRow, Delete, IsDblClick)</p>
+<p>Dim arrRtnValue,strRtnSelCnt</p>
+<p>Dim ii        </p>
+<p>Dim vntTmp</p>
+<p>Dim varWhNm        </p>
+<p>Select Case Col</p>
+<p>Case Form1.ylwsh.colx(msItemNo)                '품번</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.D_GOODSNO%&gt;", Form1.ylwsh, _</p>
+<p>msItemNm, msItemNo, _</p>
+<p>Nothing, msItemcd, Nothing, msSize, msstkUnitNm, msStkUnitCd, Nothing, arrRtnValue, _</p>
+<p>'@@ 2 1</p>
+<p>'@@ 3 4 5 6 7 8 9</p>
+<p>'@@ 키값은 무조건 4번째에 들어가있다</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") then</p>
+<p>'@@ == == == == ==</p>
+<p>'@@ 마지막 5개는 제뉴인 파라미터처럼 (vntTmp)</p>
+<p>For ii = NewRow To NewRow + strRtnSelCnt - 1</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitNm), ii, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitCd), ii, ""                </p>
+<p>Form1.ylwsh.CellText(msPriceDiv, ii) = "1"                                </p>
+<p>Next</p>
+<p>Call fnPriceChange(NewRow, NewRow + strRtnSelCnt - 1)</p>
+<p>Delete = true</p>
+<p>Else</p>
+<p>End If        </p>
+</blockquote>
+<p>'                                For ii = 1 To Form1.ylwsh.DataRowCnt</p>
+<p>'                                        Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkCenter), ii, varWhNm</p>
+<p>'</p>
+<p>'                                        If Trim(varWhNm) = "" Then</p>
+<p>'                                         Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkCenter), ii, cmbWhNm.All(1).TextCode</p>
+<p>'                                        End If</p>
+<p>'                                Next                                        </p>
+<blockquote>
+<p>Case Form1.ylwsh.colx(msItemNm)                '품명</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.D_GOODS%&gt;", Form1.ylwsh, _</p>
+<p>msItemNo, msItemNm, _</p>
+<p>Nothing, msItemcd, Nothing, msSize, msstkUnitNm, msStkUnitCd, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") then</p>
+<p>For ii = NewRow To NewRow + strRtnSelCnt - 1</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitNm), ii, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitCd), ii, ""                </p>
+<p>Form1.ylwsh.CellText(msPriceDiv, ii) = "1"                        </p>
+<p>Next</p>
+<p>Call fnPriceChange(NewRow, NewRow + strRtnSelCnt - 1)</p>
+<p>Delete = true                </p>
+<p>Else</p>
+<p>End If                        </p>
+<p>Case Form1.ylwsh.colx(msSize)                '규격</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.D_GOODSDESC%&gt;", Form1.ylwsh, _</p>
+<p>msItemNm, msSize, _</p>
+<p>Nothing, msItemcd, Nothing, msItemNo, msstkUnitNm, msStkUnitCd, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") then</p>
+<p>For ii = NewRow To NewRow + strRtnSelCnt - 1</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitNm), ii, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitCd), ii, ""                </p>
+<p>Form1.ylwsh.CellText(msPriceDiv, ii) = "1"                        </p>
+<p>Next</p>
+<p>Call fnPriceChange(NewRow, NewRow + strRtnSelCnt - 1)</p>
+<p>Delete = true                </p>
+<p>Else</p>
+<p>End If                        </p>
+</blockquote>
+<p>'                                For ii = 1 To Form1.ylwsh.DataRowCnt</p>
+<p>'                                        Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkCenter), ii, varWhNm</p>
+<p>'                        </p>
+<p>'                                        If Trim(varWhNm) = "" Then</p>
+<p>'                                         Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkCenter), ii, cmbWhNm.All(1).TextCode</p>
+<p>'                                        End If</p>
+<p>'                                Next                                                                        </p>
+<blockquote>
+<p>Case Form1.ylwsh.colx(msUnitNm)                '단위</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemCd), NewRow, vntTmp                 </p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.S_ITEMSALESUNIT%&gt;", Form1.ylwsh, _</p>
+<p>Nothing, msUnitNm, _</p>
+<p>Nothing, msUnitCd, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", False, _</p>
+<p>vntTmp, "1", "", "", "") then</p>
+<p>Call fnGetItemStkQty(NewRow)</p>
+<p>Call CalcOrderSheet(NewRow, 8)</p>
+<p>Delete = True                </p>
+<p>Else</p>
+<p>End If                </p>
+<p>Case Form1.ylwsh.colx(msDeliveryCust)                '납품처</p>
+<p>vntTmp = txtCustNm.all(1).TextCode</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.S_DELIVERYCUST%&gt;", Form1.ylwsh, _</p>
+<p>Nothing, msDeliveryCust, _</p>
+<p>Nothing, msDeliveryCustCd, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>vntTmp, "", "", "", "") = false then</p>
+<p>Else</p>
+<p>End If                </p>
+<p>Case Form1.ylwsh.colx(msCustItemNm)                '거래처품번</p>
+<p>Dim strCustCd</p>
+<p>strCustCd = txtCustNm.All(1).TextCode</p>
+<p>If strCustCd = "" Then Exit Sub</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.D_CUSTGOODSNM%&gt;", Form1.ylwsh, _</p>
+<p>msItemNm, msCustItemNm, _</p>
+<p>Nothing, msItemCd, Nothing, msItemNo, msSize, msstkUnitNm, msStkUnitCd, arrRtnValue, _</p>
+<p>IsDblClick, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>strCustCd, "", "", "", "") then                </p>
+<p>For ii = NewRow To NewRow + strRtnSelCnt - 1</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitNm), ii, ""</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msUnitCd), ii, ""                </p>
+<p>Form1.ylwsh.CellText(msPriceDiv, ii) = "1"                        </p>
+<p>Next</p>
+<p>Call fnPriceChange(NewRow, NewRow + strRtnSelCnt - 1)</p>
+<p>Delete = true                </p>
+<p>Else</p>
+<p>End If                                                                                                                                </p>
+<p>End Select</p>
+<p>End Sub        </p>
+<p>'@@ ylwsh_Change = 시트 변경 있을 때 이벤트</p>
+<p>'@@ ex. 5행의 7번째 컬럼 변경 =&gt; Row=5 / Col=7이 들어간다</p>
+<p>Private Sub ylwsh_Change(Col, Row)</p>
+<p>If gstrOpen = True Then Exit Sub</p>
+<p>Dim vntKorprice</p>
+</blockquote>
+<p>if parent.fnSerializeProc(true) = false then ' 순차적으로 실행되게 합니다.</p>
+<p>exit Sub</p>
+<p>end if        </p>
+<blockquote>
+<p>If gstrOpen = True Then Exit Sub</p>
+<p>If Form1.ylwsh.EditCol = 0 Then Exit Sub</p>
+<p>If Form1.ylwsh.ColX(msPriceDiv) = Col Then</p>
+<p>If Form1.ylwsh.CellText(msPriceDiv, Row) = "9" Then</p>
+<p>Form1.ylwsh.CellText(msUnitPrice, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msBasicPrice, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msOptionPrice, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msOriginPrice, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msPrice, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msAmt, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msVat, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msSumAmt, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msKorPrice, Row) = 0</p>
+<p>Form1.ylwsh.CellText(msKorAmt, Row) = 0</p>
+<p>Call fnAfterProcCut</p>
+<p>End If</p>
+<p>'Exit Sub</p>
+<p>End If</p>
+<p>' nType --&gt; 0: 공급단가 변경시</p>
+<p>' 1: 수량 변경시</p>
+<p>' 2: 부가세여부 변경시</p>
+<p>' 3; 부가세, 공급금액 변경시</p>
+<p>' 4: 기본단가, 옵션단가 변경시</p>
+<p>' 5: 할인율 변경시</p>
+<p>' 6: 할인단가 변경시</p>
+<p>' 7: 원화단가 변경시</p>
+<p>If Form1.ylwsh.ColX(msUnitPrice) = Col Then '단위단가 변경</p>
+<p>Call fnGetItemStkQty(Row) '기본단가 다시 계산해옴</p>
+<p>Call CalcOrderSheet(Row, 8)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msKorPrice) = Col Then ' 원화단가</p>
+<p>If "\&lt;%=_vari.D_WONCURR%&gt;" = txtCurrNm.All(1).TextCode Or Trim(txtCurrNm.All(1).TextCode) = "" Then</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msKorPrice), Row, vntKorprice</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msPrice), Row, vntKorprice</p>
+<p>Call CalcOrderSheet(Row, 6) '원화인 경우는 먼저 원화단가를 할인단가에 쏴주고 시작</p>
+<p>Else</p>
+<p>Call CalcOrderSheet(Row, 7)</p>
+<p>End If</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msOriginPrice) = Col Then ' 공급단가</p>
+<p>Call CalcOrderSheet(Row, 0)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If (Form1.ylwsh.ColX(msBasicPrice) = Col Or Form1.ylwsh.ColX(msOptionPrice) = Col) Then ' 기본단가, 옵션단가</p>
+<p>Call CalcOrderSheet(Row, 4)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msAmt) = Col Then ' 공급금액</p>
+<p>Call CalcOrderSheet(Row, 11)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msVat) = Col Then ' 부가세</p>
+<p>Call CalcOrderSheet(Row, 3)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msQty) = Col Then ' 수량</p>
+<p>Call fnGetItemStkQty(Row)</p>
+<p>Call CalcOrderSheet(Row, 1)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msVatClss) = Col Then ' 부가세여부(기준원화가 아닐 경우에도 부가세 계산 되도록 수정)</p>
+</blockquote>
+<p>'         If "\&lt;%=_vari.D_WONCURR%&gt;" = txtCurrNm.All(1).TextCode Or Trim(txtCurrNm.All(1).TextCode) = "" Then</p>
+<p>'         Call CalcOrderSheet(Row, 2)</p>
+<p>'         Else</p>
+<p>'         If Form1.ylwsh.CellText(Form1.ylwsh.ColX(msVatClss), Form1.ylwsh.ActiveRow) = "0" Then</p>
+<p>'         Form1.ylwsh.SetText Form1.ylwsh.ColX(msVatClss), Form1.ylwsh.ActiveRow, "1"</p>
+<p>'         Else</p>
+<p>'         Form1.ylwsh.SetText Form1.ylwsh.ColX(msVatClss), Form1.ylwsh.ActiveRow, "0"</p>
+<p>'         End If</p>
+<p>'         End If</p>
+<blockquote>
+<p>Call CalcOrderSheet(Row, 2)</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msDCRate) = Col Then ' 할인율</p>
+<p>Call CalcOrderSheet(Row, 5)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+<p>If Form1.ylwsh.ColX(msPrice) = Col Then ' 할인단가</p>
+<p>Call CalcOrderSheet(Row, 6)</p>
+<p>'Form1.ylwsh.EditCol = 0</p>
+<p>End If</p>
+</blockquote>
+<p>if parent.fnSerializeProc(false) = false then '순차적으로 실행되게 합니다.</p>
+<p>exit Sub</p>
+<p>end if        </p>
+<blockquote>
+<p>End Sub</p>
+<p>'차수 등록</p>
+<p>Private Sub cmdRev_OnClick()</p>
+<p>If Trim(txtOrderNo.All(1).Value) = "" Then Exit Sub        </p>
+<p>Call Save("RV")</p>
+<p>End Sub        </p>
+</blockquote>
+<p>'        '일괄 창고 입력 (2004.8.31 k2에서 물류센터로 바뀌면서 삭제)</p>
+<p>'        Private Sub cmdWhNm_OnClick()                </p>
+<p>'                Dim objSalesCommFn</p>
+<p>'                set objSalesCommFn = CreateObject("YlwCommonSales.clsCommonSales")        </p>
+<p>'        </p>
+<p>'                If cmbWhNm.All(1).Value \&lt;&gt; "" Then</p>
+<p>'                        Call objSalesCommFn.fnDataIntoSheet(Form1.ylwsh, cmbWhNm.All(1).Value, msStkCenter)</p>
+<p>'                End If</p>
+<p>'                Set objSalesCommFn = Nothing</p>
+<p>'        End Sub                        </p>
+<blockquote>
+<p>'가용재고 Check</p>
+<p>Private Sub cmdChkAvailStock_OnClick()</p>
+<p>Dim objSalesCommFn</p>
+<p>IF Form1.ylwsh.DataRowCnt = 0 then Exit Sub</p>
+<p>set objSalesCommFn = CreateObject("YlwCommonSales.clsCommonSales")        </p>
+<p>If objSalesCommFn.fnAvailStockCheck2(Form1.ylwsh, m_strHostInfo, _</p>
+<p>cmbAccUnit.All(1).Value, replace(datOrderDt.All(1).Value, "-", ""), _</p>
+<p>msItemCd, msStkCenter, msAvailStock) = False Then</p>
+<p>End If</p>
+<p>Set objSalesCommFn = Nothing</p>
+<p>End Sub        </p>
+<p>'환율 정보</p>
+<p>Sub fltExRate__ctl_onblur()</p>
+<p>If IsfltExRateChg = false Then Exit Sub</p>
+<p>If fltExRate.All(1).Value = "" Or fltExRate.All(1).Value = 0 Then fltExRate.All(1).SetValue(1)</p>
+<p>Dim nRow</p>
+<p>Dim vHeader</p>
+<p>If fltExRate.All(1).Value \&lt;&gt; "" Or fltExRate.All(1).Value \&lt;&gt; 0 Then</p>
+<p>For nRow = 1 To Form1.ylwsh.DataRowCnt Step 1</p>
+<p>Call CalcOrderSheet(nRow, 9)</p>
+<p>Form1.ylwsh.GetText SS_HEADER, nRow, vHeader</p>
+<p>If vHeader \&lt;&gt; SSHD_ADD Then</p>
+<p>Form1.ylwsh.SetText SS_HEADER, nRow, SSHD_UPDATE</p>
+<p>End If</p>
+<p>Next</p>
+<p>End If</p>
+<p>End Sub        </p>
+<p>Sub fltExRate__ctl_OnChange()</p>
+<p>IsfltExRateChg = true</p>
+<p>End Sub</p>
+<p>'할인율 변경 할때(적용 안됨)</p>
+<p>Private Sub fltDCRate__ctl_onblur()</p>
+<p>Dim nRow</p>
+<p>Dim vntTmp</p>
+<p>Dim vntPrice</p>
+<p>Dim vntKorprice</p>
+<p>Dim vntQty</p>
+<p>Dim vntDCRate</p>
+<p>Dim vntHeader</p>
+<p>vntDCRate = fltDCRate.All(1).Value</p>
+<p>For nRow = 1 To Form1.ylwsh.DataRowCnt Step 1</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msDCRate), nRow, vntDCRate</p>
+<p>Call CalcOrderSheet(nRow, 5)</p>
+<p>Form1.ylwsh.GetText SS_HEADER, nRow, vntHeader</p>
+<p>If vntHeader \&lt;&gt; SSHD_ADD Then</p>
+<p>Form1.ylwsh.SetText SS_HEADER, nRow, SSHD_UPDATE</p>
+<p>End If</p>
+<p>Next</p>
+<p>End Sub                </p>
+</blockquote>
+<p>'단가 적용        </p>
+<blockquote>
+<p>Private Sub cmdPriceChange_OnClick()</p>
+<p>Call fnPriceChange(1, Form1.ylwsh.DataRowCnt)</p>
+<p>End Sub                                        </p>
+<p>Sub fnFloatDecimalPlaces(strCurrCd)                        'Sheet 칼럼 자리수 설정</p>
+<p>Dim FloatDecimalPlacesAmt, FloatDecimalPlacesCost, objylwsh</p>
+<p>If Trim(txtCurrNm.all(1).TextCode) = "" Then</p>
+<p>txtCurrNm.all(1).TextCode        = "\&lt;%=_vari.D_WONCURR%&gt;"</p>
+<p>txtCurrNm.all(1).Value                = "\&lt;%=_vari.D_WONCURR%&gt;"</p>
+<p>strCurrCd                                        = "\&lt;%=_vari.D_WONCURR%&gt;"</p>
+<p>End If</p>
+<p>If Trim(strCurrCd) = Trim("\&lt;%=_vari.D_WONCURR%&gt;") Then</p>
+<p>FloatDecimalPlacesAmt = \&lt;%=this.Session["GoodsWonAmt"].ToString()%&gt;</p>
+<p>FloatDecimalPlacesCost = \&lt;%=this.Session["GoodsWonCost"].ToString()%&gt;</p>
+<p>Else</p>
+<p>FloatDecimalPlacesAmt = \&lt;%=this.Session["GoodsForAmt"].ToString()%&gt;</p>
+<p>FloatDecimalPlacesCost = \&lt;%=this.Session["GoodsForCost"].ToString()%&gt;</p>
+<p>End If</p>
+<p>'Dim objSalesCommFn</p>
+<p>'set objSalesCommFn = CreateObject("YlwCommonSales.clsCommonSales")</p>
+<p>'Call objSalesCommFn.SetFloatDecimalPlaces(Form1.ylwsh, cint(FloatDecimalPlacesAmt), msAmt)</p>
+<p>'Call objSalesCommFn.SetFloatDecimalPlaces(Form1.ylwsh, cint(FloatDecimalPlacesAmt), msSumAmt)</p>
+<p>'Call objSalesCommFn.SetFloatDecimalPlaces(Form1.ylwsh, cint(FloatDecimalPlacesCost), msUnitPrice)</p>
+<p>'Call objSalesCommFn.SetFloatDecimalPlaces(Form1.ylwsh, cint(FloatDecimalPlacesCost), msBasicPrice)</p>
+<p>'Call objSalesCommFn.SetFloatDecimalPlaces(Form1.ylwsh, cint(FloatDecimalPlacesCost), msOptionPrice)</p>
+<p>'Call objSalesCommFn.SetFloatDecimalPlaces(Form1.ylwsh, cint(FloatDecimalPlacesCost), msOriginPrice)</p>
+<p>'Call objSalesCommFn.SetFloatDecimalPlaces(Form1.ylwsh, cint(FloatDecimalPlacesCost), msPrice)</p>
+<p>'Set objSalesCommFn = Nothing</p>
+<p>set objylwsh = Form1.ylwsh.GetSheet</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msAmt)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesAmt)</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msSumAmt)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesAmt)</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msUnitPrice)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesCost)</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msBasicPrice)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesCost)</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msOptionPrice)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesCost)</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msOriginPrice)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesCost)</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msPrice)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesCost)</p>
+<p>Form1.ylwsh.Col = Form1.ylwsh.ColX(msVat)</p>
+<p>Form1.ylwsh.Row = -1</p>
+<p>objylwsh.TypeFloatDecimalPlaces = cint(FloatDecimalPlacesAmt)                </p>
+<p>set objylwsh = nothing                                        </p>
+<p>End Sub        </p>
+<p>'단가 적용</p>
+<p>Private Function fnPriceChange( nStartRow, nEndRow)</p>
+<p>fnPriceChange = true</p>
+<p>Dim objSalesCommFn</p>
+<p>set objSalesCommFn = CreateObject("YlwCommonSales.clsCommonSales")</p>
+<p>fnPriceChange = objSalesCommFn.fnPriceChange2( _</p>
+<p>Form1.ylwsh, m_strHostInfo, nStartRow, nEndRow, _</p>
+<p>txtCustNm.all(1).TextCode, txtCurrNm.all(1).TextCode, _</p>
+<p>Trim(cmbAccUnit.all(1).value), txtDeptNm.all(1).TextCode, _</p>
+<p>datOrderDt.all(1).Value, _</p>
+<p>msItemCd, msUnitCd, msStkUnitCd, msQty, _</p>
+<p>msBasicPrice, msVatClss, msStkQty, msVatRate, _</p>
+<p>msUnitCd, msUnitNm, msStkCenter, msPriceUnitCd, _</p>
+<p>msPriceUnitNm, msPriceUnitQty, msUnitPrice, _</p>
+<p>msStdCost, msTotCost, msStdSalesPrice, _</p>
+<p>msCustomPrice, msMinPrice)                </p>
+<p>Set objSalesCommFn = Nothing</p>
+<p>' 시트 변경</p>
+<p>Dim lngRow</p>
+<p>If fnPriceChange = true Then</p>
+<p>For lngRow = nStartRow To nEndRow</p>
+<p>Call CalcOrderSheet(lngRow, 8)</p>
+<p>Next</p>
+<p>End If</p>
+<p>Exit Function</p>
+<p>fnPriceChange = false</p>
+<p>Set objSalesCommFn = Nothing</p>
+<p>End Function        </p>
+<p>'재고단위수량</p>
+<p>Private Function fnGetItemStkQty(lngRow)</p>
+<p>fnGetItemStkQty = True</p>
+<p>Dim objSalesCommFn</p>
+<p>set objSalesCommFn = CreateObject("YlwCommonSales.clsCommonSales")                </p>
+<p>fnGetItemStkQty = objSalesCommFn.fnGetItemStkQty( _</p>
+<p>Form1.ylwsh, m_strHostInfo, lngRow, _</p>
+<p>msItemCd, msUnitCd, msStkUnitCd, msQty, msPriceUnitCd, _</p>
+<p>msUnitPrice, msStkQty, msPriceUnitQty, msBasicPrice, msPriceUnitNm)</p>
+<p>Set objSalesCommFn = Nothing</p>
+<p>End Function        </p>
+<p>'거래처별 담당자 등록(거래처 코드도움시)</p>
+<p>Private Sub GetCustInfo(strCust)</p>
+<p>Dim objSalesCommFn</p>
+<p>set objSalesCommFn = CreateObject("YlwCommonSales.clsCommonSales")                        </p>
+<p>Call objSalesCommFn.GetCustInfo(m_strHostInfo, strCust, Rtrim(cmbAccUnit.All(1).Value), _</p>
+<p>txtDeptNm.All(1), txtEmpNm.All(1))</p>
+<p>Set objSalesCommFn = Nothing</p>
+<p>End Sub        </p>
+<p>'Sheet 계산</p>
+<p>Sub CalcOrderSheet(nSheetRow, nType)</p>
+<p>If gstrOpen = True Then Exit Sub</p>
+<p>If CDbl(fltExRate.All(1).Value) = 0 Then</p>
+<p>fltExRate.All(1).SetValue(1)</p>
+<p>End If</p>
+<p>If txtCurrNm.All(1).Value = "" Then</p>
+<p>txtCurrNm.All(1).Value = "\&lt;%=_vari.D_WONCURR%&gt;"</p>
+<p>txtCurrNm.All(1).TextCode = "\&lt;%=_vari.D_WONCURR%&gt;"</p>
+<p>End If</p>
+<p>Dim objSalesCommFn</p>
+<p>set objSalesCommFn = CreateObject("YlwCommonSales.clsCommonSales")</p>
+<p>Dim strPointType</p>
+<p>'금액 0:절사 , 1:반올림</p>
+<p>strPointType="\&lt;%=this.Session["PointType"]%&gt;"</p>
+<p>if strPointType="0" then</p>
+<p>strPointType="-1"</p>
+<p>Else</p>
+<p>strPointType="0"</p>
+<p>End if</p>
+<p>'strPointType, _</p>
+<p>Call objSalesCommFn.SetSalesData(Form1.hidSalesCommon.value)</p>
+<p>'Private Const m_strHostInfo = "<a href="http://localhost/~,KSystem.Net/~,Common/Form/CodeHelp/FrmCodeHelp.aspx~,Common/Form/ProcForm/FrmProcForm.aspx~,SrErp3|0||">http://localhost/~,KSystem.Net/~,Common/Form/CodeHelp/FrmCodeHelp.aspx~,Common/Form/ProcForm/FrmProcForm.aspx~,SrErp3|0||</a>"</p>
+<p>'m_strHostInfo은 경로 값..</p>
+<p>Call objSalesCommFn.CalcSheet(nSheetRow, cint(nType), Form1.ylwsh, m_strHostInfo, cstr(txtCurrNm.All(1).TextCode), fltExRate.All(1).Value, _</p>
+<p>msItemNm, msQty, msPriceUnitQty, msUnitPrice, msPrice, msKorPrice, msAmt, msKorAmt, msSumAmt, _</p>
+<p>msOptionPrice, msBasicPrice, msVatClss, msVatRate, msVat, msOriginPrice, msDCRate,0,0,0,0,strPointType)</p>
+<p>Set objSalesCommFn = Nothing</p>
+<p>'''''''' 추가 부분(Local 시 부가세 0로)</p>
+<p>Dim vntRepAmt, vntKorprice, vntQty</p>
+<p>If GetOptionData(Form1, "optExpClss") \&lt;&gt; "1" Then                '옵션값 가지고 올때.</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msVat), nSheetRow, 0</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msAmt), nSheetRow, vntRepAmt</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msKorPrice), nSheetRow, vntKorprice</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msQty), nSheetRow, vntQty</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msSumAmt), nSheetRow, vntRepAmt</p>
+<p>If nType = 7 Then</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msKorAmt), nSheetRow, ReNumber(vntKorprice * vntQty, \&lt;%=Session["GoodsWonAmt"]%&gt;,true)</p>
+<p>Else</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msKorAmt), nSheetRow, ReNumber((vntRepAmt * CDbl(fltExRate.All(1).Value)), \&lt;%=Session["GoodsWonAmt"]%&gt;, 0, true)</p>
+<p>End If</p>
+<p>End If</p>
+<p>Call fnAfterProcCut</p>
+<p>End Sub        </p>
+<p>Sub fnAfterProcCut()</p>
+<p>fltTotSupplyAmt.All(1).SetValue(Form1.ylwsh.GetSumCols(Form1.ylwsh.ColX(msAmt)))</p>
+<p>fltTotTaxAmt.All(1).SetValue(Form1.ylwsh.GetSumCols(Form1.ylwsh.ColX(msVat)))</p>
+<p>fltTotalAmt.All(1).SetValue(CDbl(fltTotSupplyAmt.All(1).Value) + CDbl(fltTotTaxAmt.All(1).Value))</p>
+<p>End Sub</p>
+<p>Sub ChkFixYn_OnClick()</p>
+<p>If "\&lt;%=_vari.S_CONFIRMSAORDER%&gt;" \&lt;&gt; "1" Then Exit Sub</p>
+<p>If txtOrderNo.all(1).Value = "" Then '' 신규등록인 경우</p>
+<p>If Form1.ChkFixYn.Checked = true Then</p>
+<p>If trim("\&lt;%=vntConfirmOkSecu%&gt;") \&lt;&gt;"1" Then</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.USERCONFIRMOK, "확정 처리 권한이 없는 사용자 입니다.")%&gt;")</p>
+<p>Form1.ChkFixYn.Checked = true</p>
+<p>Else</p>
+<p>'Form1.ChkFixYn.Checked = true</p>
+<p>End If</p>
+<p>Else</p>
+<p>'Form1.ChkFixYn.Checked = false</p>
+<p>End If</p>
+<p>Else '' 조회된 데이타에 대해서 확정,확정취소처리 하는 경우</p>
+<p>If Form1.ChkFixYn.Checked = true Then</p>
+<p>If trim("\&lt;%=vntConfirmOkSecu%&gt;") \&lt;&gt;"1" Then</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.USERCONFIRMOK, "확정 처리 권한이 없는 사용자 입니다.")%&gt;")</p>
+<p>Form1.ChkFixYn.Checked = false</p>
+<p>Else</p>
+<p>'Form1.ChkFixYn.Checked = true</p>
+<p>If IsDataChanged() = True And Form1.ylwsh.ChangedCount &gt; 0 Then ' 데이터 변경여부 확인</p>
+</blockquote>
+<p>Dim bulbtn</p>
+<blockquote>
+<p>bulBtn = MessageBox("내용이 변경되었습니다. 저장하시겠습니까?", vbYesNo) ' 데이터가 변경되었습니다. + VbLf + 저장하시겠습니까?</p>
+<p>If bulBtn = vbYes then</p>
+<p>Form1.ChkFixYn.Checked = False</p>
+<p>Call Save("")</p>
+<p>Exit Sub</p>
+<p>End If</p>
+<p>Form1.ChkFixYn.Checked = true</p>
+<p>End If</p>
+<p>Call fnConfirm</p>
+<p>End If</p>
+<p>ElseIf Form1.ChkFixYn.Checked = false Then</p>
+<p>If trim("\&lt;%=vntConfirmCanSecu%&gt;") \&lt;&gt;"1" Then</p>
+<p>MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.USERCONFIRMCANCEL, "확정 취소 권한이 없는 사용자 입니다.")%&gt;")</p>
+<p>Form1.ChkFixYn.Checked = true</p>
+<p>Else</p>
+<p>'Form1.ChkFixYn.Checked = false</p>
+<p>Call fnConfirm</p>
+<p>End If</p>
+<p>End If</p>
+<p>End If</p>
+<p>datOrderDt.all(1).Focus</p>
+<p>End Sub</p>
+<p>Sub fnConfirm()</p>
+<p>Dim szWorkingTag ' C : 확정처리, U : 확정취소처리</p>
+<p>Dim strSpNm</p>
+<p>Dim strTag</p>
+<p>Dim strParams</p>
+<p>Dim arrRtnData</p>
+<p>If Form1.ChkFixYn.Checked = true Then</p>
+<p>szWorkingTag = "C" '' 확정처리</p>
+<p>Else</p>
+<p>szWorkingTag = "U" '' 확정취소처리</p>
+<p>End If</p>
+<p>strSpNm = "SSASalesOrderConfirm"</p>
+<p>'Parameter를 생성합니다.</p>
+<p>strParams = strParams + strSpNm + " '" + szWorkingTag + "' " + ",'" + _</p>
+<p>cmbAccUnit.all(1).Value + "','" + _</p>
+<p>txtOrderNo.all(1).Value + "','" + _</p>
+<p>"\&lt;%=_page.EmpID%&gt;" + "'" + CNST_SP_LF</p>
+<p>'생성한 Parameter로 저장후 결과값을 가져옵니다.(파라메타,CommandTimeOut)</p>
+<p>arrRtnData = fnComSave(strParams, 30)</p>
+<p>If arrRtnData \&lt;&gt; "" then</p>
+<p>If Trim(ucase(Split(arrRtnData,CNST_SP)(2))) \&lt;&gt; "#ERROR" Then</p>
+<p>if Split(arrRtnData,CNST_SP)(2) \&lt;&gt; "" then</p>
+<p>datFixDate.all(1).Value = left(Split(arrRtnData,CNST_SP)(2),4) + "-" + Mid(Split(arrRtnData,CNST_SP)(2),5,2) + "-" + right(Split(arrRtnData,CNST_SP)(2),2)</p>
+<p>else</p>
+<p>datFixDate.all(1).Value = ""</p>
+<p>end if</p>
+<p>txtFixEmpNo.all(1).Value = Split(arrRtnData,CNST_SP)(3)</p>
+<p>call MessageBoxShow(Split(arrRtnData,CNST_SP)(1))</p>
+<p>Else</p>
+<p>If Form1.ChkFixYn.Checked = true Then</p>
+<p>Form1.ChkFixYn.Checked = false</p>
+<p>Else</p>
+<p>Form1.ChkFixYn.Checked = true</p>
+<p>End If</p>
+<p>call MessageBoxShow(Split(arrRtnData,CNST_SP)(1))</p>
+<p>End If</p>
+<p>End If</p>
+<p>End Sub</p>
+<p>Sub cmdStockList_OnClick()        ' 재고상세현황</p>
+<p>'LoadDlgForm(모달여부,폼ID,Parameter,폼정보)</p>
+<p>'폼ID는 여러Dialog중 Open할 폼ID를 기입한다.</p>
+<p>'Parameter(QueryString)는 =과&amp;를 구분자로 만든다 ex) "CustID=11&amp;CustNm=홍길동"</p>
+<p>'GetDlgData():폼로드시 가져온 Dialog정보를 가져온다.</p>
+<p>Dim arrRtnValue</p>
+<p>Dim strParameter</p>
+<p>Dim i</p>
+<p>Dim varTemp, varWhcd, varQty, vntRowNo, vntItemCd, vntWhCd, vntQty, vntAccUnitMti</p>
+</blockquote>
+<p>If Form1.ylwsh.DataRowCnt = 0 Then Exit Sub</p>
+<p>For i = 1 To Form1.ylwsh.DataRowCnt Step 1</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemCd), i, varTemp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkCenter), i, varWhcd</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkQty), i, varQty</p>
+<blockquote>
+<p>if varQty = "" then</p>
+<p>varQty = 0</p>
+<p>end if</p>
+</blockquote>
+<p>If i = 1 Then</p>
+<p>vntRowNo = Cstr(i)</p>
+<p>vntItemCd = varTemp</p>
+<p>vntWhCd = Right(varWhcd, 2)</p>
+<p>vntQty = cstr(varQty)</p>
+<p>vntAccUnitMti = cmbAccUnit.all(1).Value</p>
+<p>Else</p>
+<p>vntRowNo = vntRowNo &amp; "_/" &amp; cstr(i)</p>
+<p>vntItemCd = vntItemCd &amp; "_/" &amp; varTemp</p>
+<p>vntWhCd = vntWhCd &amp; "_/" &amp; Right(varWhcd, 2)</p>
+<p>vntQty = vntQty &amp; "_/" &amp; varQty</p>
+<p>vntAccUnitMti = vntAccUnitMti &amp; "_/" &amp; cmbAccUnit.all(1).Value</p>
+<p>End If</p>
+<p>Next</p>
+<p>strParameter ="DeptCd=" + vntAccUnitMti _</p>
+<blockquote>
+<p>&amp; "&amp;RowCount=" + escape(cstr(Form1.ylwsh.DataRowCnt)) _</p>
+<p>&amp; "&amp;RowNo=" + escape(vntRowNo) _</p>
+<p>&amp; "&amp;Qty=" + escape(vntQty) _</p>
+<p>&amp; "&amp;ItemCd=" + escape(vntItemCd) _</p>
+<p>&amp; "&amp;WhCd=" + escape(vntWhCd) _</p>
+<p>&amp; "&amp;Date=" + escape(Replace(datOrderDt.all(1).Value, "-", ""))</p>
+<p>'Dlg종료후 Return받은값</p>
+<p>arrRtnValue = LoadDlgForm(true,"DlgSAItemStock2",strParameter ,GetDlgData())</p>
+<p>Dim arrTemp</p>
+<p>arrTemp = split(arrRtnValue,CNST_SP)</p>
+<p>dim strJumpMsg</p>
+<p>strJumpMsg = arrRtnValue</p>
+<p>Dim RowNo(), WhCd(), intSheetMax, intSheetIndex, intDeli</p>
+<p>Dim strCode, cnt</p>
+<p>Dim szWHValue, strTemp</p>
+<p>If Trim(strJumpMsg) \&lt;&gt; "" Then</p>
+<p>if JumpStringToSplit(strJumpMsg, szWHValue) = True Then</p>
+<p>intSheetMax = UBound(szWHValue, 1)</p>
+<p>For intSheetIndex = 1 To intSheetMax</p>
+<p>Select Case szWHValue(intSheetIndex, 1)</p>
+<p>Case "WhCd"</p>
+<p>strTemp = szWHValue(intSheetIndex, 2)</p>
+<p>cnt = 0</p>
+<p>Do While True</p>
+<p>intDeli = InStr(1, strTemp, "_/", vbTextCompare)</p>
+<p>If intDeli &gt; 0 Then</p>
+<p>strCode = Trim(Mid(strTemp, 1, intDeli - 1))</p>
+<p>strTemp = Mid(strTemp, intDeli + 2, Len(strTemp) - intDeli)</p>
+<p>Else</p>
+<p>strCode = strTemp</p>
+<p>strTemp = ""</p>
+<p>End If</p>
+<p>cnt = cnt + 1</p>
+<p>'WhCd(cnt) = strCode</p>
+<p>Form1.ylwsh.Celltext(msStkCenter, cnt) = strCode</p>
+<p>Form1.ylwsh.GetText SS_HEADER, cnt, strCode</p>
+<p>If Trim(strCode) = "" then</p>
+<p>Form1.ylwsh.SetText SS_HEADER, cnt, SSHD_UPDATE</p>
+<p>End If                                                </p>
+<p>If Trim(strTemp) = "" Then Exit Do</p>
+<p>Loop</p>
+<p>End Select</p>
+<p>Next</p>
+<p>End If</p>
+<p>End If</p>
+<p>end sub</p>
+<p>Sub CmdStkCenter_onClick()</p>
+<p>dim i</p>
+<p>For i = 1 to form1.ylwsh.DataRowCnt</p>
+<p>Form1.ylwsh.Celltext(msStkCenter, i) = cmbStkCenter.All(1).value</p>
+<p>if Form1.ylwsh.Celltext(0, i) \&lt;&gt; SSHD_ADD then</p>
+<p>Form1.ylwsh.Celltext(0, i) = SSHD_UPDATE</p>
+<p>end if</p>
+<p>Next</p>
+<p>End Sub</p>
+<p>'예상이익</p>
+<p>Sub cmdEstProfit_onClick()</p>
+<p>dim arrRtnValue, strParameter, i</p>
+<p>Dim vntRowNo</p>
+<p>Dim vntItemCd</p>
+<p>Dim vntQty</p>
+<p>Dim vntItemCdTmp</p>
+</blockquote>
+<p>Dim vntUnitCd</p>
+<p>Dim vntPrice</p>
+<p>Dim vntAmt</p>
+<blockquote>
+<p>Dim vntItemNm</p>
+<p>Dim vntItemNo</p>
+</blockquote>
+<p>Dim vntSalesStdCost</p>
+<p>Dim vntTotalStdCost</p>
+<p>Dim vntPriceTmp</p>
+<p>Dim vntQtyTmp</p>
+<p>Dim vntAmtTmp</p>
+<p>Dim vntSalesStdCostTmp</p>
+<p>Dim vntTotalStdCostTmp</p>
+<p>Dim vntUnitCdTmp</p>
+<p>Dim vntItemNmTmp</p>
+<p>Dim vntItemNoTmp</p>
+<p>If Form1.ylwsh.DataRowCnt = 0 Then Exit Sub</p>
+<p>For i = 1 To Form1.ylwsh.DataRowCnt</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemCd), i, vntItemCdTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msKorPrice), i, vntPriceTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msStkQty), i, vntQtyTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msKorAmt), i, vntAmtTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msStdCost), i, vntSalesStdCostTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msTotCost), i, vntTotalStdCostTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msUnitCd), i, vntUnitCdTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemNm), i, vntItemNmTmp</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemNo), i, vntItemNoTmp</p>
+<p>If i = 1 Then</p>
+<p>vntRowNo = cstr(i)</p>
+<p>vntItemCd = vntItemCdTmp</p>
+<p>vntPrice = vntPriceTmp</p>
+<p>vntQty = vntQtyTmp</p>
+<p>vntAmt = vntAmtTmp</p>
+<p>vntSalesStdCost = vntSalesStdCostTmp</p>
+<p>vntTotalStdCost = vntTotalStdCostTmp</p>
+<p>vntUnitCd = vntUnitCdTmp</p>
+<p>vntItemNm = vntItemNmTmp</p>
+<p>vntItemNo = vntItemNoTmp</p>
+<p>Else</p>
+<p>vntRowNo = vntRowNo &amp; "_/" &amp; cstr(i)</p>
+<p>vntItemCd = vntItemCd &amp; "_/" &amp; vntItemCdTmp</p>
+<p>vntUnitCd = vntUnitCd &amp; "_/" &amp; vntUnitCdTmp</p>
+<p>vntPrice = vntPrice &amp; "_/" &amp; vntPriceTmp</p>
+<p>vntQty = vntQty &amp; "_/" &amp; vntQtyTmp</p>
+<p>vntAmt = vntAmt &amp; "_/" &amp; vntAmtTmp</p>
+<p>vntSalesStdCost = vntSalesStdCost &amp; "_/" &amp; vntSalesStdCostTmp</p>
+<p>vntTotalStdCost = vntTotalStdCost &amp; "_/" &amp; vntTotalStdCostTmp</p>
+<p>vntItemNm = vntItemNm &amp; "_/" &amp; vntItemNmTmp</p>
+<p>vntItemNo = vntItemNo &amp; "_/" &amp; vntItemNoTmp</p>
+<p>End If</p>
+<p>Next</p>
+<blockquote>
+<p>strParameter = "&amp;CurrCd=" &amp; escape(txtCurrNm.All(1).TextCode) _</p>
+</blockquote>
+<p>&amp; "&amp;RowCount=" &amp; escape(cstr(Form1.ylwsh.DataRowCnt)) _</p>
+<p>&amp; "&amp;RowNo=" &amp; escape(vntRowNo) _</p>
+<p>&amp; "&amp;ItemCd=" &amp; escape(vntItemCd) _</p>
+<p>&amp; "&amp;Price=" &amp; escape(vntPrice) _</p>
+<p>&amp; "&amp;Qty=" &amp; escape(vntQty) _</p>
+<p>&amp; "&amp;UnitCd=" &amp; escape(vntUnitCd) _</p>
+<p>&amp; "&amp;Amt=" &amp; escape(vntAmt) _</p>
+<p>&amp; "&amp;SalesStdCost=" &amp; escape(vntSalesStdCost) _</p>
+<p>&amp; "&amp;TotalStdCost=" &amp; escape(vntTotalStdCost) _</p>
+<p>&amp; "&amp;CustNm=" &amp; escape(txtCustNm.All(1).value) _</p>
+<p>&amp; "&amp;ItemNm=" &amp; escape(vntItemNm) _</p>
+<p>&amp; "&amp;ItemNo=" &amp; escape(vntItemNo) _</p>
+<blockquote>
+<p>arrRtnValue = LoadDlgForm(true,"dlgSAEstProfit",strParameter ,GetDlgData())</p>
+<p>end Sub</p>
+<p>Sub ylwsh_ButtonClicked(Col, Row, ButtonDown)</p>
+<p>if Col \&lt;&gt; form1.ylwsh.ColX(msDeliveryCustBtn) then exit sub</p>
+<p>If Form1.ylwsh.DataRowCnt \&lt; Row Then Exit Sub</p>
+<p>dim arrRtnValue, arrRtn, strJumpMsg</p>
+<p>Dim vntDelvCustNm</p>
+<p>Dim vntDelvCustcd</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msDeliveryCust), Form1.ylwsh.ActiveRow, vntDelvCustNm</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msDeliveryCustCd), Form1.ylwsh.ActiveRow, vntDelvCustcd</p>
+<p>strJumpMsg = "&amp;CustNm=" &amp; escape(txtCustNm.All(1).value) _</p>
+<p>&amp; "&amp;CustCd=" &amp; escape(txtCustNm.All(1).TextCode) _</p>
+<p>&amp; "&amp;DelvCustNm=" &amp; escape(CStr(vntDelvCustNm)) _</p>
+<p>&amp; "&amp;DelvCustCd=" &amp; escape(CStr(vntDelvCustcd))</p>
+<p>arrRtnValue = LoadDlgForm(true,"dlgSBDelvCust",strJumpMsg ,GetDlgData())</p>
+<p>if arrRtnValue = false then</p>
+<p>exit Sub</p>
+<p>elseif JumpStringToSplit(arrRtnValue, arrRtn) = True Then</p>
+<p>Form1.ylwsh.Celltext(msDeliveryCust, Row) = arrRtn(0,2)</p>
+<p>Form1.ylwsh.Celltext(msDeliveryCustCd, Row) = arrRtn(1,2)</p>
+<p>if vntDelvCustcd \&lt;&gt; arrRtn(1,2) then</p>
+<p>If Form1.ylwsh.Celltext(0, Row) \&lt;&gt; SSHD_ADD Then                '신규일때는 Update모드로 바꿔줄 필요없음</p>
+<p>Form1.ylwsh.Celltext(0, Row) = SSHD_UPDATE</p>
+<p>End If</p>
+<p>end if</p>
+<p>end if</p>
+<p>end Sub</p>
+<p>Sub ylwsh_Click(Col, Row)</p>
+<p>Dim varHeader</p>
+<p>Dim varItemCd</p>
+<p>If "\&lt;%=_vari.S_SALESOPTION%&gt;" = "0" Then</p>
+<p>Exit Sub</p>
+<p>End If</p>
+<p>If Col \&lt;&gt; Form1.ylwsh.ColX(msOption) Then exit sub</p>
+<p>Form1.ylwsh.GetText SS_HEADER, Row, varHeader</p>
+<p>Form1.ylwsh.GetText Form1.ylwsh.ColX(msItemCd), Row, varItemCd</p>
+<p>If varHeader = SSHD_ADD Or Trim(varItemCd) = "" or row = 0 Then Exit Sub</p>
+<p>'LoadDlgForm(모달여부,폼ID,Parameter,폼정보)</p>
+<p>'폼ID는 여러Dialog중 Open할 폼ID를 기입한다.</p>
+<p>'Parameter(QueryString)는 =과&amp;를 구분자로 만든다 ex) "CustID=11&amp;CustNm=홍길동"</p>
+<p>'GetDlgData():폼로드시 가져온 Dialog정보를 가져온다.</p>
+<p>Dim arrRtnValue</p>
+<p>Dim strParameter</p>
+<p>Dim varTemp</p>
+<p>varTemp = Form1.ylwsh.CellText(msOption, Row)</p>
+<p>If Trim(varTemp) = lblOption.innerText Then '"옵션있음"</p>
+<p>varTemp = "1"</p>
+<p>Else</p>
+<p>varTemp = "0"</p>
+<p>End If</p>
+<p>'Dlg에 넘길 Parameter :Get방식으로 1000여자 정도 넘길수 있다.</p>
+<p>strParameter = "QutoOrSO=" + "O" _</p>
+<p>&amp; "&amp;SONo=" + escape(txtOrderNo.all(1).Value) _</p>
+<p>&amp; "&amp;SORev=" + escape(txtRev.all(1).Value) _</p>
+<p>&amp; "&amp;SOSerl="+ Form1.ylwsh.CellText(msSOSerl, Row) _</p>
+<p>&amp; "&amp;ItemNm=" + escape(Form1.ylwsh.CellText(msItemNm, Row)) _</p>
+<p>&amp; "&amp;ItemNo=" + escape(Form1.ylwsh.CellText(msItemNo, Row)) _</p>
+<p>&amp; "&amp;ItemCd=" + escape(Form1.ylwsh.CellText(msItemCd, Row)) _</p>
+<p>&amp; "&amp;OptionCheck="+ varTemp _</p>
+<p>&amp; "&amp;RowNo="+ CStr(Row) _</p>
+<p>&amp; "&amp;ReadOnly="+ "0" _</p>
+<p>&amp; "&amp;JumpPgmId=" + "FrmSASalesOrder_02_sjpark"</p>
+<p>'Dlg종료후 Return받은값</p>
+<p>arrRtnValue = LoadDlgForm(true,"DlgSAOption",strParameter ,GetDlgData())</p>
+<p>Dim arrTemp</p>
+<p>Dim i</p>
+<p>Dim vntOptionCheck, vntOptionPrice</p>
+<p>If Trim(arrRtnValue) \&lt;&gt; "" Then</p>
+<p>if JumpStringToSplit(arrRtnValue, arrTemp) = True Then</p>
+<p>For i = 1 To UBound(arrTemp, 1)</p>
+<p>Select Case arrTemp(i, 1)</p>
+</blockquote>
+<p>Case "OptionCheck"</p>
+<p>vntOptionCheck = Trim(arrTemp(i, 2))</p>
+<p>Case "OptionPrice"</p>
+<p>vntOptionPrice = Trim(arrTemp(i, 2))</p>
+<blockquote>
+<p>End Select</p>
+<p>Next</p>
+<p>If vntOptionCheck = "1" Then</p>
+<p>vntOptionCheck = lblOption.innerText '"옵션있음"</p>
+<p>Else</p>
+<p>vntOptionCheck = lblNoOption.innerText '"옵션없음"</p>
+<p>End If</p>
+<p>Form1.ylwsh.SetText Form1.ylwsh.ColX(msOptionPrice), Row, vntOptionPrice</p>
+<p>' 버튼에 텍스트</p>
+<p>Form1.ylwsh.Col = msOption</p>
+<p>Form1.ylwsh.Row = Row</p>
+<p>Form1.ylwsh.GetSheet.TypeButtonText = vntOptionCheck</p>
+<p>'Form1.ylwsh.SetText Form1.ylwsh.ColX(msOption), Row, vntOptionCheck</p>
+<p>' 옵션은 저장된 데이타만 선택할수 있으므로 무조건 업데이트로</p>
+<p>Form1.ylwsh.SetText SS_HEADER, Row, SSHD_UPDATE</p>
+<p>Call CalcOrderSheet(Row, 10)</p>
+<p>End If</p>
+<p>End If</p>
+<p>End Sub</p>
+<p>Sub cmbAccUnit__ctl_onChange()</p>
+<p>dim strRtnData</p>
+<p>strRtnData = fnComDB("SDAGetCmbVal 'S60','" + cmbAccUnit.All(1).value + "'", 30, "Q")</p>
+<p>Call InitCntlCombo(cmbStkCenter.All(1), strRtnData, false, true)</p>
+<p>Call InitSheetCombo(Form1.ylwsh, strRtnData, false, true, msStkCenter, 0)</p>
+<p>end Sub</p>
+<p>Function fnCustCreditCheck()</p>
+<p>Dim strSpNm</p>
+<p>Dim strTag</p>
+<p>Dim strParams</p>
+<p>Dim arrRtnData</p>
+<p>Dim dblAmt</p>
+<p>Dim dblVat</p>
+<p>Dim strCurrCd</p>
+<p>Dim msgResult</p>
+<p>fnCustCreditCheck = True</p>
+<p>If Trim(txtCurrNm.all(1).TextCode) = "" Then</p>
+<p>txtCurrNm.all(1).TextCode = "\&lt;%=_vari.D_WONCURR%&gt;"</p>
+<p>txtCurrNm.all(1).Value = "\&lt;%=_vari.D_WONCURR%&gt;"</p>
+<p>End If</p>
+<p>strCurrCd = txtCurrNm.all(1).TextCode</p>
+<p>dblAmt = Form1.ylwsh.GetSumCols(Form1.ylwsh.ColX(msAmt))</p>
+<p>If "\&lt;%=_vari.D_WONCURR%&gt;" = strCurrCd Then</p>
+<p>dblVat = Form1.ylwsh.GetSumCols(Form1.ylwsh.ColX(msVat))</p>
+<p>dblAmt = dblAmt + dblVat</p>
+<p>End If</p>
+<p>strSpNm = "SSBCustCreditCheck"</p>
+<p>'Parameter를 생성합니다.</p>
+<p>'Parameter를 생성합니다.</p>
+<p>strParams = "'" + txtCustNm.all(1).TextCode + "' " + ",'" + _</p>
+<p>replace(datOrderDt.all(1).Value, "-","") + "'," + _</p>
+<p>CStr(dblAmt) + ",'" + _</p>
+<p>strCurrCd + "','X','','','Y'" + ",'" + txtOrderNo.all(1).Value + "'"</p>
+<p>'생성한 Parameter로 저장후 결과값을 가져옵니다.(파라메타,CommandTimeOut)</p>
+<p>arrRtnData = fnComStrQuery("R",strSpNm,strParams, 600, false,false)</p>
+<p>if typename(arrRtnData) = "String" then</p>
+<p>If arrRtnData \&lt;&gt; "" then</p>
+<p>If Trim(ucase(Split(arrRtnData,CNST_SP)(0))) \&lt;&gt; "OK" Then</p>
+<p>if Trim(ucase(Split(arrRtnData,CNST_SP)(1))) = "0" then ' 무시일 경우</p>
+<p>ElseIf Trim(ucase(Split(arrRtnData,CNST_SP)(1))) = "1" Then ' 경고만 하기</p>
+<p>msgResult = MessageBox("\&lt;%=_page.GetMessageString(ConstMessage.MAXCREDITOVER, "거래처 여신한도를 초과했습니다. 저장하시겠습니까?")%&gt;", vbYesNo) ' 삭제하시겠습니까?</p>
+<p>If msgResult = vbNo Then</p>
+<p>fnCustCreditCheck = False</p>
+<p>End If</p>
+<p>ElseIf Trim(ucase(Split(arrRtnData,CNST_SP)(1))) = "2" Then ' 주문불가</p>
+<p>call MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.MAXCREDITOVERERR, "거래처 여신한도를 초과했습니다. 저장할수 없습니다.")%&gt;")</p>
+<p>fnCustCreditCheck = False</p>
+<p>End If</p>
+<p>Form1.chkCredit.Checked = True</p>
+<p>Else</p>
+<p>Form1.chkCredit.Checked = False</p>
+<p>end if</p>
+<p>End If</p>
+<p>End if</p>
+<p>End Function</p>
+<p>Sub cmdPay_OnClick()</p>
+<p>Dim arrRtnValue,strRtnSelCnt</p>
+<p>txtPay.all(1).Value = ""</p>
+<p>If LoadCodeHelp(CH_NORMAL,"\&lt;%=ConstHelp.P_MOVEOUTTYPE%&gt;", txtPay.All(1), _</p>
+<p>Nothing, txtPay.All(1), _</p>
+<p>Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, arrRtnValue, _</p>
+<p>true, HCMD_NORMAL, "", strRtnSelCnt, _</p>
+<p>"", "", "", "", "") = false then</p>
+</blockquote>
+<p>Else</p>
+<blockquote>
+<p>End If                                                        </p>
+<p>If Trim(txtPay.all(1).Value) \&lt;&gt; "" Then txtPayment.all(1).Value = txtPay.all(1).Value</p>
+<p>end sub</p>
+<p>Sub cmdAmdQ_onClick()</p>
+<p>dim strParameter</p>
+<p>dim arrRtnValue</p>
+<p>If Trim(txtRev.all(1).Value) = "" or txtOrderNo.all(1).Value = "" Then Exit Sub</p>
+<p>strParameter = "SONo=" &amp; txtOrderNo.all(1).Value</p>
+<p>arrRtnValue = LoadDlgForm(true,"dlgSASOAmdDlg",strParameter ,GetDlgData())</p>
+<p>end Sub</p>
+<p>Function optExpClss_onClick()</p>
+<p>Dim lngRow</p>
+<p>Dim varTemp</p>
+<p>For lngRow = 1 to Form1.ylwsh.DataRowCnt</p>
+<p>Form1.ylwsh.GetText SS_HEADER, lngRow, varTemp</p>
+<p>if varTemp \&lt;&gt; SSHD_ADD then</p>
+<p>Form1.ylwsh.SetText SS_HEADER, lngRow, SSHD_UPDATE</p>
+<p>end if</p>
+<p>Next</p>
+<p>End Function</p>
+<p>Sub btnItemGrpSel_OnClick()</p>
+<p>Dim i</p>
+<p>Dim strRtnValue</p>
+<p>Dim strParameter</p>
+<p>Dim arrRtnValue</p>
+<p>Dim RowCnt</p>
+<p>RowCnt = Form1.ylwsh.DataRowCnt + 1</p>
+<p>strRtnValue = LoadDlgForm(true,"dlgSAItemGrpDlg",strParameter ,GetDlgData())</p>
+<p>arrRtnValue = Split(strRtnValue, CNST_SP)</p>
+<p>If UCase(arrRtnValue(0)) = "FALSE" Then</p>
+<p>ElseIf UCase(arrRtnValue(0)) = "CANCEL" Then</p>
+<p>Else        </p>
+<p>arrRtnValue = ""</p>
+<p>arrRtnValue = SplitArray(strRtnValue, CNST_SP_NT, CNST_SP_LF, CNST_SP)</p>
+<p>If arrRtnValue(0,0) \&lt;&gt; "" Then</p>
+<p>For i = RowCnt To RowCnt + UBound(arrRtnValue)</p>
+<p>Form1.ylwsh.CellText(msItemNm, i)                = arrRtnValue(i - RowCnt, 0)</p>
+<p>Form1.ylwsh.CellText(msItemNo, i)                = arrRtnValue(i - RowCnt, 1)</p>
+<p>Form1.ylwsh.CellText(msSize, i)                        = arrRtnValue(i - RowCnt, 2)</p>
+<p>Form1.ylwsh.CellText(msUnitNm, i)                = arrRtnValue(i - RowCnt, 3)</p>
+<p>Form1.ylwsh.CellText(msStkUnitNm, i)        = arrRtnValue(i - RowCnt, 4)</p>
+<p>Form1.ylwsh.CellText(msSTKQty, i)                = arrRtnValue(i - RowCnt, 5)</p>
+<p>Form1.ylwsh.CellText(msItemCd, i)                = arrRtnValue(i - RowCnt, 6)</p>
+<p>Form1.ylwsh.CellText(msUnitCd, i)                = arrRtnValue(i - RowCnt, 7)</p>
+<p>Form1.ylwsh.CellText(msStkUnitCd, i)        = arrRtnValue(i - RowCnt, 8)</p>
+<p>Form1.ylwsh.CellText(msPriceDiv, i) = "1" '단가구분 - 확정단가로 선택되도록</p>
+<p>Next</p>
+<p>End If</p>
+<p>Call fnPriceChange(RowCnt, RowCnt + UBound(arrRtnValue))</p>
+<p>End If</p>
+<p>End Sub</p>
+<p>'결재상신 (20060112.SHMIN)</p>
+<p>Sub btnSaleOrder02Cfm_OnClick()</p>
+</blockquote>
+<p>'                If "\&lt;%=_page.GetActionSecu("btnSaleOrder02Cfm", _page.UserID, "A")%&gt;" = False then</p>
+<p>'                        Call MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOPRIV,"이 프로그램의 사용권한이 없습니다.")%&gt;")</p>
+<p>'                        Exit Sub</p>
+<p>'                End If</p>
+<blockquote>
+<p>If txtOrderNo.All(1).Value = "" Then Exit Sub</p>
+<p>'2008.05.15 전자결재코딩 변경 YJNO</p>
+<p>If fnGroupWare("R", txtOrderNo.All(1).Value , ChkFixYn_p) = False Then Exit Sub</p>
+</blockquote>
+<p>'                Dim strSpNm</p>
+<p>'                Dim strTag</p>
+<p>'                Dim strParams</p>
+<p>'                Dim arrRtnData</p>
+<p>'                Dim strURL</p>
+<p>'</p>
+<p>'                Dim strPgmID, strFormID</p>
+<p>'</p>
+<p>' strFormID = Trim("\&lt;%=_page.PgmID%&gt;")</p>
+<p>'</p>
+<p>'         If instr(strFormID,"_") \&lt;&gt; 0 Then</p>
+<p>'                        strPgmID = left(strFormID, instr(strFormID,"_") - 1)</p>
+<p>'                Else</p>
+<p>'                        strPgmID = strFormID</p>
+<p>'                End If</p>
+<p>'</p>
+<p>'                strSpNm = "SDAGroupWareCfm"</p>
+<p>'</p>
+<blockquote>
+<p>'Parameter를 생성합니다.</p>
+</blockquote>
+<p>'                strParams = strParams + strSpNm + " '" + strPgmID + "','" + _</p>
+<p>'                                        txtOrderNo.All(1).Value + "','" + _</p>
+<p>'                                        "\&lt;%=_page.EmpID%&gt;" + "','" + _</p>
+<p>'                                        "\&lt;%=_page.DeptCd%&gt;" + "'" + CNST_SP_LF</p>
+<p>'                        </p>
+<p>'                '생성한 Parameter로 저장후 결과값을 가져옵니다.(파라메타,CommandTimeOut)</p>
+<p>'                arrRtnData = fnComDB(strParams, 30, "Q")</p>
+<p>'</p>
+<p>'                If arrRtnData \&lt;&gt; "" Then</p>
+<p>'                        If Trim(ucase(Split(arrRtnData,CNST_SP)(2))) = "#ERROR" Then</p>
+<p>'                                Call MessageBoxShow(Split(arrRtnData,CNST_SP)(1))</p>
+<p>'                                Exit sub</p>
+<p>'                        End If</p>
+<p>'                End if</p>
+<blockquote></blockquote>
+<p>'                ' 그룹웨어건으로 수정</p>
+<p>'                ' 2004. 8. 17.</p>
+<p>'                ' 유 원 대</p>
+<p>'                '=====================================================\&lt; Old소스 &gt;==============================================================================================</p>
+<p>'                'strURL = "http://" + Trim("\&lt;%=mstrGroupWareIP%&gt;") + "/WBCGI/WBAuthPass.asp?FolderId=" + "\&lt;%=mstrReportId%&gt;" + "&amp;userid_erp=" + "\&lt;%=mstrUserId%&gt;" + "&amp;WorkKind=" + "\&lt;%=_page.PgmID%&gt;" + "&amp;TblKey=" + txtOrderNo.all(1).Value</p>
+<p>' 'Call window.open( strurl , "", "fullscreen=0,toolbar=0,location=0,directories=0,status=1,menubar=0,scrollbars=0,resizable=1,Height= 679,Width=1012,Top= 0,Left= 0",true)</p>
+<p>' '===================================================================================================================================================</p>
+<p>'</p>
+<p>' If "\&lt;%=mstrVersion%&gt;" = "0" then                '다존(ASP)</p>
+<p>'                        strURL = "http://" + Trim("\&lt;%=mstrGroupWareIP%&gt;") + "/WBCGI/WBAuthPass.asp?FolderId=" + "\&lt;%=mstrReportId%&gt;" + "&amp;userid_erp=" + "\&lt;%=mstrUserId%&gt;" + "&amp;WorkKind=" + "\&lt;%=_page.PgmID%&gt;" + "&amp;TblKey=" + Trim(CStr(txtOrderNo.all(1).Value))</p>
+<p>'                elseIf "\&lt;%=mstrVersion%&gt;" = "1" then        '다존(.Net버전)</p>
+<p>'                        strurl = "http://" + Trim("\&lt;%=mstrGroupWareIP%&gt;") + "/WBCGI/WBLogin.aspx?IsAction=1&amp;UserId_auto=" + "\&lt;%=mstrUserId%&gt;" + "&amp;next=EAERPGetRecord.asp?FromERP=1%26EAID=" + "\&lt;%=mstrReportId%&gt;" + "%26PumiNo=" + Trim(CStr(txtOrderNo.all(1).Value))</p>
+<p>'                elseif "\&lt;%=mstrVersion%&gt;" = "2" then        '데스크플러스</p>
+<p>'                        strURL = "http://" + Trim("\&lt;%=mstrGroupWareIP%&gt;") + Trim("\&lt;%=mstrURL%&gt;") + "&amp;userID=" + Trim("\&lt;%=mstrUserId%&gt;") + "&amp;WorkKind=" + Trim(Cstr(strPgmID)) + "&amp;TblKey=" + Trim(CStr(txtOrderNo.all(1).Value)) + "&amp;Language=" + Trim(CStr("\&lt;%=_page.LanguageID%&gt;"))</p>
+<p>'                else                                                                        'WellComm</p>
+<p>'                        strURL = "http://" + Trim("\&lt;%=mstrGroupWareIP%&gt;") + Trim("\&lt;%=mstrURL%&gt;") + "ConnInfo=" + Trim("\&lt;%=_page.ConnInfoGW%&gt;") + "&amp;ConnInfoERP=" + Trim("\&lt;%=_page.ConnInfo%&gt;") + "&amp;userID=" + Trim("\&lt;%=_page.UserCd%&gt;") + "&amp;WorkKind=" + Trim(Cstr(strPgmID)) + "&amp;TblKey=" + Trim(CStr(txtOrderNo.All(1).Value)) + "&amp;Language=" + Trim(CStr("\&lt;%=_page.LanguageID%&gt;"))+ "&amp;ReportId=" + Trim(CStr("\&lt;%=mstrReportId%&gt;"))</p>
+<p>' end if</p>
+<p>' 'Call window.open( strurl , "", "fullscreen=0,toolbar=0,location=0,directories=0,status=1,menubar=0,scrollbars=0,resizable=1,Height= 679,Width=1012,Top= 0,Left= 0",true)</p>
+<p>' Call ShowModalDlg( strurl , "", "fullscreen=0,toolbar=0,location=0,directories=0,status=1,menubar=0,scrollbars=0,resizable=1,Height= 679,Width=1012,Top= 0,Left= 0",true)</p>
+<blockquote>
+<p>End Sub</p>
+<p>'----------------------------------------------------------------------------------------------------</p>
+<p>Function fnProcChk(strType, strValue, objControl)</p>
+<p>On Error Resume Next</p>
+<p>' 결재상신일경우만체크</p>
+<p>If strType \&lt;&gt; "R" Then</p>
+<p>fnProcChk = True</p>
+<p>Exit Function</p>
+<p>End If</p>
+<p>fnProcChk = True</p>
+<p>End Function</p>
+<p>'결재취소 (20060112.SHMIN)</p>
+<p>Sub btnSaleOrder02Cancel_OnClick()</p>
+</blockquote>
+<p>'                If "\&lt;%=_page.GetActionSecu("btnSaleOrder02Cancel", _page.UserID, "A")%&gt;" = False then</p>
+<p>'                        Call MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOPRIV,"이 프로그램의 사용권한이 없습니다.")%&gt;")</p>
+<p>'                        Exit Sub</p>
+<p>'                End If                 </p>
+<blockquote>
+<p>If txtOrderNo.all(1).Value = "" Then Exit Sub</p>
+<p>'2008.05.15 전자결재코딩 변경 YJNO</p>
+<p>If fnGroupWare("C", txtOrderNo.All(1).Value , ChkFixYn_p) = False Then Exit Sub</p>
+</blockquote>
+<p>'         Dim szWorkingTag</p>
+<p>'                Dim strSpNm</p>
+<p>'                Dim strTag</p>
+<p>'                Dim strParams</p>
+<p>'                Dim arrRtnData</p>
+<p>'</p>
+<p>'                Dim strPgmID, strFormID</p>
+<p>'</p>
+<p>' strFormID = Trim("\&lt;%=_page.PgmID%&gt;")</p>
+<p>'</p>
+<p>'         If instr(strFormID,"_") \&lt;&gt; 0 Then</p>
+<p>'                        strPgmID = left(strFormID, instr(strFormID,"_") - 1)</p>
+<p>'                Else</p>
+<p>'                        strPgmID = strFormID</p>
+<p>'                End If</p>
+<p>'                strSpNm = "SDAGroupWareCancel"</p>
+<p>'</p>
+<p>'                'Parameter를 생성합니다.</p>
+<p>'                strParams = strParams + strSpNm + " '" + strPgmID + "','" + txtOrderNo.all(1).Value + "'" + CNST_SP_LF</p>
+<p>'</p>
+<p>'                arrRtnData = fnComDB(strParams, 30, "Q")</p>
+<p>'                </p>
+<p>'                If arrRtnData \&lt;&gt; "" and Split(arrRtnData,CNST_SP)(0) \&lt;&gt; "OK" Then</p>
+<p>'                        Call MessageBoxShow(Split(arrRtnData,CNST_SP)(1))</p>
+<p>'                End if</p>
+<blockquote>
+<p>End Sub</p>
+<p>Sub btnSaleOrder02Status_OnClick()</p>
+<p>'1. 버튼 권한 체크</p>
+</blockquote>
+<p>'                If "\&lt;%=_page.GetActionSecu("btnSaleOrder02Status", _page.UserID, "A")%&gt;" = False then</p>
+<p>'                        Call MessageBoxShow("\&lt;%=_page.GetMessageString(ConstMessage.NOPRIV,"이 프로그램의 사용권한이 없습니다.")%&gt;")</p>
+<p>'                        Exit Sub</p>
+<p>'                End If                </p>
+<blockquote>
+<p>'2. Key값 확인</p>
+<p>If txtOrderNo.all(1).Value = "" Then Exit Sub</p>
+<p>'2008.05.15 전자결재코딩 변경 YJNO</p>
+<p>If fnGroupWare("S", txtOrderNo.All(1).Value , ChkFixYn_p) = False Then Exit Sub</p>
+</blockquote>
+<p>'                Dim strSpNm</p>
+<p>'                Dim strTag</p>
+<p>'                Dim strParams</p>
+<p>'                Dim arrRtnData</p>
+<p>'                Dim strURL</p>
+<p>'</p>
+<p>'                Dim strPgmID, strFormID</p>
+<p>'</p>
+<p>' strFormID = Trim("\&lt;%=_page.PgmID%&gt;")</p>
+<p>'</p>
+<p>'         if instr(strFormID,"_") \&lt;&gt; 0 then</p>
+<p>'                        strPgmID = left(strFormID, instr(strFormID,"_") - 1)</p>
+<p>'                else</p>
+<p>'                        strPgmID = strFormID</p>
+<p>'                end if</p>
+<p>'        </p>
+<p>'                '3. 웰컴일때만 결재진행상태 페이지 호출</p>
+<p>'                If "\&lt;%=mstrVersion%&gt;" = "3" then</p>
+<p>'                        strURL = "http://" + Trim("\&lt;%=mstrGroupWareIP%&gt;") + Trim("\&lt;%=mstrURL%&gt;") + "ConnInfo=" + Trim("\&lt;%=_page.ConnInfoGW%&gt;") + "&amp;ConnInfoERP=" + Trim("\&lt;%=_page.ConnInfo%&gt;") + "&amp;userID=" + Trim("\&lt;%=_page.UserCd%&gt;") + "&amp;WorkKind=" + Trim(Cstr(strPgmID)) + "&amp;TblKey=" + Trim(CStr(txtOrderNo.all(1).Value)) + "&amp;Language=" + Trim(CStr("\&lt;%=_page.LanguageID%&gt;"))+ "&amp;ReportId=" + Trim(CStr("\&lt;%=mstrReportId%&gt;") + "&amp;isview=" + "1")</p>
+<p>'         Call ShowModalDlg( strurl , "", "fullscreen=0,toolbar=0,location=0,directories=0,status=1,menubar=0,scrollbars=0,resizable=1,Height= 679,Width=1012,Top= 0,Left= 0",true)</p>
+<p>'                end if</p>
+<blockquote>
+<p>End Sub        </p>
+<p>'----------------------------------------------------------------------------------------------------</p>
+</blockquote>
+<p>--&gt;</p>
+<blockquote>
+<p>\&lt;/SCRIPT&gt;</p>
+<p>\&lt;/body&gt;</p>
+</blockquote>
+<p>\&lt;/HTML&gt;</p>
+<p>cs 필기</p>
+  </article>
+</div>
+</body>
+</html>

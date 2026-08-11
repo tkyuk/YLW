@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사업자번호</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>사업자번호</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">사업자번호</h1>
+<p>SELECT A.CompanySeq,</p>
+<p>A.TaxUnit,</p>
+<p>A.TaxNo,</p>
+<p>A.TaxNoAlias,</p>
+<p>A.TaxName,</p>
+<p>A.TaxEngName,</p>
+<p>A.Owner,</p>
+<p>A.OwnerEngName,</p>
+<p>A.BizType,</p>
+<p>A.BizItem,</p>
+<p>A.Zip,</p>
+<p>ISNULL(dbo._FWCOMDecrypt(A.TelNo, '_TDATaxUnit', 'TelNo', A.CompanySeq), '') AS TelNo,</p>
+<p>A.FaxNo,</p>
+<p>D.Addr,</p>
+<p>E.Addr AS AddrEng,</p>
+<p>A.VATRptAddr,</p>
+<p>A.BizRegDate,</p>
+<p>A.TaxSumPaymentNo,</p>
+<p>A.TaxNoSerl,</p>
+<p>A.Remark,</p>
+<p>A.LastDateTime</p>
+<p>FROM _TDATaxUnit AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _VWCOMAddress AS D ON A.ConTactAddressSeq = D.AddressSeq AND D.SMAddressTypeSeq = 500052002 AND A.Companyseq = D.CompanySeq</p>
+<p>LEFT OUTER JOIN _VWCOMAddress AS E ON A.ConTactAddressSeq = E.AddressSeq AND E.SMAddressTypeSeq = 500052003 AND A.Companyseq = E.CompanySeq</p>
+  </article>
+</div>
+</body>
+</html>

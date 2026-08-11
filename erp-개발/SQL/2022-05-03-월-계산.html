@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>월 계산</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>월 계산</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">월 계산</h1>
+<p>취득월로부터 2017년 12월까지의 월수(2018년 이후 취득시에는 0)</p>
+<p>CASE WHEN Asst.GainDate &gt; '20171231'</p>
+<blockquote>
+<p>THEN 0</p>
+</blockquote>
+<p>ELSE DATEDIFF(month, LEFT(Asst.GainDate,6)+'01','20220101')</p>
+<p>END,</p>
+<p>취득일과 2018년 1월 1일 중 더 늦은 일자와 내용년수로 자동계산</p>
+<p>CONVERT(NCHAR(6), DATEADD(M, A.AsstYearKOR - 1, CASE WHEN Asst.GainDate &gt; '20180101' THEN Asst.GainDate ELSE '20180101' END),112)</p>
+<p>CONVERT(</p>
+<blockquote>
+<p>NCHAR(6),</p>
+<p>DATEADD(</p>
+<p>M, -- MONTH</p>
+<p>A.AsstYearKOR - 1,</p>
+<p>CASE WHEN Asst.GainDate &gt; '20180101'</p>
+<p>THEN</p>
+<p>Asst.GainDate</p>
+<p>ELSE</p>
+<p>'20180101'</p>
+<p>END</p>
+<p>),</p>
+<p>112)</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

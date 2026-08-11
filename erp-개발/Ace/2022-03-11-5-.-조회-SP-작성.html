@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5\. 조회 SP 작성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>5\. 조회 SP 작성</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="5-sp">5. 조회 SP 작성</h1>
+<blockquote>
+<p>* 조회 SP 만들기</p>
+<p><strong>왼쪽,오른쪽 방향으로 가져온 데이터 각각 임시테이블이 만들어짐</strong></p>
+<p>** 조회 **</p>
+<p>SP명 =&gt; sjpark_SWSLSalesOrderQuery</p>
+<p><img alt="" src="assets/5-.-조회-SP-작성/image48.png" /></p>
+</blockquote>
+<ul>
+<li>CREATE PROCEDURE \~~</li>
+</ul>
+<blockquote>
+<p>=&gt; 고정값</p>
+</blockquote>
+<ul>
+<li>DECLARE @OrderSeq INT</li>
+</ul>
+<blockquote>
+<p>조회조건 =&gt; OrderSeq</p>
+<p>변수 =&gt; OrderSeq</p>
+<p>하나만 넘어오기 때문에 변수 설정이 가능 (변수 – 임시변수)</p>
+</blockquote>
+<ul>
+<li>메인테이블 (sjpark_TSLSalesOrder)의 컬럼</li>
+</ul>
+<blockquote>
+<p>CompanySeq</p>
+<p>OrderSeq</p>
+<p>----------- =&gt; WHERE 조건절에 들어감</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.OrderSeq = @OrderSeq</p>
+<hr />
+<p>BizUnit</p>
+<p>OrderNo</p>
+<p>OrderDate</p>
+<p>UMOrderKind</p>
+<p>CustSeq</p>
+<p>DeptSeq</p>
+<p>EmpSeq</p>
+<p>DVDate</p>
+<p>PgmSeq</p>
+<p>LastUserSeq</p>
+<p>LastDateTime</p>
+<p>==&gt; sjpark_TSLSalesOrder의 값</p>
+<p>( NOLOCK =&gt; 동시작업 불가능 )</p>
+</blockquote>
+<ul>
+<li>_TDACust / _TDADept / _TDAEmp</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/5-.-조회-SP-작성/image49.png" /></p>
+<p>=&gt; LEFT OUTER JOIN</p>
+<p><img alt="" src="assets/5-.-조회-SP-작성/image50.png" /></p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

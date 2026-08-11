@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>날짜 중첩 체크 로직</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>날짜 중첩 체크 로직</h1>
+    <div class="meta">
+      <span class="note-date">2024-06-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">날짜 중첩 체크 로직</h1>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>EXEC dbo._SWCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>6 , -- 중복된 @1 @2가(이) 입력되었습니다.(SELECT * FROM _TCAMessageLanguage WHERE MessageSeq = 6)</p>
+<p>@LanguageSeq</p>
+<p>UPDATE C</p>
+<p>SET Result = @Results,</p>
+<p>MessageType = @MessageType,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS C JOIN (SELECT A.UMPgSeq</p>
+<p>FROM shilla_TPRRetAddWorkTerm AS A WITH(NOLOCK)</p>
+<p>JOIN shilla_TPRRetAddWorkTerm AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<blockquote>
+<p>AND A.UMPgSeq = B.UMPgSeq</p>
+</blockquote>
+<p>AND A.Serl \&lt;&gt; B.Serl</p>
+<p>AND ((A.StartYear &gt;= B.StartYear AND A.StartYear \&lt; B.EndYear)</p>
+<p>OR (A.EndYear &gt; B.StartYear AND A.EndYear \&lt;= B.EndYear))</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>GROUP BY A.UMPgSeq</p>
+<p>HAVING COUNT(1) &gt; 1 ) AS Z ON C.UMPgSeq = Z.UMPgSeq</p>
+  </article>
+</div>
+</body>
+</html>

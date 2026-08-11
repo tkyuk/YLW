@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시스템베이스 - 소요량산출\* / 현재고 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시스템베이스 - 소요량산출\* / 현재고 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">시스템베이스 - 소요량산출* / 현재고 조회</h1>
+<p>현재고 조회 : 재고현황(계산서)* ylwa09042_sb</p>
+<p>소요량산출* 자재조회 : SPPMatNeed2Qry_sb</p>
+<p>select Temp.Itemcd, SUM(ISNULL(Temp.Stkqty,0))</p>
+<p>From ( SELECT</p>
+<p>M.ItemCd as Itemcd,</p>
+<p>SUM(ISNULL(S.InvStkQty,0)) as stkqty</p>
+<p>FROM #tItemProcNeed M</p>
+<p>--JOIN tdaitemmaster W ON M.ItemCd = W.ItemCd</p>
+<p>JOIN TDAItemStdWH W ON M.ItemCd = W.ItemCd ANd W.Accunit = @pAccUnit</p>
+<p>JOIN TTSWHStk S ON M.ItemCd = S.ItemCd</p>
+<p>--AND S.AccUnit = W.Accunit 230726 품목테이블 AccUnit이 1만 등록되어 있어 JOIN시키지 않음 DHKOO</p>
+<p>AND S.WHCd = W.WHCd</p>
+<p>--AND S.WHCd IN (SELECT WHCd FROM TDAWH WHERE BasicYn = '1') -- 기본창고인것만</p>
+<p>AND S.WHCd NOT IN (SELECT WHCd FROM TDAWH WHERE BasicYn = '1') -- W.WHCd가 기본창고인 경우 중복으로 데이터 생성 =&gt; 해당 구문 추가 24.03.28 SJPARK</p>
+<p>AND S.StkYm BETWEEN @cFrYm AND SUBSTRING(@pDateTo,1,6)</p>
+<p>--AND S.StkType = '1'</p>
+<p>WHERE 1=1</p>
+<p>AND (@pAccUnit = '' OR S.AccUnit = @pAccUnit)</p>
+<p>GROUP BY M.ItemCd</p>
+<p>Union all</p>
+<p>SELECT</p>
+<p>M.ItemCd as itemcd,</p>
+<p>SUM(ISNULL(S.InvStkQty,0)) as stkqty</p>
+<p>FROM #tItemProcNeed M</p>
+<p>--JOIN tdaitemmaster W ON M.ItemCd = W.ItemCd</p>
+<p>JOIN TDAItemStdWH W ON M.ItemCd = W.ItemCd ANd W.Accunit = @pAccUnit</p>
+<blockquote>
+<p>JOIN TTSWHStk S ON M.ItemCd = S.ItemCd</p>
+</blockquote>
+<p>--AND S.AccUnit = W.Accunit 230726 품목테이블 AccUnit이 1만 등록되어 있어 JOIN시키지 않음 DHKOO</p>
+<p>AND S.WHCd IN (SELECT WHCd FROM TDAWH WHERE BasicYn = '1') -- 기본창고인것만</p>
+<p>AND S.StkYm BETWEEN @cFrYm AND SUBSTRING(@pDateTo,1,6)</p>
+<p>WHERE 1=1</p>
+<p>AND (@pAccUnit = '' OR S.AccUnit = @pAccUnit)</p>
+<p>GROUP BY M.ItemCd ) temp</p>
+<p>group by Temp.Itemcd</p>
+<p><img alt="" src="assets/시스템베이스-소요량산출-현재고-조회/image87.png" /></p>
+  </article>
+</div>
+</body>
+</html>

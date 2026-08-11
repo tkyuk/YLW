@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>확정 중단</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>확정 중단</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">확정 중단</h1>
+<p>1. 확정테이블관리(2014)</p>
+<p>_TCOMConfimTable = 확정을 사용하겠다</p>
+<p>_TCOMConfirm =&gt; 확정 사용할 때 필수로 join해야하는 테이블</p>
+<p>-- 확정 테이블 생성 (ConfirmTableSeq)</p>
+<p>SELECT ConfirmTableName AS '확정테이블'</p>
+<p>,ProgressTableName AS '체크진행테이블'</p>
+<p>,*</p>
+<p>FROM _TCOMConfirmTable WHERE ConfirmTableSeq = 15000042</p>
+<p>-- 확정 ID (확정명) -&gt; 확정테이블 연결 (ConfirmSeq -&gt; ConfirmTableSeq)</p>
+<p>SELECT * FROM _TCOMConfirmDef WHERE ConfirmSeq = 15000053</p>
+<p>-- 확정 프로그램 생성 (ConfirmSeq \&lt;-&gt; PgmSeq)</p>
+<p>SELECT * FROM _TCOMConfirmPgm WHERE ConfirmSeq = 15000053</p>
+<p>-- 실제 확정 데이터 저장하는 테이블 (ConfirmSeq / CfmSeq(키 값)) (CfmCode = '1' 이면 확정 / 확정날짜, 확정한 사용자 조회가능)</p>
+<p>SELECT * FROM _TCOMConfirm WHERE ConfirmSeq = 15000053</p>
+<p>-- 중단</p>
+<p>-- 중단설정프로그램 - 1. 진행 테이블 조회</p>
+<p>SELECT * FROM _TCOMProgTable</p>
+<p>-- 중단 사용할 프로그램 세팅 (_TCOMStopPGM)</p>
+<p>SELECT C.Caption,</p>
+<p>CASE WHEN B.IsReadOnly = '1' THEN '읽기전용' ELSE '' END,</p>
+<p>B.ControlName,B.SeqColumn,B.SerlColumn,</p>
+<p>A.*</p>
+<p>FROM _TCOMProgTable AS A</p>
+<p>JOIN _TCOMStopPGM AS B ON B.TableSeq = A.ProgTableSeq</p>
+<p>JOIN _TCAPgm AS C ON C.PgmSeq = B.PgmSeq</p>
+  </article>
+</div>
+</body>
+</html>

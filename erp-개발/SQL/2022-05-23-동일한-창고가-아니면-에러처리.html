@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>동일한 창고가 아니면 에러처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>동일한 창고가 아니면 에러처리</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">동일한 창고가 아니면 에러처리</h1>
+<p>* 수출출하의뢰입력</p>
+<table>
+<thead>
+<tr>
+<th>FrmWSLExpDVReq_mcnk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>체크sp 에서 체크 시 WorkingTag가 U 일 때 문제 발생</p>
+<p>기존에 저장된 창고를 신규로 저장된 창고와 동일하게 변경하면 모두 에러처리 발생</p>
+<p>==&gt; 저장 sp 에서 체크 (저장된 데이터를 가지고 오류 체크)</p>
+<p>==&gt; 저장되어도 어차피 롤백 되기 때문에 상관없다</p>
+<p>----====================================--</p>
+<p>---- 다른 창고가 입력되었을 경우</p>
+<p>----====================================--</p>
+<p>---- 중복체크Message 받아오기</p>
+<p>EXEC dbo._SCOMMessage @MessageType OUTPUT,</p>
+<p>@Status OUTPUT,</p>
+<p>@Results OUTPUT,</p>
+<p>1122 ,</p>
+<p>@LanguageSeq ,</p>
+<p>783, N'창고'</p>
+<p>UPDATE A</p>
+<p>SET Result = @Results ,</p>
+<p>MessageType = @MessageType ,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A JOIN (SELECT A.DVReqSeq, COUNT(DISTINCT B.WHSeq) AS WHSeq</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A JOIN _TSLDVReqItem AS B ON B.CompanySeq = @CompanySeq</p>
+<p>AND A.DVReqSeq = B.DVReqSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('A','U')</p>
+<p>GROUP BY A.DVReqSeq</p>
+<p>HAVING COUNT(DISTINCT B.WHSeq) &gt; 1) AS B ON A.DVReqSeq = B.DVReqSeq</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('A','U')</p>
+  </article>
+</div>
+</body>
+</html>

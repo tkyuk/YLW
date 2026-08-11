@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>작업실적입력_ssp / 최종검사의뢰조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>작업실적입력_ssp / 최종검사의뢰조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_ssp">작업실적입력_ssp / 최종검사의뢰조회</h1>
+<p>[작업실적입력_ssp] 저장 시 '최종검사여부' (IsLastQc) = '1'</p>
+<p>[Routing 생산실적생성_ssp] 저장 시 '최종검사여부' (IsLastQc) = '0' 으로 저장하고 있습니다.</p>
+<p>[최종검사의뢰조회] 시 '최종검사여부' (IsLastQc) = '1' 건만 조회하도록 설정되어 있습니다.</p>
+<p>해당 건의 경우 [작업실적입력_ssp]에서 생성된 데이터로 확인하였습니다.</p>
+<p>SELECT TOP 100 A.IsLastQc,A.WorkDate,B.MinorSeq, B.MinorName ,C.ProdQty,*</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS M WITH(NOLOCK) ON A.WorkCenterSeq = M.WorkCenterSeq</p>
+<p>AND A.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MinorSeq = M.SMWorkCenterType</p>
+<p>LEFT OUTER JOIN _TPDSFCGoodIn AS C WITH(NOLOCK) ON C.WorkReportSeq = A.WorkReportSeq</p>
+<p>AND C.CompanySeq = A.CompanySeq</p>
+<p>--WHERE M.SMWorkCenterType = 6011001</p>
+<p>--ORDER BY 1 DESC</p>
+<p>WHERE A.WorkReportSeq = 63779</p>
+<p>SELECT * FROM _TPDSFCWorkReport AS A WHERE A.WorkReportSeq = 63779</p>
+<p>SELECT IsLastQc,PgmSeq,* FROM _TPDSFCWorkReport AS A WHERE A.WorkDate ='20240930' AND A.WorkCenterSeq = 33</p>
+<p>SELECT TOP 100 A.IsLastQc,A.WorkDate,B.MinorSeq, B.MinorName ,C.ProdQty,*</p>
+<p>FROM _TPDSFCWorkReport AS A</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS M WITH(NOLOCK) ON A.WorkCenterSeq = M.WorkCenterSeq</p>
+<p>AND A.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.MinorSeq = M.SMWorkCenterType</p>
+<p>LEFT OUTER JOIN _TPDSFCGoodIn AS C WITH(NOLOCK) ON C.WorkReportSeq = A.WorkReportSeq</p>
+<p>AND C.CompanySeq = A.CompanySeq</p>
+<p>WHERE M.SMWorkCenterType = 6011001</p>
+  </article>
+</div>
+</body>
+</html>

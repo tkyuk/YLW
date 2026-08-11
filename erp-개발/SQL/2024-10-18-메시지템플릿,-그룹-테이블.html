@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메시지템플릿, 그룹 테이블</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>메시지템플릿, 그룹 테이블</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">메시지템플릿, 그룹 테이블</h1>
+<p>begin tran</p>
+<p>insert into OTCANoticeMessageSecu</p>
+<p>select * from hcttest.dbo.OTCANoticeMessageSecu</p>
+<p>insert into OTCANoticeMessageSecuGroup</p>
+<p>select * from hcttest.dbo.OTCANoticeMessageSecuGroup</p>
+<p>insert into OTCANoticeMessageSetting</p>
+<p>select * from hcttest.dbo.OTCANoticeMessageSetting</p>
+<p>insert into OTCANoticeGroupMember</p>
+<p>select * from hcttest.dbo.OTCANoticeGroupMember</p>
+<p>insert into OTCANoticeGroup</p>
+<p>select * from hcttest.dbo.OTCANoticeGroup</p>
+<p>rollback tran</p>
+<blockquote>
+<p>-- 메시지 그룹 사용자</p>
+<p>SELECT A.UserSeq                                AS UserSeq,</p>
+<p>ISNULL(C.UserName, '')        AS UserName,</p>
+<p>A.UserSeq                                AS UserSeqOld</p>
+<p>FROM OTCANoticeGroupMember AS A WITH(NOLOCK) JOIN OTCANoticeGroup AS B WITH(NOLOCK)</p>
+<p>ON B.CompanySeq        = A.CompanySeq</p>
+<p>AND B.GroupSeq                = A.GroupSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS C WITH(NOLOCK)</p>
+<p>ON C.CompanySeq        = A.CompanySeq</p>
+<p>AND C.UserSeq                = A.UserSeq</p>
+<p>WHERE A.CompanySeq                                 = @CompanySeq</p>
+<p>AND A.GroupSeq                                 = @GroupSeq</p>
+<p>AND ISNULL(B.IsNotiGroup, '') = '1'</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>-- 공지사항 그룹 사용자</p>
+<p>SELECT A.UserSeq                                AS UserSeq,</p>
+<p>ISNULL(C.UserName, '')        AS UserName,</p>
+<p>A.UserSeq                                AS UserSeqOld</p>
+<p>FROM OTCANoticeGroupMember AS A WITH(NOLOCK) JOIN OTCANoticeGroup AS B WITH(NOLOCK)</p>
+<p>ON B.CompanySeq        = A.CompanySeq</p>
+<p>AND B.GroupSeq                = A.GroupSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS C WITH(NOLOCK)</p>
+<p>ON C.CompanySeq        = A.CompanySeq</p>
+<p>AND C.UserSeq                = A.UserSeq</p>
+<p>WHERE A.CompanySeq                                 = @CompanySeq</p>
+<p>AND A.GroupSeq                                 = @GroupSeq</p>
+<p>AND ISNULL(B.IsNotiGroup, '') \&lt;&gt; '1'</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

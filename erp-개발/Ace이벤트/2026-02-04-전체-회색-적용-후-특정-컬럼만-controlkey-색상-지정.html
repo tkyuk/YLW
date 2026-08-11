@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전체 회색 적용 후 특정 컬럼만 controlkey 색상 지정</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>전체 회색 적용 후 특정 컬럼만 controlkey 색상 지정</h1>
+    <div class="meta">
+      <span class="note-date">2026-02-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="controlkey">전체 회색 적용 후 특정 컬럼만 controlkey 색상 지정</h1>
+<p>local row, rowOld</p>
+<p>local COLOR_WHITE = -1 -- 기본(white)</p>
+<p>local COLOR_CODEHELP = '#eef8ff' -- 코드도움(skyblue)</p>
+<p>local COLOR_NOS = '#fff5f5' -- NOS 필수값(pink)</p>
+<p>local COLOR_DIS = -1118482 -- 비활성(gray)</p>
+<p>-- 긴급도 관련 색상 정의</p>
+<p>local COLOR_EMERGENCY_RED = '#FFBBBB' -- 수주일 = 납기일 (붉은색)</p>
+<p>local COLOR_EMERGENCY_ORANGE = '#FFCC99' -- 수주일 + 1일 = 납기일 (주황색)</p>
+<p>-- DIS가 아니거나 별도 관리가 필요한 컬럼 Map</p>
+<p>local editColMap = {</p>
+<p>['Sel'] = true,</p>
+<p>['IsGoodStock'] = true,</p>
+<p>['WorkCenterName'] = true,</p>
+<p>['DVDate'] = true,</p>
+<p>['WHName'] = true,</p>
+<p>['Message'] = true</p>
+<p>}</p>
+<p>-- 현재 활성화된 행 저장</p>
+<p>rowOld = SS1.ActiveRow</p>
+<p>-- 1. 전체 데이터 행 반복</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>SS1.ActiveRow = row</p>
+<p>-- 현재 행의 날짜 데이터 가져오기</p>
+<p>local orderDate = CellText(SS1, row, 'OrderDate')</p>
+<p>local dvDate = CellText(SS1, row, 'DVDate')</p>
+<p>-- 수주일 + 1일 계산</p>
+<p>local orderDatePlus1 = ''</p>
+<p>if orderDate ~= nil and orderDate ~= '' then</p>
+<p>orderDatePlus1 = DateAdd('Day', 1, orderDate)</p>
+<p>end</p>
+<p>-- 2. 우선순위 판단: 긴급도 색상 결정</p>
+<p>local emergencyColor = nil</p>
+<p>if orderDate ~= '' and dvDate ~= '' then</p>
+<p>if orderDate == dvDate then</p>
+<p>emergencyColor = COLOR_EMERGENCY_RED</p>
+<p>elseif orderDatePlus1 == dvDate then</p>
+<p>emergencyColor = COLOR_EMERGENCY_ORANGE</p>
+<p>end</p>
+<p>end</p>
+<p>-- 3. 루프를 돌며 컬럼별 색상 적용</p>
+<p>local maxCol = SS1.MaxCols - 1</p>
+<p>for col = 0, maxCol do</p>
+<p>SS1.ActiveCol = col</p>
+<p>local colName = SS1.ActiveColumnName</p>
+<p>if emergencyColor ~= nil then</p>
+<p>-- [IF] 빨강 또는 주황 조건인 경우: 모든 컬럼 강제 적용</p>
+<p>SS1.ActiveCellBackColor = emergencyColor</p>
+<p>else</p>
+<p>-- [ELSE] 조건에 해당하지 않는 경우 (기본 하양 베이스)</p>
+<p>if editColMap[colName] == true then</p>
+<p>-- 담긴 항목(DIS 아님 등)인 경우 컨트롤키 및 타입에 맞는 색상 적용</p>
+<p>if SS1.ColumnCellType == 'enCodeHelp' then</p>
+<p>SS1.ActiveCellBackColor = COLOR_CODEHELP</p>
+<p>elseif string.find(SS1.ColumnControlKey, 'NOS') then</p>
+<p>SS1.ActiveCellBackColor = COLOR_NOS</p>
+<p>else</p>
+<p>SS1.ActiveCellBackColor = COLOR_WHITE</p>
+<p>end</p>
+<p>else</p>
+<p>-- 그 외 일반 컬럼은 하양(기본) 처리</p>
+<p>SS1.ActiveCellBackColor = COLOR_DIS</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>end</p>
+<p>-- 원래 활성화된 행으로 복구</p>
+<p>SS1.ActiveRow = rowOld</p>
+  </article>
+</div>
+</body>
+</html>

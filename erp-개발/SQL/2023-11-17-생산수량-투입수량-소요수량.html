@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생산수량 / 투입수량 / 소요수량</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>생산수량 / 투입수량 / 소요수량</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">생산수량 / 투입수량 / 소요수량</h1>
+<p>참고화면 및 sp</p>
+<p>=&gt; 자재투입조회</p>
+<p>=&gt; _SPDSFCMatInputListQuery</p>
+<p>/************************************************************</p>
+<p>설 명 - 생산자재투입현황 (수정중)</p>
+<p>작성일 - 2008년 12월 08일</p>
+<p>작성자 - 정동혁</p>
+<p>수정일 - 2010년 02월 02일 BY 박소연 :: 생산계획번호 조회조건 추가</p>
+<p>2010년 04월 19일 BY 박소연 :: 작업구분 조회조건 추가, 생산수량, 작업구분 추가</p>
+<p>2010년 04월 30일 BY 박소연 :: 생산대비 투입수량 추가</p>
+<p>2010년 07년 07일 BY 김현 :: 소요량 대비 투입수량 추가</p>
+<p>2010년 07월 23일 BY 박소연 :: Amt등의 컬럼에 Null값이 들어와 시트에서 Total할때 문제가 되서 시트출력이 안됨.. 그래서 ISNULL처리</p>
+<p>2011년 01월 24일 BY 조형래 :: 생산실적의 RealLotNo 컬럼추가</p>
+<p>2011년 07월 14일 BY 진선주 :: 워크센터의 활동센터 컬럼 추가</p>
+<p>2012년 01월 16일 BY 김세호 :: 외주 자재 정산금액 구하는 부분 추가</p>
+<p>2012년 03월 26일 BY 김세호 :: 제품규격, 자재규격 조회조건 추가</p>
+<p>2012년 11월 22일 BY 허승남 :: 수주거래처추가</p>
+<p>2014년 02월 03일 BY 김용현 :: 불량수량, 양품수량 컬럼 추가</p>
+<blockquote>
+<p>2017년 03일 29일 BY 임희진 :: 소요자재 구하기 Sub Sp 호출 전 생산 데이터를 담을 때 기준단위가 아닌 생산단위를 담도록 수정 (소요량 환산이 정상적으로 이루어지지 않았음)</p>
+<p>2019년 02월 26일 BY 김대영 :: SET 옵션추가</p>
+</blockquote>
+<p>2019년 06월 14일 BY 이형민 :: 최종작업자, 최종작업일자 추가</p>
+<p>2019년 09월 09일 BY 이형민 :: 생산일 경우 IsOut = '0'이 되도록 수정 -&gt; 생산일 경우 InRossRate로 계산이 되어야 함</p>
+<p>외주인 경우 IsOut = '1'로 수정 -&gt; NCHAR(1)이기에 1이 아닌 '1'로 수정</p>
+<p>2020년 05월 21일 BY 나태형 :: 자재소분류 컬럼 추가</p>
+<p>2020년 07월 21일 BY 나태형 :: 투입일 조회조건 없이 조회시 금액을 가져오지 못하는 오류로 인해 금액 계산 부분을 조회대상 담은 이후 순서로 변경</p>
+<p>************************************************************/</p>
+<p>CREATE PROC dbo._SPDSFCMatInputListQuery</p>
+<p>@xmlDocument NVARCHAR(MAX) ,</p>
+<p>@xmlFlags INT = 0,</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0</p>
+<p>AS</p>
+<blockquote>
+<p>SET NOCOUNT ON</p>
+<p>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</p>
+</blockquote>
+<p>DECLARE @docHandle INT,</p>
+<p>@WorkReportSeq INT,</p>
+<p>@FactUnit INT,</p>
+<p>@WHSeq INT,</p>
+<p>@InputDate NCHAR(8),</p>
+<p>@InputDateTo NCHAR(8),</p>
+<p>@WorkOrderNo NVARCHAR(30), -- 작업지시번호 자릿수 증가(20-&gt;30) BY 이혜민 18.11.13</p>
+<p>@DeptSeq INT,</p>
+<p>@DeptName NVARCHAR(200),</p>
+<p>@WHName NVARCHAR(100),</p>
+<p>@GoodItemName NVARCHAR(200),</p>
+<p>@GoodItemNo NVARCHAR(200),</p>
+<p>@MatItemName NVARCHAR(200),</p>
+<p>@MatItemNo NVARCHAR(200),</p>
+<p>@WorkCenterName NVARCHAR(200),</p>
+<p>@ProcName NVARCHAR(200),</p>
+<p>@ProdPlanNo NVARCHAR(200), -- 20100202 박소연 추가</p>
+<p>@WorkType INT, -- 20100419 박소연 추가</p>
+<p>-- 프로젝트 여부 09.1.3 김현</p>
+<p>@Cnt INT ,</p>
+<p>@Seq INT ,</p>
+<p>@CustName NVARCHAR(200),</p>
+<p>@IsOSP INT,</p>
+<p>@PJTName NVARCHAR(200) ,</p>
+<p>@PJTNo NVARCHAR(200) ,</p>
+<p>@PJTTypeSeq INT ,</p>
+<p>@CostEnv INT, -- 사용원가 환경설정</p>
+<p>@IFRSEnv INT, -- IFRS 사용 여부 환경설정</p>
+<p>@SMCostMng INT,</p>
+<p>@RealLotNo NVARCHAR(100),</p>
+<p>@RRealLotNo NVARCHAR(100),</p>
+<p>@GoodItemSpec NVARCHAR(100), -- 12.03.26 김세호 추가</p>
+<p>@MatItemSpec NVARCHAR(100), -- 12.03.26 김세호 추가</p>
+<p>@AssetSeq INT -- 13.01.30 이삭 추가</p>
+<p>CREATE TABLE #Input</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1), -- 2010. 7. 7. hkim</p>
+<p>FactUnit INT,</p>
+<p>WorkOrderNo NVARCHAR(30),</p>
+<p>InputDate NCHAR(8),</p>
+<p>DeptName NVARCHAR(200),</p>
+<p>WorkCenterName NVARCHAR(200),</p>
+<p>GoodItemName NVARCHAR(200),</p>
+<p>GoodItemNo NVARCHAR(200),</p>
+<p>GoodItemSpec NVARCHAR(200),</p>
+<p>ProcName NVARCHAR(200),</p>
+<p>ProdPlanNo NVARCHAR(200), -- 20100202 박소연 추가</p>
+<p>MatItemName NVARCHAR(200),</p>
+<p>MatItemNo NVARCHAR(200),</p>
+<p>MatItemSpec NVARCHAR(200),</p>
+<p>MatUnitName NVARCHAR(200),</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>StdUnitQty DECIMAL(19,5),</p>
+<p>RealLotNo NVARCHAR(30), -- 투입자재 RealLotNo</p>
+<p>RRealLotNo NVARCHAR(30), -- 20110124 조형래 추가 (생산실적 RealLotNo)</p>
+<p>SerialNoFrom NVARCHAR(30),</p>
+<p>IsConsign NCHAR(1),</p>
+<p>InputType INT,</p>
+<p>IsPaid NCHAR(1),</p>
+<p>WorkReportSeq INT,</p>
+<p>ItemSerl INT,</p>
+<p>MatItemSeq INT,</p>
+<p>PJTName NVARCHAR(200),</p>
+<p>PJTNo NVARCHAR(200),</p>
+<p>PJTTypeName NVARCHAR(200),</p>
+<p>WBSSeq INT,</p>
+<p>WBSName NVARCHAR(200),</p>
+<p>CustName NVARCHAR(200),</p>
+<p>OSPDelvInSeq INT,</p>
+<p>OSPDelvInSerl INT,</p>
+<p>IsOSP INT,</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>Price DECIMAL(19,5),</p>
+<p>WorkType INT, -- 20100419 박소연 추가</p>
+<p>WorkTypeName NVARCHAR(200), -- 20100419 박소연 추가</p>
+<p>ProdQty DECIMAL(19,5), -- 20100419 박소연 추가</p>
+<p>ItemBOMRev NCHAR(2) ,</p>
+<p>ProcRev NCHAR(2) ,</p>
+<p>AssetSeq INT,</p>
+<p>AssetName NVARCHAR(200),</p>
+<p>MatProcSeq INT,</p>
+<p>CCtrSeq INT, -- 20110714 진선주 추가</p>
+<p>CCtrName NVARCHAR(100), -- 20110714 진선주 추가</p>
+<p>Remark NVARCHAR(200), -- 12.03.09 김세호 추가</p>
+<p>OrderCustName NVARCHAR(100), -- 12.11.22 허승남 추가</p>
+<p>OKQty DECIMAL(19,5), -- 14.02.03 김용현 추가</p>
+<p>BadQty DECIMAL(19,5), -- 14.02.03 김용현 추가</p>
+<p>OspDelvInQty DECIMAL(19,5), -- 14.02.10 이재혁 추가</p>
+<p>IsReturn NCHAR(1), -- 15.09.08 박수영 추가</p>
+<p>StdUnitName NVARCHAR(100), -- 16.12.29 박수영 기준단위 추가</p>
+<p>LastUserName NVARCHAR(100), -- 19.06.14 이형민 추가 :: 최종작업자</p>
+<p>LastDateTime DateTime, -- 19.06.14 이형민 추가 :: 최종작업일시</p>
+<p>AssyItemName NVARCHAR(200),</p>
+<p>AssyItemNo NVARCHAR(100),</p>
+<p>ItemClassSName NVARCHAR(200), -- 20.05.21 나태형 추가</p>
+<p>ProdType NCHAR(1)</p>
+<p>)</p>
+<p>EXEC sp_xml_preparedocument @docHandle OUTPUT, @xmlDocument</p>
+<p>SELECT @FactUnit = ISNULL(FactUnit ,0),</p>
+<p>@WHSeq = ISNULL(WHSeq ,0),</p>
+<p>@InputDate = ISNULL(InputDate , ''),</p>
+<p>@InputDateTo = ISNULL(InputDateTo , ''),</p>
+<p>@WorkOrderNo = ISNULL(WorkOrderNo , ''),</p>
+<p>@DeptSeq = ISNULL(DeptSeq ,0),</p>
+<p>@DeptName = ISNULL(DeptName , ''),</p>
+<p>@WHName = ISNULL(WHName , ''),</p>
+<p>@GoodItemName = ISNULL(GoodItemName , ''),</p>
+<p>@GoodItemNo = ISNULL(GoodItemNo , ''),</p>
+<p>@MatItemName = ISNULL(MatItemName , ''),</p>
+<p>@MatItemNo = ISNULL(MatItemNo , ''),</p>
+<p>@WorkCenterName = ISNULL(WorkCenterName , ''),</p>
+<p>@ProcName = ISNULL(ProcName , ''),</p>
+<p>@ProdPlanNo = ISNULL(ProdPlanNo , ''), -- 20100202 박소연 추가</p>
+<p>@WorkType = ISNULL(WorkType ,0), -- 20100419 박소연 추가</p>
+<p>@CustName = ISNULL(CustName , ''),</p>
+<p>@IsOSP = ISNULL(IsOSP ,0),</p>
+<p>@PJTName = ISNULL(PJTName , ''),</p>
+<p>@PJTNo = ISNULL(PJTNo , ''),</p>
+<p>@PJTTypeSeq = ISNULL(PJTTypeSeq , 0),</p>
+<p>@RRealLotNo = ISNULL(RRealLotNo , ''),</p>
+<p>@RealLotNo = ISNULL(RealLotNo , ''),</p>
+<p>@GoodItemSpec = ISNULL(GoodItemSpec , ''),</p>
+<p>@MatItemSpec = ISNULL(MatItemSpec , ''),</p>
+<p>@AssetSeq = ISNULL(AssetSeq , '') --2013.01.30 이삭 추가</p>
+<p>FROM OPENXML(@docHandle, N'/ROOT/DataBlock1', @xmlFlags)</p>
+<p>WITH (FactUnit INT,</p>
+<p>WHSeq INT,</p>
+<p>InputDate NCHAR(8),</p>
+<p>InputDateTo NCHAR(8),</p>
+<p>WorkOrderNo NVARCHAR(30),</p>
+<p>DeptSeq INT,</p>
+<p>DeptName NVARCHAR(100),</p>
+<p>WHName NVARCHAR(100),</p>
+<p>GoodItemName NVARCHAR(200),</p>
+<p>GoodItemNo NVARCHAR(100),</p>
+<p>MatItemName NVARCHAR(200),</p>
+<p>MatItemNo NVARCHAR(100),</p>
+<p>WorkCenterName NVARCHAR(100),</p>
+<p>ProcName NVARCHAR(100),</p>
+<p>ProdPlanNo NVARCHAR(100), -- 20100202 박소연 추가</p>
+<p>WorkType INT, -- 20100419 박소연 추가</p>
+<p>CustName NVARCHAR(100),</p>
+<p>IsOSP INT,</p>
+<p>PJTName NVARCHAR(60) ,</p>
+<p>PJTNo NVARCHAR(40) ,</p>
+<p>PJTTypeSeq INT ,</p>
+<p>RRealLotNo NVARCHAR(100),</p>
+<p>RealLotNo NVARCHAR(100),</p>
+<p>GoodItemSpec NVARCHAR(100),</p>
+<p>MatItemSpec NVARCHAR(100),</p>
+<p>AssetSeq INT )</p>
+<blockquote>
+<p>EXEC sp_xml_removedocument @docHandle</p>
+</blockquote>
+<p>--select * From _TPDSFCMatinput where matitemseq = 34310</p>
+<p>-- select * From _TESMGInOutStock where itemseq = 34310 AND InOutKind IN (8023015 , 8023021)</p>
+<p>--</p>
+<p>-- 연결키:</p>
+<p>-- _TPDSFCMatinput.CompanySeq =_TESMGInOutStock.CompanySeq</p>
+<p>-- _TPDSFCMatinput.WorkReportSeq =_TESMGInOutStock.InOutSeq</p>
+<p>-- _TPDSFCMatinput.ItemSeql =_TESMGInOutStock.InOutSubSerl</p>
+<p>--</p>
+<p>--이렇게 _TESMGInOutStock 이 테이블과 조인해서 금액 Amt 값 가져오면 됩니다.</p>
+<p>--해당화면에 금액 칼럼 추가해서요. 단가는 Amt/Qty로 계산하면 되구요.</p>
+<p>-- _TLGInOutStock Amt을 _TESMGInoutstock 의 Amt로 바꿔줌 dykim</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,5531,@UserSeq,@@PROCID,@CostEnv OUTPUT</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,5563,@UserSeq,@@PROCID,@IFRSEnv OUTPUT</p>
+<p>IF @CostEnv = 5518001 AND ISNULL(@IFRSEnv, 0) = 0 -- 기본원가 사용</p>
+<p>BEGIN</p>
+<p>SELECT @SMCostMng = 5512004</p>
+<p>END</p>
+<p>ELSE IF @CostEnv = 5518001 AND @IFRSEnv = 1 -- 기본원가, IFRS 사용</p>
+<p>BEGIN</p>
+<p>SELECT @SMCostMng = 5512006</p>
+<p>END</p>
+<p>ELSE IF @CostEnv = 5518002 AND ISNULL(@IFRSEnv, 0) = 0 -- 활동기준원가 사용</p>
+<p>BEGIN</p>
+<p>SELECT @SMCostMng = 5512001</p>
+<p>END</p>
+<p>ELSE IF @CostEnv = 5518002 AND @IFRSEnv = 1 -- 활동기준원가, IFRS 사용</p>
+<p>BEGIN</p>
+<p>SELECT @SMCostMng = 5512005</p>
+<p>END</p>
+<p>CREATE TABLE #Temp_Amt(</p>
+<p>InOutSeq INT,</p>
+<p>InOutSerl INT,</p>
+<p>InOutSubSerl INT,</p>
+<p>Amt DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #Temp_Amt_OSP(</p>
+<p>InOutSeq INT,</p>
+<p>InOutSerl INT,</p>
+<p>InOutSubSerl INT,</p>
+<p>Amt DECIMAL(19,5)</p>
+<p>)</p>
+<p>IF @PgmSeq=200131</p>
+<p>BEGIN</p>
+<p>INSERT #Input</p>
+<p>SELECT</p>
+<p>R.FactUnit</p>
+<p>,W.WorkOrderNo</p>
+<p>,I.InputDate</p>
+<p>,D.DeptName AS DeptName -- 입고부서</p>
+<p>,C.WorkCenterName AS WorkCenterName</p>
+<p>,G.ItemName AS GoodItemName</p>
+<p>,G.ItemNo AS GoodItemNo</p>
+<p>,G.Spec AS GoodItemSpec</p>
+<p>,P.ProcName AS ProcName</p>
+<p>,V.ProdPlanNo AS ProdPlanNo -- 20100202 박소연 추가</p>
+<p>,M.ItemName AS MatItemName</p>
+<p>,M.ItemNo AS MatItemNo</p>
+<p>,M.Spec AS MatItemSpec</p>
+<p>,U.UnitName AS MatUnitName -- 입고단위</p>
+<p>,ISNULL(I.Qty, 0) AS Qty</p>
+<p>,ISNULL(I.StdUnitQty, 0) AS StdUnitQty</p>
+<p>,I.RealLotNo AS RealLotNo -- 투입자재 RealLotNo</p>
+<p>,R.RealLotNo AS RRealLotNo -- 20110124 조형래 추가 (생산실적 RealLotNo)</p>
+<p>,I.SerialNoFrom</p>
+<p>,I.IsConsign</p>
+<p>,I.InputType</p>
+<p>,I.IsPaid</p>
+<p>,I.WorkReportSeq</p>
+<p>,I.ItemSerl</p>
+<p>,I.MatItemSeq</p>
+<p>,X.PJTName</p>
+<p>,X.PJTNo</p>
+<blockquote>
+<p>,(SELECT PJTTypeName FROM _TPJTType WHERE CompanySeq = @CompanySeq AND PJTTypeSeq = X.PJTTypeSeq) AS PJTTypeName</p>
+</blockquote>
+<p>,I.WBSSeq</p>
+<p>,'' AS WBSName</p>
+<p>,''</p>
+<p>,0</p>
+<p>,0</p>
+<p>,6064001</p>
+<p>,0--(SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl) AS Amt</p>
+<p>,0--CASE WHEN I.Qty = 0 THEN 0 ELSE ISNULL((SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl), 0) / I.Qty END AS Price</p>
+<p>,R.WorkType -- 20100419 박소연 추가</p>
+<p>,B.MinorName AS WorkTypeName -- 20100419 박소연 추가</p>
+<p>,ISNULL(R.ProdQty, 0) AS ProdQty -- 20100419 박소연 추가</p>
+<p>,W.ItemBOMRev AS ItemBOMRev</p>
+<p>,W.ProcRev AS ProcRev</p>
+<p>,M.AssetSeq AS AssetSeq -- 재고자산분류코드</p>
+<p>,M1.AssetName AS AssetName -- 재고자산분류</p>
+<p>,I.ProcSeq AS MatProcSeq</p>
+<p>,C.CCtrSeq -- 20110714 진선주 추가</p>
+<p>,E.CCtrName -- 20110714 진선주 추가</p>
+<p>,I.Remark AS Remark -- 12.03.09 김세호 추가</p>
+<p>,Z.CustName AS OrderCustName</p>
+<p>,ISNULL(R.OKQty,0) AS OKQty</p>
+<p>,ISNULL(R.BadQty,0) AS BadQty</p>
+<p>,0</p>
+<p>,'0'</p>
+<p>,U1.UnitName AS StdUnitName -- 16.12.29 박수영 추가</p>
+<p>,UM.UserName AS LastUserName -- 19.06.14 이형민 추가</p>
+<p>,I.LastDateTime AS LastDateTime -- 19.06.14 이형민 추가</p>
+<p>,M2.ItemName AS AssyItemName -- 20.01.06 이혜민 추가</p>
+<p>,M2.ItemNo AS AssyItemNo -- 20.01.06 이혜민 추가</p>
+<p>,ISNULL(C2.MinorName,'') AS ItemClassSName -- 20.05.21 자재소분류 나태형 추가</p>
+<p>,'1' AS ProdType</p>
+<p>FROM _TPDSFCMatinput AS I WITH(NOLOCK) -- 자재투입 테이블</p>
+<p>JOIN _TPDSFCWorkReport AS R WITH(NOLOCK) ON I.WorkReportSeq = R.WorkReportSeq -- 생산실적 테이블</p>
+<p>AND I.CompanySeq = R.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON R.WorkCenterSeq = C.WorkCenterSeq -- 프로젝트 투입 워크센터 없음</p>
+<p>AND I.CompanySeq = C.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDADept AS D WITH(NOLOCK) ON R.DeptSeq = D.DeptSeq</p>
+<p>AND I.CompanySeq = D.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON R.GoodItemSeq = G.ItemSeq</p>
+<p>AND I.CompanySeq = G.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS M WITH(NOLOCK) ON I.MatItemSeq = M.ItemSeq</p>
+<p>AND I.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS M1 WITH(NOLOCK) ON M.AssetSeq = M1.AssetSeq</p>
+<p>AND I.CompanySeq = M1.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON I.MatUnitSeq = U.UnitSeq</p>
+<p>AND I.CompanySeq = U.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON R.ProcSeq = P.ProcSeq</p>
+<p>AND I.CompanySeq = P.CompanySeq</p>
+<p>JOIN _TPJTProject AS X WITH(NOLOCK) ON I.PJTSeq = X.PJTSeq -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND I.CompanySeq = X.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = W.WorkOrderSerl</p>
+<p>AND I.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS V WITH(NOLOCK) ON V.ProdPlanSeq = W.ProdPlanSeq -- 20100202 박소연 추가</p>
+<p>AND I.CompanySeq = V.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.MinorSeq = R.WorkType -- 20100419 박소연 추가</p>
+<p>AND I.CompanySeq = B.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACCtr AS E WITH(NOLOCK) ON C.CCtrSeq = E.CCtrSeq -- 20110714 진선주 추가</p>
+<p>AND I.CompanySeq = E.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACust AS Z WITH(NOLOCK) ON R.CompanySeq = Z.CompanySeq</p>
+<p>AND R.CustSeq = Z.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U1 WITH(NOLOCK) ON M.UnitSeq = U1.UnitSeq</p>
+<p>AND U1.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS UM WITH(NOLOCK) ON I.LastUserSeq = UM.userseq -- 2019.06.14 이형민 추가</p>
+<p>LEFT OUTER JOIN _TDAItem AS M2 WITH(NOLOCK) ON R.AssyItemSeq = M2.ItemSeq</p>
+<p>AND R.CompanySeq = M2.CompanySeq -- 2020.01.06 이혜민 추가</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS C1 WITH(NOLOCK) ON C1.CompanySeq = M.CompanySeq</p>
+<p>AND C1.ItemSeq = M.ItemSeq</p>
+<p>AND C1.UMajorItemClass IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C2 WITH(NOLOCK) ON C2.CompanySeq = C1.CompanySeq</p>
+<p>AND C2.MajorSeq = C1.UMajorItemClass</p>
+<p>AND C2.MinorSeq = C1.UMItemClass</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@FactUnit = 0 OR R.FactUnit = @FactUnit)</p>
+<p>AND (@InputDate = '' OR I.InputDate &gt;= @InputDate)</p>
+<p>AND (@InputDateTo = '' OR I.InputDate \&lt;= @InputDateTo)</p>
+<p>AND (@WorkOrderNo = '' OR W.WorkOrderNo LIKE RTRIM(@WorkOrderNo) + '%')</p>
+<p>AND (@DeptSeq = 0 OR R.DeptSeq = @DeptSeq)</p>
+<p>AND (@DeptName = '' OR D.DeptName LIKE @DeptName + '%')</p>
+<p>AND (@GoodItemName = '' OR G.ItemName LIKE @GoodItemName + '%')</p>
+<p>AND (@GoodItemNo = '' OR G.ItemNo LIKE @GoodItemNo + '%')</p>
+<p>AND (@MatItemName = '' OR M.ItemName LIKE @MatItemName + '%')</p>
+<p>AND (@MatItemNo = '' OR M.ItemNo LIKE @MatItemNo + '%')</p>
+<p>AND (@WorkCenterName = '' OR C.WorkCenterName LIKE @WorkCenterName + '%')</p>
+<p>AND (@ProdPlanNo = '' OR V.ProdPlanNo LIKE @ProdPlanNo + '%')</p>
+<p>AND (@ProcName = '' OR P.ProcName LIKE @ProcName + '%') -- 20100202 박소연 추가</p>
+<p>AND (@PJTName = '' OR X.PJTName LIKE @PJTName + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTNo = '' OR X.PJTNo LIKE @PJTNo + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTTypeSeq = 0 OR X.PJTTypeSeq = @PJTTypeSeq)</p>
+<p>AND @CustName = ''</p>
+<p>AND (@IsOSP IN (0,6064001))</p>
+<p>AND (@PgmSeq = 200131 OR I.PJTSeq = 0) -- 프로젝트 조회 101123 엄효진 추가</p>
+<p>AND (@RRealLotNo = '' OR R.RealLotNo LIKE @RRealLotNo + '%')</p>
+<p>AND (@RealLotNo = '' OR I.RealLotNo LIKE @RealLotNo + '%')</p>
+<p>AND (@GoodItemSpec = '' OR G.Spec LIKE @GoodItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>AND (@MatItemSpec = '' OR M.Spec LIKE @MatItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT #Input</p>
+<p>SELECT</p>
+<p>R.FactUnit</p>
+<p>,W.WorkOrderNo</p>
+<p>,I.InputDate</p>
+<p>,D.DeptName AS DeptName -- 입고부서</p>
+<p>,C.WorkCenterName AS WorkCenterName</p>
+<p>,G.ItemName AS GoodItemName</p>
+<p>,G.ItemNo AS GoodItemNo</p>
+<p>,G.Spec AS GoodItemSpec</p>
+<p>,P.ProcName AS ProcName</p>
+<p>,V.ProdPlanNo AS ProdPlanNo -- 20100202 박소연 추가</p>
+<p>,M.ItemName AS MatItemName</p>
+<p>,M.ItemNo AS MatItemNo</p>
+<p>,M.Spec AS MatItemSpec</p>
+<p>,U.UnitName AS MatUnitName -- 입고단위</p>
+<p>,ISNULL(I.Qty, 0) AS Qty</p>
+<p>,ISNULL(I.StdUnitQty, 0) AS StdUnitQty</p>
+<p>,I.RealLotNo AS RealLotNo -- 투입자재 RealLotNo</p>
+<p>,R.RealLotNo AS RRealLotNo -- 20110124 조형래 추가 (생산실적 RealLotNo)</p>
+<p>,I.SerialNoFrom</p>
+<blockquote>
+<p>,I.IsConsign</p>
+</blockquote>
+<p>,I.InputType</p>
+<p>,I.IsPaid</p>
+<p>,I.WorkReportSeq</p>
+<p>,I.ItemSerl</p>
+<p>,I.MatItemSeq</p>
+<p>,X.PJTName</p>
+<p>,X.PJTNo</p>
+<blockquote>
+<p>,(SELECT PJTTypeName FROM _TPJTType WHERE CompanySeq = @CompanySeq AND PJTTypeSeq = X.PJTTypeSeq) AS PJTTypeName</p>
+</blockquote>
+<p>,I.WBSSeq</p>
+<p>,'' AS WBSName</p>
+<p>,''</p>
+<p>,0</p>
+<p>,0</p>
+<p>,6064001</p>
+<p>,0--(SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl) AS Amt</p>
+<p>,0--CASE WHEN I.Qty = 0 THEN 0 ELSE ISNULL((SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = I.WorkReportSeq AND InOutSubSerl = I.ItemSerl), 0) / I.Qty END AS Price</p>
+<p>,R.WorkType -- 20100419 박소연 추가</p>
+<p>,B.MinorName AS WorkTypeName -- 20100419 박소연 추가</p>
+<p>,ISNULL(R.ProdQty, 0) AS ProdQty -- 20100419 박소연 추가</p>
+<p>,W.ItemBOMRev AS ItemBOMRev</p>
+<p>,W.ProcRev AS ProcRev</p>
+<p>,M.AssetSeq AS AssetSeq -- 재고자산분류코드</p>
+<p>,M1.AssetName AS AssetName -- 재고자산분류</p>
+<p>,I.ProcSeq AS MatProcSeq</p>
+<p>,C.CCtrSeq -- 20110714 진선주 추가</p>
+<p>,E.CCtrName -- 20110714 진선주 추가</p>
+<p>,I.Remark AS Remark -- 12.03.09 김세호 추가</p>
+<p>,Z.CustName AS OrderCustName</p>
+<p>,ISNULL(R.OKQty,0) AS OKQty</p>
+<p>,ISNULL(R.BadQty,0) AS BadQty</p>
+<p>,0</p>
+<p>,'0'</p>
+<p>,U1.UnitName AS StdUnitName -- 2016.12.29 박수영 추가</p>
+<p>,UM.UserName AS LastUserName -- 19.06.14 이형민 추가</p>
+<p>,I.LastDateTime AS LastDateTime -- 19.06.14 이형민 추가</p>
+<p>,M2.ItemName AS AssyItemName -- 20.01.06 이혜민 추가</p>
+<p>,M2.ItemNo AS AssyItemNo -- 20.01.06 이혜민 추가</p>
+<p>,ISNULL(C2.MinorName,'') AS ItemClassSName -- 20.05.21 자재소분류 나태형 추가</p>
+<p>,'1' AS ProdType</p>
+<p>FROM _TPDSFCMatinput AS I WITH(NOLOCK) -- 자재투입 테이블</p>
+<p>JOIN _TPDSFCWorkReport AS R WITH(NOLOCK) ON I.WorkReportSeq = R.WorkReportSeq -- 생산실적 테이블</p>
+<p>AND I.CompanySeq = R.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON R.WorkCenterSeq = C.WorkCenterSeq -- 프로젝트 투입 워크센터 없음</p>
+<p>AND I.CompanySeq = C.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDADept AS D WITH(NOLOCK) ON R.DeptSeq = D.DeptSeq</p>
+<p>AND I.CompanySeq = D.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON R.GoodItemSeq = G.ItemSeq</p>
+<p>AND I.CompanySeq = G.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS M WITH(NOLOCK) ON I.MatItemSeq = M.ItemSeq</p>
+<p>AND I.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS M1 WITH(NOLOCK) ON M.AssetSeq = M1.AssetSeq</p>
+<p>AND I.CompanySeq = M1.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U WITH(NOLOCK) ON I.MatUnitSeq = U.UnitSeq</p>
+<p>AND I.CompanySeq = U.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON R.ProcSeq = P.ProcSeq</p>
+<p>AND I.CompanySeq = P.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS X WITH(NOLOCK) ON I.PJTSeq = X.PJTSeq -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND I.CompanySeq = X.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = W.WorkOrderSerl</p>
+<p>AND I.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS V WITH(NOLOCK) ON V.ProdPlanSeq = W.ProdPlanSeq -- 20100202 박소연 추가</p>
+<p>AND I.CompanySeq = V.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.MinorSeq = R.WorkType -- 20100419 박소연 추가</p>
+<p>AND I.CompanySeq = B.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACCtr AS E WITH(NOLOCK) ON C.CCtrSeq = E.CCtrSeq -- 20110714 진선주 추가</p>
+<p>AND I.CompanySeq = E.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACust AS Z WITH(NOLOCK) ON R.CompanySeq = Z.CompanySeq</p>
+<p>AND R.CustSeq = Z.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U1 WITH(NOLOCK) ON M.UnitSeq = U1.UnitSeq</p>
+<p>AND U1.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS UM WITH(NOLOCK) ON I.LastUserSeq = UM.userseq -- 2019.06.14 이형민 추가</p>
+<p>LEFT OUTER JOIN _TDAItem AS M2 WITH(NOLOCK) ON R.AssyItemSeq = M2.ItemSeq</p>
+<p>AND R.CompanySeq = M2.CompanySeq -- 2020.01.06 이혜민 추가</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS C1 WITH(NOLOCK) ON C1.CompanySeq = M.CompanySeq</p>
+<p>AND C1.ItemSeq = M.ItemSeq</p>
+<p>AND C1.UMajorItemClass IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C2 WITH(NOLOCK) ON C2.CompanySeq = C1.CompanySeq</p>
+<p>AND C2.MajorSeq = C1.UMajorItemClass</p>
+<p>AND C2.MinorSeq = C1.UMItemClass</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@FactUnit = 0 OR R.FactUnit = @FactUnit)</p>
+<p>AND (@InputDate = '' OR I.InputDate &gt;= @InputDate)</p>
+<p>AND (@InputDateTo = '' OR I.InputDate \&lt;= @InputDateTo)</p>
+<p>AND (@WorkOrderNo = '' OR W.WorkOrderNo LIKE RTRIM(@WorkOrderNo) + '%')</p>
+<p>AND (@DeptSeq = 0 OR R.DeptSeq = @DeptSeq)</p>
+<p>AND (@DeptName = '' OR D.DeptName LIKE @DeptName + '%')</p>
+<p>AND (@GoodItemName = '' OR G.ItemName LIKE @GoodItemName + '%')</p>
+<p>AND (@GoodItemNo = '' OR G.ItemNo LIKE @GoodItemNo + '%')</p>
+<p>AND (@MatItemName = '' OR M.ItemName LIKE @MatItemName + '%')</p>
+<p>AND (@MatItemNo = '' OR M.ItemNo LIKE @MatItemNo + '%')</p>
+<p>AND (@WorkCenterName = '' OR C.WorkCenterName LIKE @WorkCenterName + '%')</p>
+<p>AND (@ProdPlanNo = '' OR V.ProdPlanNo LIKE @ProdPlanNo + '%')</p>
+<p>AND (@ProcName = '' OR P.ProcName LIKE @ProcName + '%') -- 20100202 박소연 추가</p>
+<p>AND (@PJTName = '' OR X.PJTName LIKE @PJTName + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTNo = '' OR X.PJTNo LIKE @PJTNo + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTTypeSeq = 0 OR X.PJTTypeSeq = @PJTTypeSeq)</p>
+<p>AND @CustName = ''</p>
+<p>AND (@IsOSP IN (0,6064001))</p>
+<p>AND (@PgmSeq = 200131 OR I.PJTSeq = 0) -- 프로젝트 조회 101123 엄효진 추가</p>
+<p>AND (@RRealLotNo = '' OR R.RealLotNo LIKE @RRealLotNo + '%')</p>
+<p>AND (@RealLotNo = '' OR I.RealLotNo LIKE @RealLotNo + '%')</p>
+<p>AND (@GoodItemSpec = '' OR G.Spec LIKE @GoodItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>AND (@MatItemSpec = '' OR M.Spec LIKE @MatItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>END</p>
+<p>--select * from #Input</p>
+<p>-- 외주</p>
+<p>IF @PgmSeq=200131</p>
+<p>BEGIN</p>
+<p>INSERT #Input</p>
+<p>SELECT</p>
+<p>S.FactUnit</p>
+<p>,W.WorkOrderNo</p>
+<p>,I.OSPDelvInDate</p>
+<p>,D.DeptName AS DeptName -- 입고부서</p>
+<p>,C.WorkCenterName AS WorkCenterName</p>
+<p>,G.ItemName AS GoodItemName</p>
+<p>,G.ItemNo AS GoodItemNo</p>
+<p>,G.Spec AS GoodItemSpec</p>
+<p>,P.ProcName AS ProcName</p>
+<p>,V.ProdPlanNo AS ProdPlanNo -- 20100202 박소연 추가</p>
+<p>,M.ItemName AS MatItemName</p>
+<p>,M.ItemNo AS MatItemNo</p>
+<p>,M.Spec AS MatItemSpec</p>
+<p>,U.UnitName AS MatUnitName -- 입고단위</p>
+<p>,ISNULL(I.CompQty, 0) AS CompQty</p>
+<p>,ISNULL(I.StdUnitQty, 0) AS StdUnitQty</p>
+<blockquote>
+<p>,I.LotNoInput</p>
+</blockquote>
+<p>,R.RealLotNo AS RRealLotNo -- 20110124 조형래 추가 (외주입고 품목 RealLotNo)</p>
+<p>,I.SerialFrom</p>
+<p>,0</p>
+<p>,0</p>
+<p>,''</p>
+<p>,0</p>
+<blockquote>
+<p>,I.OSPDelvInSubSerl</p>
+</blockquote>
+<p>,I.ItemSeq</p>
+<p>,X.PJTName</p>
+<p>,X.PJTNo</p>
+<blockquote>
+<p>,(SELECT PJTTypeName FROM _TPJTType WHERE CompanySeq = @CompanySeq AND PJTTypeSeq = X.PJTTypeSeq) AS PJTTypeName</p>
+</blockquote>
+<p>,R.WBSSeq</p>
+<p>,'' AS WBSName</p>
+<p>,T.CustName</p>
+<p>,I.OSPDelvInSeq</p>
+<p>,I.OSPDelvInSerl</p>
+<p>,6064002</p>
+<p>,0--ISNULL(Y.Amt, 0) AS Amt</p>
+<p>,0--CASE WHEN I.CompQty = 0 THEN 0 ELSE ISNULL(ISNULL(Y.Amt, 0) / I.CompQty, 0) END AS Price --자재단가처리된 금액 / 정산수량 으로 조회 12.12.12. BY 김세호</p>
+<blockquote>
+<p>,0 AS WorkType -- 20100419 박소연 추가</p>
+</blockquote>
+<p>,'' AS WorkTypeName -- 20100419 박소연 추가</p>
+<blockquote>
+<p>,ISNULL(WR.ProdQty, 0) AS ProdQty -- 20100419 박소연 추가 2014.02.03 김용현 생산실적의 생산수량으로 수정</p>
+</blockquote>
+<p>,W.ItemBOMRev AS ItemBOMRev</p>
+<p>,W.ProcRev AS ProcRev</p>
+<p>,M.AssetSeq AS AssetSeq -- 재고자산분류코드</p>
+<p>,M1.AssetName AS AssetName -- 재고자산분류</p>
+<p>,9999 AS MatProcSeq</p>
+<p>,C.CCtrSeq -- 20110714 진선주 추가</p>
+<p>,E.CCtrName -- 20110714 진선주 추가</p>
+<p>,'' AS Remark</p>
+<p>,'' AS OrderCustName</p>
+<p>,ISNULL(WR.OKQty,0) AS OKQty</p>
+<p>,ISNULL(WR.BadQty,0) AS BadQty</p>
+<p>,ISNULL(R.Qty,0) AS OspDelvInQty</p>
+<p>,ISNULL(ISNULL(I.IsReturn, R.IsReturn),S.IsReturn) AS IsReturn</p>
+<p>,U.UnitName AS StdUnitName -- 2016.12.29 박수영 추가</p>
+<p>,UM.UserName AS LastUserName -- 19.06.14 이형민 추가</p>
+<p>,I.LastDateTime AS LastDateTime -- 19.06.14 이형민 추가</p>
+<p>,'' AS AssyItemName</p>
+<p>,'' AS AssyItemNo</p>
+<p>,ISNULL(C2.MinorName,'') AS ItemClassSName -- 20.05.21 자재소분류 나태형 추가</p>
+<p>,'2' AS ProdType</p>
+<p>FROM _TPDOSPDelvInItemMat AS I WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPDelvInItem AS R WITH(NOLOCK) ON I.OSPDelvInSeq = R.OSPDelvInSeq</p>
+<p>AND I.OSPDelvInSerl = R.OSPDelvInSerl</p>
+<p>AND I.CompanySeq = R.CompanySeq</p>
+<p>JOIN _TPDOSPDelvIn AS S WITH(NOLOCK) ON I.OSPDelvInSeq = S.OSPDelvInSeq</p>
+<p>AND I.CompanySeq = S.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = W.WorkOrderSerl</p>
+<p>AND I.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkReport AS WR WITH(NOLOCK) ON W.WorkOrderSeq = WR.WorkOrderSeq</p>
+<p>AND W.WorkOrderSerl = WR.WorkOrderSerl</p>
+<p>AND W.CompanySeq = WR.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON W.WorkCenterSeq = C.WorkCenterSeq</p>
+<p>AND I.CompanySeq = C.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDADept AS D WITH(NOLOCK) ON S.DeptSeq = D.DeptSeq</p>
+<p>AND I.CompanySeq = D.CompanySeq</p>
+<p>JOIN _TDAItem AS G WITH(NOLOCK) ON R.ItemSeq = G.ItemSeq</p>
+<p>AND I.CompanySeq = G.CompanySeq</p>
+<p>JOIN _TDAItem AS M WITH(NOLOCK) ON I.ItemSeq = M.ItemSeq</p>
+<p>AND I.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS M1 WITH(NOLOCK) ON M.AssetSeq = M1.AssetSeq</p>
+<p>AND I.CompanySeq = M1.CompanySeq</p>
+<p>JOIN _TDAUnit AS U WITH(NOLOCK) ON I.UnitSeq = U.UnitSeq</p>
+<p>AND I.CompanySeq = U.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON R.ProcSeq = P.ProcSeq</p>
+<p>AND I.CompanySeq = P.CompanySeq</p>
+<p>JOIN _TDACust AS T WITH(NOLOCK) ON S.CustSeq = T.CustSeq</p>
+<p>AND I.CompanySeq = T.CompanySeq</p>
+<blockquote>
+<p>JOIN _TPJTProject AS X WITH(NOLOCK) ON R.PJTSeq = X.PJTSeq -- 프로젝트 체크 09.1.3 김현</p>
+</blockquote>
+<p>AND I.CompanySeq = X.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS V WITH(NOLOCK) ON V.ProdPlanSeq = W.ProdPlanSeq -- 20100202 박소연 추가</p>
+<p>AND I.CompanySeq = V.CompanySeq</p>
+<p>--LEFT OUTER JOIN #Temp_Amt_OSP AS Y ON I.OSPDelvInSeq = Y.InOutSeq</p>
+<p>-- AND I.OSPDelvInSubSerl = Y.InOutSubSerl</p>
+<p>-- AND I.OSPDelvInSerl = Y.InOutSerl</p>
+<p>LEFT OUTER JOIN _TDACCtr AS E WITH(NOLOCK) ON C.CCtrSeq = E.CCtrSeq -- 20110714 진선주 추가</p>
+<p>AND I.CompanySeq = E.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U1 WITH(NOLOCK) ON M.UnitSeq = U1.UnitSeq</p>
+<p>AND U1.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS UM WITH(NOLOCK) ON I.LastUserSeq = UM.userseq -- 2019.06.14 이형민 추가</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS C1 WITH(NOLOCK) ON C1.CompanySeq = M.CompanySeq</p>
+<p>AND C1.ItemSeq = M.ItemSeq</p>
+<p>AND C1.UMajorItemClass IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C2 WITH(NOLOCK) ON C2.CompanySeq = C1.CompanySeq</p>
+<p>AND C2.MajorSeq = C1.UMajorItemClass</p>
+<p>AND C2.MinorSeq = C1.UMItemClass</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@FactUnit = 0 OR S.FactUnit = @FactUnit)</p>
+<p>AND (@InputDate = '' OR I.OSPDelvInDate &gt;= @InputDate)</p>
+<p>AND (@InputDateTo = '' OR I.OSPDelvInDate \&lt;= @InputDateTo)</p>
+<p>AND (@WorkOrderNo = '' OR W.WorkOrderNo LIKE RTRIM(@WorkOrderNo) + '%')</p>
+<p>AND (@DeptSeq = 0 OR S.DeptSeq = @DeptSeq)</p>
+<p>AND (@DeptName = '' OR D.DeptName LIKE @DeptName + '%')</p>
+<p>AND (@GoodItemName = '' OR G.ItemName LIKE @GoodItemName + '%')</p>
+<p>AND (@GoodItemNo = '' OR G.ItemNo LIKE @GoodItemNo + '%')</p>
+<p>AND (@MatItemName = '' OR M.ItemName LIKE @MatItemName + '%')</p>
+<p>AND (@MatItemNo = '' OR M.ItemNo LIKE @MatItemNo + '%')</p>
+<p>AND (@WorkCenterName = '' OR C.WorkCenterName LIKE @WorkCenterName + '%')</p>
+<p>AND (@ProcName = '' OR P.ProcName LIKE @ProcName + '%') -- 20100202 박소연 추가</p>
+<p>AND (@PJTName = '' OR X.PJTName LIKE @PJTName + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTNo = '' OR X.PJTNo LIKE @PJTNo + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTTypeSeq = 0 OR X.PJTTypeSeq = @PJTTypeSeq)</p>
+<p>AND (@CustName = '' OR T.CustName LIKE @CustName + '%')</p>
+<p>AND (@IsOSP IN (0,6064002))</p>
+<p>AND (@ProdPlanNo = '' OR V.ProdPlanNo LIKE @ProdPlanNo + '%')</p>
+<p>AND (@PgmSeq = 200131 OR R.PJTSeq = 0) -- 프로젝트 조회 101123 엄효진 추가</p>
+<p>AND (@RRealLotNo = '' OR R.RealLotNo LIKE @RRealLotNo + '%')</p>
+<p>AND (@RealLotNo = '' OR I.LotNoInput LIKE @RealLotNo + '%')</p>
+<p>AND (@GoodItemSpec = '' OR G.Spec LIKE @GoodItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>AND (@MatItemSpec = '' OR M.Spec LIKE @MatItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>INSERT #Input</p>
+<p>SELECT</p>
+<p>S.FactUnit</p>
+<p>,W.WorkOrderNo</p>
+<p>,I.OSPDelvInDate</p>
+<p>,D.DeptName AS DeptName -- 입고부서</p>
+<p>,C.WorkCenterName AS WorkCenterName</p>
+<p>,G.ItemName AS GoodItemName</p>
+<p>,G.ItemNo AS GoodItemNo</p>
+<p>,G.Spec AS GoodItemSpec</p>
+<p>,P.ProcName AS ProcName</p>
+<p>,V.ProdPlanNo AS ProdPlanNo -- 20100202 박소연 추가</p>
+<p>,M.ItemName AS MatItemName</p>
+<p>,M.ItemNo AS MatItemNo</p>
+<p>,M.Spec AS MatItemSpec</p>
+<p>,U.UnitName AS MatUnitName -- 입고단위</p>
+<p>,ISNULL(I.CompQty, 0) AS CompQty</p>
+<p>,ISNULL(I.StdUnitQty, 0) AS StdUnitQty</p>
+<blockquote>
+<p>,I.LotNoInput</p>
+</blockquote>
+<p>,R.RealLotNo AS RRealLotNo -- 20110124 조형래 추가 (외주입고 품목 RealLotNo)</p>
+<p>,I.SerialFrom</p>
+<p>,0</p>
+<p>,0</p>
+<p>,''</p>
+<p>,0</p>
+<blockquote>
+<p>,I.OSPDelvInSubSerl</p>
+</blockquote>
+<p>,I.ItemSeq</p>
+<p>,X.PJTName</p>
+<p>,X.PJTNo</p>
+<blockquote>
+<p>,(SELECT PJTTypeName FROM _TPJTType WHERE CompanySeq = @CompanySeq AND PJTTypeSeq = X.PJTTypeSeq) AS PJTTypeName</p>
+</blockquote>
+<p>,R.WBSSeq</p>
+<p>,'' AS WBSName</p>
+<p>,T.CustName</p>
+<p>,I.OSPDelvInSeq</p>
+<p>,I.OSPDelvInSerl</p>
+<p>,6064002</p>
+<p>,0--ISNULL(Y.Amt, 0) AS Amt</p>
+<p>,0--CASE WHEN I.CompQty = 0 THEN 0 ELSE ISNULL(ISNULL(Y.Amt, 0) / I.CompQty, 0) END AS Price --자재단가처리된 금액 / 정산수량 으로 조회 12.12.12. BY 김세호</p>
+<blockquote>
+<p>,0 AS WorkType -- 20100419 박소연 추가</p>
+</blockquote>
+<p>,'' AS WorkTypeName -- 20100419 박소연 추가</p>
+<blockquote>
+<p>,ISNULL(WR.ProdQty, 0) AS ProdQty -- 20100419 박소연 추가 2014.02.03 김용현 생산실적의 생산수량으로 수정</p>
+</blockquote>
+<p>,W.ItemBOMRev AS ItemBOMRev</p>
+<p>,W.ProcRev AS ProcRev</p>
+<p>,M.AssetSeq AS AssetSeq -- 재고자산분류코드</p>
+<p>,M1.AssetName AS AssetName -- 재고자산분류</p>
+<p>,9999 AS MatProcSeq</p>
+<p>,C.CCtrSeq -- 20110714 진선주 추가</p>
+<p>,E.CCtrName -- 20110714 진선주 추가</p>
+<p>,'' AS Remark</p>
+<p>,'' AS OrderCustName</p>
+<p>,ISNULL(WR.OKQty,0) AS OKQty</p>
+<p>,ISNULL(WR.BadQty,0) AS BadQty</p>
+<p>,ISNULL(R.Qty,0) AS OspDelvInQty</p>
+<p>,ISNULL(ISNULL(I.IsReturn, R.IsReturn),S.IsReturn) AS IsReturn</p>
+<p>,U1.UnitName AS StdUnitName -- 2016.12.29 박수영</p>
+<p>,UM.UserName AS LastUserName -- 19.06.14 이형민 추가</p>
+<p>,I.LastDateTime AS LastDateTime -- 19.06.14 이형민 추가</p>
+<p>,'' AS AssyItemName</p>
+<p>,'' AS AssyItemNo</p>
+<p>,ISNULL(C2.MinorName,'') AS ItemClassSName -- 20.05.21 자재소분류 나태형 추가</p>
+<p>,'2' AS ProdType</p>
+<p>FROM _TPDOSPDelvInItemMat AS I WITH(NOLOCK)</p>
+<p>JOIN _TPDOSPDelvInItem AS R WITH(NOLOCK) ON I.OSPDelvInSeq = R.OSPDelvInSeq</p>
+<p>AND I.OSPDelvInSerl = R.OSPDelvInSerl</p>
+<p>AND I.CompanySeq = R.CompanySeq</p>
+<p>JOIN _TPDOSPDelvIn AS S WITH(NOLOCK) ON I.OSPDelvInSeq = S.OSPDelvInSeq</p>
+<p>AND I.CompanySeq = S.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkOrder AS W WITH(NOLOCK) ON R.WorkOrderSeq = W.WorkOrderSeq</p>
+<p>AND R.WorkOrderSerl = W.WorkOrderSerl</p>
+<p>AND I.CompanySeq = W.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDSFCWorkReport AS WR WITH(NOLOCK) ON W.WorkOrderSeq = WR.WorkOrderSeq</p>
+<p>AND W.WorkOrderSerl = WR.WorkOrderSerl</p>
+<p>AND W.CompanySeq = WR.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseWorkCenter AS C WITH(NOLOCK) ON W.WorkCenterSeq = C.WorkCenterSeq</p>
+<p>AND I.CompanySeq = C.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDADept AS D WITH(NOLOCK) ON S.DeptSeq = D.DeptSeq</p>
+<p>AND I.CompanySeq = D.CompanySeq</p>
+<p>JOIN _TDAItem AS G WITH(NOLOCK) ON R.ItemSeq = G.ItemSeq</p>
+<p>AND I.CompanySeq = G.CompanySeq</p>
+<p>JOIN _TDAItem AS M WITH(NOLOCK) ON I.ItemSeq = M.ItemSeq</p>
+<p>AND I.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS M1 WITH(NOLOCK) ON M.AssetSeq = M1.AssetSeq</p>
+<p>AND I.CompanySeq = M1.CompanySeq</p>
+<p>JOIN _TDAUnit AS U WITH(NOLOCK) ON I.UnitSeq = U.UnitSeq</p>
+<p>AND I.CompanySeq = U.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDBaseProcess AS P WITH(NOLOCK) ON R.ProcSeq = P.ProcSeq</p>
+<p>AND I.CompanySeq = P.CompanySeq</p>
+<p>JOIN _TDACust AS T WITH(NOLOCK) ON S.CustSeq = T.CustSeq</p>
+<p>AND I.CompanySeq = T.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS X WITH(NOLOCK) ON R.PJTSeq = X.PJTSeq -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND I.CompanySeq = X.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS V WITH(NOLOCK) ON V.ProdPlanSeq = W.ProdPlanSeq -- 20100202 박소연 추가</p>
+<p>AND I.CompanySeq = V.CompanySeq</p>
+<p>--LEFT OUTER JOIN #Temp_Amt_OSP AS Y ON I.OSPDelvInSeq = Y.InOutSeq</p>
+<p>-- AND I.OSPDelvInSubSerl = Y.InOutSubSerl</p>
+<p>-- AND I.OSPDelvInSerl = Y.InOutSerl</p>
+<p>LEFT OUTER JOIN _TDACCtr AS E WITH(NOLOCK) ON C.CCtrSeq = E.CCtrSeq -- 20110714 진선주 추가</p>
+<p>AND I.CompanySeq = E.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS U1 WITH(NOLOCK) ON M.UnitSeq = U1.UnitSeq</p>
+<p>AND U1.CompanySeq = @CompanySeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS UM WITH(NOLOCK) ON I.LastUserSeq = UM.userseq -- 2019.06.14 이형민 추가</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS C1 WITH(NOLOCK) ON C1.CompanySeq = M.CompanySeq</p>
+<p>AND C1.ItemSeq = M.ItemSeq</p>
+<p>AND C1.UMajorItemClass IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C2 WITH(NOLOCK) ON C2.CompanySeq = C1.CompanySeq</p>
+<p>AND C2.MajorSeq = C1.UMajorItemClass</p>
+<p>AND C2.MinorSeq = C1.UMItemClass</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@FactUnit = 0 OR S.FactUnit = @FactUnit)</p>
+<p>AND (@InputDate = '' OR I.OSPDelvInDate &gt;= @InputDate)</p>
+<p>AND (@InputDateTo = '' OR I.OSPDelvInDate \&lt;= @InputDateTo)</p>
+<p>AND (@WorkOrderNo = '' OR W.WorkOrderNo LIKE RTRIM(@WorkOrderNo) + '%')</p>
+<p>AND (@DeptSeq = 0 OR S.DeptSeq = @DeptSeq)</p>
+<p>AND (@DeptName = '' OR D.DeptName LIKE @DeptName + '%')</p>
+<p>AND (@GoodItemName = '' OR G.ItemName LIKE @GoodItemName + '%')</p>
+<p>AND (@GoodItemNo = '' OR G.ItemNo LIKE @GoodItemNo + '%')</p>
+<p>AND (@MatItemName = '' OR M.ItemName LIKE @MatItemName + '%')</p>
+<p>AND (@MatItemNo = '' OR M.ItemNo LIKE @MatItemNo + '%')</p>
+<p>AND (@WorkCenterName = '' OR C.WorkCenterName LIKE @WorkCenterName + '%')</p>
+<p>AND (@ProcName = '' OR P.ProcName LIKE @ProcName + '%') -- 20100202 박소연 추가</p>
+<p>AND (@PJTName = '' OR X.PJTName LIKE @PJTName + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTNo = '' OR X.PJTNo LIKE @PJTNo + '%') -- 프로젝트 체크 09.1.3 김현</p>
+<p>AND (@PJTTypeSeq = 0 OR X.PJTTypeSeq = @PJTTypeSeq)</p>
+<p>AND (@CustName = '' OR T.CustName LIKE @CustName + '%')</p>
+<p>AND (@IsOSP IN (0,6064002))</p>
+<p>AND (@ProdPlanNo = '' OR V.ProdPlanNo LIKE @ProdPlanNo + '%')</p>
+<p>--AND (@PgmSeq = 200131 OR R.PJTSeq = 0) -- 프로젝트 조회 101123 엄효진 추가 By 17.12.29 hjlim (의미없는 조건이라 판단되어 주석처리, 외주입고 단에서 정보성으로 프로젝트코드를 입력할 수도 있음)</p>
+<p>AND (@RRealLotNo = '' OR R.RealLotNo LIKE @RRealLotNo + '%')</p>
+<p>AND (@RealLotNo = '' OR I.LotNoInput LIKE @RealLotNo + '%')</p>
+<p>AND (@GoodItemSpec = '' OR G.Spec LIKE @GoodItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>AND (@MatItemSpec = '' OR M.Spec LIKE @MatItemSpec + '%') -- 12.03.26 김세호 추가</p>
+<p>END</p>
+<p>-- 조회대상 담은뒤에 금액 구하도록 수정</p>
+<p>-- IFRS의 경우 CostKey 가 2개가 넘어와 데이터의 중복이 발생하여 위에서 Join 으로 중복을 방지 2011.08.18 김대용</p>
+<p>-- 투입 자재금액</p>
+<p>INSERT INTO #Temp_Amt(InOutSeq, InOutSerl, InOutSubSerl, Amt)</p>
+<p>SELECT A.InOutSeq, A.InOutSerl, A.InOutSubSerl, A.Amt</p>
+<p>FROM _TPDSFCMatinput AS I WITH(NOLOCK)</p>
+<p>JOIN (SELECT Y.CompanySeq, Y.InOutSeq, Y.InOutSubSerl, Y.Amt, Y.InOutSerl -- left outer join 에서 join으로 변경 2012. 2. 5 hkim</p>
+<p>FROM _TESMGInoutstock AS Y WITH(NOLOCK)</p>
+<p>JOIN _TESMDCostKey AS Z WITH(NOLOCK) ON Z.CompanySeq = Y.CompanySeq</p>
+<p>AND Z.CostKeySeq = Y.CostKeySeq</p>
+<p>AND Z.SMCostMng = @SMCostMng</p>
+<p>--AND Y.InOutDate LIKE Z.CostYM + '%'</p>
+<p>AND Z.RptUnit = 0</p>
+<p>AND Z.CostMngAmdSeq = 0</p>
+<p>AND Z.PlanYear = ''</p>
+<p>JOIN #Input AS P ON P.WorkReportSeq = Y.InOutSeq</p>
+<p>AND P.ItemSerl = Y.InOutSubSerl</p>
+<p>AND P.ProdType = '1'</p>
+<p>WHERE Y.InOutType = 130</p>
+<p>AND Y.CompanySeq = @CompanySeq) -- 법인코드와 일자 추가 2012. 2. 5 hkim</p>
+<p>--AND Y.InOutDate BETWEEN @InputDate AND @InputDateTo )</p>
+<p>AS A ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.WorkReportSeq = A.InOutSeq</p>
+<p>AND I.ItemSerl = A.InOutSubSerl</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@InputDate = '' OR I.InputDate &gt;= @InputDate)</p>
+<p>AND (@InputDateTo = '' OR I.InputDate \&lt;= @InputDateTo)</p>
+<p>-- 외주 자재정산 금액 -- 12.01.16 김세호 추가</p>
+<p>INSERT INTO #Temp_Amt_OSP(InOutSeq, InOutSerl, InOutSubSerl, Amt)</p>
+<p>SELECT A.InOutSeq, A.InOutSerl, A.InOutSubSerl, A.Amt</p>
+<p>FROM _TPDOSPDelvInItemMat AS I WITH(NOLOCK)</p>
+<p>JOIN (SELECT Y.CompanySeq, Y.InOutSeq, Y.InOutSubSerl, Y.Amt, Y.InOutSerl -- left outer join 에서 join 으로 변경 212. 2. 5 hkim</p>
+<p>FROM _TESMGInoutstock AS Y WITH(NOLOCK)</p>
+<p>JOIN _TESMDCostKey AS Z WITH(NOLOCK) ON Z.CompanySeq = Y.CompanySeq</p>
+<p>AND Z.CostKeySeq = Y.CostKeySeq</p>
+<p>AND Z.SMCostMng = @SMCostMng</p>
+<p>--AND Y.InOutDate LIKE Z.CostYM + '%'</p>
+<p>AND Z.RptUnit = 0</p>
+<p>AND Z.CostMngAmdSeq = 0</p>
+<p>AND Z.PlanYear = ''</p>
+<p>JOIN #Input AS P ON P.OSPDelvInSeq = Y.InOutSeq</p>
+<p>AND P.ItemSerl = Y.InOutSubSerl</p>
+<p>AND P.OSPDelvInSerl = InOutSerl</p>
+<p>AND P.ProdType = '2'</p>
+<p>WHERE Y.InOutType IN (150, 350)</p>
+<p>AND Y.CompanySeq = @CompanySeq) -- 법인코드와 일자 추가 2012. 2. 5 hkim</p>
+<p>--AND Y.InOutDate BETWEEN @InputDate AND @InputDateTo )</p>
+<p>AS A ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.OSPDelvInSeq = A.InOutSeq</p>
+<p>AND I.OSPDelvInSerl = A.InOutSerl</p>
+<p>AND I.OSPDelvInSubSerl = A.InOutSubSerl</p>
+<p>WHERE I.CompanySeq = @CompanySeq</p>
+<p>AND (@InputDate = '' OR I.OSPDelvInDate &gt;= @InputDate)</p>
+<p>AND (@InputDateTo = '' OR I.OSPDelvInDate \&lt;= @InputDateTo)</p>
+<p>UPDATE A</p>
+<p>SET Price = ISNULL(CASE WHEN A.Qty = 0 THEN 0 ELSE ISNULL((SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = A.WorkReportSeq AND InOutSubSerl = A.ItemSerl), 0) / A.Qty END,0),</p>
+<p>Amt = ISNULL((SELECT TOP 1 AMT FROM #Temp_Amt WHERE InOutSeq = A.WorkReportSeq AND InOutSubSerl = A.ItemSerl),0)</p>
+<p>FROM #Input AS A</p>
+<p>--JOIN #Temp_Amt AS B ON B.InOutSeq = A.WorkReportSeq</p>
+<p>-- AND B.InOutSubSerl = A.ItemSerl</p>
+<p>WHERE ProdType = '1'</p>
+<p>UPDATE A</p>
+<p>SET Price = ISNULL(CASE WHEN A.Qty = 0 THEN 0 ELSE ISNULL(ISNULL(B.Amt, 0) / A.Qty, 0) END,0),</p>
+<p>Amt = ISNULL(B.Amt, 0)</p>
+<p>FROM #Input AS A</p>
+<p>JOIN #Temp_Amt_OSP AS B ON B.InOutSeq = A.OSPDelvInSeq</p>
+<p>AND B.InOutSubSerl = A.ItemSerl</p>
+<p>AND B.InOutSerl = A.OSPDelvInSerl</p>
+<p>WHERE ProdType = '2'</p>
+<p>-- 속도 개선을 위해서 INDEX 추가 2012. 5. 30 hkim</p>
+<p>CREATE NONCLUSTERED INDEX IDX_#Temp_Amt ON #Temp_Amt(InOutSeq, InOutSerl, InOutSubSerl)</p>
+<p>CREATE NONCLUSTERED INDEX IDX_#Temp_Amt_OSP ON #Temp_Amt_OSP(InOutSeq, InOutSerl, InOutSubSerl)</p>
+<hr />
+<p>-- 소요자재 수량 대비 투입수량을 보여주기 위해서 로직 추가 2010. 7. 7. hkim</p>
+<p>-- 소요자재 가져오기</p>
+<hr />
+<p>CREATE TABLE #MatNeed_GoodItem</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>ItemSeq INT, -- 제품코드</p>
+<p>ProcRev NCHAR(2), -- 공정흐름차수</p>
+<p>BOMRev NCHAR(2), -- BOM차수</p>
+<p>ProcSeq INT, -- 공정코드</p>
+<p>AssyItemSeq INT, -- 공정품코드</p>
+<p>UnitSeq INT, -- 단위코드 (공정품코드가 있으면 공정품단위코드, 없으면 제품단위코드)</p>
+<p>Qty DECIMAL(19,5), -- 제품수량 (공정품코드가 있으면 공정품수량)</p>
+<p>ProdPlanSeq INT, -- 생산계획내부번호 (생산의뢰에서 추가된 옵션자재를 가져오기위해)</p>
+<p>WorkOrderSeq INT, -- 작업지시내부번호 (작업지시에서 추가자재로 등록된 자재를 가져오기위해)</p>
+<p>WorkOrderSerl INT, -- 작업지시내부순번(작업지시에서추가자재로등록된자재를가져오기위해)</p>
+<p>IsOut NCHAR(1) -- 로스율 적용에 사용 '1'이면 OutLossRate 적용</p>
+<p>)</p>
+<p>CREATE TABLE #MatNeed_MatItem_Result</p>
+<p>(</p>
+<p>IDX_NO INT, -- 제품코드</p>
+<p>MatItemSeq INT, -- 자재코드</p>
+<p>UnitSeq INT, -- 자재단위</p>
+<p>NeedQty DECIMAL(19,5), -- 소요량</p>
+<p>InputType INT</p>
+<p>)</p>
+<blockquote>
+<p>-- 생산건 담기</p>
+<p>INSERT #MatNeed_GoodItem (IDX_NO, ItemSeq,ProcRev,BOMRev,ProcSeq,AssyItemSeq,UnitSeq,Qty,ProdPlanSeq,WorkOrderSeq,WorkOrderSerl,IsOut)</p>
+<p>SELECT A.IDX_NO, B.GoodItemSeq, ISNULL(B.ProcRev, '00'), ISNULL(B.ItemBOMRev, '00'), B.ProcSeq, B.AssyItemSeq, B.ProdUnitSeq, B.ProdQty, 0, B.WorkOrderSeq, B.WorkOrderSerl, '0' -- 기준단위가 아닌 생산단위를 남도록 수정 17.03.29 임희진 -- 2. IsOut = '0'으로 수정 19.09.09 이형민</p>
+<p>FROM #Input AS A</p>
+<p>JOIN _TPDSFCWorkReport AS B ON A.WorkReportSeq = B.WorkReportSeq</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>--JOIN _TDAItem AS D ON B.GoodItemSeq = D.ItemSeq</p>
+<p>--                AND D.CompanySeq = @CompanySeq</p>
+<p>--ORDER BY A.IDX_NO -- 자재 소요대비 투입 수량이 잘못 표시되는 오류 수정 2010. 9. 6 hkim</p>
+<p>UNION ALL</p>
+<p>-- 외주건 담기</p>
+<p>SELECT A.IDX_NO, C.GoodItemSeq, ISNULL(B.ProcRev, '00'), ISNULL(B.ItemBOMRev, '00'), B.ProcSeq, C.AssyItemSeq, B.UnitSeq, B.Qty, 0, B.WorkOrderSeq, B.WorkOrderSerl, '1' -- NCHAR(1)이기에 IsOut = '1'으로 수정 19.09.09 이형민</p>
+<p>FROM #Input AS A</p>
+<p>JOIN _TPDOSPDelvInItem AS B ON A.OSPDelvInSeq = B.OSPDelvInSeq</p>
+<p>AND A.OSPDelvInSerl = B.OSPDelvInSerl</p>
+<p>AND B.CompanySeq = @CompanySeq</p>
+<p>JOIN _TPDSFCWorkOrder AS C ON B.WorkOrderSeq = C.WorkOrderSeq</p>
+<p>AND B.WorkOrderSerl = C.WorkOrderSerl</p>
+<p>AND C.CompanySeq = @CompanySeq</p>
+<p>--JOIN _TDAItem AS D ON B.ItemSeq = D.ItemSeq</p>
+<p>--AND D.CompanySeq = @CompanySeq</p>
+<p>WHERE A.WorkReportSeq = 0</p>
+<p>-- 소요자재 가져오기</p>
+<p>EXEC dbo._SPDMMGetItemNeedQty @CompanySeq</p>
+<p>CREATE INDEX IDX_Input ON #Input(IDX_No, MatItemSeq)</p>
+<p>CREATE INDEX IDX_MatNeed_MatItem_Result ON #MatNeed_MatItem_Result(IDX_No, MatItemSeq)</p>
+</blockquote>
+<hr />
+<p>-- 소요자재 수량 대비 투입수량을 보여주기 위해서 로직 추가 2010. 7. 7. hkim</p>
+<p>-- 소요자재 가져오기 끝</p>
+<hr />
+<p>SELECT A.IDX_NO,</p>
+<p>A.FactUnit,</p>
+<p>A.WorkOrderNo,</p>
+<p>A.InputDate,</p>
+<p>A.DeptName,</p>
+<p>A.WorkCenterName,</p>
+<p>A.GoodItemName,</p>
+<p>A.GoodItemNo,</p>
+<p>A.GoodItemSpec,</p>
+<p>A.ProcName,</p>
+<p>A.ProdPlanNo,</p>
+<p>A.MatItemName,</p>
+<p>A.MatItemNo,</p>
+<p>A.MatItemSpec,</p>
+<p>A.MatUnitName,</p>
+<p>A.Qty,</p>
+<p>A.StdUnitQty,</p>
+<p>A.RealLotNo, -- 투입자재 RealLotNo</p>
+<p>A.RRealLotNo, -- 20110124 조형래 추가 (생산실적 RealLotNo)</p>
+<p>A.SerialNoFrom,</p>
+<p>A.IsConsign,</p>
+<p>A.InputType,</p>
+<p>A.IsPaid,</p>
+<p>A.WorkReportSeq,</p>
+<p>A.ItemSerl,</p>
+<p>A.MatItemSeq,</p>
+<p>A.PJTName,</p>
+<p>A.PJTNo,</p>
+<p>A.PJTTypeName,</p>
+<p>A.WBSSeq,</p>
+<p>A.WBSName,</p>
+<p>A.CustName,</p>
+<p>A.OSPDelvInSeq,</p>
+<p>A.OSPDelvInSerl,</p>
+<p>A.IsOSP,</p>
+<p>A.Amt,</p>
+<p>A.Price,</p>
+<p>A.WorkType,</p>
+<p>A.WorkTypeName,</p>
+<p>A.ProdQty,</p>
+<p>A.ItemBOMRev,</p>
+<p>A.ProcRev,</p>
+<p>A.AssetSeq,</p>
+<p>A.AssetName</p>
+<p>,(SELECT MinorName FROM _TDASMinor WHERE CompanySeq = @CompanySeq AND MinorSeq = A.IsOSP) AS IsOSPName</p>
+<p>,A.ProdQty - A.Qty AS Balance -- 20100430 박소연 추가</p>
+<p>,CASE WHEN A.InputType = 6042007 THEN 0</p>
+<p>ELSE ISNULL(B.NeedQty,0)</p>
+<p>END AS MatNeedQty -- 2010. 7. 7. hkim --2015.09.02 박수영 ::투입수량조정 의 경우 소요량 0으로 조회되도록 수정</p>
+<p>-- 2016.10.28 박수영 ::해체작업일 경우 의미없으므로 0 으로 보여지도록 처리</p>
+<p>,CASE WHEN A.WorkType = 6041004 THEN 0</p>
+<p>WHEN A.InputType = 6042007 THEN 0 - ISNULL(A.Qty,0)</p>
+<p>ELSE ISNULL(B.NeedQty,0) - ISNULL(A.Qty,0)</p>
+<p>END AS MatNeedBalance -- 2010. 7. 7. hkim --2015.09.02 박수영 ::투입수량조정 의 경우 소요량 0으로 계산되도록 수정</p>
+<p>,A.CCtrSeq</p>
+<p>,A.CCtrName</p>
+<p>,A.Remark -- 12.03.09 김세호 추가</p>
+<p>,A.OrderCustName</p>
+<p>,A.BadQty</p>
+<p>,A.OKQty</p>
+<p>,A.OSPDelvInQty</p>
+<p>,A.IsReturn</p>
+<p>,A.StdUnitName --2016.12.29 박수영 추가</p>
+<p>,A.LastUserName</p>
+<p>,A.LastDateTime</p>
+<p>,A.AssyItemName</p>
+<p>,A.AssyItemNo</p>
+<p>,A.ItemClassSName</p>
+<p>FROM #Input AS A</p>
+<p>LEFT OUTER JOIN #MatNeed_MatItem_Result AS B ON A.IDX_No = B.IDX_No</p>
+<p>AND A.MatItemSeq = B.MatItemSeq</p>
+<p>WHERE (@WorkType = 0 OR A.WorkType = @WorkType) -- 20100419 박소연 추가</p>
+<p>AND (@AssetSeq = 0 OR A.AssetSeq = @AssetSeq )</p>
+<p>RETURN</p>
+<p>/**********************************************************************************************************/</p>
+  </article>
+</div>
+</body>
+</html>

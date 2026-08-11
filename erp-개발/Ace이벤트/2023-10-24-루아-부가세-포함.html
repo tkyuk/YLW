@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>루아 부가세 포함</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>루아 부가세 포함</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">루아 부가세 포함</h1>
+<p>local Price, Amt, VATAmt, DomAmt, DomVAT, DomPrice, Qty, VATRate, CurrRate, IsVAT</p>
+<p>if SS1.ActiveColumnName == 'Qty' or SS1.ActiveColumnName == 'Price' or SS1.ActiveColumnName == 'ExRate' then</p>
+<p>Price = CellText(SS1, SS1.ActiveRow, 'Price')</p>
+<p>VATRate = CellText(SS1, SS1.ActiveRow, 'VATRate')</p>
+<p>Qty = CellText(SS1, SS1.ActiveRow, 'Qty')</p>
+<p>CurrRate = CellText(SS1, SS1.ActiveRow, 'ExRate')</p>
+<p>SetText(SS1, SS1.ActiveRow, 'CurAmt', Qty*Price)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'CurVAT', Qty*Price*VATRate/100)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotCurAmt', Qty*Price*(100 + VATRate)/100)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomPrice', Price*CurrRate)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomAmt', Qty*Price*CurrRate)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomVAT', Qty*Price*VATRate/100*CurrRate)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotDomAmt', Qty*Price*(100 + VATRate)/100*CurrRate)</p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'CurAmt' then</p>
+<p>Amt = CellText(SS1, SS1.ActiveRow, 'CurAmt')</p>
+<p>VATRate = CellText(SS1, SS1.ActiveRow, 'VATRate')</p>
+<p>CurrRate = CellText(SS1, SS1.ActiveRow, 'ExRate')</p>
+<p>SetText(SS1, SS1.ActiveRow, 'CurVAT', Amt*VATRate/100)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotCurAmt', Amt*(100 + VATRate)/100)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomAmt', Amt*CurrRate)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomVAT', Amt*VATRate/100*CurrRate)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotDomAmt', Amt*(100 + VATRate)/100*CurrRate)</p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'CurVAT' then</p>
+<p>VATAmt = CellText(SS1, SS1.ActiveRow, 'CurVAT')</p>
+<p>Amt = CellText(SS1, SS1.ActiveRow, 'CurAmt')</p>
+<p>CurrRate = CellText(SS1, SS1.ActiveRow, 'ExRate')</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotCurAmt', Amt+VATAmt)</p>
+<p>DomAmt = CellText(SS1, SS1.ActiveRow, 'DomAmt')</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomVAT', VATAmt * CurrRate )</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotDomAmt', DomAmt + (VATAmt * CurrRate))</p>
+<p>end</p>
+<p>--if SS1.ActiveColumnName == 'DomPrice' then</p>
+<p>-- DomPrice = CellText(SS1, SS1.ActiveRow, 'DomPrice')</p>
+<p>-- VATRate = CellText(SS1, SS1.ActiveRow, 'VATRate')</p>
+<p>-- Qty = CellText(SS1, SS1.ActiveRow, 'Qty')</p>
+<p>--</p>
+<p>-- SetText(SS1, SS1.ActiveRow, 'DomAmt', DomPrice*Qty)</p>
+<p>-- SetText(SS1, SS1.ActiveRow, 'DomVAT', DomPrice*Qty*VATRate/100)</p>
+<p>-- SetText(SS1, SS1.ActiveRow, 'TotDomAmt', DomPrice*Qty*(100+VATRate)/100)</p>
+<p>--</p>
+<p>--end</p>
+<p>if SS1.ActiveColumnName == 'DomPrice' then</p>
+<p>DomPrice = CellText(SS1, SS1.ActiveRow, 'DomPrice')</p>
+<p>VATRate = CellText(SS1, SS1.ActiveRow, 'VATRate')</p>
+<p>Qty = CellText(SS1, SS1.ActiveRow, 'Qty')</p>
+<p>IsVAT = CellText(SS1, SS1.ActiveRow, 'IsVAT')</p>
+<p>if IsVAT == '1' then</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomAmt', math.floor( (Qty * DomPrice) * (100 / (100 + VATRate)), 0.500001 ))</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomVAT', (Qty * DomPrice) - (math.floor( (Qty * DomPrice) * (100 / (100 + VATRate)), 0.500001 )))</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotDomAmt', Qty * DomPrice)</p>
+<blockquote></blockquote>
+<p>else</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomAmt', DomPrice*Qty)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomVAT', DomPrice*Qty*VATRate/100)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotDomAmt', DomPrice*Qty*(100+VATRate)/100)</p>
+<p>end</p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'DomAmt' then</p>
+<p>DomAmt = CellText(SS1, SS1.ActiveRow, 'DomAmt')</p>
+<p>VATRate = CellText(SS1, SS1.ActiveRow, 'VATRate')</p>
+<p>SetText(SS1, SS1.ActiveRow, 'DomVAT', DomAmt*VATRate/100)</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotDomAmt', DomAmt*(100+VATRate)/100)</p>
+<p>end</p>
+<p>if SS1.ActiveColumnName == 'DomVAT' then</p>
+<p>DomAmt = CellText(SS1, SS1.ActiveRow, 'DomAmt')</p>
+<p>DomVAT = CellText(SS1, SS1.ActiveRow, 'DomVAT')</p>
+<p>SetText(SS1, SS1.ActiveRow, 'TotDomAmt', DomAmt + DomVAT)</p>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

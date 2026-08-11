@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>받을어음결제현황_nkp - \_TSLReceiptDesc</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>받을어음결제현황_nkp - \_TSLReceiptDesc</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-04</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_nkp-_tslreceiptdesc">받을어음결제현황_nkp - _TSLReceiptDesc</h1>
+<p>SELECT TOP 100</p>
+<p>A.DueDate ,</p>
+<p>A.DrawDate,</p>
+<p>A.BillNo,</p>
+<p>A.DueDate,</p>
+<p>D.ReceiptDate</p>
+<p>,D.ReceiptDate</p>
+<p>,D.ReceiptNo</p>
+<p>,A.*</p>
+<p>FROM _TACBill AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TSLReceiptDesc AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq -- 입금내역</p>
+<p>AND A.BillNo = C.AdminNo</p>
+<p>AND A.DueDate = C.DueDate</p>
+<p>LEFT OUTER JOIN _TSLReceipt AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.ReceiptSeq = D.ReceiptSeq</p>
+<p>--WHERE D.ReceiptNo ='202402290810'</p>
+<p>WHERE A.BillNo = '18565500A'</p>
+<p>ORDER BY D.ReceiptDate DESC</p>
+<p>[받을어음결제현황_nkp] 화면의 ' 수금일' 컬럼의 경우</p>
+<p>해당 어음 건에 연결된 입금 건의 입금일을 가져오고 있습니다.</p>
+<table>
+<thead>
+<tr>
+<th>* 어음</th>
+<th>* 입금</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>어음번호</td>
+<td>관리번호</td>
+</tr>
+<tr>
+<td>만기일</td>
+<td>만기일</td>
+</tr>
+</tbody>
+</table>
+<p>확인 부탁 드립니다.</p>
+<p>감사합니다.</p>
+<p><img alt="" src="assets/받을어음결제현황_nkp-_TSLReceiptDesc/image83.png" /></p>
+<p>﻿</p>
+<p><img alt="" src="assets/받을어음결제현황_nkp-_TSLReceiptDesc/image84.png" /></p>
+<p><img alt="" src="assets/받을어음결제현황_nkp-_TSLReceiptDesc/image85.png" /></p>
+<p>출처: \&lt;<a href="http://61.250.183.6:8100/Page/Open/55299/100101/0/18820244">http://61.250.183.6:8100/Page/Open/55299/100101/0/18820244</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

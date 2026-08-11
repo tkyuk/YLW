@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>현재고 버튼</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>현재고 버튼</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">현재고 버튼</h1>
+<p>local rowCount, ItemSeq, StockQty, LotNo</p>
+<p>rowCount = GetDataBlock(m_RecvXml.Data, 'DataBlock1').Rows.Count</p>
+<p>for i = 0,rowCount - 1 do</p>
+<p>ItemSeq = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'ItemSeq', i)</p>
+<p>StockQty = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'StockQty', i)</p>
+<blockquote>
+<p>LotNo = GetDataSetValue(m_RecvXml.Data, 'DataBlock1', 'LotNo', i)</p>
+</blockquote>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<p>if CellText(SS1, row, 'ItemSeq') == ItemSeq and CellText(SS1, row, 'LotNo') == LotNo then</p>
+<blockquote>
+<p>SetText(SS1, row, 'StockQty', StockQty)</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>end</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>if CellText(SS1, row, 'StockQty') == nil or CellText(SS1, row, 'StockQty') == '0' then</p>
+<p>SetText(SS1, row, 'StockQty', '0')</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SetText(SS1, row, 'QutoPrice', GetDataSetValue(m_RecvXml.Data, 'DataBlock2', 'QutoPrice', row))</p>
+<p>SetText(SS1, row, 'CurrName', GetDataSetValue(m_RecvXml.Data, 'DataBlock2', 'CurrName', row))</p>
+<p>SetText(SS1, row, 'CurrSeq', GetDataSetValue(m_RecvXml.Data, 'DataBlock2', 'CurrSeq', row))</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>채번 2개</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>채번 2개</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="2">채번 2개</h1>
+<p>--프로젝트 번호가 없으면</p>
+<p>IF EXISTS ( SELECT 1 FROM #BIZ_OUT_DataBlock2 WHERE ISNULL(PJTNo,'') = '' AND WorkingTag \&lt;&gt; 'D' )</p>
+<p>BEGIN</p>
+<p>SELECT @MasterPJTNo = B.PJTNo</p>
+<p>,@MasterPJTSeq = A.MasterPJTSeq</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.PJTSeq = A.MasterPjtSeq</p>
+<p>--==========================================================================</p>
+<p>-- 단암 채번 시작</p>
+<p>--==========================================================================</p>
+<p>/*</p>
+<p>채번 규칙</p>
+<p>제품프로젝트번호 = 사업프로젝트번호 + 품목소분류 (추가정보정의 : das_소분류채번코드) + 제품프로젝트명</p>
+<p>ex. 소분류 (일치) 제품프로젝트명 ( 일치) =&gt; A-001 / A-002 / A-003</p>
+<p>소분류 (일치) 제품프로젝트명 (불일치) =&gt; A-001 / B-001 / C-001</p>
+<p>*/</p>
+<p>-- 해당 사업프로젝트에 저장되어있는 데이터 담기</p>
+<p>INSERT INTO #Tmp_MaxPJT(PJTName, ClassSerl, EngSerl, MaxSerl)</p>
+<p>SELECT A.PJTName</p>
+<p>,SUBSTRING(A.PJTNo,LEN(@MasterPJTNo)+1,2) AS ClassSerl</p>
+<p>,SUBSTRING(A.PJTNo,LEN(@MasterPJTNo)+3,1) AS EngSerl</p>
+<p>,MAX(RIGHT(A.PJTNo,3)) AS MaxSerl</p>
+<p>FROM _TPJTProject AS A WITH(NOLOCK)</p>
+<p>JOIN das_TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>WHERE B.MasterPjtSeq = @MasterPJTSeq</p>
+<p>AND TRY_CAST(RIGHT(PJTNo, 3) AS INT) \&lt; 900</p>
+<p>GROUP BY A.PJTName</p>
+<p>,SUBSTRING(A.PJTNo,LEN(@MasterPJTNo)+1,2)</p>
+<p>,SUBSTRING(A.PJTNo,LEN(@MasterPJTNo)+3,1)</p>
+<p>-- MAX 값 추출</p>
+<p>SELECT ClassSerl, MAX(EngSerl) AS Max_EngSerl</p>
+<p>INTO #Tmp_MaxClass</p>
+<p>FROM #Tmp_MaxPJT</p>
+<p>GROUP BY ClassSerl</p>
+<p>INSERT INTO #Tmp_Num(DataSeq, ClassSeq, PJTName, ClassSerl, ClassPJT_RowCnt,TmpNo, EngSerl, MaxSerl, Max_EngSerl)</p>
+<p>SELECT A.DataSeq</p>
+<p>,A.ClassSeq</p>
+<p>,A.PJTName</p>
+<p>,B.ValueText AS ClassSerl</p>
+<p>,ROW_NUMBER() OVER(PARTITION BY A.ClassSeq, A.PJTName ORDER BY (SELECT IDX_NO)) AS ClassPJT_RowCnt</p>
+<p>,@MasterPJTNo + CONVERT(NCHAR(2),B.ValueText)</p>
+<p>,C.EngSerl</p>
+<p>,ISNULL(C.MaxSerl,'000')</p>
+<p>,D.Max_EngSerl</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.MinorSeq = A.ClassSeq</p>
+<p>AND B.Serl = 15000029</p>
+<p>LEFT OUTER JOIN #Tmp_MaxPJT AS C ON C.PJTName = A.PJTName</p>
+<p>AND C.ClassSerl = B.ValueText</p>
+<p>LEFT OUTER JOIN #Tmp_MaxClass AS D ON D.ClassSerl = B.ValueText</p>
+<p>WHERE A.WorkingTag IN ('A')</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(A.PJTNo,'') = ''</p>
+<p>-- 소분류 추가정보정의 세팅 없는 경우 에러 처리</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<p>SET Result = '소분류 채번코드 값이 미입력되었습니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 9999</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #Tmp_Num AS B ON B.ClassSeq = A.ClassSeq</p>
+<p>WHERE A.WorkingTag IN ('A')</p>
+<p>AND A.Status = 0</p>
+<p>AND ISNULL(B.ClassSerl,'') = ''</p>
+<p>-- 소분류 코드 채번하기 위한 임시테이블 생성</p>
+<p>SELECT DataSeq</p>
+<p>,NCHAR(ASCII(A.Max_EngSerl) + DENSE_RANK() OVER(PARTITION BY A.ClassSeq ORDER BY A.PJTName)) AS EngSerl</p>
+<p>INTO #Tmp_Num_Max</p>
+<p>FROM #Tmp_Num AS A</p>
+<p>WHERE A.EngSerl IS NULL</p>
+<p>-- 소분류 코드 업데이트</p>
+<p>UPDATE A</p>
+<p>SET EngSerl = B.EngSerl</p>
+<p>FROM #Tmp_Num AS A</p>
+<p>JOIN #Tmp_Num_Max AS B ON B.DataSeq = A.DataSeq</p>
+<p>-- 순번 업데이트</p>
+<p>UPDATE A</p>
+<p>SET Serl = RIGHT('000' + CONVERT(NVARCHAR(20), A.ClassPJT_RowCnt + A.MaxSerl),3)</p>
+<p>FROM #Tmp_Num AS A</p>
+<p>--SELECT ClassSeq,PJTName,TmpNo + EngSerl + '-'+ Serl</p>
+<p>-- FROM #Tmp_Num</p>
+<p>UPDATE #BIZ_OUT_DataBlock2</p>
+<blockquote>
+<p>SET PJTNo = B.TmpNo + B.EngSerl + '-'+ B.Serl</p>
+</blockquote>
+<p>,ItemNo = B.TmpNo + B.EngSerl + '-'+ B.Serl</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>JOIN #Tmp_Num AS B ON B.DataSeq = A.DataSeq</p>
+<p>WHERE WorkingTag = 'A'</p>
+<p>AND Status = 0</p>
+<p>AND ISNULL(A.PJTNo,'') = ''</p>
+<blockquote>
+<p>--SET ROWCOUNT 0</p>
+</blockquote>
+<p>--==========================================================================</p>
+<p>-- 종료 : 단암 채번</p>
+<p>--==========================================================================</p>
+<p>END</p>
+<p>소분류 같고, 프로젝트 다르면 A-001, B-001, C-001</p>
+<p>소분류 같고, 프로젝트 같으면 A-001, A-002, A-003</p>
+  </article>
+</div>
+</body>
+</html>

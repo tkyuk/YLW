@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>달력 임시테이블 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>달력 임시테이블 생성</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-13</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">달력 임시테이블 생성</h1>
+<p>DECLARE @STARTDATE VARCHAR(10)</p>
+<p>DECLARE @ENDDATE VARCHAR(10)</p>
+<p>SET @STARTDATE = '2019-01-01'</p>
+<p>SET @ENDDATE = '2019-01-31'</p>
+<p>;WITH MONTH AS</p>
+<p>(</p>
+<p>SELECT CONVERT(VARCHAR(10), @STARTDATE, 120) AS DAY</p>
+<p>UNION ALL</p>
+<p>SELECT CONVERT(VARCHAR(10), DATEADD(dd, 1, DAY), 120) AS DAY</p>
+<p>FROM MONTH</p>
+<p>WHERE CONVERT(VARCHAR(10), DAY, 120) \&lt; CONVERT(VARCHAR(10), @ENDDATE, 120)</p>
+<p>)</p>
+<p>SELECT * FROM MONTH</p>
+<p>DECLARE @InputYM NCHAR(6)</p>
+<p>,@EmpSeq INT</p>
+<p>SELECT @InputYM = ISNULL(A.InputYM,''),</p>
+<p>@EmpSeq = ISNULL(A.EmpSeq , 0)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>DECLARE @StartDate DATE = CAST(@InputYM + '01' AS DATE)</p>
+<p>DECLARE @EndDate DATE = EOMONTH(@StartDate)</p>
+<p>CREATE TABLE #TmpDate (</p>
+<p>WkDate NCHAR(8)</p>
+<p>)</p>
+<p>;WITH DateCTE AS (</p>
+<p>SELECT @StartDate AS WkDate</p>
+<p>UNION ALL</p>
+<p>SELECT DATEADD(DAY, 1, WkDate)</p>
+<p>FROM DateCTE</p>
+<p>WHERE DATEADD(DAY, 1, WkDate) \&lt;= @EndDate</p>
+<p>)</p>
+<p>INSERT INTO #TmpDate (WkDate)</p>
+<p>SELECT CONVERT(NCHAR(8), WkDate, 112)</p>
+<p>FROM DateCTE</p>
+<p>OPTION (MAXRECURSION 31)</p>
+<p>-- 확인용</p>
+<p>SELECT * FROM #TmpDate;</p>
+<p><span class="mark">-- 요일 포함</span></p>
+<p>DECLARE @InputYM NCHAR(6)</p>
+<p>,@EmpSeq INT</p>
+<p>SELECT @InputYM = ISNULL(A.InputYM,''),</p>
+<p>@EmpSeq = ISNULL(A.EmpSeq , 0)</p>
+<p>FROM #BIZ_IN_DataBlock1 AS A</p>
+<p>DECLARE @StartDate DATE = CAST(@InputYM + '01' AS DATE)</p>
+<p>DECLARE @EndDate DATE = EOMONTH(@StartDate)</p>
+<p>-- 2-1. 조회조건에 해당하는 월의 날짜 담는 임시테이블 생성</p>
+<p>CREATE TABLE #TmpDate (</p>
+<p>WKDate NCHAR(8),</p>
+<p>DayName NVARCHAR(10)</p>
+<p>)</p>
+<p>-- 재귀 CTE로 날짜 생성</p>
+<p>;WITH DateCTE AS (</p>
+<p>SELECT @StartDate AS WKDate</p>
+<p>UNION ALL</p>
+<p>SELECT DATEADD(DAY, 1, WKDate)</p>
+<p>FROM DateCTE</p>
+<p>WHERE DATEADD(DAY, 1, WKDate) \&lt;= @EndDate</p>
+<p>)</p>
+<p>INSERT INTO #TmpDate (WKDate, DayName)</p>
+<p>SELECT</p>
+<p>CONVERT(NCHAR(8), WKDate, 112),</p>
+<p>CASE (DATEPART(WEEKDAY, WKDate) + @@DATEFIRST - 2) % 7 + 1</p>
+<p>WHEN 1 THEN '월요일'</p>
+<p>WHEN 2 THEN '화요일'</p>
+<p>WHEN 3 THEN '수요일'</p>
+<p>WHEN 4 THEN '목요일'</p>
+<p>WHEN 5 THEN '금요일'</p>
+<p>WHEN 6 THEN '토요일'</p>
+<p>WHEN 7 THEN '일요일'</p>
+<p>END AS DayName</p>
+<p>FROM DateCTE</p>
+<p>OPTION (MAXRECURSION 31)</p>
+  </article>
+</div>
+</body>
+</html>

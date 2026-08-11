@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>날짜 변환 표</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>날짜 변환 표</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">날짜 변환 표</h1>
+<p>문자를 날짜로 변환</p>
+<p>CONVERT(DATETIME, 문자)</p>
+<p><strong>SELECT </strong>CONVERT (DATE, '2014-12-16')</p>
+<p>, CONVERT (DATE, '2014/12/16')</p>
+<p>, CONVERT (DATE, '20141216')</p>
+<p>, CONVERT (DATETIME, '2014-12-16')</p>
+<p>, CONVERT (DATETIME, '2014-12-16 15:10:01')</p>
+<p>--결과 1 : 2014-12-16</p>
+<p>--결과 2 : 2014-12-16</p>
+<p>--결과 3 : 2014-12-16</p>
+<p>--결과 4 : 2014-12-16 00:00:00.000</p>
+<p>--결과 5 : 2014-12-16 15:10:01.000</p>
+<p>출처: \&lt;<a href="https://gent.tistory.com/36">https://gent.tistory.com/36</a>&gt;</p>
+<p>** CONVERT(CHAR(8), DATETIME, 112)**</p>
+<p>** 20000102**</p>
+<p><strong>YYYYMMDD</strong></p>
+<p>** CONVERT(CHAR(10), DATETIME, 23)**</p>
+<p>** 2000-01-02**</p>
+<p>** YYYY-MM-DD**</p>
+<p>출처: <a href="https://chachahoya.tistory.com/74">https://chachahoya.tistory.com/74</a> [촉촉한 초코니의 말랑말랑한 이야기:티스토리]</p>
+<p>DECLARE @DateMMSS NCHAR(14)</p>
+<p>-- 1.</p>
+<p>SELECT @DateMMSS = FORMAT(cast(GETDATE() as datetime), 'yyyyMMddHHmmss')</p>
+<p>-- 2.</p>
+<p>REPLACE(REPLACE(REPLACE(CONVERT(VARCHAR(20),GETDATE(),120), '-', ''), ' ', ''), ':', '')</p>
+<p>년,월,일</p>
+<p>LEFT(A.InvoiceDate, 4)                        AS YY,                        </p>
+<p>SUBSTRING(A.InvoiceDate, 5, 2)        AS MM,</p>
+<p>RIGHT(A.InvoiceDate, 2)                        AS DD,</p>
+<p><strong>[이외의 날짜 변환형식]</strong></p>
+<p>select convert(varchar, getdate(), 100)  --mon dd yyyy hh:miAM (or PM)</p>
+<p>select convert(varchar, getdate(), 101)  --mm/dd/yyyy</p>
+<p>select convert(varchar, getdate(), 102)  --yyyy.mm.dd</p>
+<p>select convert(varchar, getdate(), 103)  --dd/mm/yyyy</p>
+<p>select convert(varchar, getdate(), 104)  --dd.mm.yyyy</p>
+<p>select convert(varchar, getdate(), 105)  --dd-mm-yyyy</p>
+<p>select convert(varchar, getdate(), 106)  --dd mon yyyy</p>
+<p>select convert(varchar, getdate(), 107)  --Mon dd, yyyy</p>
+<p><u>select convert(varchar, getdate(), 108)  --hh:mm:ss</u></p>
+<p>select convert(varchar, getdate(), 109)  --mon dd yyyy hh:mi:ss:mmmAM (or PM)</p>
+<p>select convert(varchar, getdate(), 110)  --mm-dd-yyyy</p>
+<p><u>select convert(varchar, getdate(), 111)  --yyyy/mm/dd</u></p>
+<p><u>select convert(varchar, getdate(), 112)  --yyyymmdd</u></p>
+<p>select convert(varchar, getdate(), 113)  --mon yyyy hh:mi:ss:mmm (24h)</p>
+<p>select convert(varchar, getdate(), 114)  --hh:mi:ss:mmm (24h)</p>
+<p><u>select convert(varchar, getdate(), 120)  --yyyy-mm-dd hh:mi:ss (24h)</u></p>
+<p>select convert(varchar, getdate(), 121)  --yyyy-mm-dd hh:mi:ss.mmm (24h)</p>
+<p>select convert(varchar, getdate(), 126)  --yyyy-mm-ddThh:mi:ss.mmm</p>
+<p>select convert(varchar, getdate(), 130)  --dd mon yyyy hh:mi:ss:mmmAM</p>
+<p>select convert(varchar, getdate(), 131)  --dd/mm/yyyy hh:mi:ss:mmmAM</p>
+<p>출처: \&lt;<a href="https://gent.tistory.com/35">https://gent.tistory.com/35</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRING_AGG - 아이템 항목 한 컬럼에 넣기 (문자열 집계함수)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>STRING_AGG - 아이템 항목 한 컬럼에 넣기 (문자열 집계함수)</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-14</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="string_agg-">STRING_AGG - 아이템 항목 한 컬럼에 넣기 (문자열 집계함수)</h1>
+<p>SELECT M.OrderSeq,</p>
+<p>ISNULL(STRING_AGG(A.ItemName, ','),'') AS ItemValues</p>
+<p>FROM sjpark_TSLSalesOrder AS M</p>
+<p>LEFT OUTER JOIN sjpark_TSLSalesOrderItem AS I ON M.OrderSeq = I.OrderSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS A ON A.ItemSeq = I.ItemSeq</p>
+<p>GROUP BY M.OrderSeq</p>
+<p>-- 정렬 추가</p>
+<p>STRING_AGG(A.DocNo, '.') WITHIN GROUP (ORDER BY A.IsORDPOPrt DESC,A.ORDPOPrtSeq) AS DocNo</p>
+<p>SELECT Z.ReceiptSeq</p>
+<p>,SUM(ISNULL(Z.CurAmt, 0)) AS TotAmt</p>
+<p>,SUM(ISNULL(Z.CurVAT, 0)) AS TotVat</p>
+<p>,SUM(ISNULL(Z.CurAmt, 0) + ISNULL(Z.CurVAT, 0)) AS TotalAmt</p>
+<p>,SUM(IIF(ISNULL(F.ValueText, '0') \&lt;&gt; '1', ISNULL(Z.CurAmt, 0) + ISNULL(Z.CurVAT, 0), 0)) AS TotPartsCost -- 부품비: ValueText가 '1'이 아닌 경우</p>
+<p>,SUM(IIF(ISNULL(F.ValueText, '0') = '1', ISNULL(Z.CurAmt, 0) + ISNULL(Z.CurVAT, 0), 0)) AS TotLaborCost -- 공임비: ValueText가 '1'인 경우</p>
+<p>-- 품명 추가</p>
+<p>, STRING_AGG(IIF(ISNULL(F.ValueText, '0') \&lt;&gt; '1', G.ItemName, NULL), ', ') AS ItemNames</p>
+<p>FROM svs_TSIASServiceMaster AS A WITH(NOLOCK)</p>
+<p>JOIN svs_TSIASServiceRepair AS Z WITH(NOLOCK) ON Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.ReceiptSeq = A.ReceiptSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS F WITH(NOLOCK) ON F.CompanySeq = Z.CompanySeq</p>
+<p>AND F.MinorSeq = Z.UMCostType</p>
+<p>AND F.Serl = 15000001</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON G.CompanySeq = Z.CompanySeq</p>
+<p>AND G.ItemSeq = Z.ItemSeq</p>
+<p>GROUP BY Z.ReceiptSeq</p>
+  </article>
+</div>
+</body>
+</html>

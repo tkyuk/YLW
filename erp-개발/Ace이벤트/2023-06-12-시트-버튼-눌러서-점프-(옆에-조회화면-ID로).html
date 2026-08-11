@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 버튼 눌러서 점프 (옆에 조회화면 ID로)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 버튼 눌러서 점프 (옆에 조회화면 ID로)</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="id">시트 버튼 눌러서 점프 (옆에 조회화면 ID로)</h1>
+<p>FrmWACMRProc_emk</p>
+<p>Monthly Report 집계처리_emk</p>
+<p><img alt="" src="assets/시트-버튼-눌러서-점프-(옆에-조회화면-ID로)/image49.png" /></p>
+<p>Button        조회화면실행        DataBlock1        btnJumpOut                                100</p>
+<p>TextBox        조회화면ID        DataBlock1        JumpPgmId                        DIS;HID        100</p>
+<p><img alt="" src="assets/시트-버튼-눌러서-점프-(옆에-조회화면-ID로)/image50.png" /></p>
+<p>-- btnJumpOut (E-처리)</p>
+<p>local pgmid, isJumpProc</p>
+<p>pgmid= CellText(SS1, SS1.ActiveRow,'JumpPgmId')</p>
+<p>if pgmid == '' then</p>
+<blockquote>
+<p>GoTo('END')</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>JumpOutPgm('JumpOut',pgmid)</p>
+</blockquote>
+<p>end</p>
+<p><img alt="" src="assets/시트-버튼-눌러서-점프-(옆에-조회화면-ID로)/image51.png" /></p>
+<p><img alt="" src="assets/시트-버튼-눌러서-점프-(옆에-조회화면-ID로)/image52.png" /></p>
+<p>툴바 속성</p>
+  </article>
+</div>
+</body>
+</html>

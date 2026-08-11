@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(조회조건) 입력형태 콤보에 따라 유형 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(조회조건) 입력형태 콤보에 따라 유형 변경</h1>
+    <div class="meta">
+      <span class="note-date">2025-12-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">(조회조건) 입력형태 콤보에 따라 유형 변경</h1>
+<p>local InputType</p>
+<p>InputType = tonumber(txtInputTypeName.TextCd)</p>
+<p>if InputType == 1027001 then</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'QRY;'</p>
+<p>txtTextBox.ControlKey = 'DIS;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;HID;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCombo.ControlKey = 'DIS;HID;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;HID;'</p>
+<p>txtDateBox.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif InputType == 1027002 then</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'QRY;'</p>
+<p>txtTextBox.ControlKey = 'DIS;HID;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;HID;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCombo.ControlKey = 'DIS;HID;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;HID;'</p>
+<p>txtDateBox.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif InputType == 1027003 then</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'QRY;'</p>
+<p>txtTextBox.ControlKey = 'DIS;HID;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCombo.ControlKey = 'DIS;HID;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;HID;'</p>
+<p>txtDateBox.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif InputType == 1027004 then</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'QRY;'</p>
+<p>txtTextBox.ControlKey = 'DIS;HID;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;HID;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;'</p>
+<p>txtCombo.ControlKey = 'DIS;HID;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;HID;'</p>
+<p>txtDateBox.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif InputType == 1027005 then</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'QRY;'</p>
+<p>txtTextBox.ControlKey = 'DIS;HID;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;HID;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCombo.ControlKey = 'DIS;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;HID;'</p>
+<p>txtDateBox.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif InputType == 1027006 then</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'QRY;'</p>
+<p>txtTextBox.ControlKey = 'DIS;HID;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;HID;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCombo.ControlKey = 'DIS;HID;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;'</p>
+<p>txtDateBox.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>elseif InputType == 1027007 then</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'QRY;'</p>
+<p>txtTextBox.ControlKey = 'DIS;HID;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;HID;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCombo.ControlKey = 'DIS;HID;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;HID;'</p>
+<p>txtDateBox.ControlKey = 'DIS;'</p>
+</blockquote>
+<p>else</p>
+<blockquote>
+<p>txtAddTitleName.ControlKey = 'DIS;QRY;'        </p>
+<p>txtTextBox.ControlKey = 'DIS;HID;'</p>
+<p>txtFloatBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCodeHelp.ControlKey = 'DIC;DIS;HID;'</p>
+<p>txtMaskBox.ControlKey = 'DIS;HID;'</p>
+<p>txtCombo.ControlKey = 'DIS;HID;'</p>
+<p>txtCheckBox.ControlKey = 'DIS;HID;'</p>
+<p>txtDateBox.ControlKey = 'DIS;HID;'</p>
+</blockquote>
+<p>end</p>
+<p>FrmWSLServiceReceiptList</p>
+<p>서비스접수조회</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACTION 권한 LUA 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>ACTION 권한 LUA 처리</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="action-lua">ACTION 권한 LUA 처리</h1>
+<p>-- 액션ID에 대한 권한 확인</p>
+<p>local mySecu = GetActionSecu('AC_SaveTable')</p>
+<p>if mySecu == 1 then</p>
+<p>-- [읽고쓰기 권한] : 정상적인 저장 로직 수행</p>
+<p>RunPgmMethod('Save')</p>
+<p>elseif mySecu == 2 then</p>
+<p>-- [읽기 권한] : 권한 부족 메시지 출력 또는 조회만 수행</p>
+<p>MessageBox('읽기 권한만 존재하여 저장할 수 없습니다.', '알림', 'MsgBoxTypeOK')</p>
+<p>return</p>
+<p>else</p>
+<p>-- [권한 없음] : 버튼 숨김 또는 접근 차단</p>
+<p>btnSave.Visible = false</p>
+<p>return</p>
+<p>end</p>
+<p>출처: \&lt;<a href="https://call.sysware.co.kr/">https://call.sysware.co.kr/</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

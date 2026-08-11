@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>품목 - 생산기본정보 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>품목 - 생산기본정보 생성</h1>
+    <div class="meta">
+      <span class="note-date">2024-03-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">품목 - 생산기본정보 생성</h1>
+<p><img alt="" src="assets/품목-생산기본정보-생성/image27.png" /></p>
+<p>CREATE PROCEDURE dial_SWDAItemInfoSave</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<hr />
+<p>-- 생산기본정보 생성</p>
+<hr />
+<p>-- BOM등록</p>
+<p>-- 제품별공정별소요자재등록</p>
+<p>-- 사업단위별생산품목정보</p>
+<p>-- 제품별공정별워크센터등록</p>
+<p>--==================================================</p>
+<p>-- 변수선언</p>
+<p>--==================================================</p>
+<p>DECLARE @EnvValue NVARCHAR(100),</p>
+<p>@IsBizUnit INT,</p>
+<p>@Today NCHAR(8)</p>
+<p>SELECT @Today = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>--==================================================</p>
+<p>-- LOG</p>
+<p>--==================================================</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDBOMManagement' ,</p>
+<p>'#BIZ_OUT_DataBlock1' ,</p>
+<p>'ItemSeq' ,</p>
+<p>@PgmSeq ,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDBOM' ,</p>
+<p>'#BIZ_OUT_DataBlock1' ,</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq ,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDROUItemProc' ,</p>
+<p>'#BIZ_OUT_DataBlock1' ,</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq ,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq ,</p>
+<p>@UserSeq ,</p>
+<p>'_TPDROUItemProcWC' ,</p>
+<p>'#BIZ_OUT_DataBlock1' ,</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq ,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq,</p>
+<p>@UserSeq,</p>
+<p>'_TPDROUItemProcRevFactUnit',</p>
+<p>'#BIZ_OUT_DataBlock1',</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq,</p>
+<p>@UserSeq,</p>
+<p>'_TPDBOMRemarks',</p>
+<p>'#BIZ_OUT_DataBlock1',</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq,</p>
+<p>@UserSeq,</p>
+<p>'_TPDBOMProc',</p>
+<p>'#BIZ_OUT_DataBlock1',</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq,</p>
+<p>@UserSeq,</p>
+<p>'_TPDROUItemProcMat',</p>
+<p>'#BIZ_OUT_DataBlock1',</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq,</p>
+<p>''</p>
+<p>EXEC _SCOMXmlLog @CompanySeq,</p>
+<p>@UserSeq,</p>
+<p>'_TPDROUItemProcManagement',</p>
+<p>'#BIZ_OUT_DataBlock1',</p>
+<p>'ItemSeq',</p>
+<p>@PgmSeq,</p>
+<p>''</p>
+<p>UPDATE A</p>
+<p>SET A.WorkingTag = 'U'</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag IN (N'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND (A.BizUnit \&lt;&gt; A.BizUnitOld</p>
+<p>OR A.WorkCenterSeq \&lt;&gt; A.WorkCenterSeqOld)</p>
+<p>-- 작업순서 맞추기: DELETE -&gt; UPDATE -&gt; INSERT</p>
+<p>-- UPDATE의 경우 삭제 후 재생성</p>
+<p>--==================================================</p>
+<p>-- DELETE</p>
+<p>--==================================================</p>
+<p>/********************BOM 상위등록 삭제********************/</p>
+<p>IF EXISTS ( SELECT TOP 1 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag IN (N'U', N'D') AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>-- BOM차수관리</p>
+<p>DELETE _TPDBOMManagement</p>
+<p>FROM _TPDBOMManagement AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- BOM공정정보</p>
+<p>DELETE _TPDBOMProc</p>
+<p>FROM _TPDBOMProc AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>/********************BOM 하위등록 삭제********************/</p>
+<p>--BOM비고정보</p>
+<p>DELETE _TPDBOMRemarks</p>
+<p>FROM _TPDBOMRemarks AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--BOM 정보</p>
+<p>DELETE _TPDBOM</p>
+<p>FROM _TPDBOM AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>/********************제품별공정별소요자재등록 삭제********************/</p>
+<p>-- 삭제 순서(소요자재 --&gt; 공정 --&gt; 마스터)</p>
+<p>-- 소요자재 삭제</p>
+<p>DELETE _TPDROUItemProcMat</p>
+<p>FROM _TPDROUItemProcMat AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 생산사업단위별 생산품목 삭제</p>
+<p>DELETE _TPDROUItemProcRevFactUnit</p>
+<p>FROM _TPDROUItemProcRevFactUnit AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 제품별공정별워크센터 삭제</p>
+<p>DELETE _TPDROUItemProcWC</p>
+<p>FROM _TPDROUItemProcWC AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 공정정보 삭제</p>
+<p>DELETE _TPDROUItemProc</p>
+<p>FROM _TPDROUItemProc AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- 차수정보 삭제</p>
+<p>DELETE _TPDROUItemProcManagement</p>
+<p>FROM _TPDROUItemProcManagement AS A</p>
+<p>JOIN #BIZ_OUT_DataBlock1 AS B ON A.ItemSeq = B.ItemSeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'D')</p>
+<p>AND B.Status = 0</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>--==================================================</p>
+<p>-- INSERT</p>
+<p>--==================================================</p>
+<p>IF EXISTS ( SELECT TOP 1 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag IN (N'U',N'A') AND Status = 0 )</p>
+<p>BEGIN</p>
+<p>/********************BOM 상위등록 생성********************/</p>
+<p>-- BOM차수관리</p>
+<p>INSERT INTO _TPDBOMManagement</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ItemBomRev , RegDate , LastUptDate ,</p>
+<p>FrTermValidity , ToTermValidity , BatchSize , Remark , LastUserSeq ,</p>
+<p>LastDateTime , FileSeq , BizUnit , RegUserSeq</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq</p>
+<p>, A.ItemSeq</p>
+<p>, '00' -- 차수는 00으로 고정</p>
+<p>, CONVERT(NCHAR(8),GETDATE(),112)</p>
+<p>, CONVERT(NCHAR(8),GETDATE(),112)</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, 0</p>
+<p>, ''</p>
+<p>, @UserSeq</p>
+<p>, GETDATE()</p>
+<p>, 0</p>
+<p>, A.BizUnit</p>
+<p>, @UserSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag IN (N'U', N'A')</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDBOMManagement WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>-- BOM공정정보</p>
+<p>INSERT INTO _TPDBOMProc</p>
+<p>(</p>
+<p>CompanySeq , GoodSeq , GoodBomRev, ItemSeq, ItemBomRev ,</p>
+<p>SubItemSeq , SubItemBomRev , ProcRev , ProcSeq, WorkCenterSeq,</p>
+<p>LastUserSeq , LastDateTime , BizUnit</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq , B.ItemSeq , '00' , B.ItemSeq , '00' , -- 차수는 00으로 고정</p>
+<p>0 , '' , '' , 0 , B.WorkCenterSeq,</p>
+<p>@UserSeq , GETDATE() , B.BizUnit</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS B</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON B.ItemSeq = C.ItemSeq</p>
+<p>AND C.CompanySeq = @CompanySeq</p>
+<p>WHERE B.WorkingTag IN (N'U', N'A')</p>
+<p>AND B.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>/********************BOM 하위등록 생성********************/</p>
+<p>--BOM 정보</p>
+<p>INSERT INTO _TPDBOM</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ItemBomRev , Serl , UserSeq ,</p>
+<p>SubItemSeq , SubItemBomRev , UnitSeq , SubUnitSeq , NeedQtyNumerator ,</p>
+<p>NeedQtyDenominator , HaveChild , InLossRate , OutLossRate , ECOSeq ,</p>
+<p>ECOItemSerl , ECOChangeSerl , ECOApplySerl , FrApplyDate , ToApplyDate ,</p>
+<p>Location , Remark , IsCfm , LastUserSeq , LastDateTime ,</p>
+<p>IsBOMOnly , BizUnit , IsIncludeProcMat</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq</p>
+<p>, A.ItemSeq</p>
+<p>, '00' -- 차수는 '00'으로 표시합니다.</p>
+<p>, 1 -- 품목1개만 들어가니까 Serl은 1로 표시합니다.</p>
+<p>, @UserSeq</p>
+<p>, C.ValueSeq --품목(BOM조회용)</p>
+<p>, '00'</p>
+<p>, A.UnitSeq</p>
+<p>, A.UnitSeq</p>
+<p>, D.ValueText -- 소요량(분자)</p>
+<p>, E.ValueText -- 소요량(분모)</p>
+<p>, '0'</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, '0'</p>
+<p>, @UserSeq</p>
+<p>, GETDATE()</p>
+<p>, 0</p>
+<p>, ISNULL(A.BizUnit, 0)</p>
+<p>, 0</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAUMinor AS B WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND B.MajorSeq = 1001042 -- dial_생산기본정보생성의 TOP 1</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.MinorSeq = C.MinorSeq</p>
+<p>AND C.Serl = 15000004 -- 품목(BOM조회용)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.MinorSeq = D.MinorSeq</p>
+<p>AND D.Serl = 15000005 -- 소요량(분자)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS E WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.MinorSeq = E.MinorSeq</p>
+<p>AND E.Serl = 15000006 -- 소요량(분모)</p>
+<p>WHERE A.WorkingTag IN (N'A', N'U')</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--BOM비고정보</p>
+<p>INSERT INTO _TPDBOMRemarks</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ItemBomRev, Serl , BizUnit ,</p>
+<p>Remark1 , Remark2 , Remark3 , Remark4 , Remark5 ,</p>
+<p>Remark6 , Remark7 , Remark8 , Remark9 , Remark10 ,</p>
+<p>LastUserSeq , LastDateTime</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq</p>
+<p>, A.ItemSeq</p>
+<p>, '00' -- 차수는 '00'으로 표시합니다.</p>
+<p>, 1 -- 품목1개만 들어가니까 Serl은 1로 표시합니다.</p>
+<p>, ISNULL(A.BizUnit, 0 )</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, ''</p>
+<p>, @UserSeq</p>
+<p>, GETDATE()</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag IN (N'U', N'A')</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDBOMRemarks WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND ItemSeq = A.ItemSeq)</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>/********************제품별공정별소요자재등록 생성********************/</p>
+<p>--공정차수관리</p>
+<p>INSERT INTO _TPDROUItemProcManagement</p>
+<p>( CompanySeq , ItemSeq , ProcRev , BOMRev , RegDate ,</p>
+<p>UptDate , RegUserSeq, UptUserSeq, Remark , LastUserSeq ,</p>
+<p>LastDateTime, BizUnit, IsMatNotSum</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq , A.ItemSeq , '00' , '00' , @Today ,</p>
+<p>@Today , @UserSeq , @UserSeq , '' , @UserSeq ,</p>
+<p>GETDATE() , A.BizUnit ,0</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag IN ('A', 'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDROUItemProcManagement WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--사업단위별생산품목</p>
+<p>INSERT INTO _TPDROUItemProcRevFactUnit</p>
+<p>(</p>
+<p>CompanySeq , BizUnit , ItemSeq , Serl , BOMRev ,</p>
+<p>ProcRev , FrDate , ToDate , LastUserSeq ,LastDateTime ,</p>
+<p>FactUnit</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq</p>
+<p>, A.BizUnit</p>
+<p>, A.ItemSeq</p>
+<p>, 1 -- 품목1개만 들어가니까 Serl은 1로 표시합니다.</p>
+<p>, '00'</p>
+<p>, '00'</p>
+<p>, @Today</p>
+<p>, N'99991231'</p>
+<p>, @UserSeq</p>
+<p>, GETDATE()</p>
+<p>, 0</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.WorkingTag IN (N'A', N'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDROUItemProcRevFactUnit WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--생산품목 공정 워크센터</p>
+<p>INSERT INTO _TPDROUItemProcWC</p>
+<p>(</p>
+<p>CompanySeq , BizUnit , ItemSeq , BOMRev , ProcRev ,</p>
+<p>ProcSeq , Serl , WorkcenterSeq , IsBatch , BatchSize ,</p>
+<p>TimeUnit , StdSetUpTime , StdWorkTime , StdReadyTime , StdMovTime,</p>
+<p>Ranking , WorkRate , IsQC , LastUserSeq , LastDateTime,</p>
+<p>FactUnit</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq , A.BizUnit , A.ItemSeq , '00' , '00' ,</p>
+<p>C.ValueSeq , 1 , A.WorkCenterSeq , '' , 0 ,</p>
+<p>D.ValueSeq , 0 , E.ValueText , 0 , 0 ,</p>
+<p>1 , 100 , '' , @UserSeq , GETDATE() ,</p>
+<p>0</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAUMinor AS B WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND B.MajorSeq = 1001042 -- dial_생산기본정보생성의 TOP 1</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.MinorSeq = C.MinorSeq</p>
+<p>AND C.Serl = 15000001 -- 공정</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.MinorSeq = D.MinorSeq</p>
+<p>AND D.Serl = 15000002 -- 시간단위</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS E WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.MinorSeq = E.MinorSeq</p>
+<p>AND E.Serl = 15000003 -- 표준작업시간</p>
+<p>WHERE A.WorkingTag IN (N'A', N'U')</p>
+<p>AND A.Status = 0</p>
+<p>AND NOT EXISTS (SELECT 1 FROM _TPDROUItemProcWC WITH(NOLOCK)</p>
+<p>WHERE ItemSeq = A.ItemSeq</p>
+<p>AND BizUnit = A.BizUnit</p>
+<p>AND CompanySeq = @CompanySeq )</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--생산품목공정</p>
+<p>INSERT INTO _TPDROUItemProc</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ProcRev , Serl , ProcSeq ,</p>
+<p>AssyItemSeq , AssyQty , ProcNo , ToProcNo , IsProcQC ,</p>
+<p>IsLastProc , IsBNProc , OverLapRate , SMToProcMovType , IsCriticalPath,</p>
+<p>AssyQtyNumerator, AssyQtyDenominator, MatProcSeq , LastUserSeq , LastDateTime ,</p>
+<p>BizUnit</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq</p>
+<p>, A.ItemSeq -- 제품내부코드</p>
+<p>, '00' -- 공정차수</p>
+<p>, 1 -- 순번</p>
+<p>, C.ValueSeq -- 공정내부코드</p>
+<p>, A.ItemSeq -- 공정품내부코드</p>
+<p>, 0 -- 공정품수량</p>
+<p>, 1 -- 공정순서</p>
+<p>, 1 -- 후속공정순서</p>
+<p>, '0' -- 공정검사여부</p>
+<p>, '0' -- 최종공정여부</p>
+<p>, '0'</p>
+<p>, 0</p>
+<p>, 0</p>
+<p>, ''</p>
+<p>, D.ValueText -- 공정소요량(분자)</p>
+<p>, E.ValueText -- 공정소요량(분모)</p>
+<p>, 0 -- 투입공정내부코드</p>
+<p>, @UserSeq -- 최종작업자</p>
+<p>, GETDATE() -- 최종작업일시</p>
+<p>, A.BizUnit -- 사업단위</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAUMinor AS B WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND B.MajorSeq = 1001042 -- dial_생산기본정보생성의 TOP 1</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.MinorSeq = C.MinorSeq</p>
+<p>AND C.Serl = 15000001 -- 공정</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.MinorSeq = D.MinorSeq</p>
+<p>AND D.Serl = 15000005 -- 소요량(분자)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS E WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.MinorSeq = E.MinorSeq</p>
+<p>AND E.Serl = 15000006 -- 소요량(분모)</p>
+<p>WHERE A.WorkingTag IN (N'A', N'U')</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>--제품별 공정별 소요자재</p>
+<p>INSERT INTO _TPDROUItemProcMat</p>
+<p>(</p>
+<p>CompanySeq , ItemSeq , ProcRev , ProcSeq , Serl ,</p>
+<p>AssyItemSeq , AssyQtyNumerator , AssyQtyDenominator, MatItemSeq , UnitSeq ,</p>
+<p>NeedQtyNumerator, NeedQtyDenominator, SMDelvType , InLossRate , OutLossRate ,</p>
+<p>Location , UpperItemSeq , UpperBOMRev , BOMItemSerl , ECOSeq ,</p>
+<p>Remark , Memo1 , Memo2 , Memo3 , SubItemProcRev,</p>
+<p>UserNo , ItemSerl , BOMRev , LastUserSeq , LastDateTime ,</p>
+<p>BizUnit</p>
+<p>)</p>
+<p>SELECT TOP 1</p>
+<p>@CompanySeq , A.ItemSeq , '00' , C.ValueSeq , 1 ,</p>
+<p>0 , 0 , 0 , D.ValueSeq , A.UnitSeq ,</p>
+<p>E.ValueText , F.ValueText , 6032002 , 0 , 0 ,</p>
+<p>'' , 0 , '00' , 0 , 0 ,</p>
+<p>'' , '' , '' , '' , '' ,</p>
+<p>0 , 1 , '' , @UserSeq , GETDATE() ,</p>
+<p>A.BizUnit</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDAUMinor AS B WITH(NOLOCK) ON @CompanySeq = B.CompanySeq</p>
+<p>AND B.MajorSeq = 1001042 -- dial_생산기본정보생성의 TOP 1</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.MinorSeq = C.MinorSeq</p>
+<p>AND C.Serl = 15000001 -- 공정</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.MinorSeq = D.MinorSeq</p>
+<p>AND D.Serl = 15000004 -- 품목(BOM조회용)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS E WITH(NOLOCK) ON B.CompanySeq = E.CompanySeq</p>
+<p>AND B.MinorSeq = E.MinorSeq</p>
+<p>AND E.Serl = 15000005 -- 소요량(분자)</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS F WITH(NOLOCK) ON B.CompanySeq = F.CompanySeq</p>
+<p>AND B.MinorSeq = F.MinorSeq</p>
+<p>AND F.Serl = 15000006 -- 소요량(분모)</p>
+<p>WHERE A.WorkingTag IN (N'A', N'U')</p>
+<p>AND A.Status = 0</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>END</p>
+<p>-- 저장 후, 저장한 Seq값을 SeqOld에 동일하게 설정해줍니다.</p>
+<p>UPDATE A</p>
+<p>SET BizUnitOld = A.BizUnit,</p>
+<p>WorkCenterSeqOld = WorkCenterSeq,</p>
+<p>ItemSeqOld = ItemSeq</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE Status = 0</p>
+<p>RETURN</p>
+<p>/****************************************************************************************************/</p>
+  </article>
+</div>
+</body>
+</html>

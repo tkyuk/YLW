@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>통계 (날짜별)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>통계 (날짜별)</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">통계 (날짜별)</h1>
+<p>SELECT SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 1, 1, 0)) AS [01월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 2, 1, 0)) AS [02월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 3, 1, 0)) AS [03월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 4, 1, 0)) AS [04월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 5, 1, 0)) AS [05월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 6, 1, 0)) AS [06월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 7, 1, 0)) AS [07월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 8, 1, 0)) AS [08월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 9, 1, 0)) AS [09월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 10, 1, 0)) AS [10월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 11, 1, 0)) AS [11월]</p>
+<p>, SUM(IIF(MONTH(CONVERT(DATETIME,EntDate)) = 12, 1, 0)) AS [12월]</p>
+<p>FROM _TDAEmp</p>
+  </article>
+</div>
+</body>
+</html>

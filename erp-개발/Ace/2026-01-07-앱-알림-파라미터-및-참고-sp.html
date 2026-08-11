@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>앱 알림 파라미터 및 참고 sp</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>앱 알림 파라미터 및 참고 sp</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-07</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">앱 알림 파라미터 및 참고 sp</h1>
+<ul>
+<li><span class="mark">파라미터 예시</span> (svs_SWFlexLGKumsTemplateEtcOutReq)</li>
+</ul>
+<blockquote>
+<p>EXEC OSCAKumsTemplateQuery @WorkingTag = N'BF'</p>
+<p>,@CompanySeq = N'1'</p>
+<p>,@LanguageSeq = N'1'</p>
+<p>,@UserSeq = N'1'</p>
+<p>,@PgmSeq = N'501110'</p>
+<p>,@MessageDiv = N'N'</p>
+<p>,@MessageType = N''</p>
+<p>,@Param1 = N'4'</p>
+<p>,@Param2 = N'30'</p>
+<p>,@Param3 = N''</p>
+<p>,@Param4 = N''</p>
+<p>,@Param5 = N''</p>
+<p>,@TemplateSeq = N'1'</p>
+</blockquote>
+<p>DROP PROC svs_SWFlexLGKumsTemplateEtcOutReq</p>
+<p>GO</p>
+<p>CREATE PROC svs_SWFlexLGKumsTemplateEtcOutReq</p>
+<p>@WorkingTag NVARCHAR(10)= ''</p>
+<p>,@CompanySeq INT = 1</p>
+<p>,@LanguageSeq INT = 1</p>
+<p>,@UserSeq INT = 0</p>
+<p>,@PgmSeq INT = 0</p>
+<p>,@MessageDiv CHAR(1)</p>
+<p>,@MessageType VARCHAR(50)</p>
+<p>,@TemplateCode VARCHAR(30)</p>
+<p>,@TemplateContent NVARCHAR(1000)</p>
+<p>,@Param1 NVARCHAR(4000) -- ReqSeq</p>
+<p>,@Param2 NVARCHAR(4000) -- InOutReqType</p>
+<p>,@Param3 NVARCHAR(4000)</p>
+<p>,@Param4 NVARCHAR(4000)</p>
+<p>,@Param5 NVARCHAR(4000)</p>
+<p>AS</p>
+<p>-- WITH(NOLOCK) 효과</p>
+<p>SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</p>
+<p>/*******************************************</p>
+<p>-- 2-1. 제목</p>
+<p>*******************************************/</p>
+<p>DECLARE @Subjects NVARCHAR(1000) = '' -- (OUTPUT) 제목</p>
+<p>,@RecvNames NVARCHAR(MAX) = '' -- (OUTPUT) 수신자</p>
+<p>,@RecvValues NVARCHAR(MAX) = '' -- (OUTPUT) 수신자내부코드</p>
+<p>,@WordNotice NVARCHAR(200) -- 단어 : 공지</p>
+<p>,@WordAlarm NVARCHAR(200) -- 단어 : 알림</p>
+<p>,@MbFlexAppNoti_FlexAppID NVARCHAR(50) -- OTCAKumsTemplatePgm 의 MbFlexAppNoti_FlexAppID</p>
+<p>DECLARE @FlexAppID NVARCHAR(100)</p>
+<p>SELECT @FlexAppID = ISNULL(A.MbFlexAppNoti_FlexAppID, N'')</p>
+<p>FROM OTCAKumsTemplatePgm AS A WITH(NOLOCK)</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND ISNULL(A.PgmSeq , 0) = 501110 -- 기타출고요청입력</p>
+<p>/***************************** #{content} 시작 **************************/</p>
+<p>DECLARE @CompanyName NVARCHAR(100), @PgmName NVARCHAR(200), @UserDept NVARCHAR(100), @UserName NVARCHAR(100) , @CurrDate NCHAR(8), @Remark NVARCHAR(1000)</p>
+<p>DECLARE @ReqNo NVARCHAR(20), @ReqDate NCHAR(10), @ItemName NVARCHAR(100), @WHName NVARCHAR(100), @WishDate NCHAR(10)</p>
+<blockquote>
+<p>SELECT @CurrDate = CONVERT(NCHAR(8), GETDATE(), 112)</p>
+<p>SELECT @CompanyName = (SELECT CompanyName FROM _TCACompany WITH(NOLOCK) WHERE CompanySeq = @CompanySeq)</p>
+<p>SELECT @PgmName = (SELECT Caption FROM _TCAPgm WITH(NOLOCK) WHERE PgmSeq = @PgmSeq)</p>
+<p>SELECT @UserDept = (SELECT ISNULL(D.DeptName, ISNULL(H.DeptName, N''))</p>
+<p>FROM _TCAUser AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAEmp AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.EmpSeq = B.EmpSeq</p>
+<p>LEFT OUTER JOIN _THRAdmOrdEmp AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.EmpSeq = C.EmpSeq -- 발령일내에 있는 사원.</p>
+<p>AND C.OrdDate+RIGHT(N'00000'+CONVERT(NVARCHAR(5),C.IntSeq),5) = (SELECT MAX(OrdDate+RIGHT(N'00000'+CONVERT(NVARCHAR(5),IntSeq),5))</p>
+<p>FROM _THRAdmOrdEmp</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND EmpSeq = C.EmpSeq</p>
+<p>AND IsOrdDateLast = N'1'</p>
+<p>AND OrdDate \&lt;= @CurrDate) -- 발령일자 기준 이전발령</p>
+<p>LEFT OUTER JOIN _TDADept AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.DeptSeq = D.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDADept AS H WITH(NOLOCK) ON B.CompanySeq = H.CompanySeq --제품군이 WBS인 경우는 _TDAEmpOutContract 테이블 사용하지 않음</p>
+<p>AND B.WkDeptSeq = H.DeptSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq AND A.UserSeq = @UserSeq)</p>
+<p>SELECT @UserName = (SELECT UserName FROM _TCAUser WHERE UserSeq = @UserSeq AND CompanySeq = @CompanySeq )</p>
+</blockquote>
+<p>SELECT @ReqNo = A.ReqNo ,</p>
+<p>@ReqDate = LEFT(A.ReqDate, 4) + '-' + SUBSTRING(A.ReqDate, 5, 2) + '-' + RIGHT(A.ReqDate, 2),</p>
+<blockquote>
+<p>@WHName = C.WHName,</p>
+<p>@WishDate = A.CompleteWishDate,</p>
+<p>@Remark = ISNULL(A.Remark,'')</p>
+</blockquote>
+<p>FROM _TLGInOutReq AS A WITH(NOLOCK)</p>
+<blockquote>
+<p>JOIN _TDAWH AS C WITH(NOLOCK) ON A.OutWHSeq = C.WHSeq</p>
+<p>AND A.CompanySeq = C.CompanySeq</p>
+</blockquote>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ReqSeq = @Param1</p>
+<p>SELECT @ItemName = C.ItemName</p>
+<p>FROM _TLGInOutReq AS A WITH(NOLOCK)</p>
+<p>JOIN _TLGInOutReqItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.ReqSeq = A.ReqSeq</p>
+<p>JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = B.CompanySeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.ReqSeq = @Param1</p>
+<p>GROUP BY C.ItemName, B.Qty</p>
+<p>ORDER BY B.Qty</p>
+<blockquote>
+<p>SELECT @TemplateContent = REPLACE(@TemplateContent, '#{content}',</p>
+<p>'[' + @CompanyName + ']' + NCHAR(13) +</p>
+<p>'- 처리화면 : ' + @PgmName + ' / ' + @ReqNo + NCHAR(13) +</p>
+<p>'- 발신자 : ' + @UserDept + ' / ' + @UserName + NCHAR(13) +</p>
+<p>'- 출고창고 : ' + @WHName + NCHAR(13) +</p>
+<p>'- 대표품명 : ' + @ItemName + NCHAR(13) +</p>
+<p>'- 특이사항 : ' + @Remark)</p>
+</blockquote>
+<p>-- EXEC @WordAlarm = _FCOMGetWord @LanguageSeq, 1677 , N'알림'</p>
+<p>SELECT @Subjects = '[ERP] 요청번호 '+@ReqNo+' 알림 드립니다.'</p>
+<p>/**********************************************************************************</p>
+<p>--3. 최종결과</p>
+<p>**********************************************************************************/</p>
+<p>SELECT @Subjects = ISNULL(@Subjects , N'')</p>
+<p>, @TemplateContent = ISNULL(@TemplateContent , N'')</p>
+<p>, @RecvNames = ISNULL(@RecvNames , N'')</p>
+<p>, @RecvValues = ISNULL(@RecvValues , N'')</p>
+<p>, @MbFlexAppNoti_FlexAppID = ISNULL(MbFlexAppNoti_FlexAppID, N'')</p>
+<p>FROM OTCAKumsTemplatePgm</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND PgmSeq = 527040</p>
+<p>AND TemplateSeq = 2</p>
+<p>-- 수신자 지정</p>
+<p>--SELECT @RecvNames = '홍길동'</p>
+<p>--SELECT @RecvValues = '146'</p>
+<p>--SELECT * FROM _TCAUser</p>
+<p>IF @Subjects \&lt;&gt; N'' AND @TemplateContent \&lt;&gt; N'' AND @RecvNames \&lt;&gt; N'' AND @RecvValues \&lt;&gt; N'' AND @MbFlexAppNoti_FlexAppID \&lt;&gt; N''</p>
+<p>BEGIN</p>
+<p>SELECT @Subjects AS Subjects -- 알림 제목 : 공지 알림</p>
+<p>, @TemplateContent AS TemplateContent -- 알림 내용 : 새로운 공지가 등록되었습니다. '(#공지사항제목)' 지금 확인하세요.</p>
+<p>, @RecvNames AS RecvNames -- 수신자 이름 : UserName</p>
+<p>, @RecvValues AS RecvValues -- 수신자 SEQ : UserSeq</p>
+<p>, N'' AS RecvDeptNames -- 수신자 부서 : kums알림 보낼때만 있으면 됨</p>
+<p>, @MbFlexAppNoti_FlexAppID AS FlexAppID</p>
+<p>END</p>
+<p>SELECT @Subjects AS Subjects -- 알림 제목 : [증명서] #증명서구분 (승인/반려)</p>
+<p>, @TemplateContent AS TemplateContent -- 알림 내용 : 신청하신 (#증명서구분)이(가) (#알림종류)되었습니다.</p>
+<p>, @RecvNames AS RecvNames -- 수신자 이름 : UserName</p>
+<p>, @RecvValues AS RecvValues -- 수신자 SEQ : UserSeq</p>
+<p>, N'' AS RecvDeptNames -- 수신자 부서 : kums알림 보낼때만 있으면 됨</p>
+<p>, @FlexAppID AS FlexAppID -- 수신FlexApp</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>EXEC OSCAKumsTemplateQuery @WorkingTag = N'BF'</p>
+<p>,@CompanySeq = N'1'</p>
+<p>,@LanguageSeq = N'1'</p>
+<p>,@UserSeq = N'1'</p>
+<p>,@PgmSeq = N'501110'</p>
+<p>,@MessageDiv = N'N'</p>
+<p>,@MessageType = N''</p>
+<p>,@Param1 = N'4'</p>
+<p>,@Param2 = N'30'</p>
+<p>,@Param3 = N''</p>
+<p>,@Param4 = N''</p>
+<p>,@Param5 = N''</p>
+<p>,@TemplateSeq = N'1'</p>
+  </article>
+</div>
+</body>
+</html>

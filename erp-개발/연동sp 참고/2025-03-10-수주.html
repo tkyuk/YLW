@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수주</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>수주</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-10</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#연동sp 참고</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">수주</h1>
+<p>CREATE VIEW smc_VMESTSLOrderItem</p>
+<p>AS</p>
+<p>SELECT A.CompanySeq AS CompanySeq, -- 법인내부코드</p>
+<p>C.CompanyName AS CompanyName, -- 법인명</p>
+<p>A.OrderSeq AS OrderSeq, -- 수주내부코드</p>
+<p>B.OrderSerl AS OrderSerl, -- 수주내부순번</p>
+<p>A.OrderNo AS OrderNo, -- 수주번호</p>
+<p>A.OrderDate AS OrderDate, -- 수주일</p>
+<p>D.CustName AS CustName, -- 거래처</p>
+<p>A.CustSeq AS CustSeq, -- 거래처내부코드</p>
+<p>E.MinorName AS UMOrderKindName, -- 수주구분</p>
+<p>O.MinorName AS SMExpKindName, -- Local구분</p>
+<p>F.DeptName AS DeptName, -- 부서</p>
+<p>G.EmpName AS EmpName, -- 담당자</p>
+<p>A.EmpSeq AS EmpSeq, -- 담당자내부코드</p>
+<p>A.Remark AS Remark, -- 특이사항</p>
+<p>I.ItemClassLName AS ItemClassLName, -- 품목대분류</p>
+<p>I.ItemClassMName AS ItemClassMName, -- 품목중분류</p>
+<p>I.ItemClassSName AS ItemClassSName, -- 품목소분류</p>
+<p>J.ItemName AS ItemName, -- 품명</p>
+<p>B.ItemSeq AS ItemSeq, -- 품번내부코드</p>
+<p>J.ItemNo AS ItemNo, -- 품번</p>
+<p>J.Spec AS Spec, -- 규격</p>
+<p>K.UnitName AS UnitName, -- 판매단위</p>
+<p>L.UnitName AS StdUnitName, -- 기준단위</p>
+<p>B.STDQty AS StdQty, -- 기준단위수량</p>
+<p>B.Qty AS Qty, -- 수량</p>
+<p>M.WHName AS WHName, -- 창고</p>
+<p>B.WHSeq AS WHSeq , -- 창고내부코드</p>
+<p>N.AssetName AS AssetName, -- 품목자산분류</p>
+<p>B.Remark AS ItemRemark, -- 품목특이사항</p>
+<p>P.ToQty AS InvQty</p>
+<p>FROM _TSLOrder AS A</p>
+<p>JOIN _TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>LEFT OUTER JOIN _TCACompany AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDACust AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.MinorSeq = A.UMOrderKind</p>
+<p>LEFT OUTER JOIN _TDADept AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.DeptSeq = A.DeptSeq</p>
+<p>LEFT OUTER JOIN _TDAEmp AS G WITH(NOLOCK) ON G.CompanySeq = A.CompanySeq</p>
+<p>AND G.EmpSeq = A.EmpSeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS H WITH(NOLOCK) ON H.CompanySeq = B.CompanySeq</p>
+<p>AND H.ItemSeq = B.ItemSeq</p>
+<p>AND H.UMajorItemClass IN (2001, 2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS I WITH(NOLOCK) ON I.CompanySeq = H.CompanySeq</p>
+<p>AND I.ItemClassSSeq = H.UMItemClass</p>
+<p>LEFT OUTER JOIN _TDAItem AS J WITH(NOLOCK) ON J.CompanySeq = B.CompanySeq</p>
+<p>AND J.ItemSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS K WITH(NOLOCK) ON K.CompanySeq = B.CompanySeq</p>
+<p>AND K.UnitSeq = B.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS L WITH(NOLOCK) ON L.CompanySeq = B.CompanySeq</p>
+<p>AND L.UnitSeq = B.STDUnitSeq</p>
+<p>LEFT OUTER JOIN _TDAWH AS M WITH(NOLOCK) ON M.CompanySeq = B.CompanySeq</p>
+<p>AND M.WHSeq = B.WHSeq</p>
+<p>LEFT OUTER JOIN _TDAItemAsset AS N WITH(NOLOCK) ON N.CompanySeq = J.CompanySeq</p>
+<p>AND N.AssetSeq = J.AssetSeq</p>
+<p>LEFT OUTER JOIN _TDASMinor AS O WITH(NOLOCK) ON O.CompanySeq = A.CompanySeq</p>
+<p>AND O.MinorSeq = A.SMExpKind</p>
+<p>LEFT OUTER JOIN (SELECT CompanySeq, FromSeq, FromSerl, FromTableSeq, ToTableSeq , SUM(ADD_DEL * ToQty) AS ToQty</p>
+<p>FROM _TCOMSourceDaily</p>
+<p>GROUP BY CompanySeq, FromSeq, FromSerl, FromTableSeq, ToTableSeq</p>
+<p>) AS P ON P.CompanySeq = B.CompanySeq</p>
+<p>AND P.FromSeq = B.OrderSeq</p>
+<p>AND P.FromSerl = B.OrderSerl</p>
+<p>AND P.FromTableSeq = 19</p>
+<p>AND P.ToTableSeq = 18</p>
+<p>-- WHERE ISNULL(B.STDQty, 0) &gt; ISNULL(P.ToQty, 0)</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바코드Label출력대상조회_hct</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>바코드Label출력대상조회_hct</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="label_hct">바코드Label출력대상조회_hct</h1>
+<p>DECLARE @CompanySeq INT</p>
+<p>DECLARE @POType2 NVARCHAR(100)</p>
+<p>DECLARE @POType NVARCHAR(100)</p>
+<p>DECLARE @LastPrintNo INT</p>
+<p>SELECT @POType2 = EnvValue</p>
+<p>FROM _TCOMEnv WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND EnvSeq = 2000242 -- 업체코드</p>
+<p>SELECT EnvValue,* FROM _TCOMEnv WITH(NOLOCK) WHERE CompanySeq = 1 AND EnvSeq = 2000242 -- 업체코드</p>
+<p>SELECT @POType = EnvValue</p>
+<p>FROM _TCOMEnv WITH(NOLOCK)</p>
+<p>WHERE CompanySeq = 1</p>
+<p>AND EnvSeq = 2000243 -- 납품처코드</p>
+<p>SELECT EnvValue,* FROM _TCOMEnv WITH(NOLOCK) WHERE CompanySeq = 1 AND EnvSeq = 2000243 -- 납품처코드</p>
+<p>SELECT TOP 1</p>
+<p>@LastPrintNo = ISNULL(C.LastPrintNo,0) -- 20231218.추가</p>
+<p>FROM _TPDMMOutItem AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS C4 WITH(NOLOCK) ON A.CompanySeq = C4.CompanySeq</p>
+<p>AND A.ItemSeq = C4.ItemSeq</p>
+<p>AND C4.MngSerl = 1000173 -- 제품명_hct</p>
+<p>JOIN _TDAItemProduct AS B WITH(NOLOCK) ON C4.CompanySeq = B.CompanySeq</p>
+<p>AND C4.MngValSeq = B.ItemSeq</p>
+<p>LEFT OUTER JOIN hct_TPDMMBarcodeLotMax AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.ItemLotNo = C.LotNo</p>
+<p>AND A.ItemSeq = C.ItemSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.ItemLotNo \&lt;&gt; ''</p>
+<p>AND A.MatOutSeq = 906</p>
+<p>AND A.OutItemSerl &gt; 1</p>
+<p>ORDER BY A.MatOutSeq, A.OutItemSerl</p>
+<p>SELECT        C2.MngValText,</p>
+<p>@POType2</p>
+<p>,@POType</p>
+<p>,RTRIM(B.ItemLotNo)</p>
+<p>,CASE WHEN 1 + @LastPrintNo \&lt; 10 THEN 'A' + CONVERT(NVARCHAR(10), 1 + @LastPrintNo) ELSE REPLACE(CONVERT(NVARCHAR(10), 1 + @LastPrintNo), '0', 'A') END</p>
+<p>,</p>
+<p>C2.MngValText + @POType2 + @POType + RTRIM(B.ItemLotNo) +</p>
+<p>CASE WHEN 1 + @LastPrintNo \&lt; 10 THEN 'A' + CONVERT(NVARCHAR(10), 1 + @LastPrintNo) ELSE REPLACE(CONVERT(NVARCHAR(10), 1 + @LastPrintNo), '0', 'A') END +</p>
+<p>CASE WHEN LEN(RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))) = 1 THEN '0000' + RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))</p>
+<p>WHEN LEN(RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))) = 2 THEN '0000' + RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))</p>
+<p>WHEN LEN(RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))) = 3 THEN '000' + RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))</p>
+<p>WHEN LEN(RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))) = 4 THEN '00' + RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))</p>
+<p>WHEN LEN(RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))) = 5 THEN '0' + RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize)))</p>
+<p>ELSE RTRIM(CONVERT(NVARCHAR(10), CONVERT(INT, C7.LotSize))) END AS Barcode -- 바코드</p>
+<p>FROM _TPDMMOutM AS A WITH(NOLOCK)</p>
+<p>JOIN _TPDMMOutItem AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.MatOutSeq = B.MatOutSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.ItemSeq = C.ItemSeq</p>
+<p>-- LEFT OUTER JOIN _TDAItemUserDefine AS C2 WITH(NOLOCK) ON B.CompanySeq = C2.CompanySeq</p>
+<p>-- AND B.ItemSeq = C2.ItemSeq</p>
+<p>-- AND C2.MngSerl = 1000163 -- 바코드라벨 품목번호</p>
+<p>-- LEFT OUTER JOIN _TDAItemUserDefine AS C3 WITH(NOLOCK) ON B.CompanySeq = C3.CompanySeq</p>
+<p>-- AND B.ItemSeq = C3.ItemSeq</p>
+<p>-- AND C3.MngSerl = 1000164 -- 바코드라벨 SPECIFICATION</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS C4 WITH(NOLOCK) ON B.CompanySeq = C4.CompanySeq</p>
+<p>AND B.ItemSeq = C4.ItemSeq</p>
+<p>AND C4.MngSerl = 1000173 -- 제품명_hct</p>
+<p>LEFT OUTER JOIN _TDAItem AS C5 WITH(NOLOCK) ON C4.CompanySeq = C5.CompanySeq</p>
+<p>AND C4.MngValSeq = C5.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemProduct AS C7 WITH(NOLOCK) ON C5.CompanySeq = C7.CompanySeq -- 제품명_hct의 제품에 대한 lot적정사이즈 출력</p>
+<p>AND C5.ItemSeq = C7.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS C2 WITH(NOLOCK) ON C5.CompanySeq = C2.CompanySeq</p>
+<p>AND C5.ItemSeq = C2.ItemSeq</p>
+<p>AND C2.MngSerl = 1000163 -- 바코드라벨 품목번호</p>
+<p>LEFT OUTER JOIN _TDAItemUserDefine AS C3 WITH(NOLOCK) ON C5.CompanySeq = C3.CompanySeq</p>
+<p>AND C5.ItemSeq = C3.ItemSeq</p>
+<p>AND C3.MngSerl = 1000164 -- 바코드라벨 SPECIFICATION</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>AND A.MatOutSeq = 906</p>
+<p>AND B.OutItemSerl = 1</p>
+  </article>
+</div>
+</body>
+</html>

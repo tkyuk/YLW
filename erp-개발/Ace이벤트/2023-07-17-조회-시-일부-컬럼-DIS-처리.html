@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조회 시 일부 컬럼 DIS 처리</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>조회 시 일부 컬럼 DIS 처리</h1>
+    <div class="meta">
+      <span class="note-date">2023-07-17</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="dis">조회 시 일부 컬럼 DIS 처리</h1>
+<p>local row</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>SS1.ActiveColumnName = 'PurUnitName'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'AssyName'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'AfterTx'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'HeatTx'</p>
+<p>SS1.ActiveCellReadOnly = true</p>
+<p>SS1.ActiveColumnName = 'QCYN'</p>
+<p>SS1.ActiveCellReadOnly = true        </p>
+</blockquote>
+<p>end</p>
+<p>local row</p>
+<p>for row = 0, SS1.DataRowCnt - 1 do</p>
+<blockquote>
+<p>SS1.ActiveRow = row</p>
+<p>if CellText(SSMat, SSMat.ActiveRow, 'OptionSerl') &gt;= '0' then        </p>
+<p>SSMat.ActiveColumnName = 'SMAddTypeName'         </p>
+<p>SSMat.ActiveCellReadOnly = true</p>
+<p>SSMat.ActiveColumnName = 'MatItemName'         </p>
+<p>SSMat.ActiveCellReadOnly = true</p>
+<p>SSMat.ActiveColumnName = 'MatItemNo'         </p>
+<p>SSMat.ActiveCellReadOnly = true</p>
+<p>SSMat.ActiveColumnName = 'MatItemSpec'         </p>
+<p>SSMat.ActiveCellReadOnly = true</p>
+<p>SSMat.ActiveColumnName = 'UnitName'         </p>
+<p>SSMat.ActiveCellReadOnly = true</p>
+<p>else</p>
+<p>SSMat.ActiveColumnName = 'SMAddTypeName'         </p>
+<p>SSMat.ActiveCellReadOnly = false</p>
+<p>SSMat.ActiveColumnName = 'MatItemName'         </p>
+<p>SSMat.ActiveCellReadOnly = false</p>
+<p>SSMat.ActiveColumnName = 'MatItemNo'         </p>
+<p>SSMat.ActiveCellReadOnly = false</p>
+<p>SSMat.ActiveColumnName = 'MatItemSpec'         </p>
+<p>SSMat.ActiveCellReadOnly = false</p>
+<p>SSMat.ActiveColumnName = 'UnitName'         </p>
+<p>SSMat.ActiveCellReadOnly = false</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+  </article>
+</div>
+</body>
+</html>

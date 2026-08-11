@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2022-11-08-untitled-2</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>2022-11-08-untitled-2</h1>
+    <div class="meta">
+      <span class="note-date">2022-11-08</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1"></h1>
+<p>-- 문자열 합치기</p>
+<p>SELECT DISTINCT</p>
+<p>STUFF((</p>
+<p>SELECT ',' + EmpName</p>
+<p>FROM _TDAEmp</p>
+<p>WHERE EmpName LIKE '박%'</p>
+<p>FOR XML PATH('')</p>
+<p>),1,1,'') AS Name</p>
+<p>FROM _TDAEmp AS TEST</p>
+<p>-- 부서별로 그룹지어 출력하기</p>
+<p>SELECT DISTINCT DeptSeq,</p>
+<p>STUFF((</p>
+<p>SELECT ',' + EmpName</p>
+<p>FROM _TDAEmp</p>
+<p>--WHERE EmpName LIKE '박%'</p>
+<p>WHERE DeptSeq = TEST.DeptSeq</p>
+<p>FOR XML PATH('')</p>
+<p>),1,1,'') AS Name</p>
+<p>FROM _TDAEmp AS TEST</p>
+<p>--WHERE EmpSeq &gt;=400</p>
+<p><img alt="" src="assets/untitled-2/image12.png" /></p>
+<p>DECLARE @CustClassName NVARCHAR(1000)</p>
+<p>SELECT @CustClassName = STUFF((SELECT DISTINCT ', ' + Z.CustName</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>JOIN _TDACust AS Z WITH(NOLOCK) ON Z.CompanySeq = @CompanySeq</p>
+<p>AND Z.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN _TDACustClass AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.UMajorCustClass = 2140260</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS D WITH(NOLOCK) ON B.CompanySeq = D.CompanySeq</p>
+<p>AND B.UMCustClass = D.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinorValue AS E WITH(NOLOCK) ON E.CompanySeq = D.CompanySeq</p>
+<p>AND E.MinorSeq = D.MinorSeq</p>
+<p>AND E.Serl = 15000001</p>
+<p>WHERE E.ValueText = '1'</p>
+<p>FOR XML PATH('')),1,2,'')</p>
+<p><img alt="" src="assets/untitled-2/image13.png" /></p>
+<p>--================================================================================================================</p>
+<p>-- 시작 / [출고지시서입력(OEM,CKD/AS)_sdng] 화면에 단가 등록 안된 경우 에러처리 및 해당 거래처,품목 출력 24.07.22 SJPARK</p>
+<p>--================================================================================================================</p>
+<p>DECLARE @DelvOrderDate NCHAR(8)</p>
+<p>,@ErrorList NVARCHAR(MAX)</p>
+<p>SELECT @DelvOrderDate = A.DelvOrderDate</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>SELECT @ErrorList = STUFF((SELECT DISTINCT ', ' + '['+G.CustName +' / '+ C.ItemNo + ']'</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>LEFT OUTER JOIN sdng_TSLSalesCustItemPrice AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>AND B.UnitSeq = A.UnitSeq</p>
+<p>AND @DelvOrderDate BETWEEN B.SDate AND B.EDate</p>
+<p>--AND B.CurrSeq = A.CurrSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.ItemSeq = A.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAUnit AS D WITH(NOLOCK) ON D.CompanySeq = @CompanySeq</p>
+<p>AND D.UnitSeq = A.UnitSeq</p>
+<p>LEFT OUTER JOIN _TDACust AS G WITH(NOLOCK) ON G.CompanySeq = @CompanySeq</p>
+<p>AND G.CustSeq = A.CustSeq</p>
+<p>WHERE B.CompanySeq IS NULL</p>
+<p>FOR XML PATH('')),1,2,'')</p>
+<p>IF ISNULL(@ErrorList,'') \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>UPDATE A</p>
+<p>SET Result = @ErrorList + ' 등록되어 있지 않습니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 9999</p>
+<p>FROM #BIZ_OUT_DataBlock2 AS A</p>
+<p>LEFT OUTER JOIN sdng_TSLSalesCustItemPrice AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ItemSeq = A.ItemSeq</p>
+<p>AND B.CustSeq = A.CustSeq</p>
+<p>AND B.UnitSeq = A.UnitSeq</p>
+<p>AND @DelvOrderDate BETWEEN B.SDate AND B.EDate</p>
+<p>--AND B.CurrSeq = A.CurrSeq</p>
+<p>WHERE A.WorkingTag IN ('A','U')</p>
+<p>AND B.CompanySeq IS NULL</p>
+<p>END</p>
+<p>--================================================================================================================</p>
+<p>-- 종료 / [출고지시서입력(OEM,CKD/AS)_sdng] 화면에 단가 등록 안된 경우 에러처리 및 해당 거래처,품목 출력</p>
+<p>--================================================================================================================</p>
+  </article>
+</div>
+</body>
+</html>

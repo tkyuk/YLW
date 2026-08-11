@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(자재출고)TopUnitName,UpperUnitName 최상위, 상위</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>(자재출고)TopUnitName,UpperUnitName 최상위, 상위</h1>
+    <div class="meta">
+      <span class="note-date">2023-11-15</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="topunitnameupperunitname">(자재출고)TopUnitName,UpperUnitName 최상위, 상위</h1>
+<p>구매와 다르게 작성</p>
+<p>참고 SP : ets_SPDMMOutProcItemQuery</p>
+<p>마지막에 최종임시테이블에 JOIN 하는 방식으로 해야한다</p>
+<p>SELECT A.*,</p>
+<p>F.ItemName AS TopUnitName,</p>
+<p>F.ItemNo AS TopUnitNo,</p>
+<p>G.ItemName AS UpperUnitName,</p>
+<p>G.ItemNo AS UpperUnitNo</p>
+<p>FROM #OutItemList AS A</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS S WITH(NOLOCK) ON A.IDX_NO = S.IDX_NO LEFT OUTER JOIN _TPUORDPOReqItem AS P WITH(NOLOCK) ON P.CompanySeq = @CompanySeq</p>
+<p>AND S.Seq = P.POReqSeq</p>
+<p>AND S.Serl = P.POReqSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS C WITH(NOLOCK) ON P.CompanySeq = C.CompanySeq</p>
+<p>AND P.PJTSeq = C.PJTSeq</p>
+<p>AND P.BOMSerl = C.BOMSerl</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS D WITH(NOLOCK) ON C.CompanySeq = D.CompanySeq</p>
+<p>AND C.PJTSeq = D.PJTSeq</p>
+<p>AND D.BOMSerl \&lt;&gt; -1</p>
+<p>AND C.UpperBOMSerl = D.BOMSerl</p>
+<p>AND ISNULL(D.BeforeBOMSerl,0) = 0 -- 상위 BOM</p>
+<p>LEFT OUTER JOIN _TPJTBOM AS E WITH(NOLOCK) ON C.CompanySeq = E.CompanySeq</p>
+<p>AND C.PJTSeq = E.PJTSeq</p>
+<p>AND E.BOMSerl \&lt;&gt; -1</p>
+<p>AND ISNULL(E.BeforeBOMSerl,0) = 0</p>
+<p>AND SUBSTRING(D.TreeCode,1,6) = E.TreeCode -- 최상위 BOM</p>
+<p>AND ISNULL(CHARINDEX('.',E.BOMlevel),0) \&lt; 1</p>
+<p>AND ISNUMERIC(REPLACE(E.BOMLevel,'.','/')) = 1</p>
+<p>LEFT OUTER JOIN _TDAItem AS F WITH(NOLOCK) ON E.CompanySeq = F.CompanySeq</p>
+<p>AND E.ItemSeq = F.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS G WITH(NOLOCK) ON D.CompanySeq = G.CompanySeq</p>
+<p>AND D.ItemSeq = G.ItemSeq</p>
+<p>ORDER BY MatOutSeq, OutItemSerl --17.02.08 이혜민 추가</p>
+  </article>
+</div>
+</body>
+</html>

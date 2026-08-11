@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코드삭제시 사용여부체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>코드삭제시 사용여부체크</h1>
+    <div class="meta">
+      <span class="note-date">2022-08-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#환경설정</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">코드삭제시 사용여부체크</h1>
+<p><img alt="" src="assets/코드삭제시-사용여부체크/image5.png" /></p>
+<ul>
+<li>체크 sp에 작성</li>
+</ul>
+<p>IF EXISTS (SELECT 1 FROM #BIZ_OUT_DataBlock1 WHERE WorkingTag = 'D')</p>
+<p>BEGIN</p>
+<p>EXEC _SWCOMCodeDeleteCheck @CompanySeq, @UserSeq, @LanguageSeq, '<span class="mark">SYS_TBPYearAmdStep</span>', '#BIZ_OUT_DataBlock1', 'BizPlanSeq'</p>
+<p>END</p>
+<p>-- 제뉴인</p>
+<p>EXEC dbo._SCOMCodeDeleteCheck @CompanySeq,@UserSeq,@LanguageSeq,'hkcon_TSLOption', '#BIZ_OUT_DataBlock1','UMItemClassS'</p>
+  </article>
+</div>
+</body>
+</html>

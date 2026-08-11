@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수불마감 체크 제뉴인 월마감</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>수불마감 체크 제뉴인 월마감</h1>
+    <div class="meta">
+      <span class="note-date">2024-06-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">수불마감 체크 제뉴인 월마감</h1>
+<p>UPDATE A</p>
+<p>SET Result = '업무가 마감이 되었습니다.',</p>
+<p>MessageType = @MessageType ,</p>
+<p>Status = @Status</p>
+<p>FROM #BIZ_OUT_DataBlock3 AS A</p>
+<p>JOIN _TCOMClosingYM AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.ClosingSeq = 69 -- 수불</p>
+<p>AND B.ClosingYM = LEFT(A.CfmDate,6)</p>
+<p>AND B.DtlUnitSeq = 2 -- 제/상품</p>
+<p>WHERE A.Status = 0</p>
+<p>AND B.IsClose = '1'</p>
+<p>-- 거래명세서 수불 월마감 체크</p>
+<p>IF EXISTS (SELECT TOP 1 *</p>
+<p>FROM _TCOMClosingYM AS A WITH(NOLOCK)</p>
+<p>WHERE (1=1)</p>
+<p>AND A.CompanySeq = @CompanySeq</p>
+<p>AND A.ClosingSeq = 69 -- 69 : 마감업무명 수불업무월마감(마감업무정의 화면에서 확인 가능합니다.)</p>
+<p>--AND DtlUnitSeq = 2 -- 1 : 자재, 2 : 제/상품([수불업무]월마감처리 화면에서 확인 가능합니다.)</p>
+<p>AND A.ClosingYM = LEFT(@InvoiceDate,6)</p>
+<p>AND A.IsClose = '1' )</p>
+<p>BEGIN</p>
+<p>UPDATE #TSLOrderTotal</p>
+<p>SET Result = '수불이 마감되었습니다.',</p>
+<p>MessageType = 17009,</p>
+<p>Status = 1</p>
+<p>FROM #TSLOrderTotal AS A</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>SELECT * FROM #TSLOrderTotal</p>
+<p>RETURN</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

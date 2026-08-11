@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>세금계산서 - 거래명세서 진행 찾기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>세금계산서 - 거래명세서 진행 찾기</h1>
+    <div class="meta">
+      <span class="note-date">2023-06-21</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">세금계산서 - 거래명세서 진행 찾기</h1>
+<p>/** InvoiceSeq 찾기**/</p>
+<p>CREATE TABLE #Tmp_Source(IDX_NO INT IDENTITY, FromSeq INT, FromSerl INT, Seq INT, Serl INT)</p>
+<p>-- 진행</p>
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMSOURCETracking</p>
+<p>( IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>STDQty DECIMAL(19, 5),</p>
+<p>Amt DECIMAL(19, 5) ,</p>
+<p>VAT DECIMAL(19, 5) ,</p>
+<p>--DOMAmt DECIMAL(19, 5) ,</p>
+<p>--DOMVAT DECIMAL(19, 5)</p>
+<p>)</p>
+<p>INSERT #TMP_SOURCETABLE</p>
+<p>SELECT 1,'_TSLInvoiceItem'</p>
+<p>INSERT #Tmp_Source(FromSeq, FromSerl, Seq, Serl)</p>
+<p>SELECT A.SalesSeq, A.SalesSerl, 0, 0</p>
+<p>FROM #Temp_Sales AS X</p>
+<p>JOIN _TSLSalesItem AS A WITH(NOLOCK) ON A.CompanySeq = @CompanySeq</p>
+<p>AND X.SalesSeq = A.SalesSeq</p>
+<p>EXEC _SWCOMSourceTracking @CompanySeq, '_TSLSalesItem', '#Tmp_Source', 'FromSeq', 'FromSerl' ,''</p>
+<p>UPDATE #Tmp_Source</p>
+<p>SET Seq = C.InvoiceSeq,</p>
+<p>Serl = C.InvoiceSerl</p>
+<p>FROM #Tmp_Source A JOIN #TCOMSOURCETracking AS B WITH(NOLOCK) ON A.IDX_NO = B.IDX_No</p>
+<p>JOIN _TSLInvoiceItem AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.Seq = C.InvoiceSeq</p>
+<p>AND B.Serl = C.InvoiceSerl</p>
+  </article>
+</div>
+</body>
+</html>

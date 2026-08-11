@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제뉴인 콤마(,) 소수점 반영 함수</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>제뉴인 콤마(,) 소수점 반영 함수</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-22</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">제뉴인 콤마(,) 소수점 반영 함수</h1>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250),</p>
+<blockquote>
+<p>@Word1                        NVARCHAR(20),</p>
+<p>@Word2                        NVARCHAR(20),</p>
+<p>@Word3                        NVARCHAR(20),</p>
+</blockquote>
+<p>@PricePoint INT,</p>
+<p>@CurAmtPoint INT,</p>
+<p>@QtyPoint INT</p>
+<p>-- 거래통화 단가 소수점 자리수</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,7,@UserSeq,@@PROCID,@PricePoint OUTPUT</p>
+<p>-- 외화부가세, 외화금액 소수점 자리수</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,14,@UserSeq,@@PROCID,@CurAmtPoint OUTPUT</p>
+<p>-- 구매/자재 수량 소수점 자리수</p>
+<p>EXEC dbo._SCOMEnv @CompanySeq,5,@UserSeq,@@PROCID,@QtyPoint OUTPUT</p>
+<p>SELECT dbo._FnCOMCurrency(@TotAmt, @CurAmtPoint)</p>
+  </article>
+</div>
+</body>
+</html>

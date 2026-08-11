@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.07.02 싸이맥스 자재출고, 창고재고원장조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.07.02 싸이맥스 자재출고, 창고재고원장조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="240702">24.07.02 싸이맥스 자재출고, 창고재고원장조회</h1>
+<p>프로젝트자재출고 화면에서 출고를 하면</p>
+<p>기본창고에서 불출 -&gt; 현장창고에 입고(자재불출) + 출고(자재투입)</p>
+<p>입고 - 자재불출</p>
+<p>SELECT * FROM _TPDMMOutM WHERE MatOutSeq = 325432</p>
+<p>SELECT TOP 10 * FROM _TLGInOutDaily ORDER BY LastDateTime DESC</p>
+<p>SELECT TOP 10 * FROM _TCOMSourceDaily ORDER BY LastDateTime DESC</p>
+<p>SELECT TOP 10 * FROM _TPDSFCWorkReport WHERE WorkReportSeq = 9186350</p>
+<p>SELECT TOP 10 * FROM _TPJTResultMatOut ORDER BY LastDateTime DESC</p>
+<p>--=====================================================================================</p>
+<p>--=====================================================================================</p>
+<p>SELECT * FROM _TLGInOutStock WHERE InOutSeq = 9186350 AND InOutType = 130</p>
+<p>SELECT * FROM _TLGInOutDaily WHERE InOutSeq = 9186350 AND InOutType = 130</p>
+<p>SELECT * FROM _TPDSFCWorkReport WHERE WorkReportSeq = 9186350</p>
+<p>--=====================================================================================</p>
+<p>SELECT * FROM _TPDSFCMatinput WHERE WorkReportSeq = 9186350</p>
+<p>SELECT * FROM _TPJTResultMatOut WHERE MatOutSeq = 325432 AND WorkReportSeq = 9186350</p>
+<p>SELECT * FROM _TPDMMOutM WHERE MatOutSeq = 325432</p>
+<p>SELECT * FROM _TPDMMOutItem WHERE MatOutSeq = 325432</p>
+<p>SELECT * FROM CYMC_IF_TPDMMOutItem WHERE MatOutSeq = 325432</p>
+<p>SELECT * FROM _TLGInOutStock WHERE InOutSeq = 325432 AND InOutType = 180</p>
+<p>SELECT * FROM _TLGInOutDaily WHERE InOutSeq = 325432 AND InOutType = 180</p>
+<p>SELECT TOP 10 * FROM _TCOMSourceDaily WHERE ToTableSeq = 25 AND ToSeq = 325432</p>
+<p>--=====================================================================================</p>
+<p>--=====================================================================================</p>
+<p>SELECT *</p>
+<p>FROM _TLGInOutStock</p>
+<p>WHERE InOutType = 130</p>
+<p>AND InOutSeq = 325432</p>
+<p>AND InOutSerl = 0</p>
+<p>AND DataKind = 0</p>
+<p>AND InOutDataSerl = 2</p>
+<p>AND InOutSubSerl = 1</p>
+<p>SELECT * FROM _TLGInOutDaily WHERE InOutType = 130</p>
+<p>AND InOutSeq = 9482635</p>
+  </article>
+</div>
+</body>
+</html>

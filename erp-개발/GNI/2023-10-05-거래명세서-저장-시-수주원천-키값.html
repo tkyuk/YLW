@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>거래명세서 저장 시 수주원천 키값</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>거래명세서 저장 시 수주원천 키값</h1>
+    <div class="meta">
+      <span class="note-date">2023-10-05</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">거래명세서 저장 시 수주원천 키값</h1>
+<p>DROP PROCEDURE SSASalesInv2Save_swn</p>
+<p>GO</p>
+<p>/*********************************************************/</p>
+<p>-- 다국어 SP 수정사항 점검</p>
+<p>-- 1) Inputparameter 점검 (O)</p>
+<p>-- 2) 변수 &amp; 테이블 속성 변경 점검 (O)</p>
+<p>-- 점검사항이 긑나면 O로 체크를 변경해 주시기 바랍니다.</p>
+<p>/*********************************************************/</p>
+<p>CREATE PROCEDURE SSASalesInv2Save_swn</p>
+<p>@wWorkingTag NVARCHAR(4000),</p>
+<p>@wAccUnit CHAR(2) =null, -- 사업장</p>
+<p>@wInvoiceNo CHAR(12) =null, -- 거래명세표번호</p>
+<p>@wPrice NVARCHAR(4000)=null, -- 단가</p>
+<p>@wVatClss NVARCHAR(4000)=null, -- 부가세포함</p>
+<p>--5</p>
+<p>@wQty NVARCHAR(4000)=null, -- 금회수량</p>
+<p>@wVat NVARCHAR(4000)=null, -- 부가세</p>
+<p>@wAmt NVARCHAR(4000)=null, -- 공급가액</p>
+<p>@wKorPrice NVARCHAR(4000)=null, -- 원화단가</p>
+<p>@wKorAmt NVARCHAR(4000)=null, -- 원화공급가액</p>
+<p>--10</p>
+<p>@wStkQty NVARCHAR(4000)=null, -- 재고단위수량</p>
+<p>@wDelvReqNo NVARCHAR(4000)=null, -- 출하요청관리번호</p>
+<p>@wProgClss NVARCHAR(4000)=null, -- 진행상태</p>
+<p>@wControlNo NVARCHAR(4000)=null, -- 주문관리번호</p>
+<p>@wInOutYn NVARCHAR(4000)=null, -- 품목입출고여부</p>
+<p>--15</p>
+<p>@wLocalYn NVARCHAR(4000)=null, -- 내수/local</p>
+<p>@wWhCd NVARCHAR(4000)=null, -- WhCd</p>
+<p>@wInvoiceSerl NVARCHAR(4000)=null, -- 순번</p>
+<p>@wUnitCd NVARCHAR(4000)=null, -- 단위코드</p>
+<p>@wStkUnitCd NVARCHAR(4000)=null, -- 재고단위코드</p>
+<p>--20</p>
+<p>@wItemCd NVARCHAR(4000)=null, -- 품목코드</p>
+<p>@wNo NVARCHAR(4000)=null, -- No</p>
+<p>@wLotNo NVARCHAR(4000)=null, -- LotNo</p>
+<p>@wSerialNoFROM NVARCHAR(4000)=null, -- 시리얼번호 시작</p>
+<p>@wSerialNoTo NVARCHAR(4000)=null, -- 시리얼번호 끝</p>
+<p>--25</p>
+<p>@wLoginId NVARCHAR(8) =null , -- 수정자</p>
+<p>@wOldCustCd NVARCHAR(4000)=null, --</p>
+<p>@wOldDeptCd NVARCHAR(4000)=null,</p>
+<p>@wOldEmpId NVARCHAR(4000)=null,</p>
+<p>@wOldCurrCd NVARCHAR(4000)=null,</p>
+<p>--30</p>
+<p>@wCustCd CHAR(6) =null, --</p>
+<p>@wDeptCd CHAR(5) =null,</p>
+<p>@wEmpId CHAR(8) =null,</p>
+<p>@wCurrCd CHAR(3) =null,</p>
+<p>@wOldDate CHAR(8) =Null,</p>
+<p>--35</p>
+<p>@wRemark NVARCHAR(4000)=Null,</p>
+<p>@wLCNo NVARCHAR(4000)=null,</p>
+<p>@wLCSerl NVARCHAR(4000)=null,</p>
+<p>@wExpClss NVARCHAR(4000)=null,</p>
+<p>@wPriceUnitCd NVARCHAR(4000)=null,</p>
+<p>--40</p>
+<p>@wUnitPrice NVARCHAR(4000)=null,</p>
+<p>@wPriceUnitQty NVARCHAR(4000)=null,</p>
+<p>@wDeliCustCd CHAR(9) =null,</p>
+<p>@wSource NVARCHAR(4000)=null,</p>
+<p>@wControl NVARCHAR(4000)=null,</p>
+<p>--45</p>
+<p>@wControlSeq NVARCHAR(4000)=null,</p>
+<p>@wSttlItem NVARCHAR(4000)=null, -- 정산항목코드</p>
+<p>@wVatSttlItem NVARCHAR(4000)=null, -- 부가세정산항목코드</p>
+<p>@wVatRate NVARCHAR(4000)=null,</p>
+<p>--48</p>
+<p>@wRETURNType NVARCHAR(1) = '', -- 밖에서 이 SP 사용시 \&lt;&gt; '':외부호출</p>
+<p>@vcStatus NVARCHAR(10) = '' OUTPUT,</p>
+<p>@vcResults NVARCHAR(250) = '' OUTPUT,</p>
+<p>@pPriceType NVARCHAR(4000) = null,</p>
+<p>@wKorVat NVARCHAR(4000) = null,</p>
+<p>@wOutReqNo NVARCHAR(4000) = null</p>
+<p>AS</p>
+<p>DECLARE @vcDate NVARCHAR(12),</p>
+<p>@wDelvNo CHAR(12),</p>
+<p>@wDelvSerl CHAR(4) ,</p>
+<p>@wSONo CHAR(12),</p>
+<p>@wSOSerl CHAR(4) ,</p>
+<p>@cIsUPDATEMode CHAR(1),</p>
+<p>@wMinSerl CHAR(4),</p>
+<p>@wOldItemCd CHAR(6) ,</p>
+<p>@wOldWHCd CHAR(2) ,</p>
+<p>@wOldPrice NUMERIC(19,5),</p>
+<p>@wOldQty NUMERIC(19,5),</p>
+<p>@wOldAmt NUMERIC(19,5),</p>
+<p>@wOldKorAmt NUMERIC(19,5),</p>
+<p>@wOldKorPrice NUMERIC(19,5),</p>
+<p>@wOldVat NUMERIC(19,5),</p>
+<p>@wOldStkQty NUMERIC(19,5),</p>
+<p>@wNextQty NUMERIC(19,5),</p>
+<p>@wChkNextQty NUMERIC(19,5),</p>
+<p>@wDelvQty NUMERIC(19,5),</p>
+<p>@wOrderQty NUMERIC(19,5),</p>
+<p>@wInvoiceDate CHAR(8) ,</p>
+<p>@wInvoiceYm CHAR(6) ,</p>
+<p>@wOldYm CHAR(6) ,</p>
+<p>@wStatus NVARCHAR(10) ,</p>
+<p>@vCntlUser CHAR(1),</p>
+<p>@wItemCtl CHAR(1),</p>
+<p>@wQtyCtl CHAR(1),</p>
+<p>@a CHAR(1),</p>
+<p>@wPrevSOQty NUMERIC(19,5),</p>
+<p>@wPrevDelvQty NUMERIC(19,5),</p>
+<p>@wMAXAmd CHAR(2),</p>
+<p>@wOldExpClss CHAR(1),</p>
+<p>@wChkProgClss CHAR(1),</p>
+<p>@wIsDelvConfirm CHAR(1),</p>
+<p>@vcBal1 int,</p>
+<p>@vcBal2 int,</p>
+<p>@vcBal3 int,</p>
+<p>@vcBal4 int,</p>
+<p>@vcBal5 int,</p>
+<p>@vcBal6 int,</p>
+<p>@vcBal7 int,</p>
+<p>@vcBal8 int,</p>
+<p>@vcBal9 int,</p>
+<p>@vcBal10 int,</p>
+<p>@vcBal11 int,</p>
+<p>@vcBal12 int,</p>
+<p>@vcBal13 int,</p>
+<p>@vcBal14 int,</p>
+<p>@vcBal15 int,</p>
+<p>@vcBal16 int,</p>
+<p>@vcBal17 int,</p>
+<p>@vcBal18 int,</p>
+<p>@vcBal19 int,</p>
+<p>@vcBal20 int,</p>
+<p>@vcBal21 int,</p>
+<p>@vcBal22 int,</p>
+<p>@vcBal23 int,</p>
+<p>@vcBal24 int,</p>
+<p>@vcBal25 int,</p>
+<p>@vcBal26 int,</p>
+<p>@vcBal27 int,</p>
+<p>@vcBal28 int,</p>
+<p>@vcBal29 int,</p>
+<p>@vcBal30 int,</p>
+<p>@vcBal31 int,</p>
+<p>@vcBal32 int,</p>
+<p>@vcBal33 int,</p>
+<p>@vcBal34 int,</p>
+<p>@vcBal35 int,</p>
+<p>@vcBal40 int,</p>
+<p>@vcBal41 int,</p>
+<p>@vcBal42 int,</p>
+<p>@nPrice NUMERIC(19,5),</p>
+<p>@nQty NUMERIC(19,5),</p>
+<p>@nVat NUMERIC(19,5),</p>
+<p>@nAmt NUMERIC(19,5),</p>
+<p>@nKorPrice NUMERIC(19,5),</p>
+<p>@nKorAmt NUMERIC(19,5),</p>
+<p>@nStkQty NUMERIC(19,5),</p>
+<p>@pPrice NVARCHAR(20),</p>
+<p>@pQty NVARCHAR(20),</p>
+<p>@pVat NVARCHAR(20),</p>
+<p>@pKorVat NVARCHAR(20),</p>
+<p>@pAmt NVARCHAR(20),</p>
+<p>@pKorPrice NVARCHAR(20),</p>
+<p>@pKorAmt NVARCHAR(20),</p>
+<p>@pStkQty NVARCHAR(20),</p>
+<p>@pWorkingTag NVARCHAR(1),</p>
+<p>@pVatClss NVARCHAR(1), -- 부가세포함</p>
+<p>@pDelvReqNo NVARCHAR(16), -- 출하요청관리번호</p>
+<p>@pProgClss NVARCHAR(1), -- 진행상태</p>
+<p>@pControlNo NVARCHAR(16), -- 주문관리번호</p>
+<p>@pInOutYn NVARCHAR(1) , -- 품목입출고여부</p>
+<p>@pLocalYn NVARCHAR(1) , -- 내수/local</p>
+<p>@pWhCd CHAR(2) , -- WhCd</p>
+<p>@pInvoiceSerl CHAR(4) , -- 순번</p>
+<p>@pUnitCd CHAR(3), -- 단위코드</p>
+<p>@pStkUnitCd CHAR(3), -- 재고단위코드</p>
+<p>@pItemCd CHAR(6), -- 품목코드</p>
+<p>@pNo NVARCHAR(20), -- No</p>
+<p>@pLotNo NVARCHAR(20), -- LotNo</p>
+<p>@pOldLotNo NVARCHAR(20), -- OldLotNo</p>
+<p>@pSerialNoFROM NVARCHAR(20), -- 시리얼번호 시작</p>
+<p>@pSerialNoTo NVARCHAR(20), -- 시리얼번호 끝</p>
+<p>@pOldCustCd CHAR(6),</p>
+<p>@pOldDeptCd CHAR(5),</p>
+<p>@pOldEmpId CHAR(8),</p>
+<p>@pOldCurrCd CHAR(3),</p>
+<p>@pRemark NVARCHAR(100),</p>
+<p>@pLCNo NVARCHAR(20),</p>
+<p>@pLCSerl NVARCHAR(4),</p>
+<p>@pExpClss NVARCHAR(1),</p>
+<p>@wMasterExpClss CHAR(1),</p>
+<p>@pPriceUnitCd CHAR(3),</p>
+<p>@pUnitPrice NUMERIC(19,5),</p>
+<p>@pPriceUnitQty NUMERIC(19,5),</p>
+<p>@pDeliCustCd CHAR(9),</p>
+<p>@vcBal36 int,</p>
+<p>@vcBal37 int,</p>
+<p>@vcBal38 int,</p>
+<p>@vcBal39 int,</p>
+<p>@pSource NVARCHAR(8),</p>
+<p>@pControl NVARCHAR(20),</p>
+<p>@pControlSeq NVARCHAR(4),</p>
+<p>@vcAddValue CHAR(1),</p>
+<p>@vcUptValue CHAR(1),</p>
+<p>@vcDelValue CHAR(1),</p>
+<p>@zProgClss CHAR(1) , -- 입력시 처리구분</p>
+<p>@nLoopCnt int,</p>
+<p>@wnStdCost NUMERIC(19,5),</p>
+<p>@wnTotCost NUMERIC(19,5),</p>
+<p>@wAccUnitOld CHAR(2),</p>
+<p>@wBillProg CHAR(1),</p>
+<p>@vcCfmValue CHAR(1),</p>
+<p>@pSttlItem CHAR(7), -- 정산항목코드</p>
+<p>@pVatSttlItem CHAR(7), -- 부가세정산항목코드</p>
+<p>@pVatRate NUMERIC(19,5),</p>
+<p>@wByPriceSum NVARCHAR(1) , -- 최소판매가 미만일 경우 by kskwon</p>
+<p>@wMinPrice NUMERIC(19,5), -- 최소판매가 미만일 경우</p>
+<p>@wTmpPriceSum NUMERIC(19,5), -- 최소판매가 미만일 경우</p>
+<p>@xPlanCd CHAR(12),</p>
+<p>@xPlanStepSerl CHAR(4),</p>
+<p>@vPriceType CHAR(1),</p>
+<p>@nKorVat NUMERIC(19,5),</p>
+<p>@wOldKorVat NUMERIC(19,5),</p>
+<p>@pOutReqNo CHAR(16),</p>
+<p>@tOutReqNo CHAR(12),</p>
+<p>@tOutReqSerl CHAR(4),</p>
+<hr />
+<p>@vcIni NVARCHAR(30), -- SITE Initial</p>
+<p>@vcSpNmOrg NVARCHAR(200), -- 원본 SP 명</p>
+<p>@vcSPNm VARCHAR(8000) -- Jump할 SP명</p>
+<hr />
+<p>DECLARE @wByChannel CHAR(1),</p>
+<p>@wChannelMinPriceYN CHAR(1),</p>
+<p>@wChannelMinPrice NUMERIC(19,5)</p>
+<hr />
+<p>---- 사이트용이 존재하면 사이트 호출</p>
+<hr />
+<p>--SELECT @vcSpNmOrg = 'SSASalesInv2Save_02' -- 원본 SP명</p>
+<p>--SELECT @vcIni = RTRIM(Value) FROM TDAControlSub With (Nolock) WHERE SubSeq = '004' AND Seq = '004' -- SITE Initial</p>
+<p>--IF EXISTS (SELECT 1 FROM SysObjects WHERE Id = Object_Id(@vcSpNmOrg + '_' + @vcIni) AND sysstat &amp; 0xf = 4) -- 사이트용 SP가 존재하는지</p>
+<p>--BEGIN</p>
+<p>-- SELECT @vcSPNm = @vcSpNmOrg + '_' + @vcIni</p>
+<p>-- EXEC @vcSPNm</p>
+<p>-- @wWorkingTag ,</p>
+<p>-- @wAccUnit ,</p>
+<p>-- @wInvoiceNo ,</p>
+<p>-- @wPrice ,</p>
+<p>-- @wVatClss ,</p>
+<p>-- @wQty ,</p>
+<p>-- @wVat ,</p>
+<p>-- @wAmt ,</p>
+<p>-- @wKorPrice ,</p>
+<p>-- @wKorAmt ,</p>
+<p>-- @wStkQty ,</p>
+<p>-- @wDelvReqNo ,</p>
+<p>-- @wProgClss ,</p>
+<p>-- @wControlNo ,</p>
+<p>-- @wInOutYn ,</p>
+<p>-- @wLocalYn ,</p>
+<p>-- @wWhCd ,</p>
+<p>-- @wInvoiceSerl ,</p>
+<p>-- @wUnitCd ,</p>
+<p>-- @wStkUnitCd ,</p>
+<p>-- @wItemCd ,</p>
+<p>-- @wNo ,</p>
+<p>-- @wLotNo ,</p>
+<p>-- @wSerialNoFROM ,</p>
+<p>-- @wSerialNoTo ,</p>
+<p>-- @wLoginId ,</p>
+<p>-- @wOldCustCd ,</p>
+<p>-- @wOldDeptCd ,</p>
+<p>-- @wOldEmpId ,</p>
+<p>-- @wOldCurrCd ,</p>
+<p>-- @wCustCd ,</p>
+<p>-- @wDeptCd ,</p>
+<p>-- @wEmpId ,</p>
+<p>-- @wCurrCd ,</p>
+<p>-- @wOldDate ,</p>
+<p>-- @wRemark ,</p>
+<p>-- @wLCNo ,</p>
+<p>-- @wLCSerl ,</p>
+<p>-- @wExpClss ,</p>
+<p>-- @wPriceUnitCd ,</p>
+<p>-- @wUnitPrice ,</p>
+<p>-- @wPriceUnitQty ,</p>
+<p>-- @wDeliCustCd ,</p>
+<p>-- @wSource ,</p>
+<p>-- @wControl ,</p>
+<p>-- @wControlSeq ,</p>
+<p>-- @wSttlItem ,</p>
+<p>-- @wVatSttlItem ,</p>
+<p>-- @wVatRate ,</p>
+<p>-- @wRETURNType ,</p>
+<p>-- @vcStatus ,</p>
+<p>-- @vcResults ,</p>
+<p>-- @pPriceType ,</p>
+<p>-- @wKorVat ,</p>
+<p>-- @wOutReqNo</p>
+<p>-- RETURN</p>
+<p>--END</p>
+<hr />
+<hr />
+<p>DECLARE @vcSalesType CHAR(8) -- 매출계획의 매출구분</p>
+<p>SELECT @vcAddValue = value FROM TDAControlSub WHERE Seq = '320' AND SubSeq = '004'</p>
+<p>SELECT @vcUptValue = value FROM TDAControlSub WHERE Seq = '320' AND SubSeq = '005'</p>
+<p>SELECT @vcDelValue = value FROM TDAControlSub WHERE Seq = '320' AND SubSeq = '006'</p>
+<p>SELECT @vcCfmValue = value FROM TDAControlSub WHERE Seq = '326' AND SubSeq = '001'</p>
+<p>SELECT @vcStatus = 'OK',</p>
+<p>@vcResults = 'X',</p>
+<p>@wAccUnit = ISNULL(@wAccUnit , ''), --사업장</p>
+<p>@wInvoiceNo = ISNULL(@wInvoiceNo , ''), --거래명세표번호</p>
+<p>@wPrice = ISNULL(@wPrice , 0), --단가</p>
+<p>@wVatClss = ISNULL(@wVatClss , ''), --부가세포함</p>
+<p>@wQty = ISNULL(@wQty , 0), --금회수량</p>
+<p>@wVat = ISNULL(@wVat , 0), --부가세</p>
+<p>@wKorVat = ISNULL(@wKorVat , 0), --부가세</p>
+<p>@wAmt = ISNULL(@wAmt , 0), --공급가액</p>
+<p>@wKorPrice = ISNULL(@wKorPrice , 0), --원화단가</p>
+<p>@wKorAmt = ISNULL(@wKorAmt , 0), --원화공급가액</p>
+<p>@wStkQty = ISNULL(@wStkQty , 0), --재고단위수량</p>
+<p>@wDelvReqNo = ISNULL(@wDelvReqNo , ''), --출하요청관리번호</p>
+<p>@wProgClss = ISNULL(@wProgClss , ''), --진행상태</p>
+<p>@wControlNo = ISNULL(@wControlNo , ''), --주문관리번호</p>
+<p>@wInOutYn = ISNULL(@wInOutYn , ''), --품목입출고여부</p>
+<p>@wLocalYn = ISNULL(@wLocalYn , ''), --내수/local</p>
+<p>@wWhCd = ISNULL(@wWhCd , ''), --WhCd</p>
+<p>@wInvoiceSerl = ISNULL(@wInvoiceSerl , ''), --순번</p>
+<p>@wUnitCd = ISNULL(@wUnitCd , ''), --단위코드</p>
+<p>@wStkUnitCd = ISNULL(@wStkUnitCd , ''), --재고단위코드</p>
+<p>@wLotNo = ISNULL(@wLotNo , ''), --LotNo</p>
+<p>@wSerialNoFROM = ISNULL(@wSerialNoFROM , ''), --SerialNoFROM</p>
+<p>@wSerialNoTo = ISNULL(@wSerialNoTo , ''), --SerialNoTo</p>
+<p>@wRemark = ISNULL(@wRemark , ''), --비고</p>
+<p>@wItemCd = ISNULL(@wItemCd , ''), --품목코드</p>
+<p>@wPriceUnitCd = ISNULL(@wPriceUnitCd , ''), --</p>
+<p>@wUnitPrice = ISNULL(@wUnitPrice , ''), --</p>
+<p>@wPriceUnitQty = ISNULL(@wPriceUnitQty , ''), --</p>
+<p>@wDeliCustCd = ISNULL(@wDeliCustCd , ''), --</p>
+<p>@wSource = ISNULL(@wSource , ''), --</p>
+<p>@wControl = ISNULL(@wControl , ''), --</p>
+<p>@wControlSeq = ISNULL(@wControlSeq , ''), --</p>
+<p>@wSttlItem = ISNULL(@wSttlItem , ''), --</p>
+<p>@wVatSttlItem = ISNULL(@wVatSttlItem , '') , --</p>
+<p>@wVatRate = ISNULL(@wVatRate, ''),</p>
+<p>@pPriceType = LTRIM(RTRIM(ISNULL(@pPriceType, ''))),</p>
+<p>@wOutReqNo = ISNULL(@wOutReqNo , '')</p>
+<p>SELECT @wAccUnit = RTRIM(LTRIM(@wAccUnit )), --사업장</p>
+<p>@wInvoiceNo = RTRIM(LTRIM(@wInvoiceNo )), --거래명세표번호</p>
+<p>@wVatClss = RTRIM(LTRIM(@wVatClss )), --부가세포함</p>
+<p>@wDelvReqNo = RTRIM(LTRIM(@wDelvReqNo )), --출하요청관리번호</p>
+<p>@wProgClss = RTRIM(LTRIM(@wProgClss )), --진행상태</p>
+<p>@wControlNo = RTRIM(LTRIM(@wControlNo )), --주문관리번호</p>
+<p>@wInOutYn = RTRIM(LTRIM(@wInOutYn )), --품목입출고여부</p>
+<p>@wLocalYn = RTRIM(LTRIM(@wLocalYn )), --내수/local</p>
+<p>@wWhCd = RTRIM(LTRIM(@wWhCd )), --WhCd</p>
+<p>@wInvoiceSerl = RTRIM(LTRIM(@wInvoiceSerl )), --순번</p>
+<p>@wUnitCd = RTRIM(LTRIM(@wUnitCd )), --단위코드</p>
+<p>@wStkUnitCd = RTRIM(LTRIM(@wStkUnitCd )), --재고단위코드</p>
+<p>@wLotNo = RTRIM(LTRIM(@wLotNo )), --LotNo</p>
+<p>@wSerialNoFROM = RTRIM(LTRIM(@wSerialNoFROM )), --SerialNoFROM</p>
+<p>@wSerialNoTo = RTRIM(LTRIM(@wSerialNoTo )), --SerialNoTo</p>
+<p>@wItemCd = RTRIM(LTRIM(@wItemCd )), --품목코드</p>
+<p>@wLCNo = RTRIM(LTRIM(ISNULL(@wLCNo ,''))), --</p>
+<p>@wLCSerl = RTRIM(LTRIM(ISNULL(@wLCSerl ,''))), --</p>
+<p>@wPriceUnitCd = RTRIM(LTRIM(@wPriceUnitCd )), --</p>
+<p>@wUnitPrice = RTRIM(LTRIM(@wUnitPrice )), --</p>
+<p>@wPriceUnitQty = RTRIM(LTRIM(@wPriceUnitQty )), --</p>
+<p>@wDeliCustCd = RTRIM(LTRIM(@wDeliCustCd )), --</p>
+<p>@wSource = RTRIM(LTRIM(@wSource )), --</p>
+<p>@wControl = RTRIM(LTRIM(@wControl )), --</p>
+<p>@wControlSeq = RTRIM(LTRIM(@wControlSeq )), --</p>
+<p>@wSttlItem = RTRIM(LTRIM(@wSttlItem )), --</p>
+<p>@wVatSttlItem = RTRIM(LTRIM(@wVatSttlItem )), --</p>
+<p>@wRETURNType = RTRIM(LTRIM(ISNULL(@wRETURNType,''))),</p>
+<p>@wVatRate = RTRIM(LTRIM(ISNULL(@wVatRate,''))),</p>
+<p>@wOutReqNo = RTRIM(LTRIM(@wOutReqNo ))</p>
+<p>-- SELECT @pDeliCustCd = @wDeliCustCd 나중에 변경할 것 20020330</p>
+<p>-- 전자결재 상신 처리 되어 수정, 삭제할 수 없습니다.</p>
+<p>IF EXISTS (SELECT 1 FROM TDAControlSub WITH(NOLOCK) WHERE Seq = '107' AND Content = 'frmSASalesInvoice_02' AND Value = '1')</p>
+<p>BEGIN</p>
+<p>IF EXISTS (SELECT * FROM TDAGroupWare WITH(NOLOCK) WHERE WorkKind = 'frmSASalesInvoice' AND TblKey = @wInvoiceNo)</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'GROUPWARE', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>IF @wRETURNType = '' SELECT @vcStatus, @vcResults</p>
+<p>RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT 1 FROM TSSInvoiceM WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo )</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>IF @wRETURNType = '' SELECT @vcStatus, @vcResults</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 정정전표의 원천(즉, 정정된 전표)일 경우 삭제불가</p>
+<p>IF EXISTS (SELECT 1 FROM TSSInvoiceM WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND ConfirmYN = '1')</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'UPTNOTMIN', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>IF @wRETURNType = '' SELECT @vcStatus, @vcResults</p>
+<p>RETURN</p>
+<p>END</p>
+<p>-- 정정전표일 경우</p>
+<p>IF EXISTS (SELECT 1 FROM TSSInvoiceM WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND SalesType = '5')</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'MINNOTUPT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>IF @wRETURNType = '' SELECT @vcStatus, @vcResults</p>
+<p>RETURN</p>
+<p>END</p>
+<p>SELECT @wMasterExpClss = ExpClss FROM TSSInvoiceM WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo</p>
+<p>SELECT @vcDate = ''</p>
+<p>EXEC SDAGetSystemDate @vcDate OUTPUT</p>
+<p>SELECT @wInvoiceDate = InvoiceDate ,</p>
+<p>@wIsDelvConfirm = DelvConfirm ,</p>
+<p>@pOldCustCd = CustCd ,</p>
+<p>@pOldDeptCd = DeptCd ,</p>
+<p>@pOldEmpId = EmpId ,</p>
+<p>@pOldCurrCd = CurrCd</p>
+<p>FROM TSSInvoiceM WITH(NOLOCK)</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>SELECT @wInvoiceYm = SUBSTRING(@wInvoiceDate, 1, 6) -- 변경된 날짜</p>
+<p>SELECT @wOldYm = SUBSTRING(@wInvoiceDate,1,6) -- 기존일자</p>
+<p>--품목코드 변경 통제</p>
+<p>SELECT @wItemCtl = '0', @wQtyCtl ='0'</p>
+<p>SELECT @wItemCtl = Value</p>
+<p>FROM TDAControlSub WITH(NOLOCK)</p>
+<p>WHERE Seq = '315' AND SubSeq = '001'</p>
+<p>--수량 통제</p>
+<p>SELECT @wQtyCtl = Value</p>
+<p>FROM TDAControlSub WITH(NOLOCK)</p>
+<p>WHERE Seq = '315' AND SubSeq = '002'</p>
+<p>CREATE TABLE #TmpSOLC</p>
+<p>( InvoiceSerl CHAR(4),</p>
+<p>DelvNo CHAR(12),</p>
+<p>DelvSerl CHAR(4),</p>
+<p>SONo CHAR(12),</p>
+<p>SOSerl CHAR(4),</p>
+<p>LCNo CHAR(20),</p>
+<p>LCSerl CHAR(4),</p>
+<p>OutReqNo CHAR(20),</p>
+<p>OutReqSerl CHAR(4),</p>
+<p>Qty NUMERIC(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #TmpList</p>
+<p>( LoopCnt int, Working CHAR(1),</p>
+<p>VatClss CHAR(1),</p>
+<p>Price NUMERIC(19,5),</p>
+<p>Qty NUMERIC(19,5),</p>
+<p>Vat NUMERIC(19,5),</p>
+<p>Amt NUMERIC(19,5),</p>
+<p>KorPrice NUMERIC(19,5),</p>
+<p>KorAmt NUMERIC(19,5),</p>
+<p>StkQty NUMERIC(19,5),</p>
+<p>No CHAR(3), WhCd CHAR(2),</p>
+<p>StkUnitCd CHAR(3), UnitCd CHAR(3),</p>
+<p>ItemCd CHAR(6), OldCustCd CHAR(6),</p>
+<p>OldDeptCd CHAR(5), OldEmpId CHAR(8),</p>
+<p>OldCurrCd CHAR(3), DelvNo CHAR(12), DelvSerl CHAR(4),</p>
+<p>ProgClss CHAR(1), SONo CHAR(12), SOSerl CHAR(4),</p>
+<p>InOutYN CHAR(1), Remark NVARCHAR(100),</p>
+<p>LocalYN CHAR(1), InvoiceSerl CHAR(4),</p>
+<p>LotNo NVARCHAR(20),</p>
+<p>SerialNoFROM NVARCHAR(20),</p>
+<p>SerialNoTo NVARCHAR(20),</p>
+<p>LCNo NVARCHAR(20),</p>
+<p>LCSerl CHAR(4), ExpClss CHAR(1),</p>
+<p>PriceUnitCd CHAR(3), UnitPrice NUMERIC(19,5),</p>
+<p>PriceUnitQty NUMERIC(19,5),</p>
+<p>DeliCustCd CHAR(9), Source CHAR(8),</p>
+<p>Control CHAR(20), ControlSeq CHAR(4),</p>
+<p>SttlItem CHAR(7), VatSttlItem CHAR(7), VatRate NUMERIC(19,5),</p>
+<p>PriceType CHAR(1), KorVat NUMERIC(19,5), OutReqNo CHAR(12), OutReqSerl CHAR(4)</p>
+<p>)</p>
+<p>CREATE TABLE #TmpErr</p>
+<p>( LoopCnt int,</p>
+<p>Status NVARCHAR(10),</p>
+<p>Result NVARCHAR(100),</p>
+<p>Serl CHAR(4)</p>
+<p>)</p>
+<hr />
+<p>SELECT @nLoopCnt = 1</p>
+<p>WHILE (1=1)</p>
+<p>BEGIN</p>
+<p>SELECT @vcStatus = 'OK', @vcResults = 'X'</p>
+<p>EXEC @vcBal1 = SDAOBGetColsN @wWorkingTag OUTPUT , @pWorkingTag OUTPUT</p>
+<p>EXEC @vcBal2 = SDAOBGetColsN @wVatClss OUTPUT , @pVatClss OUTPUT</p>
+<p>EXEC @vcBal3 = SDAOBGetColsN @wPrice OUTPUT , @pPrice OUTPUT,'N'</p>
+<p>EXEC @vcBal4 = SDAOBGetColsN @wQty OUTPUT , @pQty OUTPUT,'N'</p>
+<p>EXEC @vcBal5 = SDAOBGetColsN @wVat OUTPUT , @pVat OUTPUT ,'N'</p>
+<p>EXEC @vcBal6 = SDAOBGetColsN @wAmt OUTPUT , @pAmt OUTPUT,'N'</p>
+<p>EXEC @vcBal7 = SDAOBGetColsN @wKorPrice OUTPUT , @pKorPrice OUTPUT,'N'</p>
+<p>EXEC @vcBal8 = SDAOBGetColsN @wKorAmt OUTPUT , @pKorAmt OUTPUT,'N'</p>
+<p>EXEC @vcBal9 = SDAOBGetColsN @wStkQty OUTPUT , @pStkQty OUTPUT,'N'</p>
+<p>EXEC @vcBal10 = SDAOBGetColsN @wNo OUTPUT , @pNo OUTPUT</p>
+<p>EXEC @vcBal11 = SDAOBGetColsN @wWhCd OUTPUT , @pWhCd OUTPUT</p>
+<p>EXEC @vcBal12 = SDAOBGetColsN @wStkUnitCd OUTPUT , @pStkUnitCd OUTPUT</p>
+<p>EXEC @vcBal13 = SDAOBGetColsN @wUnitCd OUTPUT , @pUnitCd OUTPUT</p>
+<p>EXEC @vcBal14 = SDAOBGetColsN @wItemCd OUTPUT , @pItemCd OUTPUT</p>
+<p>EXEC @vcBal19 = SDAOBGetColsN @wDelvReqNo OUTPUT , @pDelvReqNo OUTPUT</p>
+<p>EXEC @vcBal20 = SDAOBGetColsN @wProgClss OUTPUT , @pProgClss OUTPUT</p>
+<p>EXEC @vcBal21 = SDAOBGetColsN @wControlNo OUTPUT , @pControlNo OUTPUT</p>
+<p>EXEC @vcBal22 = SDAOBGetColsN @wInOutYn OUTPUT , @pInOutYn OUTPUT</p>
+<p>EXEC @vcBal23 = SDAOBGetColsN @wRemark OUTPUT , @pRemark OUTPUT</p>
+<p>EXEC @vcBal24 = SDAOBGetColsN @wLocalYn OUTPUT , @pLocalYn OUTPUT</p>
+<p>EXEC @vcBal25 = SDAOBGetColsN @wInvoiceSerl OUTPUT , @pInvoiceSerl OUTPUT</p>
+<p>EXEC @vcBal26 = SDAOBGetColsN @wLotNo OUTPUT , @pLotNo OUTPUT</p>
+<p>EXEC @vcBal27 = SDAOBGetColsN @wSerialNoFROM OUTPUT , @pSerialNoFROM OUTPUT</p>
+<p>EXEC @vcBal28 = SDAOBGetColsN @wSerialNoTo OUTPUT , @pSerialNoTo OUTPUT</p>
+<p>EXEC @vcBal29 = SDAOBGetColsN @wLCNo OUTPUT , @pLCNo OUTPUT</p>
+<p>EXEC @vcBal30 = SDAOBGetColsN @wLCSerl OUTPUT , @pLCSerl OUTPUT</p>
+<p>EXEC @vcBal31 = SDAOBGetColsN @wExpClss OUTPUT , @pExpClss OUTPUT</p>
+<p>EXEC @vcBal32 = SDAOBGetColsN @wPriceUnitCd OUTPUT , @pPriceUnitCd OUTPUT</p>
+<p>EXEC @vcBal33 = SDAOBGetColsN @wUnitPrice OUTPUT , @pUnitPrice OUTPUT , 'N'</p>
+<p>EXEC @vcBal34 = SDAOBGetColsN @wPriceUnitQty OUTPUT , @pPriceUnitQty OUTPUT , 'N'</p>
+<p>SELECT @pDeliCustCd = @wDeliCustCd -- 납품처는 일단 마스터와 같게</p>
+<p>EXEC @vcBal36 = SDAOBGetColsN @wSource OUTPUT , @pSource OUTPUT</p>
+<p>EXEC @vcBal37 = SDAOBGetColsN @wControl OUTPUT , @pControl OUTPUT</p>
+<p>EXEC @vcBal38 = SDAOBGetColsN @wControlSeq OUTPUT , @pControlSeq OUTPUT</p>
+<p>EXEC @vcBal15 = SDAOBGetColsN @wSttlItem OUTPUT , @pSttlItem OUTPUT</p>
+<p>EXEC @vcBal16 = SDAOBGetColsN @wVatSttlItem OUTPUT , @pVatSttlItem OUTPUT</p>
+<p>EXEC @vcBal39 = SDAOBGetColsN @wVatRate OUTPUT , @pVatRate OUTPUT , 'N'</p>
+<p>EXEC @vcBal40 = SDAOBGetColsN @pPriceType OUTPUT , @vPriceType OUTPUT</p>
+<p>EXEC @vcBal41 = SDAOBGetColsN @wKorVat OUTPUT , @pKorVat OUTPUT ,'N'</p>
+<p>EXEC @vcBal42 = SDAOBGetColsN @wOutReqNo OUTPUT , @pOutReqNo OUTPUT</p>
+<p>IF @pWorkingTag ='' break</p>
+<p>SELECT @nQty = CONVERT(NUMERIC(19,5), @pQty ),</p>
+<p>@nPrice = CONVERT(NUMERIC(19,5), @pPrice ),</p>
+<p>@nVat = CONVERT(NUMERIC(19,5), @pVat ),</p>
+<p>@nAmt = CONVERT(NUMERIC(19,5), @pAmt ),</p>
+<p>@nKorPrice = CONVERT(NUMERIC(19,5), @pKorPrice ),</p>
+<p>@nKorAmt = CONVERT(NUMERIC(19,5), @pKorAmt ),</p>
+<p>@nStkQty = CONVERT(NUMERIC(19,5), @pStkQty ),</p>
+<p>@nKorVat = CONVERT(NUMERIC(19,5), @pKorVat )</p>
+<p>IF Not((@vcBal1 = 0 AND @vcBal2 = 0 AND @vcBal3 = 0 AND @vcBal4 = 0 AND @vcBal5 = 0 AND</p>
+<p>@vcBal6 = 0 AND @vcBal7 = 0 AND @vcBal8 = 0 AND @vcBal9 = 0 AND @vcBal10 = 0 AND</p>
+<p>@vcBal11 = 0 AND @vcBal12 = 0 AND @vcBal13 = 0 AND @vcBal14 = 0 AND @vcBal15 = 0 AND</p>
+<p>@vcBal16 = 0 AND @vcBal19 = 0 AND @vcBal20 = 0 AND</p>
+<p>@vcBal21 = 0 AND @vcBal22 = 0 AND @vcBal23 = 0 AND @vcBal24 = 0 AND @vcBal25 = 0 AND</p>
+<p>@vcBal26 = 0 AND @vcBal27 = 0 AND @vcBal28 = 0 AND @vcBal29 = 0 AND @vcBal30 = 0 AND</p>
+<p>@vcBal31 = 0 AND @vcBal32 = 0 AND @vcBal33 = 0 AND @vcBal34 = 0 AND</p>
+<p>@vcBal36 = 0 AND @vcBal37 = 0 AND @vcBal38 = 0)</p>
+<p>OR (@vcBal1 &gt; 0 AND @vcBal2 &gt; 0 AND @vcBal3 &gt; 0 AND @vcBal4 &gt; 0 AND @vcBal5 &gt; 0 AND</p>
+<p>@vcBal6 &gt; 0 AND @vcBal7 &gt; 0 AND @vcBal8 &gt; 0 AND @vcBal9 &gt; 0 AND @vcBal10 &gt; 0 AND</p>
+<p>@vcBal11 &gt; 0 AND @vcBal12 &gt; 0 AND @vcBal13 &gt; 0 AND @vcBal14 &gt; 0 AND @vcBal15 &gt; 0 AND</p>
+<p>@vcBal16 &gt; 0 AND @vcBal19 &gt; 0 AND @vcBal20 &gt; 0 AND</p>
+<p>@vcBal21 &gt; 0 AND @vcBal22 &gt; 0 AND @vcBal23 &gt; 0 AND @vcBal24 &gt; 0 AND @vcBal25 &gt; 0 AND</p>
+<p>@vcBal26 &gt; 0 AND @vcBal27 &gt; 0 AND @vcBal28 &gt; 0 AND @vcBal29 &gt; 0 AND @vcBal30 &gt; 0 AND</p>
+<p>@vcBal31 &gt; 0 AND @vcBal32 &gt; 0 AND @vcBal33 &gt; 0 AND @vcBal34 &gt; 0 AND</p>
+<p>@vcBal36 &gt; 0 AND @vcBal37 &gt; 0 AND @vcBal38 &gt; 0))</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'PARAMBAL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result,Serl) -- 에러 메세지 보낼 테이블 닮기</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>SELECT @nLoopCnt = @nLoopCnt + 1</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>INSERT #TmpList</p>
+<p>( LoopCnt , Working , VatClss , Price,</p>
+<p>Qty , Vat , Amt , KorPrice,</p>
+<p>KorAmt , StkQty , No , WhCd ,</p>
+<p>StkUnitCd , UnitCd , ItemCd , OldCustCd ,</p>
+<p>OldDeptCd , OldEmpId , OldCurrCd , DelvNo , DelvSerl ,</p>
+<p>ProgClss , SONo, SOSerl , InOutYN , Remark ,</p>
+<p>LocalYN , InvoiceSerl , LotNo , SerialNoFROM ,</p>
+<p>SerialNoTo , LCNo , LCSerl , ExpClss ,</p>
+<p>PriceUnitCd , UnitPrice , PriceUnitQty , DeliCustCd ,</p>
+<p>Source , Control , ControlSeq , SttlItem , VatSttlItem, VatRate,</p>
+<p>PriceType, KorVat, OutReqNo, OutReqSerl</p>
+<p>)</p>
+<p>SELECT @nLoopCnt , @pWorkingTag , @pVatClss , @nPrice ,</p>
+<p>@nQty , @nVat , @nAmt , @nKorPrice ,</p>
+<p>@nKorAmt , @nStkQty , @pNo , @pWhCd ,</p>
+<p>@pStkUnitCd , @pUnitCd , @pItemCd , @pOldCustCd ,</p>
+<p>@pOldDeptCd , @pOldEmpId , @pOldCurrCd ,</p>
+<p>SUBSTRING(@pDelvReqNo, 1, 12), SUBSTRING(@pDelvReqNo, 13, 4),</p>
+<p>@pProgClss , SUBSTRING(@pControlNo, 1, 12), SUBSTRING(@pControlNo, 13, 4) ,</p>
+<p>@pInOutYN , @pRemark ,</p>
+<p>@pLocalYN , @pInvoiceSerl , @pLotNo , @pSerialNoFROM ,</p>
+<p>@pSerialNoTo , @pLCNo , @pLCSerl , @pExpClss ,</p>
+<p>@pPriceUnitCd , @pUnitPrice , @pPriceUnitQty , @pDeliCustCd ,</p>
+<p>@pSource , @pControl , @pControlSeq , @pSttlItem , @pVatSttlItem, @pVatRate,</p>
+<p>ISNULL(@vPriceType, ''), @nKorVat, SUBSTRING(@pOutReqNo, 1, 12), SUBSTRING(@pOutReqNo, 13, 4)</p>
+<p>SELECT @nLoopCnt = @nLoopCnt + 1</p>
+<p>END --WHILE</p>
+<p>-- 월마감 체크(모든행 에러처리)</p>
+<p>IF EXISTS (SELECT * FROM TSACancelReg WITH(NOLOCK) WHERE Pgm_id = 'Invoice' AND CanYm = @wInvoiceYm AND CLosingYn='1' )</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'BIZCLOSE', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>--해당 업무가 마감되었습니다.</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT LoopCnt, @vcStatus, @vcResults, A.InvoiceSerl</p>
+<p>FROM #TmpList A</p>
+<p>DELETE #TmpList</p>
+<p>END</p>
+<p>IF @wItemCtl = '0'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'ITEMCHG', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>------------------ 주문에서</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT LoopCnt, @vcStatus, @vcResults, A.InvoiceSerl</p>
+<p>FROM #TmpList A LEFT OUTER JOIN TSASOItem B WITH(NOLOCK)</p>
+<p>ON A.SONo = B.SONo</p>
+<p>AND A.SOSerl = B.SOSerl</p>
+<p>AND A.ItemCd = B.ItemCd</p>
+<p>WHERE B.SONo Is Null</p>
+<p>AND A.SONo \&lt;&gt; ''</p>
+<p>AND LTRIM(ISNULL(A.DelvNo,'')) = ''</p>
+<p>AND LTRIM(ISNULL(A.LCNo,'')) = ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>------------------ LC에서</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result,Serl)</p>
+<p>SELECT LoopCnt, @vcStatus, @vcResults, A.InvoiceSerl</p>
+<p>FROM #TmpList A JOIN TSELCM M WITH(NOLOCK)</p>
+<p>ON A.LCNo = M.LCNo</p>
+<p>AND M.MAXRevYn = '1'</p>
+<p>LEFT OUTER JOIN TSELCItem B WITH(NOLOCK)</p>
+<p>ON A.LCNo = B.LCNo</p>
+<p>AND A.LCSerl = B.LCSerl</p>
+<p>AND M.LCAmd = B.LCAmd</p>
+<p>AND A.ItemCd = B.ItemCd</p>
+<p>WHERE B.LCNo Is Null</p>
+<p>AND LTRIM(ISNULL(A.DelvNo,'')) = ''</p>
+<p>AND A.LCNo \&lt;&gt; ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>------------------ 출하의뢰에서</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT LoopCnt, @vcStatus, @vcResults, A.InvoiceSerl</p>
+<p>FROM #TmpList A LEFT OUTER JOIN TSSDelvReqItem B WITH(NOLOCK)</p>
+<p>ON A.DelvNo = B.DelvNo</p>
+<p>AND A.DelvSerl = B.DelvSerl</p>
+<p>AND A.ItemCd = B.ItemCd</p>
+<p>WHERE B.DelvNo Is Null</p>
+<p>AND A.DelvNo \&lt;&gt; ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>------------------ 자재불출요청에서</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT LoopCnt, @vcStatus, @vcResults, A.InvoiceSerl</p>
+<p>FROM #TmpList A LEFT OUTER JOIN TMIOutReqItem B WITH(NOLOCK)</p>
+<p>ON A.OutReqNo = B.OutPONo</p>
+<p>AND A.OutReqSerl = B.OutReqItemSerl</p>
+<p>AND A.ItemCd = B.ItemCd</p>
+<p>WHERE B.OutPONo Is Null</p>
+<p>AND A.OutReqNo \&lt;&gt; ''</p>
+<p>AND (A.Working = 'A')</p>
+<p>DELETE #TmpList</p>
+<p>FROM #TmpList A, #TmpErr B</p>
+<p>WHERE A.LoopCnt = B.LoopCnt</p>
+<p>END --@wItemCtl = '0'</p>
+<p>IF @wQtyCtl ='0'</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'QTYOVER', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>CREATE TABLE #TmpPrevQty</p>
+<p>( LoopCnt int,</p>
+<p>PrevQty NUMERIC(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #TmpQty</p>
+<p>( LoopCnt int,</p>
+<p>Qty NUMERIC(19,5)</p>
+<p>)</p>
+<p>------------------ 주문에서</p>
+<p>INSERT #TmpPrevQty</p>
+<p>SELECT LoopCnt, ISNULL(sum(B.QTy),0)</p>
+<p>FROM #TmpList A JOIN TSASOItem B WITH(NOLOCK)</p>
+<p>ON A.SONo = B.SONo</p>
+<p>AND A.SOSerl = B.SOSerl</p>
+<p>WHERE A.SONo \&lt;&gt; ''</p>
+<p>AND LTRIM(ISNULL(A.DelvNo,'')) = ''</p>
+<p>AND LTRIM(ISNULL(A.LCNo,'')) = ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>GROUP BY LoopCnt</p>
+<p>INSERT #TmpQty</p>
+<p>SELECT LoopCnt, ISNULL(sum(CASE B.InvoiceNo WHEN @wInvoiceNo THEN 0 ELSE B.Qty END),0)</p>
+<p>FROM #TmpList A JOIN TSSInvoiceItem B WITH(NOLOCK)</p>
+<p>ON A.SONo = B.SONo</p>
+<p>AND A.SOSerl = B.SOSerl</p>
+<p>WHERE A.SONo \&lt;&gt; ''</p>
+<p>AND LTRIM(ISNULL(A.DelvNo,'')) = ''</p>
+<p>AND LTRIM(ISNULL(A.LCNo,'')) = ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>AND B.IsPkgItem \&lt;&gt; '1' --그룹품목인 경우만 체크</p>
+<p>GROUP BY LoopCnt</p>
+<p>------------------ LC에서</p>
+<p>INSERT #TmpPrevQty</p>
+<p>SELECT LoopCnt, ISNULL(sum(B.QTy),0)</p>
+<p>FROM #TmpList A JOIN TSELCM M WITH(NOLOCK)</p>
+<p>ON A.LCNo = M.LCNo</p>
+<p>AND M.MAXRevYn = '1'</p>
+<p>JOIN TSELCItem B WITH(NOLOCK)</p>
+<p>ON A.LCNo = B.LCNo</p>
+<p>AND A.LCSerl = B.LCSerl</p>
+<p>AND M.LCAmd = B.LCAmd</p>
+<p>WHERE LTRIM(ISNULL(A.DelvNo,'')) = ''</p>
+<p>AND A.LCNo \&lt;&gt; ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>GROUP BY LoopCnt</p>
+<p>INSERT #TmpQty</p>
+<p>SELECT LoopCnt, ISNULL(sum(CASE B.InvoiceNo WHEN @wInvoiceNo THEN 0 ELSE B.Qty END),0)</p>
+<p>FROM #TmpList A JOIN TSSInvoiceItem B WITH(NOLOCK)</p>
+<p>ON A.LCNo = B.LCNo</p>
+<p>AND A.LCSerl = B.LCSerl</p>
+<p>WHERE LTRIM(ISNULL(A.DelvNo,'')) = ''</p>
+<p>AND A.LCNo \&lt;&gt; ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>AND B.IsPkgItem \&lt;&gt; '1' --그룹품목인 경우만 체크</p>
+<p>GROUP BY LoopCnt</p>
+<p>------------------ 출하의뢰에서</p>
+<p>INSERT #TmpPrevQty</p>
+<p>SELECT LoopCnt, ISNULL(sum(B.QTy),0)</p>
+<p>FROM #TmpList A JOIN TSSDelvReqItem B WITH(NOLOCK)</p>
+<p>ON A.DelvNo = B.DelvNo</p>
+<p>AND A.DelvSerl = B.DelvSerl</p>
+<p>WHERE A.DelvNo \&lt;&gt; ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>GROUP BY LoopCnt</p>
+<p>INSERT #TmpQty</p>
+<p>SELECT LoopCnt, ISNULL(sum(CASE B.InvoiceNo WHEN @wInvoiceNo THEN 0 ELSE B.Qty END),0)</p>
+<p>FROM #TmpList A JOIN TSSInvoiceItem B WITH(NOLOCK)</p>
+<p>ON A.DelvNo = B.DelvNo</p>
+<p>AND A.DelvSerl = B.DelvSerl</p>
+<p>JOIN TSSInvoiceM C WITH(NOLOCK)</p>
+<p>ON B.InvoiceNo = C.InvoiceNo</p>
+<p>WHERE A.DelvNo \&lt;&gt; ''</p>
+<p>AND (A.Working = 'A' OR A.Working = 'U')</p>
+<p>AND ISNULL(C.ProType, '') \&lt;&gt; '2' -- 위탁이 아닌 것만....</p>
+<p>AND B.IsPkgItem \&lt;&gt; '1' --그룹품목인 경우만 체크</p>
+<p>GROUP BY LoopCnt</p>
+<p>-- 기진행수량 + 금회진행수량이 전단계 수량보다 큰 경우 Err</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT C.LoopCnt, @vcStatus, @vcResults, C.InvoiceSerl FROM #TmpList C LEFT OUTER JOIN #TmpQty A</p>
+<p>ON C.LoopCnt = A.LoopCnt</p>
+<p>LEFT OUTER JOIN #TmpPrevQty B</p>
+<p>ON C.LoopCnt = B.LoopCnt</p>
+<p>WHERE ISNULL(A.Qty,0)+C.Qty &gt; B.PrevQty AND B.PrevQty &gt; 0</p>
+<p>DELETE #TmpList</p>
+<p>FROM #TmpList A, #TmpErr B</p>
+<p>WHERE A.LoopCnt = B.LoopCnt</p>
+<p>END --@wQtyCtl ='0'</p>
+<p>SELECT @nLoopCnt = 0</p>
+<p>WHILE (1 = 1)</p>
+<p>BEGIN</p>
+<p>--------------------- 변수 초기화</p>
+<p>SELECT @pWorkingTag = '' , @pVatClss = '' , @nPrice = 0 , @nQty = 0 , @nVat = 0 ,</p>
+<p>@nAmt = 0 , @nKorPrice = 0 , @nKorAmt = 0 , @nStkQty = 0 , @pNo = '' ,</p>
+<p>@pWhCd = '' , @pStkUnitCd = '' , @pUnitCd = '' , @pItemCd = '' , @pOldCustCd = '' ,</p>
+<p>@pOldDeptCd = '' , @pOldEmpId = '' , @pOldCurrCd = '' , @wDelvNo = '' , @wDelvSerl = '' ,</p>
+<p>@pProgClss = '' , @wSONo = '' , @wSOSerl = '' , @pInOutYN = '' , @pRemark = '' ,</p>
+<p>@pLocalYN = '' , @pInvoiceSerl = '', @pLotNo = '' , @pSerialNoFROM = '', @pSerialNoTo = '',</p>
+<p>@pLCNo = '' , @pLCSerl = '' , @pExpClss = '' ,</p>
+<p>@pPriceUnitCd = '', @pUnitPrice = 0 , @pPriceUnitQty = 0, @pDeliCustCd = '' ,</p>
+<p>@pSource = '' , @pControl = '' , @pControlSeq = '' , @pSttlItem = 0 , @pVatSttlItem = '',</p>
+<p>@pVatRate = 0 , @nKorVat = 0 , @tOutReqNo = '', @tOutReqSerl = ''</p>
+<p>SELECT @vcStatus = 'OK', @vcResults = 'X'</p>
+<p>SET RowCount 1</p>
+<p>SELECT @pWorkingTag = Working , @pVatClss = VatClss , @nPrice = Price , @nQty = Qty , @nVat = Vat ,</p>
+<p>@nAmt = Amt , @nKorPrice = KorPrice , @nKorAmt = KorAmt , @nStkQty = StkQty , @pNo = No ,</p>
+<p>@pWhCd = WhCd , @pStkUnitCd = StkUnitCd , @pUnitCd = UnitCd , @pItemCd = ItemCd , @pOldCustCd = OldCustCd ,</p>
+<p>@pOldDeptCd = OldDeptCd , @pOldEmpId = OldEmpId , @pOldCurrCd = OldCurrCd , @wDelvNo = DelvNo , @wDelvSerl = DelvSerl ,</p>
+<p>@pProgClss = ProgClss , @wSONo = SONo , @wSOSerl = SOSerl , @pInOutYN = InOutYN , @pRemark = Remark ,</p>
+<p>@pLocalYN = LocalYN , @pInvoiceSerl = InvoiceSerl, @pLotNo = LotNo , @pSerialNoFROM = SerialNoFROM, @pSerialNoTo = SerialNoTo,</p>
+<p>@pLCNo = LCNo , @pLCSerl = LCSerl , @pExpClss = ExpClss , @nLoopCnt = LoopCnt ,</p>
+<p>@pPriceUnitCd = PriceUnitCd, @pUnitPrice = UnitPrice , @pPriceUnitQty = PriceUnitQty, @pDeliCustCd = DeliCustCd ,</p>
+<p>@pSource = Source , @pControl = Control , @pControlSeq = ControlSeq , @pSttlItem = SttlItem , @pVatSttlItem= VatSttlItem,</p>
+<p>@pVatRate = VatRate, @vPriceType = ISNULL(PriceType, ''), @nKorVat = ISNULL(KorVat, 0), @tOutReqNo = ISNULL(OutReqNo, ''), @tOutReqSerl = ISNULL(OutReqSerl, '')</p>
+<p>FROM #TmpList</p>
+<p>WHERE LoopCnt &gt; @nLoopCnt</p>
+<p>ORDER BY LoopCnt</p>
+<p>IF @@ROWCOUNT = 0 Break</p>
+<p>SET rowCount 0</p>
+<hr />
+<p>IF @wIsDelvConfirm = '1' AND</p>
+<p>( EXISTS (SELECT 1 FROM TDAItemMaster WITH(NOLOCK) WHERE ItemCd = @pItemCd AND GroupCheck = '1')</p>
+<p>OR EXISTS (SELECT 1 FROM TSSInvoiceItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl AND IsPkgItem = '1') )</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'ISSUBNOUPT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 품목등록에 그룹품목이면서 그룹품목등록에 등록되지 않았거나 그룹품목이면서 수량이 0일 경우에는 저장되지 않도록 20030818 by kskwon</p>
+<p>IF (EXISTS(SELECT 1 FROM TDAItemMaster WITH(NOLOCK) WHERE ItemCd = @pItemCd AND GroupCheck = '1')</p>
+<p>AND not EXISTS(SELECT 1 FROM TSBGroupItem WITH(NOLOCK) WHERE GrpItemCd = @pItemCd))</p>
+<p>OR (EXISTS(SELECT 1 FROM TDAItemMaster WITH(NOLOCK) WHERE ItemCd = @pItemCd AND GroupCheck = '1') AND @nQty = 0)</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'GrpItemErr', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, '그룹품목에 등록되지 않거나 그룹품목의 수량이 0이면 저장할 수 없습니다.', @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>--============================================================--</p>
+<p>-- 원천 수주의 판매단가 구하기</p>
+<p>DECLARE @SOPrice NVARCHAR(4000) = '0'</p>
+<p>SELECT @SOPrice = A.Price</p>
+<p>FROM TSASOItem AS A</p>
+<p>WHERE A.SONo = @wSONo</p>
+<p>AND A.SOSerl = @wSOSerl</p>
+<p>AND a.ItemCd = @pItemCd</p>
+<p>-- 원천 수주의 판매단가와 다를 경우 에러 23.10.05 SJPARK</p>
+<p>IF (ISNULL(@SOPrice,0) \&lt;&gt; ISNULL(@nPrice,0))</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DIFFPRICE ', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, '수주 입력시 등록한 판매단가와 다른 건이 있습니다.', @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>--============================================================--</p>
+<p>--유통별 할인단가 사용여부</p>
+<p>SELECT @wByChannel = Value --(0:적용안함, 1: 적용)</p>
+<p>FROM TDAControlSub</p>
+<p>WHERE SubSeq = '002' AND Seq = '301'</p>
+<p>IF @wByChannel = '1'</p>
+<p>BEGIN</p>
+<p>SELECT @wChannelMinPriceYN = Value</p>
+<p>FROM TDAControlSub</p>
+<p>WHERE Seq = '301' AND SubSeq = '006' --유통별최저가 사용</p>
+<p>IF @wChannelMinPriceYN = '1'</p>
+<p>BEGIN</p>
+<p>SELECT @wChannelMinPrice = 0</p>
+<p>SELECT @wChannelMinPrice = MinPrice</p>
+<p>FROM TSBChannelPrice AS A LEFT OUTER JOIN TDACustMaster B ON A.MinorCd = B.FlowType</p>
+<p>WHERE A.CurrCd = @wCurrCd</p>
+<p>AND A.ItemCd = @pItemCd</p>
+<p>AND A.UnitCd = @pUnitCd</p>
+<p>AND B.CustCd = @wCustCd</p>
+<p>AND @wInvoiceDate BETWEEN SDate AND EDate</p>
+<p>IF ISNULL(@wChannelMinPrice,0) \&lt;&gt; 0 And @nPrice \&lt; @wChannelMinPrice</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'CHANNELMINPRICE', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>IF EXISTS (SELECT 1 FROM TDAItemMaster WITH(NOLOCK) WHERE ItemCd = @pItemCd AND StkYN = '0') --재고관리하는 품목만 체크</p>
+<p>BEGIN</p>
+<p>IF (@wCurrCd = 'KOR')</p>
+<p>BEGIN</p>
+<p>IF (@pVatClss = '0' AND Round(@nQty * @nPrice,0) \&lt;&gt; Round(@nAmt,0)) OR (@pVatClss = '1' AND Round(@nQty * @nPrice,0) \&lt;&gt; Round(@nAmt+ @nVat,0))</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'YAMTERR', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>-- 전표처리여부</p>
+<p>IF (SELECT LTRIM(RTRIM(ISNULL(SlipId,''))) FROM TSSInvoiceM WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo) \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'EXISTSLIP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>SELECT @wChkNextQty = NextQty , @wChkProgClss = ProgClss</p>
+<p>FROM TSSInvoiceItem WITH(NOLOCK)</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>AND InvoiceSerl = @pInvoiceSerl</p>
+<p>IF @pExpClss = '' OR @pExpClss is null</p>
+<p>SELECT @pExpClss = @wMasterExpClss</p>
+<p>IF @pLocalYn = '' OR @pLocalYn is null SELECT @pLocalYn = @pExpClss</p>
+<p>IF @pUnitCd = '' AND @nStkQty = 0</p>
+<p>SELECT @pUnitCd = @pStkUnitCd,</p>
+<p>@nStkQty = @nQty</p>
+<p>IF @pLocalYn = ''</p>
+<p>SELECT @pLocalYn = '1'</p>
+<p>IF @wRETURNType = '' BEGIN TRAN</p>
+<p>IF @pWorkingTag = 'A'</p>
+<p>BEGIN</p>
+<p>IF @wIsDelvConfirm = '1'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INVCFMNOAD', @vcResults OUTPUT, @vcStatus OUTPUT -- 출고확인된 건에 품목을 추가할 수 없습니다.</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>SELECT @pInvoiceSerl = MAX(InvoiceSerl)</p>
+<p>FROM TSSInvoiceItem</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>EXEC SDANextSerialNo @pInvoiceSerl OUTPUT, 4</p>
+<p>IF EXISTS (SELECT * FROM TSSInvoiceItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl )</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'DUP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>SELECT @zProgClss = '0'</p>
+<p>/*</p>
+<p>-- 배차등록아이템에 해당 거래명세서 처리수량건이 있으면..진행상태 '1'로 해줌...20020327 수정</p>
+<p>IF EXISTS (SELECT * FROM TTMCarRegItem WHERE ControlNo = @wInvoiceNo AND ControlSerl = @pInvoiceSerl )</p>
+<p>SELECT @zProgClss = '1'</p>
+<p>ELSE</p>
+<p>SELECT @zProgClss = '0'</p>
+<p>*/</p>
+<p>------ 표준원가 및 총원가</p>
+<p>SELECT @wnStdCost = 0 , @wnTotCost = 0</p>
+<p>SELECT @wnStdCost = PurchaseCost, @wnTotCost = TotalCost</p>
+<p>FROM TSBItemCostPrice WITH(NOLOCK)</p>
+<p>WHERE ItemCd = @pItemCd</p>
+<p>IF @vcAddValue = '1'</p>
+<p>BEGIN</p>
+<p>INSERT TDAAUDHist</p>
+<p>( TblNm , TblKey , RegEmpId ,</p>
+<p>RegDate , WorkType, WorkDesc)</p>
+<p>SELECT 'TSSInvoiceItem', @wInvoiceNo + @pInvoiceSerl, @wLoginId,</p>
+<p>RTRIM(CONVERT(CHAR(8), getdate(), 112)+ REPLACE(CONVERT(CHAR(5), getdate(), 108),':','')), 'A',</p>
+<p>@wInvoiceNo + '_/' + @pInvoiceSerl + '_/' + ISNULL(@pItemCd , '') + '_/' + ISNULL(@pUnitCd , '') + '_/' +</p>
+<p>CONVERT(varCHAR(20), ISNULL(@nQty , 0 )) + '_/' + CONVERT(varCHAR(20), ISNULL(@nPrice , 0 )) + '_/' +</p>
+<p>CONVERT(varCHAR(20), ISNULL(@nAmt , 0 )) + '_/' + CONVERT(varCHAR(20), ISNULL(@nVat , 0 )) + '_/' +</p>
+<p>CONVERT(varCHAR(20), ISNULL(@nKorPrice , 0 )) + '_/' + CONVERT(varCHAR(20), ISNULL(@nKorAmt , 0 ))</p>
+<p>END</p>
+<hr />
+<p>-- 2004.9.18</p>
+<p>SELECT @xPlanCd = '', @xPlanStepSerl = ''</p>
+<p>IF @pSource = '13700005'</p>
+<p>BEGIN</p>
+<p>SELECT @xPlanCd = ISNULL(P.PlanCd, ''),</p>
+<p>@xPlanStepSerl = ISNULL(S.PlanStepSerl, '')</p>
+<p>FROM TEAPlanSalesPlanList P WITH(NOLOCK) LEFT OUTER JOIN TEAPlanSalesPlan S WITH(NOLOCK)</p>
+<p>ON P.PlanCd = S.PlanCd</p>
+<p>AND P.SalesSerl = S.SalesSerl</p>
+<p>WHERE 1=1</p>
+<p>AND P.AccUnit = LEFT(LTRIM(RTRIM(@pControl)), 2)</p>
+<p>AND P.WriteDeptCd = SUBSTRING(LTRIM(RTRIM(@pControl)), 3, 5)</p>
+<p>AND P.RptCycleSerl = SUBSTRING(LTRIM(RTRIM(@pControl)), 8, 11)</p>
+<p>AND P.WriteSerl = @pControlSeq</p>
+<p>END</p>
+<p>IF ISNULL(@wDelvNo,'') \&lt;&gt; '' AND ISNULL(LTRIM(RTRIM(@xPlanCd)),'') = ''</p>
+<p>BEGIN</p>
+<p>SELECT @xPlanCd = ISNULL(PlanCd,''),</p>
+<p>@xPlanStepSerl = ISNULL(PlanSerl,'')</p>
+<p>FROM TSSDelvReqItem WITH(NOLOCK)</p>
+<p>WHERE 1 = 1</p>
+<p>AND DelvNo = @wDelvNo</p>
+<p>AND DelvSerl = @wDelvSerl</p>
+<p>END</p>
+<hr />
+<p>INSERT INTO TSSInvoiceItem(</p>
+<p>AccUnit , /* 사업장 */ ExpClss , /* 수출구분 */</p>
+<p>InvoiceNo , /* 거래명세표번호 */ InvoiceSerl , /* 거래명세서순번 */</p>
+<p>ItemCd , /* 품목코드 */ UnitCd , /* 단위코드 */</p>
+<p>Qty , /* 금회수량 */ Price , /* 단가 */</p>
+<p>Amt , /* 공급가액 */ VatClss , /* 부가세포함 */</p>
+<p>Vat , /* 부가세 */ CustCd , /* 납품처?????? */</p>
+<p>Remark , /* 비고 */ KorPrice , /* 원화단가 */</p>
+<p>KorAmt , /* 원화공급가액 */ StkUnitCd , /* 재고단위코드 */</p>
+<p>StkQty , /* 재고단위수량 */ ProgClss , /* 진행상태 */</p>
+<p>NextQty , /* 진행수량 */ StdCost , /* 표준원가 */</p>
+<p>TotCost , /* 총원가 */ WhCd , /* 창고 */</p>
+<p>DelvNo , /* 출하요청번호 */ DelvSerl , /* 출하요청순번 */</p>
+<p>SONo , /* 주문관리번호 */ SOSerl , /* 주문순번 */</p>
+<p>CurrCd , /* 화폐 */ No , /* No */</p>
+<p>LCNo , /* LCNo */</p>
+<p>LCSerl , /* LCSerleight */ NetWeight , /* */</p>
+<p>GrossWeight , /* */ Volume , /* */</p>
+<p>Measurement , /* */ CTNo , /* */</p>
+<p>UptEmpId , /* 수정자 */ UptDate , /* 수정일시 */</p>
+<p>LotNo , /* LotNo */ SerialNoFROM , /* 시리얼번호시작 */</p>
+<p>SerialNoTo , /* 시러얼번호 끝 */ LocalYn , /* LocalYn */</p>
+<p>PriceUnitCd ,</p>
+<p>PriceUnitPrice,</p>
+<p>PriceUnitQty ,</p>
+<p>IsPkgItem ,</p>
+<p>Source , ControlNo , ControlSeq,</p>
+<p>SttlItem , VatSttlItemCd, VatRate,</p>
+<p>PlanCd, PlanStepSerl,</p>
+<p>PriceType, KorVat, OutReqNo, OutReqSerl</p>
+<p>)</p>
+<p>VALUES(</p>
+<p>@wAccUnit , /* 사업장 */ @pExpClss , /* 수출구분 */</p>
+<p>@wInvoiceNo , /* 거래명세표번호 */ @pInvoiceSerl , /* 거래명세서순번 */</p>
+<p>@pItemCd , /* 품목코드 */ @pUnitCd , /* 단위코드 */</p>
+<p>@nQty , /* 금회수량 */ @nPrice , /* 단가 */</p>
+<p>@nAmt , /* 공급가액 */ @pVatClss , /* 부가세포함 */</p>
+<p>@nVat , /* 부가세 */ @pDeliCustCd , /* 납품처?????? */</p>
+<p>@pRemark , /* 비고 */ @nKorPrice , /* 원화단가 */</p>
+<p>@nKorAmt , /* 원화공급가액 */ @pStkUnitCd , /* 재고단위코드 */</p>
+<p>@nStkQty , /* 재고단위수량 */ @zProgClss , /* 진행상태 */</p>
+<p>0 , /* 진행수량 */ @wnStdCost , /* 표준원가 */</p>
+<p>@wnTotCost , /* 총원가 */ @pWhCd , /* 창고 */</p>
+<p>@wDelvNo , /* 출하요청번호 */ @wDelvSerl , /* 출하요청순번 */</p>
+<p>@wSONO , /* 주문관리번호 */ @wSOSerl , /* 주문순번 */</p>
+<p>'' , /* 화폐?????? */ @pNo , /* No */</p>
+<p>@pLCNo , /* LCNo */ @pLCSerl , /* LCSerl */</p>
+<p>0,0,0,0, '' , /* 내수데이타 없음 */</p>
+<p>@wLoginId , /* 수정자 */ @vcDate , /* 수정일시 */</p>
+<p>@pLotNo , /* LotNo */ @pSerialNoFROM , /* 시리얼번호 시작 */</p>
+<p>@pSerialNoTo , /* 시리얼번호 끝 */ @pLocalYn , /* LocalYn */</p>
+<p>@pPriceUnitCd ,</p>
+<p>@pUnitPrice ,</p>
+<p>@pPriceUnitQty ,</p>
+<p>'0' ,</p>
+<p>@pSource , @pControl , @pControlSeq ,</p>
+<p>@pSttlItem , @pVatSttlItem, @pVatRate ,</p>
+<p>@xPlanCd, @xPlanStepSerl ,</p>
+<p>@vPriceType, @nKorVat, @tOutReqNo, @tOutReqSerl</p>
+<p>)</p>
+<p>IF @@ROWCOUNT = 0 OR @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- Lot하부 테이블INSERT(생성이므로 0001로)</p>
+<p>IF LTRIM(RTRIM(ISNULL(@pLotNo,''))) \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>INSERT INTO TSSInvoiceLotSub ( InvoiceNo , InvoiceSerl , InvoiceSubSeq , ItemCd , WHCd ,</p>
+<p>Qty , StkAmt , StkPrice , LotNo , SerialNo )</p>
+<p>SELECT @wInvoiceNo , @pInvoiceSerl , '0001', @pItemCd, @pWhCd,</p>
+<p>@nStkQty, 0, 0, @pLotNo, ''</p>
+<p>END</p>
+<p>-- 실적집게 +</p>
+<p>EXEC SSSInvoiceTotSalesMod</p>
+<p>'A' , @wAccUnit , @pExpClss , @wInvoiceNo , @wInvoiceYm ,</p>
+<p>@wCustCd , @wDeptCd , @wEmpId , @wCurrCd ,</p>
+<p>@pItemCd , @pWHCd , @nStkQty , @nPrice ,</p>
+<p>@nAmt , @nKorAmt , @nVat , @wStatus OUTPUT, @nKorVat</p>
+<p>IF @wStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>/* 최저판매가 미만 여부 시작 */</p>
+<p>/* 개별품목별 판단 여부 */</p>
+<p>SELECT @wByPriceSum = Value</p>
+<p>FROM TDAControlSub WITH(NOLOCK)</p>
+<p>WHERE Seq = '304' AND SubSeq = '001'</p>
+<p>IF @wByPriceSum = '0' -- 개별품목별로 최저판매가 체크</p>
+<p>BEGIN</p>
+<p>SELECT @wMinPrice = MinPrice</p>
+<p>FROM TDAItemUnitPrice WITH(NOLOCK)</p>
+<p>WHERE CurrCd = @wCurrCd</p>
+<p>AND ItemCd = @pItemCd</p>
+<p>AND UnitCd = @pUnitCd</p>
+<p>IF @nPrice \&lt; @wMinPrice</p>
+<p>BEGIN</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '1'</p>
+<p>WHERE AccUnit = @wAccUnit</p>
+<p>AND ExpClss = @pExpClss</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @wTmpPriceSum = ISNULL(ISNULL(sum(Price) - SUM(MinPrice),0), 0 )</p>
+<p>FROM TDAItemUnitPrice A WITH(NOLOCK), TSSInvoiceItem B WITH(NOLOCK)</p>
+<p>WHERE B.AccUnit = @wAccUnit</p>
+<p>AND B.ExpClss = @pExpClss</p>
+<p>AND B.InvoiceNo = @wInvoiceNo</p>
+<p>AND A.ItemCd = B.ItemCd</p>
+<p>AND A.UnitCd = B.UnitCd</p>
+<p>AND A.CurrCd = @wCurrCd</p>
+<p>IF @wTmpPriceSum \&lt; 0</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '1'</p>
+<p>WHERE AccUnit = @wAccUnit</p>
+<p>AND ExpClss = @pExpClss</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>ELSE</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '0'</p>
+<p>WHERE AccUnit = @wAccUnit</p>
+<p>AND ExpClss = @pExpClss</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>/* 최저판매가 미만 여부 체크 완료 */</p>
+<p>INSERT #TmpSOLC</p>
+<p>SELECT @pInvoiceSerl, @wDelvNo, @wDelvSerl, @wSONO, @wSOSerl, @pLCNo, @pLCSerl, @tOutReqNo, @tOutReqSerl, @nQty</p>
+<hr />
+<p>-- ERM 프로젝트 납품예정 쪽 상태 수정</p>
+<p>IF @pSource = '13700005' -- 원천(프로젝트)</p>
+<p>BEGIN</p>
+<p>UPDATE TEAPlanSalesPlanList</p>
+<p>SET Status = 'X3800004'</p>
+<p>-- , DelvYn = '1'</p>
+<p>WHERE 1=1</p>
+<p>AND AccUnit = LEFT(LTRIM(RTRIM(@pControl)), 2)</p>
+<p>AND WriteDeptCd = SUBSTRING(LTRIM(RTRIM(@pControl)), 3, 5)</p>
+<p>AND RptCycleSerl = SUBSTRING(LTRIM(RTRIM(@pControl)), 8, 11)</p>
+<p>AND WriteSerl = @pControlSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 OR @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 매출구분이 기간반복인 경우에는 제외할것</p>
+<p>SELECT @vcSalesType = LTRIM(RTRIM(ISNULL(A.SalesType, '')))</p>
+<p>FROM TEAPlanSalesPlan AS A WITH(NOLOCK)</p>
+<p>JOIN TEAPlanSalesPlanList AS B WITH(NOLOCK) ON A.PlanCd = B.PlanCd AND A.SalesSerl = B.SalesSerl</p>
+<p>WHERE 1=1</p>
+<p>AND B.AccUnit = LEFT(LTRIM(RTRIM(@pControl)), 2)</p>
+<p>AND B.WriteDeptCd = SUBSTRING(LTRIM(RTRIM(@pControl)), 3, 5)</p>
+<p>AND B.RptCycleSerl = SUBSTRING(LTRIM(RTRIM(@pControl)), 8, 11)</p>
+<p>AND B.WriteSerl = @pControlSeq</p>
+<p>IF Not EXISTS (SELECT 1 FROM TDAMinor WITH(NOLOCK) WHERE MinorCd = @vcSalesType AND Item1 = '4')</p>
+<p>BEGIN</p>
+<p>UPDATE TEAPlanSalesPlan</p>
+<p>SET DelvYN = '1'</p>
+<p>FROM TEAPlanSalesPlan AS A WITH(NOLOCK)</p>
+<p>JOIN TEAPlanSalesPlanList AS B WITH(NOLOCK) ON A.PlanCd = B.PlanCd AND A.SalesSerl = B.SalesSerl</p>
+<p>WHERE 1=1</p>
+<p>AND B.AccUnit = LEFT(LTRIM(RTRIM(@pControl)), 2)</p>
+<p>AND B.WriteDeptCd = SUBSTRING(LTRIM(RTRIM(@pControl)), 3, 5)</p>
+<p>AND B.RptCycleSerl = SUBSTRING(LTRIM(RTRIM(@pControl)), 8, 11)</p>
+<p>AND B.WriteSerl = @pControlSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 OR @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<hr />
+<p>/*****************************************************************************************************************************************************/</p>
+<p>END --@pWorkingTag = 'A'</p>
+<p>ELSE IF @pWorkingTag = 'U'</p>
+<p>BEGIN</p>
+<p>--통제 영업/구매/물류-2의 거래명세서 출고확인 시 수정불가의 값에 따라...</p>
+<p>IF @wIsDelvConfirm = '1' AND @vcCfmValue = '1'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INVCFM', @vcResults OUTPUT, @vcStatus OUTPUT --출고확인된 자료는 수정이나 삭제가 불가능합니다.</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>/***********************/</p>
+<p>IF @wChkProgClss = '2'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NOTUPTSTOP', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>IF @wChkNextQty = 0</p>
+<p>SELECT @wChkNextQty = 0</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>IF EXISTS (SELECT 1</p>
+<p>FROM TSSInvoiceItem WITH(NOLOCK)</p>
+<p>WHERE InvoiceNo = @wInvoiceNo /* 주문번호 */ AND</p>
+<p>AccUnit = @wAccUnit /* 사업장 */ AND</p>
+<p>WhCd = @pWhCd /* 창고 */ AND</p>
+<p>InvoiceSerl = @pInvoiceSerl /* 주문순번 */ AND</p>
+<p>ItemCd = @pItemCd /* 품목코드 */ AND</p>
+<p>UnitCd = @pUnitCd /* 단위코드 */ AND</p>
+<p>Price = @nPrice /* 할인단가 */ AND</p>
+<p>VatClss = @pVatClss /* 부가세여부*/ AND</p>
+<p>ExpClss = @pExpclss )</p>
+<p>AND abs(@wChkNextQty) \&lt;= abs(@nQty)</p>
+<p>BEGIN</p>
+<p>IF ISNULL(@wIsDelvConfirm, '0') = '1'</p>
+<p>AND EXISTS(SELECT 1 FROM TSSInvoiceItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl AND WhCd \&lt;&gt; @pWhCd )</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NOWHCHGDVC', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>IF EXISTS (SELECT * FROM TSSBillItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl)</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NEXTPROC', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>IF EXISTS (SELECT * FROM TSELCItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl)</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NEXTPROC', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT * FROM TSSInvoiceItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl )</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- OldData 가져오기</p>
+<p>SELECT @wOldItemCd = ItemCd ,</p>
+<p>@wOldWHCd = WHCd ,</p>
+<p>@wOldPrice = Price ,</p>
+<p>@wOldQty = Qty ,</p>
+<p>@wOldStkQty = StkQty ,</p>
+<p>@wOldVat = Vat ,</p>
+<p>@wOldAmt = Amt ,</p>
+<p>@wOldKorAmt = KorAmt ,</p>
+<p>@wOldKorPrice = KorPrice ,</p>
+<p>@wOldExpClss = ExpClss ,</p>
+<p>@wAccUnitOld = AccUnit ,</p>
+<p>@pOldLotNo = LotNo ,</p>
+<p>@wOldKorVat = KorVat</p>
+<p>FROM TSSInvoiceItem WITH(NOLOCK)</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>AND InvoiceSerl = @pInvoiceSerl</p>
+<p>-- 실적집게 -</p>
+<p>EXEC SSSInvoiceTotSalesMod</p>
+<p>'D' , @wAccUnitOld , @wOldExpClss , @wInvoiceNo , @wOldYm ,</p>
+<p>@pOldCustCd , @pOldDeptCd , @pOldEmpId , @pOldCurrCd ,</p>
+<p>@wOldItemCd , @wOldWHCd , @wOldStkQty , @wOldPrice ,</p>
+<p>@wOldAmt , @wOldKorAmt , @wOldVat , @wStatus OUTPUT , @wOldKorVat</p>
+<p>IF @wStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- Lot하부 테이블처리 ( LotNo , 품목코드, 창고, 수량이 바뀌는 경우 지운후 새롭게 INSERT한다)</p>
+<p>IF LTRIM(RTRIM(ISNULL(@pLotNo,''))) \&lt;&gt; LTRIM(RTRIM(ISNULL(@pOldLotNo,'')))</p>
+<p>OR @pItemCd \&lt;&gt; @wOldItemCd OR @pWhCd \&lt;&gt; @wOldWHCd OR @nStkQty \&lt;&gt; @wOldStkQty</p>
+<p>BEGIN</p>
+<p>DELETE TSSInvoiceLotSub WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl</p>
+<p>IF LTRIM(RTRIM(ISNULL(@pLotNo,''))) \&lt;&gt; ''</p>
+<p>BEGIN</p>
+<p>INSERT INTO TSSInvoiceLotSub ( InvoiceNo , InvoiceSerl , InvoiceSubSeq , ItemCd , WHCd , Qty , StkAmt , StkPrice , LotNo , SerialNo )</p>
+<p>SELECT @wInvoiceNo , @pInvoiceSerl , '0001', @pItemCd, @pWhCd, @nStkQty, 0, 0, @pLotNo, ''</p>
+<p>END</p>
+<p>END</p>
+<p>IF @wIsDelvConfirm = '1' ----- 출고확인 후 추가된 건에 대하여 출고시켜 준다.</p>
+<p>BEGIN</p>
+<p>-- 사업장별 재고</p>
+<p>EXEC STSStkUpt 'D', @wAccUnitOld, @wOldItemCd, @wInvoiceYm, '1', ----- 출고시에는 거래명세서 일자가 같아야 하므로 @wInvoiceDate로 재고 집계해도 됨</p>
+<p>0, 0, 0, 0, 0, 0,</p>
+<p>0, 0, 0, 0,</p>
+<p>@wOldStkQty, @wOldKorAmt, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, @vcStatus OUTPUT, @vcResults OUTPUT</p>
+<p>IF @vcStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN -- 원래는 받아온 에러 SELECT해야 하지만, ROLLBACK하므로, 에러 받은게 없어짐</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 창고재고 수정</p>
+<p>EXEC STSWhStkUpt 'D', @wAccUnitOld, @wOldItemCd, @wOldWHCd, @wInvoiceYm, '1',</p>
+<p>0, 0, 0, 0, 0,</p>
+<p>@wOldStkQty, 0, 0, 0, 0, 0,</p>
+<p>@vcStatus OUTPUT, @vcResults OUTPUT</p>
+<p>IF @vcStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN -- 원래는 받아온 에러 SELECT해야 하지만, ROLLBACK하므로, 에러 받은게 없어짐</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 실출고수량 업데이트</p>
+<p>UPDATE TSSDelvReqItem</p>
+<p>SET ActualDeliQty = a.ActualDeliQty - b.Qty + @nQty,</p>
+<p>DeliFinYn = CASE WHEN abs(a.ActualDeliQty - b.Qty + @nQty) &gt;= abs(a.Qty) THEN '1' ELSE '0' END</p>
+<p>FROM TSSDelvReqItem a WITH(NOLOCK), TSSInvoiceItem b WITH(NOLOCK) , TSSInvoiceM c WITH(NOLOCK)</p>
+<p>WHERE b.InvoiceNo = @wInvoiceNo</p>
+<p>AND b.InvoiceSerl = @pInvoiceSerl</p>
+<p>AND b.InvoiceNo = c.InvoiceNo</p>
+<p>AND a.DelvNo = b.DelvNo</p>
+<p>AND a.DelvSerl = b.DelvSerl</p>
+<p>AND b.IsPkgItem \&lt;&gt; '1'</p>
+<p>AND ISNULL(c.ProType, '') \&lt;&gt; '2' -- 위탁이 아닌 경우만...</p>
+<p>UPDATE TSASOItem</p>
+<p>SET ActualDeliQty = a.ActualDeliQty - b.Qty + @nQty,</p>
+<p>DeliFinYn = CASE WHEN abs(a.ActualDeliQty - b.Qty + @nQty) &gt;= abs(a.Qty) THEN '1' ELSE '0' END</p>
+<p>FROM TSASOItem a WITH(NOLOCK), TSSInvoiceItem b WITH(NOLOCK)</p>
+<p>WHERE b.InvoiceNo = @wInvoiceNo</p>
+<p>AND b.InvoiceSerl = @pInvoiceSerl</p>
+<p>AND a.SONo = b.SONo</p>
+<p>AND a.SOSerl = b.SOSerl</p>
+<p>AND b.IsPkgItem \&lt;&gt; '1'</p>
+<p>END</p>
+<p>IF @vcUptValue = '1'</p>
+<p>BEGIN</p>
+<p>INSERT TDAAUDHist ( TblNm , TblKey , RegEmpId ,</p>
+<p>RegDate , WorkType, WorkDesc)</p>
+<p>SELECT 'TSSInvoiceItem', @wInvoiceNo + @pInvoiceSerl, @wLoginId,</p>
+<p>RTRIM(CONVERT(CHAR(8), getdate(), 112)+ REPLACE(CONVERT(CHAR(5), getdate(), 108),':','')), 'U',</p>
+<p>--- SONo_/SOSerl_/SORev_/ItemCd_/UnitCd_/Qty_/Price_/Amt_/Vat_/KorPrice_/KorAmt</p>
+<p>I.InvoiceNo + '_/' + I.InvoiceSerl + '_/' + I.ItemCd + '_/' + I.UnitCd + '_/' +</p>
+<p>CONVERT(varCHAR(20), I.Qty) + '_/' + CONVERT(varCHAR(20), I.Price) + '_/' + CONVERT(varCHAR(20), I.Amt) + '_/' +</p>
+<p>CONVERT(varCHAR(20), I.Vat) + '_/' + CONVERT(varCHAR(20), I.KorPrice) + '_/' + CONVERT(varCHAR(20), I.KorAmt)</p>
+<p>FROM TSSInvoiceItem I WITH(NOLOCK)</p>
+<p>WHERE I.InvoiceNo = @wInvoiceNo AND I.InvoiceSerl = @pInvoiceSerl</p>
+<p>END</p>
+<p>-- 수량이 0인 건은 계산서에 있는지 확인하고 진행구분 UPDATE한다</p>
+<p>IF @nAmt \&lt;= (SELECT SUM(Amt) FROM TSSBillItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl)</p>
+<p>SELECT @wBillProg = '1'</p>
+<p>ELSE</p>
+<p>SELECT @wBillProg = '0'</p>
+<p>-- 이제야 없데이~트 정말 오래걸리지?</p>
+<p>UPDATE TSSInvoiceItem SET</p>
+<p>Price = @nPrice , -- 단가</p>
+<p>VatClss = @pVatClss , -- 부가세포함</p>
+<p>Qty = @nQty , -- 금회수량</p>
+<p>Vat = @nVat , -- 부가세</p>
+<p>Amt = @nAmt , -- 공급가액</p>
+<p>KorPrice = @nKorPrice , -- 원화단가</p>
+<p>KorAmt = @nKorAmt , -- 원화공급가액</p>
+<p>StkUnitCd = @pStkUnitCd , -- 재고단위코드</p>
+<p>StkQty = @nStkQty , -- 재고단위수량</p>
+<p>DelvNo = ISNULL(@wDelvNo , '') , -- 출하요청번호</p>
+<p>DelvSerl = ISNULL(@wDelvSerl , '') , -- 출하요청순번</p>
+<p>ProgClss = CASE WHEN @nQty = 0 THEN @wBillProg</p>
+<p>ELSE CASE WHEN abs(@nQty) \&lt;= abs(@wChkNextQty) THEN '1' ELSE '0' END</p>
+<p>END, -- 진행상태</p>
+<p>SONo = ISNULL(@wSONO , ''), -- 주문번호</p>
+<p>SOSerl = ISNULL(@wSOSerl, ''), -- 주문순번</p>
+<p>WhCd = ISNULL(@pWhCd , ''), -- WhCd</p>
+<p>UnitCd = @pUnitCd , -- 단위코드</p>
+<p>No = @pNo , -- No</p>
+<p>UptEmpId = @wLoginId , -- 수정자</p>
+<p>UptDate = @vcDate , -- 수정일시</p>
+<p>LotNo = @pLotNo , -- LotNo</p>
+<p>ItemCd = @pItemCd , -- 품목코드</p>
+<p>SerialNoFROM = @pSerialNoFROM , -- Serl FROM</p>
+<p>SerialNoTo = @pSerialNoTo , -- Serl To</p>
+<p>Remark = @pRemark , -- 비고</p>
+<p>LocalYn = @pLocalYn , -- Local/내수</p>
+<p>ExpClss = @pLocalYn ,</p>
+<p>PriceUnitCd = @pPriceUnitCd ,</p>
+<p>PriceUnitPrice = @pUnitPrice ,</p>
+<p>PriceUnitQty = @pPriceUnitQty ,</p>
+<p>CustCd = @pDeliCustCd ,</p>
+<p>Source = @pSource ,</p>
+<p>ControlNo = @pControl ,</p>
+<p>ControlSeq = @pControlSeq ,</p>
+<p>AccUnit = @wAccUnit ,</p>
+<p>SttlItem = @pSttlItem ,</p>
+<p>VatSttlItemCd = @pVatSttlItem,</p>
+<p>VatRate = @pVatRate,</p>
+<p>PriceType = @vPriceType,</p>
+<p>KorVat = @nKorVat</p>
+<p>WHERE InvoiceNo = @wInvoiceNo --거래명세표번호</p>
+<p>AND InvoiceSerl = @pInvoiceSerl --순번</p>
+<p>IF @@ROWCOUNT = 0 OR @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'UPDATEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 실적집게(+)</p>
+<p>EXEC SSSInvoiceTotSalesMod</p>
+<p>'A' , @wAccUnit , @pLocalYn , @wInvoiceNo , @wInvoiceYm ,</p>
+<p>@wCustCd , @wDeptCd , @wEmpId , @wCurrCd ,</p>
+<p>@pItemCd , @pWHCd , @nStkQty , @nPrice ,</p>
+<p>@nAmt , @nKorAmt , @nVat , @wStatus OUTPUT, @nKorVat</p>
+<p>IF @wStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>IF @wIsDelvConfirm = '1' ----- 출고확인 후 추가된 건에 대하여 출고시켜 준다.</p>
+<p>BEGIN</p>
+<p>-- 사업장별 재고</p>
+<p>EXEC STSStkUpt 'A', @wAccUnit, @pItemCd, @wInvoiceYm, '1',</p>
+<p>0, 0, 0, 0, 0, 0,</p>
+<p>0, 0, 0, 0,</p>
+<p>@nStkQty, @nKorAmt, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, @vcStatus OUTPUT, @vcResults OUTPUT</p>
+<p>IF @vcStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN -- 원래는 받아온 에러 SELECT해야 하지만, ROLLBACK하므로, 에러 받은게 없어짐</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 창고재고 수정</p>
+<p>EXEC STSWhStkUpt 'A', @wAccUnit, @pItemCd, @pWhCd, @wInvoiceYm, '1',</p>
+<p>0, 0, 0, 0, 0,</p>
+<p>@nStkQty, 0, 0, 0, 0, 0,</p>
+<p>@vcStatus OUTPUT, @vcResults OUTPUT</p>
+<p>IF @vcStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN -- 원래는 받아온 에러 SELECT해야 하지만, ROLLBACK하므로, 에러 받은게 없어짐</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>/* 최저판매가 미만 여부 시작 */</p>
+<p>/* 개별품목별 판단 여부 */</p>
+<p>SELECT @wByPriceSum = Value</p>
+<p>FROM TDAControlSub WITH(NOLOCK)</p>
+<p>WHERE Seq = '304' AND SubSeq = '001'</p>
+<p>IF @wByPriceSum = '0' -- 개별품목별로 최저판매가 체크</p>
+<p>BEGIN</p>
+<p>-- 수정/삭제시 최저판매가 검사는 전품목을 다시 한다.</p>
+<p>IF EXISTS ( SELECT A.ItemCd FROM TSSInvoiceItem A WITH(NOLOCK), TSSInvoiceM B WITH(NOLOCK), TDAItemUnitprice C WITH(NOLOCK)</p>
+<p>WHERE 1=1</p>
+<p>AND B.InvoiceNo = @wInvoiceNo</p>
+<p>AND A.InvoiceNo = B.InvoiceNo</p>
+<p>AND A.ItemCd = C.ItemCd</p>
+<p>AND A.UnitCd = C.UnitCd</p>
+<p>AND C.CurrCd = @wCurrCd</p>
+<p>AND A.Price \&lt; C.MinPrice )</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '1'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>ELSE</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '0'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @wTmpPriceSum = ISNULL(ISNULL(sum(Price) - SUM(MinPrice),0), 0 )</p>
+<p>FROM TDAItemUnitPrice A WITH(NOLOCK), TSSInvoiceItem B WITH(NOLOCK)</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>AND A.ItemCd = B.ItemCd</p>
+<p>AND A.UnitCd = B.UnitCd</p>
+<p>AND A.CurrCd = @wCurrCd</p>
+<p>IF @wTmpPriceSum \&lt; 0</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '1'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>ELSE</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '0'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>/* 최저판매가 미만 여부 체크 완료 */</p>
+<p>INSERT #TmpSOLC</p>
+<p>SELECT @pInvoiceSerl, @wDelvNo, @wDelvSerl, @wSONO, @wSOSerl, @pLCNo, @pLCSerl, @tOutReqNo, @tOutReqSerl, @nQty - @wOldQty</p>
+<p>END --@pWorkingtag = 'U'</p>
+<hr />
+<p>/****************************************************************************************************************************************/</p>
+<p>ELSE IF @pWorkingtag = 'D'</p>
+<p>BEGIN</p>
+<p>IF @wIsDelvConfirm = '1' AND @vcCfmValue = '1'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INVCFM', @vcResults OUTPUT, @vcStatus OUTPUT --출고확인된 자료는 수정이나 삭제가 불가능합니다.</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>IF @wChkNextQty \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF EXISTS (SELECT * FROM TSSBillItem WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl)</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NEXTPROC',@vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>IF EXISTS (SELECT * FROM TSELCItem WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl)</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NEXTPROC',@vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>-- 배차등록 되어 있으면 삭제 안됨</p>
+<p>IF EXISTS (SELECT 1 FROM TTMCarRegItem WHERE ControlNo = @wInvoiceNo AND ControlSerl = @pInvoiceSerl AND Source = 'A')</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NEXTPROC',@vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>IF NOT EXISTS (SELECT * FROM TSSInvoiceItem WHERE InvoiceNo = @wInvoiceNo AND InvoiceSerl = @pInvoiceSerl )</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'NOT', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- OldData 가져오기</p>
+<p>SELECT @wOldItemCd = ItemCd ,</p>
+<p>@wOldWHCd = WHCd ,</p>
+<p>@wOldPrice = Price ,</p>
+<p>@wOldQty = Qty ,</p>
+<p>@wOldStkQty = StkQty ,</p>
+<p>@wOldVat = Vat ,</p>
+<p>@wOldAmt = Amt ,</p>
+<p>@wOldKorAmt = KorAmt ,</p>
+<p>@wOldKorPrice = KorPrice ,</p>
+<p>@wOldExpClss = ExpClss ,</p>
+<p>@wAccUnitOld = AccUnit ,</p>
+<p>@wOldKorVat = KorVat</p>
+<p>FROM TSSInvoiceItem WITH(NOLOCK)</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>AND InvoiceSerl = @pInvoiceSerl</p>
+<p>-- 실적집게 -</p>
+<p>EXEC SSSInvoiceTotSalesMod</p>
+<p>'D' , @wAccUnitOld , @wOldExpClss , @wInvoiceNo , @wOldYm ,</p>
+<p>@pOldCustCd , @pOldDeptCd , @pOldEmpId , @pOldCurrCd ,</p>
+<p>@wOldItemCd , @wOldWHCd , @wOldStkQty , @wOldPrice ,</p>
+<p>@wOldAmt , @wOldKorAmt , @wOldVat , @wStatus OUTPUT , @wOldKorVat</p>
+<p>IF @wStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>IF @wIsDelvConfirm = '1' ----- 출고확인 후 추가된 건에 대하여 출고시켜 준다.</p>
+<p>BEGIN</p>
+<p>-- 사업장별 재고</p>
+<p>EXEC STSStkUpt 'D', @wAccUnitOld, @wOldItemCd, @wInvoiceYm, '1', ----- 출고시에는 거래명세서 일자가 같아야 하므로 @wInvoiceDate로 재고 집계해도 됨</p>
+<p>0, 0, 0, 0, 0, 0,</p>
+<p>0, 0, 0, 0,</p>
+<p>@wOldStkQty, @wOldKorAmt, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, @vcStatus OUTPUT, @vcResults OUTPUT</p>
+<p>IF @vcStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN -- 원래는 받아온 에러 SELECT해야 하지만, ROLLBACK하므로, 에러 받은게 없어짐</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 창고재고 수정</p>
+<p>EXEC STSWhStkUpt 'D', @wAccUnitOld, @wOldItemCd, @wOldWHCd, @wInvoiceYm, '1',</p>
+<p>0, 0, 0, 0, 0,</p>
+<p>@wOldStkQty, 0, 0, 0, 0, 0,</p>
+<p>@vcStatus OUTPUT, @vcResults OUTPUT</p>
+<p>IF @vcStatus \&lt;&gt; 'OK'</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN -- 원래는 받아온 에러 SELECT해야 하지만, ROLLBACK하므로, 에러 받은게 없어짐</p>
+<p>EXEC SDAErrMsg 'TOTSALES', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>-- 실출고수량 업데이트</p>
+<p>UPDATE TSSDelvReqItem</p>
+<p>SET ActualDeliQty = a.ActualDeliQty - b.Qty,</p>
+<p>DeliFinYn = CASE WHEN abs(a.ActualDeliQty - b.Qty) &gt;= abs(a.Qty) THEN '1' ELSE '0' END</p>
+<p>FROM TSSDelvReqItem a WITH(NOLOCK), TSSInvoiceItem b WITH(NOLOCK) , TSSInvoiceM c WITH(NOLOCK)</p>
+<p>WHERE b.InvoiceNo = @wInvoiceNo</p>
+<p>AND b.InvoiceSerl = @pInvoiceSerl</p>
+<p>AND b.InvoiceNo = c.InvoiceNo</p>
+<p>AND a.DelvNo = b.DelvNo</p>
+<p>AND a.DelvSerl = b.DelvSerl</p>
+<p>AND c.ProType \&lt;&gt; '2'</p>
+<p>AND b.IsPkgItem \&lt;&gt; '1'</p>
+<p>UPDATE TSASOItem</p>
+<p>SET ActualDeliQty = a.ActualDeliQty - b.Qty,</p>
+<p>DeliFinYn = CASE WHEN abs(a.ActualDeliQty - b.Qty) &gt;= abs(a.Qty) THEN '1' ELSE '0' END</p>
+<p>FROM TSASOItem a WITH(NOLOCK), TSSInvoiceItem b WITH(NOLOCK)</p>
+<p>WHERE b.InvoiceNo = @wInvoiceNo</p>
+<p>AND b.InvoiceSerl = @pInvoiceSerl</p>
+<p>AND a.SONo = b.SONo</p>
+<p>AND a.SOSerl = b.SOSerl</p>
+<p>AND b.IsPkgItem \&lt;&gt; '1'</p>
+<p>END</p>
+<p>IF @vcUptValue = '1'</p>
+<p>BEGIN</p>
+<p>INSERT TDAAUDHist</p>
+<p>( TblNm , TblKey , RegEmpId ,</p>
+<p>RegDate , WorkType, WorkDesc)</p>
+<p>SELECT 'TSSInvoiceItem', @wInvoiceNo + @pInvoiceSerl, @wLoginId,</p>
+<p>RTRIM(CONVERT(CHAR(8), getdate(), 112)+ REPLACE(CONVERT(CHAR(5), getdate(), 108),':','')), 'D',</p>
+<p>--- SONo_/SOSerl_/SORev_/ItemCd_/UnitCd_/Qty_/Price_/Amt_/Vat_/KorPrice_/KorAmt</p>
+<p>I.InvoiceNo + '_/' + I.InvoiceSerl + '_/' + I.ItemCd + '_/' + I.UnitCd + '_/' +</p>
+<p>CONVERT(varCHAR(20), I.Qty) + '_/' + CONVERT(varCHAR(20), I.Price) + '_/' + CONVERT(varCHAR(20), I.Amt) + '_/' +</p>
+<p>CONVERT(varCHAR(20), I.Vat) + '_/' + CONVERT(varCHAR(20), I.KorPrice) + '_/' + CONVERT(varCHAR(20), I.KorAmt)</p>
+<p>FROM TSSInvoiceItem I WITH(NOLOCK)</p>
+<p>WHERE I.InvoiceNo = @wInvoiceNo AND I.InvoiceSerl = @pInvoiceSerl</p>
+<p>END</p>
+<p>-- 거래명세서</p>
+<p>DELETE FROM TSSInvoiceItem</p>
+<p>WHERE InvoiceNo = @wInvoiceNo --거래명세표번호</p>
+<p>AND InvoiceSerl = @pInvoiceSerl --순번</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'DELETEFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>DELETE TSSInvoiceLotSub</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>AND InvoiceSerl = @pInvoiceSerl</p>
+<p>/* 최저판매가 미만 여부 시작 */</p>
+<p>/* 개별품목별 판단 여부 */</p>
+<p>SELECT @wByPriceSum = Value</p>
+<p>FROM TDAControlSub WITH(NOLOCK)</p>
+<p>WHERE Seq = '304' AND SubSeq = '001'</p>
+<p>IF @wByPriceSum = '0' -- 개별품목별로 최저판매가 체크</p>
+<p>BEGIN</p>
+<p>-- 수정/삭제시 최저판매가 검사는 전품목을 다시 한다.</p>
+<p>IF EXISTS ( SELECT A.ItemCd FROM TSSInvoiceItem A WITH(NOLOCK), TSSInvoiceM B WITH(NOLOCK), TDAItemUnitprice C WITH(NOLOCK)</p>
+<p>WHERE 1=1</p>
+<p>AND B.InvoiceNo = @wInvoiceNo</p>
+<p>AND A.InvoiceNo = B.InvoiceNo</p>
+<p>AND A.ItemCd = C.ItemCd</p>
+<p>AND A.UnitCd = C.UnitCd</p>
+<p>AND C.CurrCd = @wCurrCd</p>
+<p>AND A.Price \&lt; C.MinPrice )</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '1'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>ELSE</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '0'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>SELECT @wTmpPriceSum = ISNULL(ISNULL(sum(Price) - SUM(MinPrice),0), 0 )</p>
+<p>FROM TDAItemUnitPrice A WITH(NOLOCK), TSSInvoiceItem B WITH(NOLOCK)</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>AND A.ItemCd = B.ItemCd</p>
+<p>AND A.UnitCd = B.UnitCd</p>
+<p>AND A.CurrCd = @wCurrCd</p>
+<p>IF @wTmpPriceSum \&lt; 0</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '1'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>ELSE</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ShortAmtYn = '0'</p>
+<p>WHERE 1=1</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>/* 최저판매가 미만 여부 체크 완료 */</p>
+<p>INSERT #TmpSOLC</p>
+<p>SELECT @pInvoiceSerl, @wDelvNo, @wDelvSerl, @wSONO, @wSOSerl, @pLCNo, @pLCSerl, @tOutReqNo, @tOutReqSerl, -1 * @wOldQty</p>
+<hr />
+<p>-- ERM 프로젝트 납품예정 쪽 상태 수정 (전량 납품하는 걸로 가정)</p>
+<p>IF @pSource = '13700005' -- 원천(프로젝트)</p>
+<p>BEGIN</p>
+<p>UPDATE TEAPlanSalesPlanList</p>
+<p>SET Status = 'X3800002'</p>
+<p>WHERE 1=1</p>
+<p>AND AccUnit = LEFT(LTRIM(RTRIM(@pControl)), 2)</p>
+<p>AND WriteDeptCd = SUBSTRING(LTRIM(RTRIM(@pControl)), 3, 5)</p>
+<p>AND RptCycleSerl = SUBSTRING(LTRIM(RTRIM(@pControl)), 8, 11)</p>
+<p>AND WriteSerl = @pControlSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 OR @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>UPDATE TEAPlanSalesPlan</p>
+<p>SET DelvYN = '0'</p>
+<p>FROM TEAPlanSalesPlan AS A WITH(NOLOCK)</p>
+<p>JOIN TEAPlanSalesPlanList AS B WITH(NOLOCK) ON A.PlanCd = B.PlanCd AND A.SalesSerl = B.SalesSerl</p>
+<p>WHERE 1=1</p>
+<p>AND B.AccUnit = LEFT(LTRIM(RTRIM(@pControl)), 2)</p>
+<p>AND B.WriteDeptCd = SUBSTRING(LTRIM(RTRIM(@pControl)), 3, 5)</p>
+<p>AND B.RptCycleSerl = SUBSTRING(LTRIM(RTRIM(@pControl)), 8, 11)</p>
+<p>AND B.WriteSerl = @pControlSeq</p>
+<p>IF @@ERROR \&lt;&gt; 0 OR @@ROWCOUNT = 0</p>
+<p>BEGIN</p>
+<p>IF @wRETURNType = '' ROLLBACK TRAN</p>
+<p>EXEC SDAErrMsg 'INSERTFAIL', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END</p>
+<p>END</p>
+<p>END -- DELETE PROC</p>
+<p>IF @wRETURNType = '' COMMIT TRAN</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, @vcResults, @pInvoiceSerl</p>
+<p>END</p>
+<p>SET rowcount 0</p>
+<p>----- TSASO.... UPDATE</p>
+<p>SELECT B.SONo, B.SOSerl, SUM(B.Qty) AS InvoiceQty INTO #TmpSOLCSO</p>
+<p>FROM #TmpSOLC B</p>
+<p>WHERE B.LCNo = '' AND B.DelvNo = ''</p>
+<p>GROUP BY B.SONo, B.SOSerl</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>GOTO LCProgUPDATE</p>
+<p>UPDATE TSASOItem</p>
+<p>SET ProgClss= CASE WHEN abs(A.NextQty + B.InvoiceQty) &gt;= abs(A.Qty) THEN '1' ELSE '0' END,</p>
+<p>NextQty = A.NextQty + B.InvoiceQty</p>
+<p>FROM TSASOItem A WITH(NOLOCK), #TmpSOLCSO B</p>
+<p>WHERE A.SONo = B.SONo</p>
+<p>AND A.SOSerl = B.SOSerl</p>
+<p>SELECT A.SONo, MIN(ISNULL(A.ProgClss, '0')) AS MinProg INTO #TmpSOLCSOProg</p>
+<p>FROM TSASOItem A WITH(NOLOCK), #TmpSOLCSO B</p>
+<p>WHERE A.SONo = B.SONo</p>
+<p>GROUP BY A.SONo</p>
+<p>UPDATE TSASOM</p>
+<p>SET ProgressType = CASE MinProg WHEN '' THEN '0'</p>
+<p>WHEN '0' THEN '0'</p>
+<p>WHEN '1' THEN '1'</p>
+<p>ELSE '2' END</p>
+<p>FROM TSASOM A WITH(NOLOCK), #TmpSOLCSOProg B</p>
+<p>WHERE A.SONo = B.SONo</p>
+<hr />
+<p>LCProgUPDATE:</p>
+<p>SELECT B.LCNo, A.LCAmd, B.LCSerl, SUM(B.Qty) AS InvoiceQty INTO #TmpSOLCLC</p>
+<p>FROM TSELCM A WITH(NOLOCK), #TmpSOLC B</p>
+<p>WHERE A.LCNo = B.LCNo</p>
+<p>AND A.MAXRevYn = '1' AND B.DelvNo = ''</p>
+<p>GROUP BY B.LCNo, A.LCAmd, B.LCSerl</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>GOTO DelvProgUPDATE</p>
+<p>UPDATE TSELCItem</p>
+<p>SET ProgClss= CASE WHEN abs(A.NextQty+ B.InvoiceQty) &gt;= abs(A.Qty) THEN '1' ELSE '0' END,</p>
+<p>NextQty = A.NextQty + B.InvoiceQty</p>
+<p>FROM TSELCItem A WITH(NOLOCK), #TmpSOLCLC B</p>
+<p>WHERE A.LCNo = B.LCNo</p>
+<p>AND A.LCSerl = B.LCSerl</p>
+<p>AND A.LCAmd = B.LCAmd</p>
+<p>SELECT A.LCNo, A.LCAmd, MIN(ISNULL(A.ProgClss, '0')) AS MinProg INTO #TmpSOLCLCProg</p>
+<p>FROM TSELCItem A WITH(NOLOCK), #TmpSOLCLC B</p>
+<p>WHERE A.LCNo = B.LCNo</p>
+<p>AND A.LCAmd = B.LCAmd</p>
+<p>GROUP BY A.LCNo, A.LCAmd</p>
+<p>UPDATE TSELCM</p>
+<p>SET ProgressType = CASE MinProg WHEN '' THEN '0'</p>
+<p>WHEN '0' THEN '0'</p>
+<p>WHEN '1' THEN '1'</p>
+<p>ELSE '2' END</p>
+<p>FROM TSELCM A WITH(NOLOCK), #TmpSOLCLCProg B</p>
+<p>WHERE A.LCNo = B.LCNo</p>
+<p>AND A.LCAmd = B.LCAmd</p>
+<hr />
+<p>DelvProgUPDATE:</p>
+<p>SELECT B.DelvNo, B.DelvSerl, SUM(B.Qty) AS InvoiceQty INTO #TmpSOLCDelv</p>
+<p>FROM #TmpSOLC B</p>
+<p>WHERE B.DelvNo \&lt;&gt; ''</p>
+<p>GROUP BY B.DelvNo, B.DelvSerl</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>GOTO OutReqProgUPDATE</p>
+<p>UPDATE TSSDelvReqItem ---- by khkim</p>
+<p>SET ProgClss= CASE WHEN abs(A.NextQty + B.InvoiceQty) &gt;= abs(A.Qty) THEN '1' ELSE '0' END,</p>
+<p>NextQty = A.NextQty + B.InvoiceQty</p>
+<p>FROM TSSDelvReqItem A WITH(NOLOCK), #TmpSOLCDelv B</p>
+<p>WHERE A.DelvNo = B.DelvNo</p>
+<p>AND A.DelvSerl = B.DelvSerl</p>
+<p>SELECT A.DelvNo, MIN(ISNULL(A.ProgClss, '0')) AS MinProg INTO #TmpSOLCDelvProg</p>
+<p>FROM TSSDelvReqItem A WITH(NOLOCK), #TmpSOLCDelv B</p>
+<p>WHERE A.DelvNo = B.DelvNo</p>
+<p>GROUP BY A.DelvNo</p>
+<p>UPDATE TSSDelvReqM</p>
+<p>SET ProgressType = CASE MinProg WHEN '' THEN '0'</p>
+<p>WHEN '0' THEN '0'</p>
+<p>WHEN '1' THEN '1'</p>
+<p>ELSE '2' END</p>
+<p>FROM TSSDelvReqM A WITH(NOLOCK), #TmpSOLCDelvProg B</p>
+<p>WHERE A.DelvNo = B.DelvNo</p>
+<hr />
+<p>OutReqProgUPDATE:</p>
+<p>SELECT B.InvoiceSerl, B.OutReqNo, B.OutReqSerl, SUM(B.Qty) AS InvoiceQty INTO #TmpSOLCOut</p>
+<p>FROM #TmpSOLC B</p>
+<p>WHERE B.OutReqNo \&lt;&gt; ''</p>
+<p>GROUP BY B.InvoiceSerl, B.OutReqNo, B.OutReqSerl</p>
+<p>IF @@ROWCOUNT = 0</p>
+<p>GOTO ENDProgUPDATE</p>
+<p>UPDATE TMIOutReqItem</p>
+<p>SET OutQty = A.OutQty + ISNULL(B.InvoiceQty,0),</p>
+<p>ProgYn = CASE WHEN ISNULL(C.InvoiceSerl,'') = '' THEN '2' ELSE '3' END</p>
+<p>FROM TMIOutReqItem A WITH(NOLOCK) JOIN #TmpSOLCOut B</p>
+<p>ON A.OutPONo = B.OutReqNo</p>
+<p>AND A.OutReqItemSerl = B.OutReqSerl</p>
+<p>LEFT OUTER JOIN TSSInvoiceItem C WITH(NOLOCK)</p>
+<p>ON C.InvoiceNo = @wInvoiceNo</p>
+<p>AND B.InvoiceSerl = C.InvoiceSerl</p>
+<p>UPDATE TMIOutPOGood</p>
+<p>SET ProgYn = CASE WHEN a.ProgYn &gt; '3' THEN a.ProgYn ELSE x.ProgYn END</p>
+<p>FROM TMIOutPOGood a WITH(NOLOCK) JOIN (SELECT b.OutPONo, b.OutPOGoodSerl, MAX(b.ProgYn) AS ProgYn</p>
+<p>FROM TMIOutReqItem b WITH(NOLOCK) JOIN #TmpSOLCOut c</p>
+<p>ON b.OutPONo = c.OutReqNo</p>
+<p>AND b.OutReqItemSerl = c.OutReqSerl</p>
+<p>GROUP BY b.OutPONo, b.OutPOGoodSerl) x</p>
+<p>ON a.OutPONo = x.OutPONo</p>
+<p>AND a.OutPOGoodSerl = x.OutPOGoodSerl</p>
+<p>UPDATE TMIOutPO</p>
+<p>SET ProgYn = CASE WHEN a.ProgYn &gt; '3' THEN a.ProgYn ELSE x.ProgYn END</p>
+<p>FROM TMIOutPO a WITH(NOLOCK) JOIN (SELECT b.OutPONo, MAX(b.ProgYn) AS ProgYn</p>
+<p>FROM TMIOutPOGood b WITH(NOLOCK) JOIN #TmpSOLCOut c</p>
+<p>ON b.OutPONo = c.OutReqNo</p>
+<p>GROUP BY b.OutPONo ) x</p>
+<p>ON a.OutPONo = x.OutPONo</p>
+<hr />
+<p>ENDProgUPDATE:</p>
+<p>-- 대표품목순번 구하기 시작</p>
+<p>SELECT @wMinSerl = MIN(InvoiceSerl)</p>
+<p>FROM TSSInvoiceItem WITH(NOLOCK)</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>AND LTRIM(RTRIM(No)) \&lt;&gt; ''</p>
+<p>IF (@@ROWCOUNT = 0 OR @wMinSerl is null OR @wMinSerl = '')</p>
+<p>BEGIN</p>
+<p>SELECT @wMinSerl = MIN(InvoiceSerl)</p>
+<p>FROM TSSInvoiceItem WITH(NOLOCK)</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET MajorItemSerl = ISNULL(@wMinSerl,'')</p>
+<p>WHERE InvoiceNo = @wInvoiceNo</p>
+<p>IF EXISTS (SELECT 1 FROM TSSInvoiceItem WITH(NOLOCK) WHERE InvoiceNo = @wInvoiceNo AND ProgClss = 0)</p>
+<p>BEGIN</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ProgressType = 0</p>
+<p>WHERE AccUnit = @wAccUnit --사업장</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>ELSE</p>
+<p>BEGIN</p>
+<p>UPDATE TSSInvoiceM</p>
+<p>SET ProgressType = 1</p>
+<p>WHERE AccUnit = @wAccUnit --사업장</p>
+<p>AND InvoiceNo = @wInvoiceNo</p>
+<p>END</p>
+<p>IF @wRETURNType = ''</p>
+<p>BEGIN</p>
+<p>--SELECT * FROM #TmpErr</p>
+<p>-- 에러 메세지 한줄씩 SELECT</p>
+<p>SELECT @nLoopCnt = 0</p>
+<p>WHILE (1 = 1)</p>
+<p>BEGIN</p>
+<p>SET RowCount 1</p>
+<p>SELECT @vcStatus ='', @vcReSults = '', @pInvoiceSerl = ''</p>
+<p>SELECT @nLoopCnt = LoopCnt, @vcStatus = Status, @vcReSults = Result,@pInvoiceSerl = Serl</p>
+<p>FROM #TmpErr</p>
+<p>WHERE LoopCnt &gt; @nLoopCnt</p>
+<p>ORDER BY LoopCnt</p>
+<p>IF @@ROWCOUNT = 0 Break</p>
+<p>IF @wRETURNType = '' SELECT @vcStatus, @vcReSults, @pInvoiceSerl</p>
+<p>END</p>
+<p>END</p>
+<p>SET RowCount 0</p>
+<p>RETURN</p>
+<p>/**********************************************************************************************************/</p>
+<p>GO</p>
+<p>BEGIN TRAN</p>
+<p>exec SSASalesInv2Save_swn_TTESTA N'A_/A_/A_/A_/A', N'01', N'202310050014', N'12902_/12902_/12902_/12902_/12902', N'0_/0_/0_/0_/0', N'480_/480_/480_/480_/384', N'619296_/619296_/619296_/619296_/495436', N'6192960_/6192960_/6192960_/6192960_/4954368', N'12902_/12902_/12902_/12902_/12902', N'6192960_/6192960_/6192960_/6192960_/4954368', N'480_/480_/480_/480_/384', N'_/_/_/_/', N'0_/0_/0_/0_/0', N'2023100100060001_/2023100100060002_/2023100100060003_/2023100100060004_/2023100100060005', N'_/_/_/_/', N'1_/1_/1_/1_/1', N'01_/01_/01_/01_/01', N'_/_/_/_/', N'001_/001_/001_/001_/001', N'001_/001_/001_/001_/001', N'002077_/002077_/002077_/002077_/002077', N'_/_/_/_/', N'_/_/_/_/', N'_/_/_/_/', N'_/_/_/_/', N'19890021', N'000009_/000009_/000009_/000009_/000009', N'00023_/00023_/00023_/00023_/00023', N'20160101_/20160101_/20160101_/20160101_/20160101', N'KRW_/KRW_/KRW_/KRW_/KRW', N'000009', N'00023', N'20160101', N'KRW', N'20231005', N'_/_/_/_/', N'_/_/_/_/', N'_/_/_/_/', N'1_/1_/1_/1_/1', N'001_/001_/001_/001_/001', N'12902_/12902_/12902_/12902_/12902', N'480_/480_/480_/480_/384', N'000000061', N'_/_/_/_/', N'_/_/_/_/', N'_/_/_/_/', N'_/_/_/_/', N'_/_/_/_/', N'10_/10_/10_/10_/10', N'', N'', N'', N'1_/1_/1_/1_/1', N'619296_/619296_/619296_/619296_/495436', N'_/_/_/_/'</p>
+<p>ROLLBACK TRAN</p>
+<p>--============================================================--</p>
+<blockquote>
+<p>-- 원천 수주의 판매단가 구하기</p>
+<p>DECLARE @SOPrice NVARCHAR(4000) = '0'</p>
+<p>SELECT @SOPrice = A.Price</p>
+<p>FROM TSASOItem AS A</p>
+<p>WHERE A.SONo = @wSONo</p>
+<p>AND A.SOSerl = @wSOSerl</p>
+<p>AND a.ItemCd = @pItemCd</p>
+<p>--SELECT @SOPrice,@nPrice</p>
+</blockquote>
+<p>-- 원천 수주의 판매단가와 다를 경우 에러 23.10.05 SJPARK</p>
+<p>IF (ISNULL(@SOPrice,0) \&lt;&gt; ISNULL(@nPrice,0))</p>
+<p>BEGIN</p>
+<p>EXEC SDAErrMsg 'DIFFPRICE ', @vcResults OUTPUT, @vcStatus OUTPUT</p>
+<p>INSERT #TmpErr(LoopCnt, Status, Result, Serl)</p>
+<p>SELECT @nLoopCnt, @vcStatus, '수주 입력시 등록한 판매단가와 다른 건이 있습니다.', @pInvoiceSerl</p>
+<p>IF @wRETURNType = '' continue ELSE RETURN</p>
+<p>END         </p>
+<blockquote>
+<p>--============================================================--</p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

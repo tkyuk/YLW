@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오즈레포트파라미터 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>오즈레포트파라미터 조회</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-30</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">오즈레포트파라미터 조회</h1>
+<p>-- SS2 Param 등록</p>
+<p>SELECT E.Caption,</p>
+<p>E.PgmId,</p>
+<p>A.OZPSeq,</p>
+<p>B.OZPID,</p>
+<p>C.OZPSerl,</p>
+<p>C.OZPSerlID,</p>
+<p>C.DtlRemark,</p>
+<p>C.OZPEx,</p>
+<p>C.OZPSubSerl,</p>
+<p>C.SubParamID,</p>
+<p>A.OZParam,</p>
+<p>A.IsUserChg,</p>
+<p>A.IsEnv,</p>
+<p>A.EnvSeq,</p>
+<p>D.EnvName</p>
+<p>FROM _TCAOZReport AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TCAOZParam AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.OZPSeq = B.OZPSeq</p>
+<p>LEFT OUTER JOIN _TCAOZParamItem AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.OZPSeq = C.OZPSeq</p>
+<p>AND A.OZPSerl = C.OZPSerl</p>
+<p>LEFT OUTER JOIN _TCOMEnv AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.EnvSeq = D.EnvSeq</p>
+<p>LEFT OUTER JOIN _TCAPgm AS E WITH(NOLOCK) ON E.PgmSeq = A.ReportSeq</p>
+<p>ORDER BY B.Sort, C.DtlSort</p>
+<p>-- SS3 Variant 등록</p>
+<p>SELECT E.Caption,</p>
+<p>E.PgmId,</p>
+<p>A.VariantSeq AS VariantSeq,</p>
+<p>A.VariantName AS VariantName,</p>
+<p>A.VariantName AS VariantNameOld,</p>
+<p>A.Remark AS Remark,</p>
+<p>B.VariantValue AS VariantValue,</p>
+<p>B.IsUserChg AS IsUserChg,</p>
+<p>B.IsEnv AS IsEnv,</p>
+<p>B.EnvSeq AS EnvSeq,</p>
+<p>C.EnvName AS EnvName,</p>
+<p>B.ReportSeq AS PrintPgmSeq,</p>
+<p>B.Sort AS Sort</p>
+<p>FROM _TCAOZReport AS Z</p>
+<p>LEFT OUTER JOIN _TCAOZVariantValue AS B WITH(NOLOCK) ON B.ReportSeq = Z.ReportSeq</p>
+<p>LEFT OUTER JOIN _TCAOZVariant AS A WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.VariantSeq = A.VariantSeq</p>
+<p>LEFT OUTER JOIN _TCOMEnv AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.EnvSeq = C.EnvSeq</p>
+<p>LEFT OUTER JOIN _TCAPgm AS E WITH(NOLOCK) ON E.PgmSeq = Z.ReportSeq</p>
+<p>UNION ALL</p>
+<p>SELECT E.Caption,</p>
+<p>E.PgmId,</p>
+<p>B.VariantSeq AS VariantSeq,</p>
+<p>B.VariantName AS VariantName,</p>
+<p>B.VariantName AS VariantNameOld,</p>
+<p>B.Remark AS Remark,</p>
+<p>B.VariantValue AS VariantValue,</p>
+<p>B.IsUserChg AS IsUserChg,</p>
+<p>B.IsEnv AS IsEnv,</p>
+<p>B.EnvSeq AS EnvSeq,</p>
+<p>C.EnvName AS EnvName,</p>
+<p>B.ReportSeq AS PrintPgmSeq,</p>
+<p>B.Sort AS Sort</p>
+<p>FROM _TCAOZReport AS Z</p>
+<p>LEFT OUTER JOIN _TCAOZVariantValue AS B WITH(NOLOCK) ON B.ReportSeq = Z.ReportSeq</p>
+<p>LEFT OUTER JOIN _TCOMEnv AS C WITH(NOLOCK) ON B.CompanySeq = C.CompanySeq</p>
+<p>AND B.EnvSeq = C.EnvSeq</p>
+<p>LEFT OUTER JOIN _TCAPgm AS E WITH(NOLOCK) ON E.PgmSeq = Z.ReportSeq</p>
+<p>ORDER BY B.Sort</p>
+  </article>
+</div>
+</body>
+</html>

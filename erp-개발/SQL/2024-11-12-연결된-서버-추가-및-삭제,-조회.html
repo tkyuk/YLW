@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연결된 서버 추가 및 삭제, 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>연결된 서버 추가 및 삭제, 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">연결된 서버 추가 및 삭제, 조회</h1>
+<p>--생성</p>
+<p>sp_addlinkedserver @Server='ylw',@srvproduct='SQLSERVER',@Provider='SQLOLEDB',@Datasrc='해당DB',@Catalog=''</p>
+<p>EXEC sp_addlinkedserver</p>
+<p>@server = 'ylw', -- 연결된 서버의 논리적 이름 (사용자가 정함)</p>
+<p>@srvproduct = 'SQLSERVER',-- 서버 제품명 (SQL Server일 경우 'SQLSERVER', Oracle 등은 생략 가능)</p>
+<p>@provider = 'SQLOLEDB', -- OLE DB 공급자 (SQL Server 기본 공급자는 'SQLOLEDB' 또는 'MSOLEDBSQL')</p>
+<p>@datasrc = '해당DB', -- 실제 데이터 소스(서버 이름 또는 IP)</p>
+<p>@catalog = ''; -- 기본 데이터베이스 (보통 생략 가능, 기본값은 빈 문자열)</p>
+<p>sp_addlinkedsrvlogin 'ylw','False','sa','해당DB 로그인 ID','해당DB PW'</p>
+<p>--삭제</p>
+<p>sp_droplinkedsrvlogin @RmtSrvname ='ylw', @locallogin = 'sa'</p>
+<p>sp_dropserver @server ='ylw'</p>
+<p>﻿</p>
+<p>--조회</p>
+<p>SELECT * FROM NOX.NOXCOMMON.dbo._TCASQLScripts</p>
+<p>--생성</p>
+<p>sp_addlinkedserver @Server='ylw',@srvproduct='SQLSERVER',@Provider='SQLOLEDB',@Datasrc='해당DB',@Catalog=''</p>
+<p>sp_addlinkedsrvlogin 'ylw','False','sa','해당DB 로그인 ID','해당DB PW'</p>
+<p>--삭제</p>
+<p>sp_droplinkedsrvlogin @RmtSrvname ='ylw', @locallogin = 'sa'</p>
+<p>sp_dropserver @server ='ylw'</p>
+<p>﻿</p>
+<p>--조회</p>
+<p>SELECT * FROM NOX.NOXCOMMON.dbo._TCASQLScripts</p>
+<p>출처: \&lt;<a href="http://61.250.183.6:8100/Page/Open/72095/100101/3/18820569">http://61.250.183.6:8100/Page/Open/72095/100101/3/18820569</a>&gt;</p>
+  </article>
+</div>
+</body>
+</html>

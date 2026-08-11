@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5/9 같은 속성 선택되었을 때만 점프</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>5/9 같은 속성 선택되었을 때만 점프</h1>
+    <div class="meta">
+      <span class="note-date">2022-05-09</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="59">5/9 같은 속성 선택되었을 때만 점프</h1>
+<p>참고화면</p>
+<p>발주내역조회(SCM)_amt =&gt; 납품요청입력(SCM)_amt ==&gt; 같은 거래처가 선택되었을 때만 점프</p>
+<p>-- 구매처가 다른 건이 선택되었을 때 점프 안되게 에러처리</p>
+<p>local CustSeq, DiffCustSeq, chkCust</p>
+<p>CustSeq = GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'CustSeq', 0)</p>
+<p>for row = 0, GetDataBlock(m_SendXml.Data, 'DataBlock1').Rows.Count - 1 do</p>
+<blockquote>
+<p>DiffCustSeq = GetDataSetValue(m_SendXml.Data, 'DataBlock1', 'CustSeq', row)</p>
+<p>if CustSeq ~= DiffCustSeq then</p>
+<p>chkCust = 1</p>
+<p>end</p>
+</blockquote>
+<p>end</p>
+<p>if chkCust == 1 then</p>
+<blockquote>
+<p>msg1 = GetMessage('1122', GetDictionary(6), '', '', '', '', '', '', '', '', '' )</p>
+<p>msgType = MessageBox(msg1, '', 'MsgBoxTypeOK')</p>
+<p>_base.IsJumpEventCancel = true</p>
+<p>GoTo('END')</p>
+<p>return</p>
+</blockquote>
+<p>end</p>
+<p>입고 버튼 눌렀을 때 =&gt; 출고가 있으면 안됨</p>
+<p>입출고내역조회_gcos =&gt; 하이랙입고입력 or 하이랙출고입력</p>
+  </article>
+</div>
+</body>
+</html>

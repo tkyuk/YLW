@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.12.20 삼신 외주납품</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.12.20 삼신 외주납품</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-20</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241220">24.12.20 삼신 외주납품</h1>
+<p>-- 1. 계열사 -&gt; 본사 본사구매요청입력_ssv</p>
+<p>SELECT LastDateTime,* FROM SSTTEST.DBO._TPUORDPOReq WHERE POReqSeq = 594 -- 본사구매요청</p>
+<p>SELECT LastDateTime,* FROM SSTTEST.DBO._TPUORDPOReqItem WHERE POReqSeq = 594 -- 본사구매요청</p>
+<p>-- 2. 본사에서 계열사 요청 확인 - [구매요청조회(통합)_ssv] 화면 계열사 탭에서 1번의 '본사구매요청' 건 조회 가능 =&gt; 거래명세서 점프 및 출고 처리</p>
+<p>SELECT LastDateTime,* FROM _TPUORDPOReq WHERE POReqSeq = 594 -- 본사구매요청</p>
+<p>SELECT LastDateTime,* FROM _TPUORDPOReqItem WHERE POReqSeq = 594 -- 본사구매요청</p>
+<p>-- 3. 계열사출고조회_ssv</p>
+<p>SELECT A.LastDateTime,*</p>
+<p>FROM ssv_TSLInvoiceItemMCO AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN ssv_TSLOrderItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.OrderSeq = A.OrderSeq</p>
+<p>AND B.OrderSerl = A.OrderSerl</p>
+<p>WHERE A.InvoiceSeq = 3547</p>
+<p>-- 4. 본사출고조회_ssv (계열사에서 본사 출고 건 조회) -&gt; 조회 후 납품, 입고 생성</p>
+<p>SELECT TOP 10 Z1.LastDateTime , *</p>
+<p>FROM _TPDMPSProdReq AS Z1 WITH(NOLOCK)</p>
+<p>JOIN _TPDMPSProdReqItem AS Z2 WITH(NOLOCK) ON Z2.CompanySeq = Z1.CompanySeq</p>
+<p>AND Z2.ProdReqSeq = Z1.ProdReqSeq</p>
+<p>JOIN ssv_TPDMPSProdReqItem AS Z3 WITH(NOLOCK) ON Z3.CompanySeq = Z2.CompanySeq</p>
+<p>AND Z3.ProdReqSeq = Z2.ProdReqSeq</p>
+<p>AND Z3.Serl = Z2.Serl</p>
+<p>JOIN ssv_TSLOrderNo AS Z WITH(NOLOCK) ON Z.CompanySeq = Z3.CompanySeq</p>
+<p>AND Z.OrderSeq = Z3.OrderSeq</p>
+<p>AND Z.OrderSerl = Z3.OrderSerl</p>
+<p>ORDER BY 1 DESC</p>
+<p>SELECT LastDateTime, * FROM _TSLInvoice WHERE InvoiceSeq = 3547</p>
+<p>SELECT LastDateTime,* FROM _TSLOrder WHERE OrderSeq = 103410</p>
+<p>SELECT LastDateTime,* FROM _TSLOrderItem WHERE OrderSeq = 103410</p>
+<p>SELECT LastDateTime,* FROM ssv_TSLOrderItem WHERE OrderSeq = 103410</p>
+<p>SELECT LastDateTime,* FROM ssv_TPDOSPDelvItem WHERE OSPDelvSeq = 2439</p>
+  </article>
+</div>
+</body>
+</html>

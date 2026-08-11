@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InOutReqType 에 따라 명칭 변경 (기타출고요청서 / 자재기타출고요청서)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>InOutReqType 에 따라 명칭 변경 (기타출고요청서 / 자재기타출고요청서)</h1>
+    <div class="meta">
+      <span class="note-date">2022-10-25</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#출력물</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="inoutreqtype">InOutReqType 에 따라 명칭 변경 (기타출고요청서 / 자재기타출고요청서)</h1>
+<p>// OnBlind</p>
+<p>var InOutReqType = This.GetDataSetValue("DataBlock1.InOutReqType");</p>
+<p>if(InOutReqType == 31)</p>
+<p>This.SetText("자재기타출고요청서")</p>
+<p>else</p>
+<p>This.SetText("기타출고요청서")</p>
+  </article>
+</div>
+</body>
+</html>

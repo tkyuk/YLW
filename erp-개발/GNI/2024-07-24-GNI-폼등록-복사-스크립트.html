@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNI 폼등록 복사 스크립트</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>GNI 폼등록 복사 스크립트</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-24</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="gni">GNI 폼등록 복사 스크립트</h1>
+<p>\&lt;\&lt;폼등록 스크립트 생성(Net).sql&gt;&gt;</p>
+<ol>
+<li>
+<p>ASPX, dll 사이트 이니셜 붙여서 생성</p>
+</li>
+<li>
+<p>옆에 스크립트 원본 화면 넣어서 돌리기</p>
+</li>
+<li>
+<p>INSERT 문이 생성되는데 여기에 이니셜 붙여서 돌리면 된다</p>
+</li>
+</ol>
+<p>+. 폼등록도 필요없음</p>
+<p>set nocount on</p>
+<p>CREATE TABLE #TPgmId</p>
+<p>(</p>
+<p>PgmId VARCHAR(100)</p>
+<p>)</p>
+<p>INSERT INTO #TPgmId</p>
+<p>SELECT 'frmAPClaim_nka'</p>
+<p>UNION</p>
+<p>SELECT 'ylwa05989_nka'</p>
+<p>--폼정보</p>
+<p>select 'Insert Into TCTPgmCntlM(PgmID,Caption,Affair,PgmSeq,ControlMethod,SerlNo,UseDuration,UseStartTime,UseEndTime,PgmPassword,UnCheck,ProgID,MTSProgID,License,ChangePosition,ConnectionTimeout,DlgSizeWidth,DlgSizeHeight,ControlInfo,Features,SheetSPcrdate,DicCode,PgmFile,URL,DevType,BizType,StdYn,Language)</p>
+<p>select '</p>
+<p>+ '''' + IsNull(RTRIM(PgmID), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(Caption), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(Affair, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(PgmSeq, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(ControlMethod, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(SerlNo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(UseDuration), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(UseStartTime), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(UseEndTime), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(PgmPassword), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(UnCheck), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(ProgID), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(MTSProgID), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(License), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(ChangePosition), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(ConnectionTimeout, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(DlgSizeWidth, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(DlgSizeHeight, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(ControlInfo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Features), '') + ''','</p>
+<p>+ '''' + convert(varchar(30), IsNull(SheetSPcrdate, ''), 121) + ''','</p>
+<p>+ '''' + IsNull(RTRIM(DicCode), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(PgmFile), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(URL), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(DevType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(BizType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(StdYn), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Language), '') + ''''</p>
+<p>from TCTPgmCntlM</p>
+<p>where PgmID IN (SELECT DISTINCT PgmId FROM #TPgmId)</p>
+<p>--권한등록</p>
+<p>select 'Insert Into TCTPgmSecu(PgmID,UserId,SecuClss,Rauth,Aauth,BsnSecu,Uauth,Dauth,Pauth,Eauth)</p>
+<p>select '</p>
+<p>+ '''' + IsNull(RTRIM(PgmID), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(UserId), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(SecuClss), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Rauth), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Aauth), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(BsnSecu), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Uauth), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Dauth), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Pauth), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Eauth), '') + ''''</p>
+<p>from TCTPgmSecu</p>
+<p>where PgmID IN (SELECT DISTINCT PgmId FROM #TPgmId)</p>
+<p>and UserID = 'super' -- 관리자만 일단 넣음.</p>
+<p>order by UserId desc</p>
+<p>-- 점프 List</p>
+<p>select 'Insert Into TCTJumpList(PgmID,JumpPgmID,JumpTitle,OrderNo,Method,SerlNo,DicCode,ViewFlag)</p>
+<p>select '</p>
+<p>+ '''' + IsNull(RTRIM(PgmID), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(JumpPgmID), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(JumpTitle), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(OrderNo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Method), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(SerlNo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(DicCode), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(ViewFlag), '') + ''''</p>
+<p>from TCTJumpList</p>
+<p>where PgmID IN (SELECT DISTINCT PgmId FROM #TPgmId)</p>
+<p>-- 조회모음 관련</p>
+<p>select 'Insert Into TCTQryMstWeb(pgm_id,pgm_name,sheet_count,sheet_type,sp_type,dd_count,dd1_name,dd1_length,dd1_CodeHelpType,dd1_MustInput,dd1_DownCombo,dd1_UpCombo,dd1_Code,dd1_Remark,dd1_Dummy1,dd1_Dummy2,dd1_Dummy3,dd1_Dummy4,dd1_Dummy5,dd2_name,dd2_length,dd2_CodeHelpType,dd2_MustInput,dd2_DownCombo,dd2_UpCombo,dd2_Code,dd2_Remark,dd2_Dummy1,dd2_Dummy2,dd2_Dummy3,dd2_Dummy4,dd2_Dummy5,dd3_name,dd3_length,dd3_CodeHelpType,dd3_MustInput,dd3_DownCombo,dd3_UpCombo,dd3_Code,dd3_Remark,dd3_Dummy1,dd3_Dummy2,dd3_Dummy3,dd3_Dummy4,dd3_Dummy5,dd4_name,dd4_length,dd4_CodeHelpType,dd4_MustInput,dd4_DownCombo,dd4_UpCombo,dd4_Code,dd4_Remark,dd4_Dummy1,dd4_Dummy2,dd4_Dummy3,dd4_Dummy4,dd4_Dummy5,dd5_name,dd5_length,dd5_CodeHelpType,dd5_MustInput,dd5_DownCombo,dd5_UpCombo,dd5_Code,dd5_Remark,dd5_Dummy1,dd5_Dummy2,dd5_Dummy3,dd5_Dummy4,dd5_Dummy5,cmb_count,cmb1_name,cmb1_type,cmb1_CodeHelpType,cmb1_MustInput,cmb2_name,cmb2_type,cmb2_CodeHelpType,cmb2_MustInput,cmb3_name,cmb3_type,cmb3_CodeHelpType,cmb3_MustInput,cmb4_name,cmb4_type,cmb4_CodeHelpType,cmb4_MustInput,cmb5_name,cmb5_type,cmb5_CodeHelpType,cmb5_MustInput,date1_type,date2_type,date3_type,SheetRelation,BizUnitUse,DateName1,DateName2,DateName3,date1_MustInput,date2_MustInput,date3_MustInput,Biz_MustInput,SheetLock,dd1_Col,dd1_Row,dd2_Col,dd2_Row,dd3_Col,dd3_Row,dd4_Col,dd4_Row,dd5_Col,dd5_Row,cmb1_Col,cmb1_Row,cmb2_Col,cmb2_Row,cmb3_Col,cmb3_Row,cmb4_Col,cmb4_Row,cmb5_Col,cmb5_Row,AllSelect,CheckColRate,CheckRow,Date1Default,Date2Default,Date3Default,Sheet1Rate,Sheet2Rate,Sheet3Rate,date4_type,DateName4,date4_MustInput,Date4Default,dd1_SubMajor,dd2_SubMajor,dd3_SubMajor,dd4_SubMajor,dd5_SubMajor,cmb1_SubMajor,cmb2_SubMajor,cmb3_SubMajor,cmb4_SubMajor,cmb5_SubMajor,dd1_dic_code,dd2_dic_code,dd3_dic_code,dd4_dic_code,dd5_dic_code,cmb1_dic_code,cmb2_dic_code,cmb3_dic_code,cmb4_dic_code,cmb5_dic_code,dat1_dic_code,dat2_dic_code,dat3_dic_code,dat4_dic_code,dd1_CaptionLen,dd2_CaptionLen,dd3_CaptionLen,dd4_CaptionLen,dd5_CaptionLen,Cmb1_CaptionLen,Cmb2_CaptionLen,Cmb3_CaptionLen,Cmb4_CaptionLen,Cmb5_CaptionLen,Date1_CaptionLen,Date2_CaptionLen,Date3_CaptionLen,Date4_CaptionLen,SheetSPcrdate,ReportFlag,spColorFlag,CubeDataBase,CubeName,CubeNumberFormat,IsSheetSave,BasFileNm)</p>
+<p>select '</p>
+<p>+ '''' + IsNull(RTRIM(pgm_id), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(pgm_name), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(sheet_count), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(sheet_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(sp_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd_count), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(dd1_name), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(dd1_length, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_MustInput), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_DownCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_UpCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_Code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_Remark), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_Dummy1), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_Dummy2), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_Dummy3), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_Dummy4), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_Dummy5), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(dd2_name), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(dd2_length, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_MustInput), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_DownCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_UpCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_Code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_Remark), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_Dummy1), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_Dummy2), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_Dummy3), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_Dummy4), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_Dummy5), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(dd3_name), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(dd3_length, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_MustInput), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_DownCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_UpCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_Code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_Remark), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_Dummy1), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_Dummy2), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_Dummy3), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_Dummy4), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_Dummy5), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(dd4_name), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(dd4_length, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_MustInput), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_DownCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_UpCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_Code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_Remark), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_Dummy1), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_Dummy2), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_Dummy3), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_Dummy4), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_Dummy5), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(dd5_name), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(dd5_length, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_MustInput), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_DownCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_UpCombo), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_Code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_Remark), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_Dummy1), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_Dummy2), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_Dummy3), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_Dummy4), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_Dummy5), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb_count), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(cmb1_name), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb1_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb1_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb1_MustInput), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(cmb2_name), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb2_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb2_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb2_MustInput), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(cmb3_name), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb3_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb3_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb3_MustInput), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(cmb4_name), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb4_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb4_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb4_MustInput), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(cmb5_name), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb5_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb5_CodeHelpType), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb5_MustInput), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(date1_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(date2_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(date3_type), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(SheetRelation), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(BizUnitUse, 0)) + ','</p>
+<p>+ 'N''' + IsNull(RTRIM(DateName1), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(DateName2), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(DateName3), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(date1_MustInput, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(date2_MustInput, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(date3_MustInput, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Biz_MustInput, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(SheetLock, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd1_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd1_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd2_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd2_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd3_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd3_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd4_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd4_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd5_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd5_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb1_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb1_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb2_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb2_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb3_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb3_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb4_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb4_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb5_Col, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(cmb5_Row, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(AllSelect, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(CheckColRate, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(CheckRow, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(Date1Default), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Date2Default), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(Date3Default), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(Sheet1Rate, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Sheet2Rate, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Sheet3Rate, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(date4_type), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(DateName4), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(date4_MustInput, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(Date4Default), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb1_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb2_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb3_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb4_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb5_SubMajor), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd1_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd2_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd3_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd4_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dd5_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb1_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb2_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb3_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb4_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(cmb5_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dat1_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dat2_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dat3_dic_code), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(dat4_dic_code), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(dd1_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd2_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd3_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd4_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(dd5_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Cmb1_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Cmb2_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Cmb3_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Cmb4_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Cmb5_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Date1_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Date2_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Date3_CaptionLen, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(Date4_CaptionLen, 0)) + ','</p>
+<p>+ '''' + convert(varchar(30), IsNull(SheetSPcrdate, ''), 121) + ''','</p>
+<p>+ convert(varchar(30), IsNull(ReportFlag, 0)) + ','</p>
+<p>+ convert(varchar(30), IsNull(spColorFlag, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(CubeDataBase), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(CubeName), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(CubeNumberFormat), '') + ''','</p>
+<p>+ convert(varchar(30), IsNull(IsSheetSave, 0)) + ','</p>
+<p>+ '''' + IsNull(RTRIM(BasFileNm), '') + ''''</p>
+<p>from TCTQryMstWeb</p>
+<p>where pgm_id IN (SELECT DISTINCT PgmId FROM #TPgmId)</p>
+<p>--콤보</p>
+<p>select 'Insert Into TCTQryComboweb(pgm_id,combo_id,combo_id_seq,combo_text)</p>
+<p>select '</p>
+<p>+ '''' + IsNull(RTRIM(pgm_id), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(combo_id), '') + ''','</p>
+<p>+ '''' + IsNull(RTRIM(combo_id_seq), '') + ''','</p>
+<p>+ 'N''' + IsNull(RTRIM(combo_text), '') + ''''</p>
+<p>from TCTQryComboweb</p>
+<p>where pgm_id IN (SELECT DISTINCT PgmId FROM #TPgmId)</p>
+<p>GO</p>
+<p>DROP TABLE #TPgmId</p>
+  </article>
+</div>
+</body>
+</html>

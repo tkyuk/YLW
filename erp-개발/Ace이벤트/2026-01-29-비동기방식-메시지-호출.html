@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>비동기방식 메시지 호출</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>비동기방식 메시지 호출</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-29</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace이벤트</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">비동기방식 메시지 호출</h1>
+<p>-- 1. 데이터 검증 (동기 방식)</p>
+<p>if (SSSerial.DataRowCnt == 0) then</p>
+<p>MessageBoxShow('조회된 Serial이 없습니다.', '')</p>
+<p>GoTo('END')</p>
+<p>return</p>
+<p>end</p>
+<p>-- 2. 비동기 메시지 호출</p>
+<p>WAsyncMessageBox('변경된 내용을 저장하시겠습니까?', '저장 확인', 'MsgBoxTypeYesNo')</p>
+<p>--\&lt;async&gt;function(result)</p>
+<p>-- 사용자가 '예(1)'를 눌렀을 때만 안쪽 로직이 실행됨</p>
+<p>if (result == 1) then</p>
+<p>-- [중요] 다음 단계로 넘어가는 모든 로직을 여기에 작성하세요.</p>
+<p>-- 예: SP 호출, 저장 메소드 실행 등</p>
+<p>RunPgmMethod('SerialSave')</p>
+<p>-- 성공 메시지 등도 이 안에서 처리하는 것이 안전합니다.</p>
+<p>else</p>
+<p>-- '아니오'를 누른 경우 필요한 처리가 있다면 여기에 작성 (없으면 비워둠)</p>
+<p>return</p>
+<p>end</p>
+<p>--\&lt;/async&gt;</p>
+<p>-- [주의] 이 위치(async 블록 밖)에는 아무것도 작성하지 마세요.</p>
+<p>-- 작성하더라도 메시지 응답과 상관없이 즉시 실행됩니다.</p>
+<ul>
+<li>아래 주석 구문 필요</li>
+</ul>
+<p>--\&lt;async&gt;function(result)</p>
+<p>내용</p>
+<p>--\&lt;/async&gt;</p>
+<blockquote></blockquote>
+  </article>
+</div>
+</body>
+</html>

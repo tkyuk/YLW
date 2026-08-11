@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>저장SP 마지막에 체크</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>저장SP 마지막에 체크</h1>
+    <div class="meta">
+      <span class="note-date">2024-07-01</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="sp">저장SP 마지막에 체크</h1>
+<p>-- 겹치는 날짜 체크</p>
+<p>DECLARE @MessageType INT,</p>
+<p>@Status INT,</p>
+<p>@Results NVARCHAR(250)</p>
+<p>IF EXISTS(SELECT TOP 1 1</p>
+<p>FROM shilla_TPRRetAddWorkTermExcept AS A</p>
+<p>JOIN shilla_TPRRetAddWorkTermExcept AS B ON B.EmpSeq = A.EmpSeq</p>
+<p>AND (B.FromYM \&lt;&gt; A.FromYM OR B.ToYM \&lt;&gt; A.ToYM)</p>
+<p>WHERE A.FromYM BETWEEN B.FromYM AND B.ToYM</p>
+<p>OR A.ToYM BETWEEN B.FromYM AND B.ToYM</p>
+<p>)</p>
+<p>BEGIN</p>
+<p>UPDATE #BIZ_OUT_DataBlock1</p>
+<p>SET Result = '적용시작월, 적용종료월에 대해 중첩된 데이터가 존재합니다.',</p>
+<p>MessageType = 17009 ,</p>
+<p>Status = 9999</p>
+<p>FROM #BIZ_OUT_DataBlock1 AS A</p>
+<p>WHERE A.Status = 0</p>
+<p>AND A.WorkingTag IN ('A','U')</p>
+<p>END</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24.11.28 신라명과 통상임금처리_shilla</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>24.11.28 신라명과 통상임금처리_shilla</h1>
+    <div class="meta">
+      <span class="note-date">2024-11-28</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="241128-_shilla">24.11.28 신라명과 통상임금처리_shilla</h1>
+<p>-- SELECT 3355880 - 2228360</p>
+<p>-- 1,127,520</p>
+<p>SELECT * FROM _TPRPayResult WHERE PUSEQ = 1 AND PBYM = '202410' AND EMPSEQ = 119</p>
+<p>SELECT * FROM _TPRPayCalc WHERE PBYM = '202410' AND EMPSEQ = 119</p>
+<p>--SELECT * FROM _TDAEmp WHERE EmpName = '고팔'</p>
+<p>--SELECT Amt,* FROM _TPRBasPayExemptDtl WHERE EmpSeq = 119 AND ItemSeq = 996</p>
+<p>SELECT Amt,* FROM _TPRBasPayExemptDtl WHERE EmpSeq = 119 AND ItemSeq = 996 AND BegYM = '202411'</p>
+<p>SELECT * FROM _TPRBasPb WHERE PbSeq = 1</p>
+<p>SELECT * FROM _TXPRBasPayItemByPt WHERE ItemSeq = 1043</p>
+<p>--EXEC _SWCOMGetTableLog '_TPRBasPayExemptDtl', 1, 'EmpSeq', 119</p>
+<p>--EXEC _SWCOMGetTableLog '_TXPRBasPayItemByPt', 1, 'ItemSeq', 1043</p>
+<p>--SELECT * FROM _TCOMTableLog WHERE TableName = '_TXPRBasPayItemByPt'</p>
+<p>SELECT A.EmpSeq ,</p>
+<p>C.EmpName ,</p>
+<p>C.EmpID ,</p>
+<p>C.DeptName ,</p>
+<p>--SUM(D.Amt) AS Amt</p>
+<p>D.Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TPRBasPb AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.PbSeq = B.PbSeq</p>
+<p>LEFT OUTER JOIN _VXHREmpInLast AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.EmpSeq = C.EmpSeq</p>
+<p>LEFT OUTER JOIN _TPRPayCalc AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq -- 계산항목</p>
+<p>AND A.PbYM = D.PBYm</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>LEFT OUTER JOIN _TXPRBasPayItemByPt AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.ItemSeq = E.ItemSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>-- AND B.SMPbType = 3001001 -- 231004 HCWOO 급여제외 -&gt; 급여포함 -&gt; 급여만</p>
+<p>AND A.PuSeq = 1</p>
+<p>AND A.PbYm = '202410'</p>
+<p>--AND E.IsGen = '1'</p>
+<p>AND A.EmpSeq = 119</p>
+<p>SELECT A.EmpSeq ,</p>
+<p>SUM(D.Amt) AS Amt</p>
+<p>FROM _TPRPayResult AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TPRBasPb AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.PbSeq = B.PbSeq</p>
+<p>LEFT OUTER JOIN _TPRPayCalc AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq -- 계산항목</p>
+<p>AND A.PbYM = D.PBYm</p>
+<p>AND A.SerialNo = D.SerialNo</p>
+<p>AND A.EmpSeq = D.EmpSeq</p>
+<p>LEFT OUTER JOIN _TXPRBasPayItemByPt AS E WITH(NOLOCK) ON D.CompanySeq = E.CompanySeq</p>
+<p>AND D.ItemSeq = E.ItemSeq</p>
+<p>WHERE A.CompanySeq = 1</p>
+<p>-- AND B.SMPbType = 3001001 -- 231004 HCWOO 급여제외 -&gt; 급여포함 -&gt; 급여만</p>
+<p>AND A.PuSeq = 1</p>
+<p>AND A.PbYm = '202410'</p>
+<p>--AND E.IsGen = '1'</p>
+<p>AND A.EmpSeq = 119</p>
+<p>GROUP BY A.EmpSeq</p>
+<p>통상임금</p>
+<p>고팔 11월 2,228,360</p>
+<p>급상여처리검증조회 =&gt; 3,355,880</p>
+<p>급여형태등록 - 상여(계산용)</p>
+<p>300 급상여처리 -&gt; 급상여처리검증조회에서 300으로 조회</p>
+<p>다시 통상임금처리에서 전월 가져오기 해서 200으로 바꿨다</p>
+<p>전월 가져오기 할 때 [급여형태등록]에서 '통상임금' 체크된 건을 가져온다</p>
+<p>13일 - 정상 (200)</p>
+<p>14일 - x (300)</p>
+<p>통상임금처리에서 수정한거는 아닌거같다</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>옵션대분류 기준 변경</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>옵션대분류 기준 변경</h1>
+    <div class="meta">
+      <span class="note-date">2026-01-06</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#셀바스</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">옵션대분류 기준 변경</h1>
+<p><span class="mark">-- 테이블 백업 및 품목자산분류 '제품' 으로 추가</span></p>
+<p>SELECT *</p>
+<p>INTO svs_TPDSerialBase_BAK</p>
+<p>FROM svs_TPDSerialBase</p>
+<p>IF EXISTS (SELECT * FROM SYSOBJECTS WHERE Name = 'svs_TPDSerialBase' AND xtype = 'U' )</p>
+<p>DROP TABLE svs_TPDSerialBase</p>
+<p>CREATE TABLE svs_TPDSerialBase</p>
+<p>(</p>
+<p>CompanySeq INT NOT NULL,</p>
+<p>AssetSeq INT NOT NULL,</p>
+<p>UMItemClassL INT NOT NULL,</p>
+<p>IsSerial NCHAR(1) NOT NULL,</p>
+<p>SeriNoCd NVARCHAR(20) NULL,</p>
+<p>IsOption NCHAR(1) NOT NULL,</p>
+<p>IsNotUse NCHAR(1) NOT NULL,</p>
+<p>LastUserSeq INT NULL,</p>
+<p>LastDateTime DATETIME NULL,</p>
+<p>CONSTRAINT PKsvs_TPDSerialBase PRIMARY KEY CLUSTERED (CompanySeq ASC, AssetSeq ASC, UMItemClassL ASC)</p>
+<p>)</p>
+<p>IF NOT EXISTS (SELECT 1 FROM _TCOMTableLogInfo WHERE TableSeq = 149710005)</p>
+<p>BEGIN</p>
+<p>INSERT _TCOMTableLogInfo (TableName, CompanySeq, TableSeq, UseLog, LastUserSeq, LastDateTime)</p>
+<p>SELECT 'svs_TPDSerialBase', 1, 149710005, '1', 1, GETDATE()</p>
+<p>END</p>
+<p>INSERT INTO svs_TPDSerialBase</p>
+<p>SELECT</p>
+<p>CompanySeq</p>
+<p>,2</p>
+<p>,UMItemClassL</p>
+<p>,IsSerial</p>
+<p>,SeriNoCd</p>
+<p>,IsOption</p>
+<p>,IsNotUse</p>
+<p>,LastUserSeq</p>
+<p>,LastDateTime</p>
+<p>FROM svs_TPDSerialBase_BAK</p>
+<p>DROP TABLE svs_TPDSerialBase_BAK</p>
+<p><span class="mark">SP List</span></p>
+<p>svs_SWCACodeHelpFactUnitItem</p>
+<p>svs_SWCACodeHelpItem</p>
+<p>svs_SWDAItemCheck</p>
+<p>svs_SWLGGetItemSerialOption</p>
+<p>svs_SWLGInOutReqItemJumpQuery</p>
+<p>svs_SWLGItemConvertItemCheck</p>
+<p>svs_SWLGItemConvertQuery</p>
+<p>svs_SWPDMPSDailyProdPlanCreateSemiItemProdPlanQuery</p>
+<p>svs_SWPDMPSDailyProdPlanGetData</p>
+<p>svs_SWPDMPSDailyProdPlanQuery</p>
+<p>svs_SWPDMPSDailyProdPlanSave</p>
+<p>svs_SWPDMPSProdReqItemJumpQuery</p>
+<p>svs_SWPDOSPDelvInItemQuery</p>
+<p>svs_SWPDOSPDelvProgJumpQuery</p>
+<p>svs_SWPDSerialBaseCheck</p>
+<p>svs_SWPDSerialBaseQuery</p>
+<p>svs_SWPDSerialBaseSave</p>
+<p>svs_SWPDSFCWorkOrderJumpQuery</p>
+<p>svs_SWPDSFCWorkOrderQuery</p>
+<p>svs_SWPDSFCWorkReportQuery</p>
+<p>svs_SWSLInvoiceBill3JumpQuery</p>
+<p>svs_SWSLInvoiceDelvCfmCheck</p>
+<p>svs_SWSLInvoiceItemQuery</p>
+<p>svs_SWSLInvoiceJumpSub1</p>
+<p>svs_SWSLInvoiceJumpSub4</p>
+<p>svs_SWSLInvoiceOutMultiCheck</p>
+<p>svs_SWSLOrderJumpSub6</p>
+<p>svs_SWSLSalesBill3ItemQuery</p>
+<p>svs_SWSLSalesItemQuery</p>
+<p>svs_TPDSerialBase</p>
+<p>AND D1.AssetSeq = I.AssetSeq</p>
+<p>--=========================================================================</p>
+<p>--=========================================================================</p>
+<p>SP List</p>
+<p>-- 생산의뢰 -&gt; 주간생산계획</p>
+<p>svs_SWPDMPSProdReqItemJumpQuery</p>
+<p>-- 코드도움 : 주간생산계획</p>
+<p>svs_SWCACodeHelpFactUnitItem</p>
+<p>-- 품목 코드도움</p>
+<p>svs_SWCACodeHelpItem</p>
+<p>-- 품목 신규 저장</p>
+<p>svs_SWDAItemCheck</p>
+<p>-- 서브 SP</p>
+<p>svs_SWLGGetItemSerialOption</p>
+<p>-- 입출고요청 -&gt; 입출고</p>
+<p>svs_SWLGInOutReqItemJumpQuery</p>
+<p>-- 품목대체</p>
+<p>svs_SWLGItemConvertItemCheck</p>
+<p>svs_SWLGItemConvertQuery</p>
+<p>--주간생산계획</p>
+<p>svs_SWPDMPSDailyProdPlanCreateSemiItemProdPlanQuery</p>
+<p>svs_SWPDMPSDailyProdPlanGetData</p>
+<p>svs_SWPDMPSDailyProdPlanQuery</p>
+<p>svs_SWPDMPSDailyProdPlanSave</p>
+<p>-- 외주입고</p>
+<p>svs_SWPDOSPDelvInItemQuery</p>
+<p>svs_SWPDOSPDelvProgJumpQuery</p>
+<p>-- 옵션대분류설정</p>
+<p>svs_SWPDSerialBaseCheck</p>
+<p>svs_SWPDSerialBaseQuery</p>
+<p>svs_SWPDSerialBaseSave</p>
+<p>-- 작업지시</p>
+<p>svs_SWPDSFCWorkOrderJumpQuery</p>
+<p>svs_SWPDSFCWorkOrderQuery</p>
+<p>-- 작업실적</p>
+<p>svs_SWPDSFCWorkReportQuery</p>
+<p>-- 거래명세서</p>
+<p>svs_SWSLInvoiceBill3JumpQuery</p>
+<p>svs_SWSLInvoiceDelvCfmCheck</p>
+<p>svs_SWSLInvoiceItemQuery</p>
+<p>svs_SWSLInvoiceJumpSub1</p>
+<p>svs_SWSLInvoiceJumpSub4</p>
+<p>-- 다중출고</p>
+<p>svs_SWSLInvoiceOutMultiCheck</p>
+<p>-- 수주</p>
+<p>svs_SWSLOrderJumpSub6</p>
+<p>-- 세금계산서</p>
+<p>svs_SWSLSalesBill3ItemQuery</p>
+<p>svs_SWSLSalesItemQuery</p>
+<p>svs_TPDSerialBase</p>
+<p>AND D1.AssetSeq = I.AssetSeq</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>페이지 (페이징 처리) OFFSET and FETCH</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>페이지 (페이징 처리) OFFSET and FETCH</h1>
+    <div class="meta">
+      <span class="note-date">2025-03-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="offset-and-fetch">페이지 (페이징 처리) OFFSET and FETCH</h1>
+<p>-- 임시 테이블 생성</p>
+<p>CREATE TABLE #TempNumbers (Number INT);</p>
+<p>-- 1부터 100까지 숫자 삽입</p>
+<p>WITH Numbers AS (</p>
+<p>SELECT 1 AS Num</p>
+<p>UNION ALL</p>
+<p>SELECT Num + 1 FROM Numbers WHERE Num \&lt; 100</p>
+<p>)</p>
+<p>INSERT INTO #TempNumbers (Number)</p>
+<p>SELECT Num FROM Numbers OPTION (MAXRECURSION 100);</p>
+<p>-- 결과 확인</p>
+<p>--SELECT * FROM #TempNumbers;</p>
+<p>-- 필요 없으면 임시 테이블 삭제</p>
+<p>-- DROP TABLE #TempNumbers;</p>
+<p>DECLARE @PageNumber INT = 2; -- 현재 페이지</p>
+<p>DECLARE @PageSize INT = 10; -- 한 페이지당 개수</p>
+<p>SELECT * FROM #TempNumbers</p>
+<p>ORDER BY Number</p>
+<p>OFFSET (@PageNumber - 1) * @PageSize ROWS FETCH NEXT @PageSize ROWS ONLY;</p>
+<p>DROP TABLE #TempNumbers</p>
+  </article>
+</div>
+</body>
+</html>

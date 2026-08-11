@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>활동센터간배부방법등록 조회</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>활동센터간배부방법등록 조회</h1>
+    <div class="meta">
+      <span class="note-date">2024-12-02</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">활동센터간배부방법등록 조회</h1>
+<p>SELECT CASE WHEN A.LogType = 'D' THEN '삭제'</p>
+<p>WHEN A.LogType = 'U' THEN '수정'</p>
+<p>WHEN A.LogType = 'X' THEN '일괄삭제' END AS '타입',</p>
+<p>A.LogDateTime AS '실행일시',</p>
+<p>E.UserName AS '실행자',</p>
+<p>M.CostYM AS '원가년월' ,</p>
+<p>A.AllocName AS '배부처리명',</p>
+<p>B1.CCtrName AS '보내는 활동센터',</p>
+<p>C1.CCtrName AS '받는 활동센터',</p>
+<p>CASE WHEN D.CostAccSeq = 0 THEN '아래 계정을 제외한 계정에 대한 설정'</p>
+<p>ELSE D1.CostAccName</p>
+<p>END AS '관리회계 계정과목',</p>
+<p>D2.DriverName AS '자원동인 배부기준'</p>
+<p>FROM _TESMDProdAllocNameLog AS A WITH(NOLOCK)</p>
+<p>JOIN _TESMDCostKey AS M WITH(NOLOCK) ON A.CompanySeq = M.CompanySeq</p>
+<p>AND A.CostKeySeq = M.CostKeySeq</p>
+<p>LEFT OUTER JOIN _TESMDProdCCtrSendLOG AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.AllocSeq = A.AllocSeq</p>
+<p>LEFT OUTER JOIN _TCAUser AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.UserSeq = A.LogUserSeq</p>
+<p>LEFT OUTER JOIN _TDACCtr AS B1 WITH(NOLOCK) ON B1.CompanySeq = B.CompanySeq</p>
+<p>AND B1.CCtrSeq = B.SendCCtrSeq</p>
+<p>LEFT OUTER JOIN _TESMDProdCCtrRevLOG AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.AllocSeq = A.AllocSeq</p>
+<p>LEFT OUTER JOIN _TDACCtr AS C1 WITH(NOLOCK) ON C1.CompanySeq = C.CompanySeq</p>
+<p>AND C1.CCtrSeq = C.RevCCtrSeq</p>
+<p>LEFT OUTER JOIN _TESMDProdCCtrAccLOG AS D WITH(NOLOCK) ON D.CompanySeq = A.CompanySeq</p>
+<p>AND D.AllocSeq = A.AllocSeq</p>
+<p>LEFT OUTER JOIN _TESMBAccount AS D1 WITH(NOLOCK) ON D1.CompanySeq = D.CompanySeq</p>
+<p>AND D1.CostAccSeq = D.CostAccSeq</p>
+<p>LEFT OUTER JOIN _TESMBDriver AS D2 WITH(NOLOCK) ON D2.CompanySeq = D.CompanySeq</p>
+<p>AND D2.DriverSeq = D.DriverSeq</p>
+<p>WHERE CONVERT(NCHAR(8),A.LogDateTime,112) BETWEEN '20241001' AND '20241130'</p>
+<p>OR CONVERT(NCHAR(8),B.LogDateTime,112) BETWEEN '20241001' AND '20241130'</p>
+<p>OR CONVERT(NCHAR(8),C.LogDateTime,112) BETWEEN '20241001' AND '20241130'</p>
+<p>OR CONVERT(NCHAR(8),D.LogDateTime,112) BETWEEN '20241001' AND '20241130'</p>
+  </article>
+</div>
+</body>
+</html>

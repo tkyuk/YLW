@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>25.09.11 서비스프로젝트 - 코스트센터 신규 생성</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>25.09.11 서비스프로젝트 - 코스트센터 신규 생성</h1>
+    <div class="meta">
+      <span class="note-date">2025-09-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="250911-">25.09.11 서비스프로젝트 - 코스트센터 신규 생성</h1>
+<p>BEGIN TRAN</p>
+<p>SELECT TOP 100 LastDateTime,* FROM _TDACCtr ORDER BY CCtrSeq DESC</p>
+<p>SELECT COUNT(*) FROM _TDACCtr</p>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>,@Seq INT = 0</p>
+<blockquote>
+<p>,@Count INT = 0</p>
+<p>,@PgmSeq INT = 128410304</p>
+</blockquote>
+<p>CREATE TABLE #Result(</p>
+<p>DataSeq INT IDENTITY(1,1)</p>
+<blockquote>
+<p>,SVCPJTSeq INT</p>
+<p>,ItemCCtrSeq INT</p>
+</blockquote>
+<p>,CCtrSeq         INT</p>
+<p>,CCtrName NVARCHAR(200)</p>
+<blockquote>
+<p>,UserSeq INT</p>
+</blockquote>
+<p>)</p>
+<blockquote>
+<p>INSERT INTO #Result(SVCPJTSeq,ItemCCtrSeq, CCtrName, UserSeq)</p>
+<p>SELECT A.SVCPJTSeq, F.CCtrSeq, E.PJTNo, E.RegUserSeq</p>
+</blockquote>
+<p>FROM das_TPJTServicePJTItem AS A</p>
+<p>LEFT OUTER JOIN _TPJTProject AS E WITH(NOLOCK) ON E.CompanySeq = A.CompanySeq</p>
+<p>AND E.PJTSeq = A.SVCPJTSeq</p>
+<p>LEFT OUTER JOIN _TPJTProject AS F WITH(NOLOCK) ON F.CompanySeq = A.CompanySeq</p>
+<p>AND F.PJTSeq = A.ItemPJTSeq</p>
+<p>WHERE ISNULL(A.SVCPJTSeq ,0) \&lt;&gt; 0</p>
+<blockquote>
+<p>AND ISNULL(E.CCtrSeq,0) = ISNULL(F.CCtrSeq,0)</p>
+<p>SELECT * FROM #Result</p>
+</blockquote>
+<p>-- 키값생성코드부분 시작</p>
+<p>EXEC @Seq = dbo._SWCOMCreateSeq @CompanySeq, '_TDACCtr', 'CCtrSeq', @Count</p>
+<blockquote>
+<p>IF EXISTS (SELECT 1 FROM _TDACCtr WITH(NOLOCK) WHERE CompanySeq = @CompanySeq AND CCtrSeq &gt; @Seq)</p>
+<p>BEGIN</p>
+<p>SELECT @Seq = (SELECT MAX(CCtrSeq) FROM _TDACCtr WITH(NOLOCK) WHERE CompanySeq = @CompanySeq)</p>
+<p>UPDATE _TCOMCreateSeqMax</p>
+<p>SET MaxSeq = @Seq + @Count</p>
+<p>WHERE CompanySeq = @CompanySeq</p>
+<p>AND TableName = '_TDACCtr'</p>
+<p>END</p>
+</blockquote>
+<p>-- Temp Talbe 에 생성된 키값 UPDATE</p>
+<p>UPDATE #Result</p>
+<p>SET CCtrSeq = @Seq + DataSeq</p>
+<p>INSERT INTO _TDACCtr</p>
+<p>(</p>
+<p>CompanySeq ,CCtrSeq ,CCtrName ,EmpSeq ,DeptSeq ,</p>
+<p>UMCCtrKind ,UMCostType ,IsNotUse ,IsNotUseDate,RegDate ,</p>
+<p>RegUserSeq ,IsCCtr ,Remark ,SMSourceType,LastUserSeq ,</p>
+<p>LastDateTime,AccUnit ,IsTemp ,FactUnit ,BizUnit ,CostUnit ,</p>
+<p>ProfCostUnit,DispSeq, PE_IsEDU, Remark2, PgmSeq</p>
+<p>)</p>
+<p>SELECT @CompanySeq ,A.CCtrSeq ,A.CCtrName ,B.EmpSeq , B.DeptSeq ,</p>
+<p>B.UMCCtrKind ,B.UMCostType ,B.IsNotUse ,B.IsNotUseDate, CONVERT(NCHAR(8),GETDATE(),112),</p>
+<p>A.UserSeq ,B.IsCCtr ,B.Remark ,B.SMSourceType, A.UserSeq ,</p>
+<p>GETDATE() ,B.AccUnit ,B.IsTemp ,B.FactUnit , B.BizUnit , B.CostUnit ,</p>
+<p>B.ProfCostUnit,B.DispSeq ,B.PE_IsEDU ,B.Remark2 , @PgmSeq</p>
+<p>FROM #Result AS A</p>
+<p>JOIN _TDACCtr AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq</p>
+<p>AND B.CCtrSeq = A.ItemCCtrSeq</p>
+<p>SELECT A.CCtrSeq, A.PJTNo</p>
+<blockquote>
+<p>FROM _TPJTProject AS A</p>
+<p>JOIN #Result AS C ON A.PJTSeq = C.SVCPJTSeq</p>
+</blockquote>
+<p>ORDER BY A.CCtrSeq DESC</p>
+<blockquote>
+<p>UPDATE _TPJTProject</p>
+<p>SET CCtrSeq = C.CCtrSeq</p>
+<p>FROM _TPJTProject AS A</p>
+<p>JOIN #Result AS C ON A.PJTSeq = C.SVCPJTSeq</p>
+</blockquote>
+<p>SELECT A.CCtrSeq, A.PJTNo</p>
+<blockquote>
+<p>FROM _TPJTProject AS A</p>
+<p>JOIN #Result AS C ON A.PJTSeq = C.SVCPJTSeq</p>
+</blockquote>
+<p>ORDER BY A.CCtrSeq DESC</p>
+<p>SELECT TOP 100 LastDateTime,* FROM _TDACCtr ORDER BY CCtrSeq DESC</p>
+<p>SELECT COUNT(*) FROM _TDACCtr</p>
+<p>DROP TABLE #Result</p>
+<p>COMMIT TRAN</p>
+  </article>
+</div>
+</body>
+</html>

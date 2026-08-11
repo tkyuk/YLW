@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시트 컬럼 추가</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>시트 컬럼 추가</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-03</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#GNI</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">시트 컬럼 추가</h1>
+<ul>
+<li>시트 컬럼 추가 (ex. test_sjpark)(58번 서버에서 수정)</li>
+</ul>
+<ol>
+<li>
+<p>ASPX에서 컬럼추가</p>
+<ol>
+<li>Private 변수 선언</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image23.png" /></p>
+</blockquote>
+<ol start="2">
+<li>Page_Load 컬럼 개수 추가 (59 =&gt; 60)</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image24.png" /></p>
+</blockquote>
+<ol start="3">
+<li>Page_Load 하단 부분에 추가</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image25.png" /></p>
+</blockquote>
+<ol start="2">
+<li>
+<p>cs 수정</p>
+<ol>
+<li>초기값 할당 (aspx에서 작성한 순서 번호 기입)</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image26.png" /></p>
+</blockquote>
+<ol start="2">
+<li>Page 추가</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image27.png" /></p>
+</blockquote>
+<ol start="3">
+<li>csproj에서 컴파일 (Ctrl + Shift + B) =&gt; bin폴더에 dll 파일 생성 및 복사</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image28.png" /></p>
+</blockquote>
+<ol start="4">
+<li>(1번서버) ksystem.Net - bin 폴더로 dll 파일 붙여넣기 (aspx파일 본인 폴더에 붙여넣기)</li>
+</ol>
+<blockquote></blockquote>
+<p>저장 및 조회하기 위해 SP 수정</p>
+<ol>
+<li>SSASalesOrder2Save_02_sjpark</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image29.png" /></p>
+<p><img alt="" src="assets/시트-컬럼-추가/image30.png" /></p>
+<p><img alt="" src="assets/시트-컬럼-추가/image31.png" /></p>
+<p><img alt="" src="assets/시트-컬럼-추가/image32.png" /></p>
+<p><img alt="" src="assets/시트-컬럼-추가/image33.png" /></p>
+<hr />
+</blockquote>
+<ol start="2">
+<li>SSASalesOrder2Qry_sjpark</li>
+</ol>
+<blockquote>
+<p><img alt="" src="assets/시트-컬럼-추가/image34.png" /></p>
+<p><img alt="" src="assets/시트-컬럼-추가/image35.png" /></p>
+</blockquote>
+  </article>
+</div>
+</body>
+</html>

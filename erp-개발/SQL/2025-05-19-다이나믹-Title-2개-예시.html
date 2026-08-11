@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다이나믹 Title 2개 예시</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>다이나믹 Title 2개 예시</h1>
+    <div class="meta">
+      <span class="note-date">2025-05-19</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="title-2">다이나믹 Title 2개 예시</h1>
+<p>DROP PROC cymc_SPJTPurchaseProgListQuery</p>
+<p>GO</p>
+<p>CREATE PROC cymc_SPJTPurchaseProgListQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @EmpSeq INT,</p>
+<p>@CustSeq INT,</p>
+<p>@PJTName NVARCHAR(100)</p>
+<p>SELECT @EmpSeq = ISNULL(EmpSeq , 0),</p>
+<p>@CustSeq = ISNULL(CustSeq, 0),</p>
+<p>@PJTName = ISNULL(PJTName, '')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>--타이틀구하기(담당자별 협력사 = 담당자별협력사프로젝트입력_cymc)</p>
+<p>CREATE TABLE #Title</p>
+<p>(</p>
+<p>Title NVARCHAR(100),</p>
+<p>TitleSeq INT,</p>
+<p>Title2 NVARCHAR(100),</p>
+<p>TitleSeq2 INT,</p>
+<p>ColIDX INT</p>
+<p>)</p>
+<p>CREATE TABLE #Title2</p>
+<p>(</p>
+<p>Title2 NVARCHAR(100),</p>
+<p>TitleSeq2 INT</p>
+<p>)</p>
+<p>INSERT #Title2(Title2, TitleSeq2)</p>
+<p>SELECT '발주수량' , 1 UNION ALL</p>
+<p>SELECT '발주중단수량', 2 UNION ALL</p>
+<p>SELECT '입고수량' , 3 UNION ALL</p>
+<p>SELECT '미입고수량' , 4</p>
+<p>INSERT #Title(Title, TitleSeq, Title2, TitleSeq2, ColIDX)</p>
+<p>SELECT DISTINCT</p>
+<p>C.CustName AS Title ,</p>
+<p>A.CustSeq AS TitleSeq ,</p>
+<p>Z.Title2 AS Title2 ,</p>
+<p>Z.TitleSeq2 AS TitleSeq2,</p>
+<p>DENSE_RANK() OVER(ORDER BY C.CustName, A.SortOrder) -1 AS ColIDX</p>
+<p>FROM #Title2 AS Z</p>
+<p>JOIN cymc_TPJTEmpCust AS A WITH(NOLOCK) ON 1=1</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>JOIN _TDACust AS C WITH(NOLOCK) ON C.CompanySeq = A.CompanySeq</p>
+<p>AND C.CustSeq = A.CustSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND (@CustSeq = 0 OR A.CustSeq = @CustSeq)</p>
+<p>AND B.PJTName LIKE @PJTName + '%'</p>
+<p>CREATE TABLE #Fix</p>
+<p>(</p>
+<p>PJTNo NVARCHAR(100),</p>
+<p>PJTName NVARCHAR(100),</p>
+<p>PJTSeq INT,</p>
+<p>RowIDX INT</p>
+<p>)</p>
+<p>INSERT #Fix(PJTNo, PJTName, PJTSeq, RowIDX)</p>
+<p>SELECT B.PJTNo ,</p>
+<p>B.PJTName,</p>
+<p>B.PJTSeq ,</p>
+<p>ROW_NUMBER() OVER(ORDER BY B.PJTNo) - 1 AS RowIDX</p>
+<p>FROM cymc_TPJTEmpCust AS A</p>
+<p>JOIN _TPJTProject AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.PJTSeq = A.PJTSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.EmpSeq = @EmpSeq</p>
+<p>AND (@CustSeq = 0 OR A.CustSeq = @CustSeq)</p>
+<p>AND B.PJTName LIKE @PJTName + '%'</p>
+<p>CREATE TABLE #TMP_PROGRESSTABLE</p>
+<p>(</p>
+<blockquote>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+</blockquote>
+<p>CREATE TABLE #TCOMProgressTracking</p>
+<p>(</p>
+<blockquote>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19, 5),</p>
+<p>StdQty DECIMAL(19,5) ,</p>
+<p>Amt DECIMAL(19, 5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+</blockquote>
+<p>CREATE TABLE #Temp_POProgress</p>
+<p>(</p>
+<blockquote>
+<p>IDX_NO INT IDENTITY,</p>
+<p>POSeq INT,</p>
+<p>POSerl INT,</p>
+</blockquote>
+<p>PJTSeq INT,</p>
+<p>CustSeq INT,</p>
+<blockquote>
+<p>Qty DECIMAL(19, 5),</p>
+<p>IsDelv NCHAR(1),</p>
+<p>IsStop NCHAR(1),</p>
+<p>SMCurrStatus INT,</p>
+<p>CurAmt DECIMAL(19, 5),</p>
+<p>CurVAT DECIMAL(19, 5),</p>
+<p>DelvInSeq INT,</p>
+<p>DelvInSerl INT,</p>
+<p>DelvInAmt DECIMAL(19, 5),</p>
+<p>DelvInVAT DECIMAL(19, 5),</p>
+<p>DelvInQty DECIMAL(19, 5),</p>
+<p>DelvInDate NCHAR(8),</p>
+<p>DelvInExRate DECIMAL(19, 5),</p>
+<p>CompleteCHECK INT</p>
+<p>)</p>
+</blockquote>
+<p>INSERT #Temp_POProgress(POSeq, POSerl, PJTSeq, CustSeq, Qty, IsDelv, IsStop, SMCurrStatus, CurAmt, CurVAT, DelvInSeq, DelvInSerl, DelvInAmt, DelvInVAT, DelvInQty, DelvInExRate, CompleteCHECK)</p>
+<p>SELECT A.POSeq, B.POSerl, B.PJTSeq, A.CustSeq, B.Qty, '1', B.IsStop, 6036001, B.CurAmt, B.CurVAT, 0, 0, 0, 0, 0, 0, 0</p>
+<p>FROM _TPUORDPO AS A WITH(NOLOCK)</p>
+<p>JOIN _TPUORDPOItem AS B WITH(NOLOCK) ON B.CompanySeq = A.CompanySeq</p>
+<p>AND B.POSeq = A.POSeq</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND A.CustSeq IN (SELECT DISTINCT TitleSeq FROM #Title)</p>
+<p>AND B.PJTSeq IN (SELECT DISTINCT PJTSeq FROM #Fix)</p>
+<blockquote>
+<p>-- 진행상태 체크                 </p>
+</blockquote>
+<p>EXEC _SCOMProgStatus @CompanySeq, '_TPUORDPOItem', 1036002, '#Temp_POProgress', 'POSeq', 'POSerl', '', '', '', '', '', '', 'CompleteCHECK', 1, 'Qty', 'StdUnitQty', 'CurAmt', '', 'POSeq', 'POSerl', '', '_TPUORDPOItem', 1133</p>
+<p>UPDATE #Temp_POProgress</p>
+<p>SET SMCurrStatus = (SELECT CASE WHEN A.CompleteCHECK = '5' OR B.MinorSeq = 1037009 THEN 6036007 -- 결재진행중 2014.07.03 김용현추가</p>
+<p>WHEN A.IsStop = '1' OR B.MinorSeq = 1037005 THEN 6036005 -- 중단</p>
+<p>WHEN A.CompleteCHECK = '40' OR B.MinorSeq = 1037008 THEN 6036004 -- 완료</p>
+<p>WHEN A.CompleteCHECK = 1 OR B.MinorSeq = 1037003 THEN 6036002 -- 확정(승인)</p>
+<p>WHEN A.CompleteCHECK = '20' OR B.MinorSeq = 1037006 THEN 6036003 -- 진행</p>
+<p>ELSE 6036001 END) -- 작성(미확정)</p>
+<p>FROM #Temp_POProgress AS A</p>
+<p>LEFT OUTER JOIN _TDASMinor AS B WITH(NOLOCK) ON B.CompanySeq = @CompanySeq AND B.MajorSeq = 1037 AND A.CompleteCHECK = B.MinorValue</p>
+<blockquote>
+<p>TRUNCATE TABLE #TMP_PROGRESSTABLE</p>
+<p>TRUNCATE TABLE #TCOMProgressTracking</p>
+</blockquote>
+<p>INSERT #TMP_PROGRESSTABLE</p>
+<p>SELECT 1, '_TPUDelvInItem'                         -- 구매입고</p>
+<p>EXEC _SCOMProgressTracking @CompanySeq, '_TPUORDPOItem', '#Temp_POProgress', 'POSeq', 'POSerl', ''</p>
+<p>CREATE TABLE #OrderTracking</p>
+<p>(</p>
+<blockquote>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Qty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 납품, 입고 금액 가져오기</p>
+<p>INSERT INTO #OrderTracking</p>
+<p>SELECT IDX_NO,</p>
+<p>IDOrder,</p>
+<p>SUM(Qty)</p>
+<p>FROM #TCOMProgressTracking        </p>
+</blockquote>
+<p>GROUP BY IDX_NO, IDOrder</p>
+<p>UPDATE #Temp_POProgress</p>
+<p>SET DelvInSeq = B.Seq ,</p>
+<p>DelvInSerl = B.Serl ,</p>
+<p>DelvInQty = D.Qty ,</p>
+<blockquote>
+<p>DelvInDate         = C.DelvInDate,</p>
+<p>DelvInExRate         = C.ExRate</p>
+</blockquote>
+<p>FROM #Temp_POProgress AS A</p>
+<blockquote>
+<p>JOIN #TCOMProgressTracking AS B ON A.IDX_No = B.IDX_No</p>
+</blockquote>
+<p>AND B.IDOrder = 1</p>
+<blockquote>
+<p>JOIN _TPUDelvIn         AS C WITH(NOLOCK) ON C.CompanySeq = @CompanySeq</p>
+<p>AND B.Seq                = C.DelvInSeq</p>
+</blockquote>
+<p>JOIN #OrderTracking AS D ON A.IDX_No = D.IDX_No</p>
+<blockquote>
+<p>WHERE D.IDOrder = 1        -- 구매입고</p>
+</blockquote>
+<p>CREATE TABLE #Value_Temp</p>
+<p>(</p>
+<p>PJTSeq INT,</p>
+<p>CustSeq INT,</p>
+<p>POQty DECIMAL(19,5),</p>
+<p>StopPOQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>NotInQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>CREATE TABLE #Value</p>
+<p>(</p>
+<p>PJTSeq INT,</p>
+<p>CustSeq INT,</p>
+<p>POQty DECIMAL(19,5),</p>
+<p>StopPOQty DECIMAL(19,5),</p>
+<p>InQty DECIMAL(19,5),</p>
+<p>NotInQty DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- POQty</p>
+<p>INSERT #Value_Temp(PJTSeq, CustSeq, POQty, StopPOQty, InQty, NotInQty)</p>
+<p>SELECT PJTSeq, CustSeq, SUM(Qty), 0, 0, 0</p>
+<p>FROM #Temp_POProgress</p>
+<p>WHERE IsStop \&lt;&gt; '1'</p>
+<p>GROUP BY PJTSeq, CustSeq</p>
+<p>-- StopPOQty</p>
+<p>INSERT #Value_Temp(PJTSeq, CustSeq, POQty, StopPOQty, InQty, NotInQty)</p>
+<p>SELECT PJTSeq, CustSeq, 0, SUM(Qty), 0, 0</p>
+<p>FROM #Temp_POProgress</p>
+<p>WHERE IsStop = '1'</p>
+<p>GROUP BY PJTSeq, CustSeq</p>
+<p>-- InQty</p>
+<p>INSERT #Value_Temp(PJTSeq, CustSeq, POQty, StopPOQty, InQty, NotInQty)</p>
+<p>SELECT PJTSeq, CustSeq, 0, 0, SUM(Qty), 0</p>
+<p>FROM #Temp_POProgress</p>
+<p>WHERE (DelvInQty \&lt;&gt; 0 AND Qty = DelvInQty)</p>
+<p>GROUP BY PJTSeq, CustSeq</p>
+<p>-- NotInQty</p>
+<p>INSERT #Value_Temp(PJTSeq, CustSeq, POQty, StopPOQty, InQty, NotInQty)</p>
+<p>SELECT PJTSeq, CustSeq, 0, 0, 0, SUM(Qty)</p>
+<p>FROM #Temp_POProgress</p>
+<p>WHERE (DelvInQty = 0 OR (DelvInQty \&lt;&gt; 0 AND Qty &gt; DelvInQty))</p>
+<p>GROUP BY PJTSeq, CustSeq</p>
+<p>-- 최종 집계</p>
+<p>INSERT #Value(PJTSeq, CustSeq, POQty, StopPOQty, InQty, NotInQty)</p>
+<p>SELECT PJTSeq, CustSeq, SUM(POQty), SUM(StopPOQty), SUM(InQty), SUM(NotInQty)</p>
+<p>FROM #Value_Temp</p>
+<p>GROUP BY PJTSeq, CustSeq</p>
+<p>-- 최종SELECT</p>
+<p>SELECT *</p>
+<p>FROM #Title</p>
+<p>ORDER BY ColIDX, TitleSeq2</p>
+<p>SELECT *</p>
+<p>FROM #Fix</p>
+<p>ORDER BY RowIDX</p>
+<p>SELECT B.ColIDX ,</p>
+<p>A.RowIDX ,</p>
+<p>C.POQty ,</p>
+<p>C.StopPOQty,</p>
+<p>C.InQty ,</p>
+<p>C.NotInQty</p>
+<p>FROM #Fix AS A</p>
+<p>JOIN #Title AS B ON 1=1</p>
+<p>JOIN #Value AS C WITH(NOLOCK) ON C.PJTSeq = A.PJTSeq</p>
+<p>AND C.CustSeq = B.TitleSeq</p>
+<p>ORDER BY B.ColIDX, A.RowIDX</p>
+<p>RETURN</p>
+<p>GO</p>
+<p>DECLARE @CONST_#BIZ_IN_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock2 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock3 INT</p>
+<p>, @CONST_#BIZ_IN_DataBlock4 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock3 INT</p>
+<p>, @CONST_#BIZ_OUT_DataBlock4 INT</p>
+<p>SELECT @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock3 = 0</p>
+<p>, @CONST_#BIZ_IN_DataBlock4 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock3 = 0</p>
+<p>, @CONST_#BIZ_OUT_DataBlock4 = 0</p>
+<p>IF @CONST_#BIZ_IN_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, EmpSeq INT, CustSeq INT, PJTName NVARCHAR(100)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock1 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock1</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, EmpSeq INT, CustSeq INT, PJTName NVARCHAR(100)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock1 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, Title NVARCHAR(100), TitleSeq INT, Title2 NVARCHAR(100), TitleSeq2 INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock2 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock2 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock2</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, Title NVARCHAR(100), TitleSeq INT, Title2 NVARCHAR(100), TitleSeq2 INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock2 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock3 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, PJTNo NVARCHAR(100), PJTName NVARCHAR(100), PJTSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock3 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock3 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock3</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, PJTNo NVARCHAR(100), PJTName NVARCHAR(100), PJTSeq INT</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock3 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_IN_DataBlock4 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_IN_DataBlock4</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, RowIDX INT, ColIDX INT, POQty DECIMAL(19, 5), StopPOQty DECIMAL(19, 5), InQty DECIMAL(19, 5), NotInQty DECIMAL(19, 5)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_IN_DataBlock4 = 1</p>
+<p>END</p>
+<p>IF @CONST_#BIZ_OUT_DataBlock4 = 0</p>
+<p>BEGIN</p>
+<p>CREATE TABLE #BIZ_OUT_DataBlock4</p>
+<p>(</p>
+<p>WorkingTag NCHAR(1)</p>
+<p>, IDX_NO INT</p>
+<p>, DataSeq INT</p>
+<p>, Selected INT</p>
+<p>, MessageType INT</p>
+<p>, Status INT</p>
+<p>, Result NVARCHAR(255)</p>
+<p>, ROW_IDX INT</p>
+<p>, IsChangedMst NCHAR(1)</p>
+<p>, TABLE_NAME NVARCHAR(255)</p>
+<p>, RowIDX INT, ColIDX INT, POQty DECIMAL(19, 5), StopPOQty DECIMAL(19, 5), InQty DECIMAL(19, 5), NotInQty DECIMAL(19, 5)</p>
+<p>)</p>
+<p>SET @CONST_#BIZ_OUT_DataBlock4 = 1</p>
+<p>END</p>
+<p>DECLARE @INPUT_ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @INPUT_ERROR_SEVERITY INT</p>
+<p>, @INPUT_ERROR_STATE INT</p>
+<p>, @INPUT_ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>INSERT INTO #BIZ_IN_DataBlock1 (WorkingTag, IDX_NO, DataSeq, Selected, Status, Result, ROW_IDX, IsChangedMst, TABLE_NAME, EmpSeq, CustSeq, PJTName)</p>
+<p>SELECT N'A', 1, 1, 1, 0, NULL, NULL, N'0', N'', N'1285', N'', N''</p>
+<p>IF @@ERROR \&lt;&gt; 0 RETURN</p>
+<p>DECLARE @HasError NCHAR(1)</p>
+<p>, @UseTransaction NCHAR(1)</p>
+<p>-- 내부 SP용 파라메터</p>
+<p>, @ServiceSeq INT</p>
+<p>, @MethodSeq INT</p>
+<p>, @WorkingTag NVARCHAR(10)</p>
+<p>, @CompanySeq INT</p>
+<p>, @LanguageSeq INT</p>
+<p>, @UserSeq INT</p>
+<p>, @PgmSeq INT</p>
+<p>, @IsTransaction BIT</p>
+<p>SET @HasError = N'0'</p>
+<p>SET @UseTransaction = N'0'</p>
+<p>BEGIN TRY</p>
+<p>SET @ServiceSeq = 13120236</p>
+<p>--SET @MethodSeq = 1</p>
+<p>SET @WorkingTag = N''</p>
+<p>SET @CompanySeq = 1</p>
+<p>SET @LanguageSeq = 1</p>
+<p>SET @UserSeq = 46</p>
+<p>SET @PgmSeq = 13120163</p>
+<p>SET @IsTransaction = 0</p>
+<p>-- ExecuteOrder : 1 : Start</p>
+<p>EXEC cymc_SPJTPurchaseProgListQuery</p>
+<p>@ServiceSeq</p>
+<p>, @WorkingTag</p>
+<p>, @CompanySeq</p>
+<p>, @LanguageSeq</p>
+<p>, @UserSeq</p>
+<p>, @PgmSeq</p>
+<p>, @IsTransaction</p>
+<p>IF @@ERROR \&lt;&gt; 0</p>
+<p>BEGIN</p>
+<p>SET @HasError = N'1'</p>
+<p>GOTO GOTO_END</p>
+<p>END</p>
+<p>-- ExecuteOrder : 1 : End</p>
+<p>GOTO_END:</p>
+<p>END TRY</p>
+<p>BEGIN CATCH</p>
+<p>-- SQL 오류인 경우는 여기서 처리가 된다</p>
+<p>IF @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DECLARE @ERROR_MESSAGE NVARCHAR(4000)</p>
+<p>, @ERROR_SEVERITY INT</p>
+<p>, @ERROR_STATE INT</p>
+<p>, @ERROR_PROCEDURE NVARCHAR(128)</p>
+<p>SELECT @ERROR_MESSAGE = ERROR_MESSAGE()</p>
+<p>, @ERROR_SEVERITY = ERROR_SEVERITY()</p>
+<p>, @ERROR_STATE = ERROR_STATE()</p>
+<p>, @ERROR_PROCEDURE = ERROR_PROCEDURE()</p>
+<p>RAISERROR (@ERROR_MESSAGE, @ERROR_SEVERITY, @ERROR_STATE, @ERROR_PROCEDURE)</p>
+<p>RETURN</p>
+<p>END CATCH</p>
+<p>-- SQL 오류를 제외한 체크로직으로 발생된 오류는 여기서 처리</p>
+<p>IF @HasError = N'1' AND @UseTransaction = N'1'</p>
+<p>ROLLBACK TRAN</p>
+<p>DROP TABLE #BIZ_IN_DataBlock1</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock1</p>
+<p>DROP TABLE #BIZ_IN_DataBlock2</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock2</p>
+<p>DROP TABLE #BIZ_IN_DataBlock3</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock3</p>
+<p>DROP TABLE #BIZ_IN_DataBlock4</p>
+<p>DROP TABLE #BIZ_OUT_DataBlock4</p>
+  </article>
+</div>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3/23 - 합계컬럼(세동) 다이나믹</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>3/23 - 합계컬럼(세동) 다이나믹</h1>
+    <div class="meta">
+      <span class="note-date">2022-03-23</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#기록</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="323-">3/23 - 합계컬럼(세동) 다이나믹</h1>
+<p>사업계획조회(판매)_sdng</p>
+<p>FrmWPNSLItemPlanList_sdng</p>
+<p>sdng_SWPNSLItemPlanListQuery</p>
+<ul>
+<li>시트에 수량,금액 합계 컬럼 추가하기 (가변 말고 고정으로)</li>
+</ul>
+<blockquote>
+<p><img alt="" src="assets/3-23-합계컬럼(세동)-다이나믹/image19.png" /></p>
+<p>합계수량, 수량(합계) =&gt; 그냥 '수량'</p>
+<p>Dynamic시트 이기 때문에 SheetFixCols (고정값) 증가 (7 =&gt; 9)</p>
+<p><img alt="" src="assets/3-23-합계컬럼(세동)-다이나믹/image20.png" /></p>
+<p>시트 우클릭 - 멀티헤더및 머지설정</p>
+<p><img alt="" src="assets/3-23-합계컬럼(세동)-다이나믹/image21.png" /></p>
+<p>초기화 누르고 다시 셀 병합</p>
+<p>거래처, 차종, 품번 등은 위,아래 셀 병합</p>
+<p>수량, 금액 합계 부분은 왼,오른쪽 셀 병합</p>
+<p><img alt="" src="assets/3-23-합계컬럼(세동)-다이나믹/image22.png" /></p>
+</blockquote>
+<p>--사업계획조회(판매)_sdng</p>
+<p>DROP PROC sdng_SWPNSLItemPlanListQuery</p>
+<p>GO</p>
+<p>CREATE PROC sdng_SWPNSLItemPlanListQuery</p>
+<p>@ServiceSeq INT = 0,</p>
+<p>@WorkingTag NVARCHAR(10)= '',</p>
+<p>@CompanySeq INT = 1,</p>
+<p>@LanguageSeq INT = 1,</p>
+<p>@UserSeq INT = 0,</p>
+<p>@PgmSeq INT = 0,</p>
+<p>@IsTransaction BIT = 0</p>
+<p>AS</p>
+<p>DECLARE @BizUnit INT, -- 사업단위</p>
+<p>@PlanYear NCHAR(4), -- 계획년도</p>
+<p>@PlanType INT, -- 계획기준</p>
+<p>@CustSeq INT, -- 거래처내부코드</p>
+<p>@UMModelSeq INT, -- 차종</p>
+<p>@ItemName NVARCHAR(100), -- 품명</p>
+<p>@ItemNo NVARCHAR(100), -- 품번</p>
+<p>@SumCfmQty DECIMAL(19,5), -- 합계(수량) (3/23 박성재)</p>
+<p>@SumCfmAmt DECIMAL(19,5), -- 합계(금액) (3/23 박성재)</p>
+<p>@DicPrice NVARCHAR(100), -- 헤더명칭 : 단가</p>
+<p>@DicCfmQty NVARCHAR(100), -- 헤더명칭 : 수량</p>
+<p>@DicCfmAmt NVARCHAR(100) -- 헤더명칭 : 금액</p>
+<p>SELECT @BizUnit = ISNULL(BizUnit , 0),</p>
+<p>@PlanYear = ISNULL(PlanYear , ''),</p>
+<p>@PlanType = ISNULL(PlanType , 0),</p>
+<p>@CustSeq = ISNULL(CustSeq , 0),</p>
+<p>@UMModelSeq = ISNULL(UMModelSeq, 0),</p>
+<p>@ItemName = ISNULL(ItemName , ''),</p>
+<p>@ItemNo = ISNULL(ItemNo ,'')</p>
+<p>FROM #BIZ_IN_DataBlock1</p>
+<p>--=======================</p>
+<p>-- 헤더 명칭 정의</p>
+<p>--=======================</p>
+<p>SELECT @DicPrice = ISNULL(Word,'단가') FROM _TCADictionary WHERE LanguageSeq = @LanguageSeq AND WordSeq = 2359</p>
+<p>SELECT @DicCfmQty = ISNULL(Word,'수량') FROM _TCADictionary WHERE LanguageSeq = @LanguageSeq AND WordSeq = 1628</p>
+<p>SELECT @DicCfmAmt = ISNULL(Word,'금액') FROM _TCADictionary WHERE LanguageSeq = @LanguageSeq AND WordSeq = 290</p>
+<p>--=======================</p>
+<p>-- 가변헤더 임시테이블</p>
+<p>--=======================</p>
+<p>CREATE TABLE #Title(</p>
+<p>ColIDX INT,</p>
+<p>TitleName1 NVARCHAR(100),</p>
+<p>TitleSeq1 INT,</p>
+<p>TitleName2 NVARCHAR(100),</p>
+<p>TitleSeq2 INT</p>
+<p>)</p>
+<p>INSERT INTO #Title(ColIDX, TitleSeq1, TitleName1, TitleSeq2, TitleName2)</p>
+<p>SELECT DISTINCT A.SMonth - 1, LEFT(A.Solar,6), SUBSTRING(A.Solar,5,2) + '월', B.Seq, B.Title</p>
+<p>FROM _TComCalendar AS A</p>
+<p>LEFT OUTER JOIN (SELECT 1 AS Seq, @DicPrice AS Title</p>
+<p>UNION</p>
+<p>SELECT 2 AS Seq, @DicCfmQty AS Title</p>
+<p>UNION</p>
+<p>SELECT 3 AS Seq, @DicCfmAmt AS Title) AS B ON 1=1</p>
+<p>WHERE SUBSTRING(A.Solar,1,4) = @PlanYear</p>
+<p>ORDER BY LEFT(A.Solar, 6), B.Seq</p>
+<p>--=======================</p>
+<p>-- 고정부 임시테이블</p>
+<p>--=======================</p>
+<p>CREATE TABLE #FixData</p>
+<p>(</p>
+<p>RowIDX INT IDENTITY(0,1),</p>
+<p>CustName NVARCHAR(100), -- 거래처</p>
+<p>UMModelName NVARCHAR(100), -- 차종</p>
+<p>ItemNo NVARCHAR(100), -- 품번</p>
+<p>ItemName NVARCHAR(100), -- 품명</p>
+<p>SumCfmQty DECIMAL(19,5), -- 합계(수량) (3/23 박성재)</p>
+<p>SumCfmAmt DECIMAL(19,5), -- 합계(금액) (3/23 박성재)</p>
+<p>CustSeq INT, -- 거래처내부코드</p>
+<p>UMModelSeq INT, -- 차종내부코드</p>
+<p>ItemSeq INT, -- 품목내부코드</p>
+<p>BizUnit INT, -- 사업단위내부코드</p>
+<p>PlanType INT -- 계획기준</p>
+<p>)</p>
+<p>INSERT INTO #FixData</p>
+<p>SELECT</p>
+<p>ISNULL(B.CustName , '') AS CustName</p>
+<p>,ISNULL(C.MinorName , '') AS UMModelName</p>
+<p>,ISNULL(D.ItemNo , '') AS ItemNo</p>
+<p>,ISNULL(D.ItemName , '') AS ItemName</p>
+<p>,SUM(ISNULL(A.CfmQty , 0)) AS SumCfmQty</p>
+<p>,SUM(ISNULL(A.CfmAmt , 0)) AS SumCfmAmt</p>
+<p>,ISNULL(A.CustSeq , 0) AS CustSeq</p>
+<p>,ISNULL(A.UMModelSeq , 0) AS UMModelSeq</p>
+<p>,ISNULL(A.ItemSeq , 0) AS ItemSeq</p>
+<p>,ISNULL(A.BizUnit , 0) AS BizUnit</p>
+<p>,ISNULL(A.PlanType , 0) AS PlanType</p>
+<p>FROM sdng_TPNSLItemPlan AS A WITH(NOLOCK)</p>
+<p>LEFT OUTER JOIN _TDACust AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.CustSeq = B.CustSeq</p>
+<p>LEFT OUTER JOIN _TDAUMinor AS C WITH(NOLOCK) ON A.CompanySeq = C.CompanySeq</p>
+<p>AND A.UMModelSeq = C.MinorSeq</p>
+<p>LEFT OUTER JOIN _TDAItem AS D WITH(NOLOCK) ON A.CompanySeq = D.CompanySeq</p>
+<p>AND A.ItemSeq = D.ItemSeq</p>
+<p>LEFT OUTER JOIN _TDABizUnit AS E WITH(NOLOCK) ON A.CompanySeq = E.CompanySeq</p>
+<p>AND A.BizUnit = E.BizUnit</p>
+<p>WHERE A.CompanySeq = @CompanySeq</p>
+<p>AND (@BizUnit = 0 OR E.BizUnit = @BizUnit) -- 사업단위</p>
+<p>AND LEFT(A.PlanYM, 4) = @PlanYear -- 계획년도</p>
+<p>AND (@PlanType = 0 OR A.PlanType = @PlanType) -- 계획기준</p>
+<p>AND (@CustSeq = 0 OR A.CustSeq = @CustSeq) -- 거래처</p>
+<p>AND (@UMModelSeq = 0 OR A.UMModelSeq = @UMModelSeq) -- 차종</p>
+<p>AND (@ItemName = '' OR D.ItemName LIKE @ItemName + N'%') -- 품명</p>
+<p>AND (@ItemNo = '' OR D.ItemNo LIKE @ItemNo + N'%') -- 품번</p>
+<p>GROUP BY</p>
+<p>B.CustName ,</p>
+<p>C.MinorName ,</p>
+<p>D.ItemNo ,</p>
+<p>D.ItemName ,</p>
+<p>A.CustSeq ,</p>
+<p>A.UMModelSeq,</p>
+<p>A.ItemSeq ,</p>
+<p>A.BizUnit ,</p>
+<p>A.PlanType</p>
+<p>ORDER BY ISNULL(A.CustSeq, 0), ISNULL(A.UMModelSeq, 0), ISNULL(A.ItemSeq, 0)</p>
+<p>--=======================</p>
+<p>-- 가변헤더 SELECT</p>
+<p>--=======================</p>
+<p>SELECT TitleName1, TitleSeq1, TitleName2, TitleSeq2, ColIDX</p>
+<p>FROM #Title</p>
+<p>ORDER BY ColIDX</p>
+<p>--=======================</p>
+<p>-- 고정부 SELECT</p>
+<p>--=======================</p>
+<p>SELECT CustName</p>
+<p>,UMModelName</p>
+<p>,ItemNo</p>
+<p>,ItemName</p>
+<p>,SumCfmQty</p>
+<p>,SumCfmAmt</p>
+<p>,CustSeq</p>
+<p>,UMModelSeq</p>
+<p>,ItemSeq</p>
+<p>FROM #FixData</p>
+<p>ORDER BY RowIDX</p>
+<p>--=======================</p>
+<p>-- 가변부 SELECT</p>
+<p>--=======================</p>
+<p>SELECT B.RowIDX,A.ColIDX,</p>
+<p>MAX(CASE WHEN A.TitleSeq2 = 1 THEN ISNULL(C.Price ,0) ELSE 0 END) AS Price,</p>
+<p>SUM(CASE WHEN A.TitleSeq2 = 2 THEN ISNULL(C.CfmQty ,0) ELSE 0 END) AS CfmQty,</p>
+<p>SUM(CASE WHEN A.TitleSeq2 = 3 THEN ISNULL(C.CfmAmt ,0) ELSE 0 END) AS CfmAmt</p>
+<p>FROM #Title AS A</p>
+<p>JOIN #FixData AS B ON 1=1</p>
+<p>LEFT OUTER JOIN sdng_TPNSLItemPlan AS C ON C.CompanySeq = @CompanySeq</p>
+<p>AND C.PlanYM = A.TitleSeq1</p>
+<p>AND C.BizUnit = B.BizUnit</p>
+<p>AND C.PlanType = B.PlanType</p>
+<p>AND C.CustSeq = B.CustSeq</p>
+<p>AND C.UMModelSeq = B.UMModelSeq</p>
+<p>AND C.ItemSeq = B.ItemSeq</p>
+<p>GROUP BY B.RowIDX, A.ColIDX</p>
+<p>ORDER BY B.RowIDX, A.ColIDX</p>
+<p>RETURN</p>
+  </article>
+</div>
+</body>
+</html>

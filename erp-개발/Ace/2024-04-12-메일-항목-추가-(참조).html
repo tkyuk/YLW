@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메일 항목 추가 (참조)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>메일 항목 추가 (참조)</h1>
+    <div class="meta">
+      <span class="note-date">2024-04-12</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#Ace</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="_1">메일 항목 추가 (참조)</h1>
+<blockquote>
+<p>1) SP 관련 내용</p>
+</blockquote>
+<ul>
+<li>
+<p>Input</p>
+</li>
+<li>
+<p>MessageDiv : A(알림톡), S(SMS), M(Mail)</p>
+</li>
+<li>
+<p>TemplateCode, TemplateContent : 템플릿 코드 및 내용</p>
+</li>
+<li>
+<p>Param1, 2, 3, 4, 5 : 프로그램별 설정에서 설정된 컬럼 및 필드의 조회된 연속된 값</p>
+</li>
+</ul>
+<blockquote>
+<p>2) Select시 화면에 설정되는 값</p>
+</blockquote>
+<ul>
+<li>
+<p>SP 에서 해당 컬럼이름으로 SELECT 하면, 화면에 자동 세팅됨</p>
+</li>
+<li>
+<p>TemplateContent : 파라메터들을 Replace한 템플릿 내용(Mail인 경우 HTML TAG로 작성)</p>
+</li>
+<li>
+<p>RecvNames : 수신인 이름(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>RecvValues : 수신번호 및 메일주소(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>ReferNames : 참조인 이름(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>ReferValues : 참조번호 및 메일주소(세미콜론으로 연결)</p>
+</li>
+<li>
+<p>CustName : 거래처조회란에 거래처명</p>
+</li>
+<li>
+<p>Subject : 메일 제목(Mail인 경우만)</p>
+</li>
+<li>
+<p>SendEmail : 송신인 메일주소(Mail인 경우만)</p>
+</li>
+<li>
+<p>DisplayReportName : 첨부되는 레포트 파일 이름(Mail인 경우만)</p>
+</li>
+<li>
+<p>CustomUserName : 알림톡 경우 추가메시지란에 \&lt;’유저명’의 메시지&gt;란 문구가 추가되는데, 유저명 변경</p>
+</li>
+</ul>
+<blockquote>
+<p>출처: \&lt;<a href="https://kdc.ksystem.co.kr/WebDev">https://kdc.ksystem.co.kr/WebDev</a>&gt;</p>
+</blockquote>
+<p><img alt="" src="assets/메일-항목-추가-(참조)/image142.png" /></p>
+<p>MAIL SP 에서 해당 값 변수로 뿌리기만 하면 된다</p>
+<p>+. 이름, 이메일 한 세트이기 때문에 같이 SELECT 해야함 (공백도 불가능)</p>
+<p><img alt="" src="assets/메일-항목-추가-(참조)/image143.png" /></p>
+  </article>
+</div>
+</body>
+</html>

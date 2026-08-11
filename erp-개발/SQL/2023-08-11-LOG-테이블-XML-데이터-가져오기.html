@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOG 테이블 XML 데이터 가져오기</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>LOG 테이블 XML 데이터 가져오기</h1>
+    <div class="meta">
+      <span class="note-date">2023-08-11</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="log-xml">LOG 테이블 XML 데이터 가져오기</h1>
+<p>CREATE TABLE #TempTPDBOMLog(</p>
+<p>LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100)</p>
+<p>,CompanySeq INT</p>
+<p>,ItemSeq INT</p>
+<p>,ItemBomRev NCHAR(4)</p>
+<p>,LastUserSeq INT</p>
+<p>,LastDateTime NVARCHAR(100)</p>
+<p>,Serl INT</p>
+<p>,BizUnit INT</p>
+<p>)</p>
+<p>DECLARE @XmlData NVARCHAR(MAX),</p>
+<p>@DocHandle INT</p>
+<p>SELECT @XmlData = ''</p>
+<p>SELECT @XmlData = @XmlData +</p>
+<p>REPLACE(CONVERT(NVARCHAR(MAX), A.xmlData),</p>
+<p>'\&lt;A',</p>
+<p>'\&lt;A LogType="' + A.LogType+ '" ' +</p>
+<p>'LogSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogSeq, 0)) + '" ' +</p>
+<p>'LogUserSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogUserSeq, 0)) + '" ' +</p>
+<p>'LogPgmSeq="' + CONVERT(NVARCHAR(100), ISNULL(A.LogPgmSeq , 0)) + '" ' +</p>
+<p>'LogDateTime="' + CONVERT(NVARCHAR(100), A.LogDateTime, 120) + '" ')</p>
+<p>FROM _TCOMTableLog AS A WITH(NOLOCK)</p>
+<p>WHERE A.TableName = '_TPDBOM'</p>
+<p>SELECT @XmlData = '\&lt;ROOT&gt;' + @XmlData + '\&lt;/ROOT&gt;'</p>
+<p>EXEC sp_xml_preparedocument @DocHandle OUTPUT, @XmlData</p>
+<p>INSERT INTO #TempTPDBOMLog</p>
+<p>SELECT LogType ,</p>
+<p>LogSeq ,</p>
+<p>LogUserSeq ,</p>
+<p>LogPgmSeq ,</p>
+<p>LogDateTime ,</p>
+<p>CompanySeq ,</p>
+<p>ItemSeq ,</p>
+<p>ItemBomRev ,</p>
+<p>LastUserSeq ,</p>
+<p>LastDateTime,</p>
+<p>Serl,</p>
+<p>BizUnit</p>
+<p>FROM OPENXML (@DocHandle, '/ROOT/A', 1)</p>
+<p>WITH (LogType NVARCHAR(100),</p>
+<p>LogSeq NVARCHAR(100),</p>
+<p>LogUserSeq NVARCHAR(100),</p>
+<p>LogPgmSeq NVARCHAR(100),</p>
+<p>LogDateTime NVARCHAR(100)</p>
+<p>,CompanySeq INT</p>
+<p>,ItemSeq INT</p>
+<p>,ItemBomRev NCHAR(4)</p>
+<p>,LastUserSeq INT</p>
+<p>,LastDateTime NVARCHAR(100)</p>
+<p>,Serl INT</p>
+<p>,BizUnit INT</p>
+<p>)</p>
+<p>biont_SWPDBOMLogQuery</p>
+  </article>
+</div>
+</body>
+</html>

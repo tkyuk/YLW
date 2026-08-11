@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생산의뢰 - 작업지시</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="../../index.html">&larr; 목록으로</a>
+  <header class="note-header">
+    <h1>생산의뢰 - 작업지시</h1>
+    <div class="meta">
+      <span class="note-date">2024-10-18</span>
+      <span class="tag">#erp</span><span class="tag">#개발</span><span class="tag">#SQL</span>
+    </div>
+  </header>
+  <article class="note-body">
+    <h1 id="-">생산의뢰 - 작업지시</h1>
+<p>BEGIN TRAN</p>
+<p>DECLARE @CompanySeq INT = 1</p>
+<p>--==================================================</p>
+<p>-- 작업지시 담기</p>
+<p>--==================================================</p>
+<p>CREATE TABLE #WorkOrder</p>
+<p>(</p>
+<p>IDX_NO INT IDENTITY(1,1) ,</p>
+<p>WorkOrderSeq INT , -- 작업지시내부코드</p>
+<p>WorkOrderSerl INT , -- 작업지시내부순번</p>
+<p>WorkType INT , -- 작업구분코드</p>
+<p>OrderQty DECIMAL(19,5) , -- 지시수량</p>
+<p>ProgressQty DECIMAL(19,5) , -- 진행수량</p>
+<p>ProgStatus INT , -- 진행상태코드</p>
+<p>IsWork NCHAR(1) , -- 재작업여부</p>
+<p>Confirm INT NULL, -- 확정여부</p>
+<p>ConfirmEmp NVARCHAR(100) NULL, -- 확정자</p>
+<p>ConfirmDate NCHAR(8) NULL, -- 확정일</p>
+<p>ConfirmReason NVARCHAR(500) NULL, -- 확정사유</p>
+<p>IsStop NCHAR(1) NULL, -- 중단여부</p>
+<p>StopEmp NVARCHAR(100) NULL, -- 중단자</p>
+<p>StopDate NCHAR(8) NULL, -- 중단일</p>
+<p>StopReason NVARCHAR(500) NULL, -- 중단사유</p>
+<p>CustSeq INT NULL, -- 거래처코드</p>
+<p>CompleteCHECK INT</p>
+<p>)</p>
+<p>INSERT INTO #WorkOrder</p>
+<p>(</p>
+<p>WorkOrderSeq, WorkOrderSerl , WorkType , OrderQty , ProgressQty,</p>
+<p>ProgStatus , IsWork , CompleteCHECK</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>top 10</p>
+<p>O.WorkOrderSeq AS WorkOrderSeq -- 작업지시내부코드</p>
+<p>, O.WorkOrderSerl AS WorkOrderSerl -- 작업지시내부순번</p>
+<p>, O.WorkType AS WorkType -- 작업구분코드</p>
+<p>, O.OrderQty AS OrderQty -- 지시수량</p>
+<p>, 0 AS ProgressQty -- 진행수량</p>
+<p>, 6036001 AS ProgStatus -- 진행상태코드</p>
+<p>, N'0' AS IsWork</p>
+<p>, -1</p>
+<p>FROM _TPDSFCWorkOrder AS O WITH(NOLOCK)</p>
+<p>JOIN _TPDBaseWorkCenter AS W WITH(NOLOCK) ON O.WorkCenterSeq = W.WorkCenterSeq</p>
+<p>AND O.CompanySeq = W.CompanySeq</p>
+<p>JOIN _TDAItem AS I WITH(NOLOCK) ON O.GoodItemSeq = I.ItemSeq</p>
+<p>AND O.CompanySeq = I.CompanySeq</p>
+<p>LEFT OUTER JOIN _TPDMPSDailyProdPlan AS M WITH(NOLOCK) ON O.ProdPlanSeq = M.ProdPlanSeq</p>
+<p>AND O.CompanySeq = M.CompanySeq</p>
+<p>LEFT OUTER JOIN _TDAItemClass AS A WITH(NOLOCK) ON I.CompanySeq = A.CompanySeq</p>
+<p>AND I.ItemSeq = A.ItemSeq</p>
+<p>AND A.UMajorItemClass = 2001 -- IN (2001,2004)</p>
+<p>LEFT OUTER JOIN _VDAItemClass AS B WITH(NOLOCK) ON A.CompanySeq = B.CompanySeq</p>
+<p>AND A.UMItemClass = B.ItemClassSSeq</p>
+<p>WHERE O.WorkOrderSeq = 10705</p>
+<p>--==================================================</p>
+<p>-- 원천 가져오기 (생산의뢰)</p>
+<p>--==================================================</p>
+<p>-- 원천조회 테이블 생성</p>
+<p>CREATE TABLE #TMP_SOURCETABLE</p>
+<p>(</p>
+<p>IDOrder INT,</p>
+<p>TABLENAME NVARCHAR(100)</p>
+<p>)</p>
+<p>CREATE TABLE #TCOMSourceTracking</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>IDOrder INT,</p>
+<p>Seq INT,</p>
+<p>Serl INT,</p>
+<p>SubSerl INT,</p>
+<p>Qty DECIMAL(19,5),</p>
+<p>STDQty DECIMAL(19,5),</p>
+<p>Amt DECIMAL(19,5),</p>
+<p>VAT DECIMAL(19,5)</p>
+<p>)</p>
+<p>-- 원천 데이터 담기</p>
+<p>CREATE TABLE #SourceData</p>
+<p>(</p>
+<p>IDX_NO INT,</p>
+<p>ProdReqSeq INT, -- 생산의뢰내부코드</p>
+<p>ProdReqNo NVARCHAR(100), -- 생산의뢰번호</p>
+<p>CustSeq INT, -- 생산의뢰거래처코드</p>
+<p>DeptSeq INT, -- 생산의뢰부서코드</p>
+<p>EmpSeq INT, -- 생산의뢰자코드</p>
+<p>DVDate NCHAR(8), -- 납기일</p>
+<p>ProdReqQty DECIMAL(19,5), -- 의뢰수량</p>
+<p>ProdReqSerl INT -- 생산의뢰내부순번</p>
+<p>)</p>
+<p>-- 원천 조회</p>
+<p>INSERT INTO #TMP_SOURCETABLE</p>
+<p>SELECT 1, N'_TPDMPSProdReqItem' -- 생산의뢰</p>
+<p>-- 원천 데이터 가져오기</p>
+<p>EXEC dbo._SWCOMSourceTracking @CompanySeq</p>
+<p>, N'_TPDSFCWorkOrder'</p>
+<p>, N'#WorkOrder'</p>
+<p>, N'WorkOrderSeq'</p>
+<p>, N'WorkOrderSerl'</p>
+<p>, N''</p>
+<p>-- 생산의뢰정보</p>
+<p>INSERT INTO #SourceData</p>
+<p>(</p>
+<p>IDX_NO , ProdReqSeq, ProdReqNo, CustSeq, DeptSeq,</p>
+<p>EmpSeq , DVDate , ProdReqSerl,ProdReqQty</p>
+<p>)</p>
+<p>SELECT DISTINCT</p>
+<p>T.IDX_NO</p>
+<p>, S.Seq</p>
+<p>, R.ProdReqNo</p>
+<p>, RI.CustSeq -- 2022.02.07 김기태 Item테이블 거래처로 수정</p>
+<p>, R.DeptSeq</p>
+<p>, R.EmpSeq</p>
+<p>, RI.DelvDate</p>
+<p>, RI.Serl</p>
+<p>, RI.Qty</p>
+<p>FROM #WorkOrder AS T</p>
+<p>LEFT OUTER JOIN #TCOMSourceTracking AS S ON T.IDX_NO = S.IDX_NO</p>
+<p>AND S.IDOrder = 1</p>
+<p>LEFT OUTER JOIN _TPDMPSProdReqItem AS RI WITH(NOLOCK) ON S.Seq = RI.ProdReqSeq</p>
+<p>AND S.Serl = RI.Serl</p>
+<p>LEFT OUTER JOIN _TPDMPSProdReq AS R WITH(NOLOCK) ON S.Seq = R.ProdReqSeq</p>
+<p>AND RI.CompanySeq = R.CompanySeq</p>
+<p>WHERE RI.CompanySeq = @CompanySeq</p>
+<p>SELECT * FROM #SourceData</p>
+<p>ROLLBACK TRAN</p>
+  </article>
+</div>
+</body>
+</html>
